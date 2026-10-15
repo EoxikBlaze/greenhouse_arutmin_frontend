@@ -12,7 +12,7 @@ export default function LoginPage() {
   const [serverError, setServerError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault()
 
     // validasi inline — state "field kosong" (wajib isi)
@@ -23,14 +23,25 @@ export default function LoginPage() {
     setServerError('')
     if (Object.keys(next).length > 0) return
 
-    // TODO tahap API: POST /login (Laravel) lalu GET /me.
-    // Sementara: login dummy (role dari username) → dashboard.
     setSubmitting(true)
-    setTimeout(() => {
+    try {
+      // Login NYATA ke backend (bcrypt + rate limit anti brute-force)
+      const redirect = await login(username, password)
+      navigate(redirect || '/dashboard', { replace: true })
+    } catch (err) {
+      const data = (
+        err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } }
+      )?.response?.data
+      setServerError(data?.message || 'Login gagal — periksa koneksi ke server.')
+      if (data?.errors) {
+        setErrors({
+          username: data.errors.username?.[0],
+          password: data.errors.password?.[0],
+        })
+      }
+    } finally {
       setSubmitting(false)
-      login(username)
-      navigate('/dashboard', { replace: true })
-    }, 500)
+    }
   }
 
   return (

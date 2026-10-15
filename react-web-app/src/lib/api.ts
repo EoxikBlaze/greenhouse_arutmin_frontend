@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { currentToken } from './token'
 
 /**
  * Same-origin (default) — request dilewatkan proxy Vite ke backend
@@ -13,4 +14,11 @@ export const api = axios.create({
     'X-Requested-With': 'XMLHttpRequest',
     Accept: 'application/json',
   },
+})
+
+// Lampirkan token sesi (Bearer) di setiap request — dibaca segar dari storage.
+api.interceptors.request.use((config) => {
+  const token = currentToken()
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
 })

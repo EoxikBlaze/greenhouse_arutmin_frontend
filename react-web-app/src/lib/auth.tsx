@@ -1,12 +1,12 @@
 import { useMemo, useState, type ReactNode } from 'react'
-import { AuthCtx, defaultAuth, roleFromUsername, type AuthValue } from './authContext'
+import { api } from './api'
+import { AuthCtx, defaultAuth, roleFromLevel, type AuthValue } from './authContext'
+import { AUTH_KEY } from './token'
 
-const KEY = 'vsf-auth'
-
-/** Persist data auth (tanpa fungsi) supaya refresh tidak memutus sesi. */
+/** Persist data auth + token (sessionStorage — hilang saat tab ditutup). */
 function load(): Partial<AuthValue> {
   try {
-    const raw = sessionStorage.getItem(KEY)
+    const raw = sessionStorage.getItem(AUTH_KEY)
     if (!raw) return {}
     const d = JSON.parse(raw)
     return {
@@ -14,6 +14,7 @@ function load(): Partial<AuthValue> {
       username: String(d.username ?? ''),
       role: d.role ?? 'admin',
       demo: !!d.demo,
+      token: String(d.token ?? ''),
     }
   } catch {
     return {}
@@ -23,12 +24,13 @@ function load(): Partial<AuthValue> {
 function save(data: Partial<AuthValue>) {
   try {
     sessionStorage.setItem(
-      KEY,
+      AUTH_KEY,
       JSON.stringify({
         isAuthenticated: data.isAuthenticated,
         username: data.username,
         role: data.role,
         demo: data.demo,
+        token: data.token,
       }),
     )
   } catch {
@@ -39,25 +41,47 @@ function save(data: Partial<AuthValue>) {
 export function AuthProvider({ children, value }: { children: ReactNode; value?: Partial<AuthValue> }) {
   const [state, setState] = useState<AuthValue>(() => ({ ...defaultAuth, ...load(), ...value }))
 
-  const api = useMemo<AuthValue>(
-    () => ({
-      ...state,
-      login: (username, role) =>
-        setState((s) => {
-          const r = role ?? roleFromUsername(username)
-          const next = { ...s, isAuthenticated: true, username, role: r, demo: r === 'demo' }
-          save(next)
-          return next
-        }),
-      logout: () =>
-        setState((s) => {
-          const next = { ...s, isAuthenticated: false, username: '', demo: false }
-          save(next)
-          return next
-        }),
-    }),
+  const apiVal = useMemo<AuthValue>(
+    () => {
+      const login = async (username: string, password: string): Promise<string> => {
+        // Login NYATA — backend memverifikasi bcrypt + rate limit anti brute-force
+        const res = await api.post('/login', { username, password })
+        const d = (res.data ?? {}) as {
+          token?: string
+          user?: { username?: string; level?: string }
+          redirect?: string
+        }
+        const role = roleFromLevel(d.user?.level)
+        const next = {
+          isAuthenticated: true,
+          username: String(d.user?.username ?? username),
+          role,
+          demo: role === 'demo',
+          token: String(d.token ?? ''),
+        }
+        save(next)
+        setState((s) => ({ ...s, ...next }))
+        return String(d.redirect ?? (role === 'petani' ? '/tanam' : '/dashboard'))
+      }
+
+      const logout = () => {
+        // best-effort — token JWT bersifat stateless, yang penting sesi lokal dibuang
+        api.get('/logout').catch(() => {})
+        save({})
+        setState((s) => ({
+          ...s,
+          isAuthenticated: false,
+          username: '',
+          demo: false,
+          token: '',
+          role: 'admin',
+        }))
+      }
+
+      return { ...state, login, logout }
+    },
     [state],
   )
 
-  return <AuthCtx.Provider value={api}>{children}</AuthCtx.Provider>
+  return <AuthCtx.Provider value={apiVal}>{children}</AuthCtx.Provider>
 }

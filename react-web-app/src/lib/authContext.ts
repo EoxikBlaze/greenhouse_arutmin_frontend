@@ -3,15 +3,19 @@ import type { Role } from './authTypes'
 
 /**
  * Nilai auth — satu sumber untuk role chip, demo banner, guard rute.
- * Default: belum login. Login dummy meniru backend Laravel:
- *   demo → role demo (read-only), petani* → petani, selain itu admin.
+ * Login NYATA ke backend (POST /login) — bukan dummy.
  */
 export type AuthValue = {
   isAuthenticated: boolean
   role: Role
   username: string
   demo: boolean
-  login: (username: string, role?: Role) => void
+  token: string
+  /**
+   * Login ke backend. Mengembalikan redirect dari server
+   * ('/dashboard' atau '/tanam'). Melempar AxiosError bila gagal.
+   */
+  login: (username: string, password: string) => Promise<string>
   logout: () => void
 }
 
@@ -20,7 +24,8 @@ export const defaultAuth: AuthValue = {
   role: 'admin',
   username: '',
   demo: false,
-  login: () => {},
+  token: '',
+  login: async () => '/dashboard',
   logout: () => {},
 }
 
@@ -30,10 +35,10 @@ export function useAuth(): AuthValue {
   return useContext(AuthCtx)
 }
 
-/** Petakan username → role (dummy; diganti verifikasi backend saat integrasi API). */
-export function roleFromUsername(username: string): Role {
-  const u = username.trim().toLowerCase()
-  if (u === 'demo') return 'demo'
-  if (u.startsWith('petani')) return 'petani'
+/** Petakan level dari server (admin/user/petani/demo) → role aplikasi. */
+export function roleFromLevel(level?: string): Role {
+  const l = String(level ?? '').toLowerCase()
+  if (l === 'demo') return 'demo'
+  if (l === 'petani') return 'petani'
   return 'admin'
 }
