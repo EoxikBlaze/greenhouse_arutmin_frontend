@@ -1,0 +1,54 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>UI/UX per Halaman — Vertonik Smart Farmwireframe struktural grayscale</title><style>
+*{box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:#f3f4f6;color:#111;margin:0}
+.pagehead{background:#111;color:#fff;padding:14px 20px}
+.pagehead h1{margin:0;font-size:16px;letter-spacing:-.01em}
+.pagehead .meta{font-size:10px;color:#9ca3af;margin-top:4px;letter-spacing:.06em}
+.pagehead .meta b{color:#E9CD53;font-weight:700}
+.wf{display:flex;min-height:calc(100vh - 60px)}
+.side{width:212px;flex:0 0 212px;background:#e5e7eb;border-right:1px dashed #9ca3af;padding:12px 10px}
+.side .brand{border:1.5px dashed #9ca3af;border-radius:8px;padding:8px;text-align:center;font-size:10px;color:#6b7280;margin-bottom:8px;background:#fafafa}
+.side .grp{font-size:8.5px;letter-spacing:.14em;color:#6b7280;margin:12px 2px 4px;font-weight:800;text-transform:uppercase}
+.side .it{font-size:11px;padding:5px 8px;border-radius:7px;color:#374151;margin:2px 0;border:1px solid transparent}
+.side .it.on{background:#111;color:#fff;font-weight:700}
+.side .it.dash{border-style:dashed;border-color:#9ca3af;color:#6b7280}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.top{min-height:52px;background:#fff;border-bottom:1.5px solid #d1d5db;display:flex;align-items:center;gap:12px;padding:8px 16px;flex-wrap:wrap}
+.top .ttl{min-width:150px}
+.top .ttl b{font-size:13px;display:block}
+.top .ttl small{font-size:8.5px;letter-spacing:.1em;color:#9ca3af;text-transform:uppercase}
+.chip{font-size:9px;border:1.5px solid #9ca3af;border-radius:999px;padding:3px 9px;color:#4b5563;background:#fff;white-space:nowrap}
+.chip.dots::before{content:'●';margin-right:5px;color:#111}
+.chip.warn{border-color:#111;background:#111;color:#fff}
+.content{padding:16px;display:flex;flex-direction:column;gap:13px}
+.wz{border:1.5px dashed #9ca3af;background:#fafafa;border-radius:9px;padding:10px 11px}
+.wz>.lbl{font-size:8.5px;letter-spacing:.14em;color:#6b7280;font-weight:800;margin-bottom:7px;text-transform:uppercase}
+.wz>.lbl i{font-style:normal;color:#111}
+.row{display:flex;gap:11px;flex-wrap:wrap}
+.cell{flex:1;min-width:130px}
+.mut{font-size:10px;color:#6b7280;line-height:1.5}
+.winput{height:30px;border:1.5px solid #9ca3af;border-radius:7px;background:#fff}
+.warea{height:64px;border:1.5px solid #9ca3af;border-radius:7px;background:#fff}
+.wbtn{height:30px;border-radius:999px;background:#111;color:#fff;font-size:9.5px;display:flex;align-items:center;justify-content:center;padding:0 14px;font-weight:700;white-space:nowrap}
+.wbtn.ghost{background:#fff;color:#111;border:1.5px solid #111}
+.wbtn.mutd{background:#e5e7eb;color:#9ca3af;border:1.5px dashed #9ca3af}
+.tbl{width:100%;border-collapse:collapse;font-size:10px;background:#fff}
+.tbl th{background:#e5e7eb;text-align:left;padding:6px 7px;border:1px solid #d1d5db;font-size:8.5px;text-transform:uppercase;letter-spacing:.08em;color:#374151}
+.tbl td{padding:6px 7px;border:1px solid #eef0f3;color:#6b7280}
+.tbl td.act{color:#111;font-weight:700}
+.hatch{background:repeating-linear-gradient(45deg,#eceef1 0 7px,#f8f9fa 7px 14px);border:1.5px dashed #9ca3af;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#6b7280;font-size:10px;text-align:center;padding:10px}
+.pill{display:inline-block;font-size:8.5px;border:1px solid #9ca3af;border-radius:999px;padding:2px 8px;color:#4b5563;background:#fff;margin-right:4px}
+.pill.on{background:#111;color:#fff;border-color:#111}
+.state{border-left:3px solid #111;background:#fff;border-radius:0 7px 7px 0;padding:7px 9px;font-size:9.5px;color:#4b5563}
+.state b{color:#111;display:block;font-size:9px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.metric{border:1.5px solid #d1d5db;background:#fff;border-radius:9px;padding:9px;flex:1;min-width:112px}
+.metric .k{font-size:8.5px;color:#9ca3af;text-transform:uppercase;letter-spacing:.1em}
+.metric .v{font-size:17px;font-weight:800;margin:3px 0}
+.metric .s{font-size:8.5px;color:#6b7280}
+.notes{margin-top:16px;padding:14px 16px;background:#fff;border:1.5px solid #d1d5db;border-radius:10px}
+.notes h4{margin:0 0 8px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#111}
+.notes ul{margin:0;padding-left:16px;font-size:10.5px;color:#4b5563;line-height:1.7}
+.wrap{max-width:1180px}
+a.back{display:inline-block;margin:14px 20px;font-size:11px;color:#111;font-weight:700}
+</style></head><body>
+<div class="pagehead"><h1>UI/UX per Halaman — Vertonik Smart Farm</h1><div class="meta">wireframe struktural grayscale • 19 halaman • fungsi saja • role-tag per halaman</div></div><div style="padding:18px 20px;max-width:1180px"><div class="row" style="align-items:flex-start"><div class="cell wz" style="max-width:430px"><div class="lbl">Sitemap</div><div class="mut" style="line-height:1.9">/ login<br>├── /dashboard [admin • petani • demo]<br>├── /monitoring [semua login]<br>├── /watercontrol [admin]<br>├── /tanam [semua login]<br>├── /semai /peremajaan /pendewasaan /panen [admin]<br>├── /siklus, /tanaman, /meja, /ambang [admin]<br>├── /laporan, /notifikasi-wa [admin]<br>└── /user [admin] • /profil [semua]</div></div><div class="cell"><div class="lbl">Halaman (klik untuk buka)</div><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="01-login.html"><div class="lbl">Login</div><div class="mut">akses: publik</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="02-dashboard.html"><div class="lbl">Dashboard</div><div class="mut">akses: admin • petani • demo</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="03-sensor-realtime.html"><div class="lbl">Sensor Real-Time</div><div class="mut">akses: admin • petani</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="04-watercontrol.html"><div class="lbl">Water Control</div><div class="mut">akses: admin</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="05-tanam-saya.html"><div class="lbl">Tanam Saya</div><div class="mut">akses: admin • petani</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="06-semai.html"><div class="lbl">Semai (Penyemaian)</div><div class="mut">akses: admin</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="07-peremajaan.html"><div class="lbl">Peremajaan</div><div class="mut">akses: admin</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="08-pendewasaan.html"><div class="lbl">Pendewasaan</div><div class="mut">akses: admin</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="09-panen.html"><div class="lbl">Panen</div><div class="mut">akses: admin</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="10-durasi-siklus.html"><div class="lbl">Durasi Siklus</div><div class="mut">akses: admin</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="11-jenis-tanaman.html"><div class="lbl">Jenis Tanaman</div><div class="mut">akses: admin</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="12-meja-tanaman.html"><div class="lbl">Meja Tanam</div><div class="mut">akses: admin</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="13-ambang-sensor.html"><div class="lbl">Ambang Sensor</div><div class="mut">akses: admin</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="14-notifikasi-wa.html"><div class="lbl">Notifikasi WhatsApp</div><div class="mut">akses: admin</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="15-laporan-matriks.html"><div class="lbl">Matriks Laporan</div><div class="mut">akses: admin</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="16-manajemen-user.html"><div class="lbl">Manajemen User</div><div class="mut">akses: admin</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="17-profil.html"><div class="lbl">Profil & Password</div><div class="mut">akses: semua</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="18-chrome-global.html"><div class="lbl">Chrome Global</div><div class="mut">akses: referensi</div></a><a class="wz" style="display:block;text-decoration:none;color:inherit;margin-bottom:10px" href="19-galeri-state.html"><div class="lbl">Galeri State</div><div class="mut">akses: referensi</div></a></div></div><div class="notes"><h4>Cara pakai dokumen ini</h4><ul><li>Setiap file = 1 halaman: header berisi route + role, wireframe zona, lalu catatan state.</li><li>Grayscale + label kotak = struktur fungsi saja; styling visual (warna/font/brand) dikerjakan terpisah.</li><li>Chrome global (sidebar/topbar) identik di semua halaman — lihat file 18.</li><li>Untuk PenDev/Figma: 1 file = 1 frame.</li></ul></div></div></body></html>

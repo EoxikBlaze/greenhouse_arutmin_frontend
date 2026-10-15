@@ -1,0 +1,24 @@
+# Dependensi & hasil build (tidak pernah masuk git)
+node_modules/
+dist/
+build/
+.dart_tool/
+ios/Pods/
+.flutter-plugins*
+*.iml
+
+# Rahasia — HANYA .env.example yang boleh masuk git
+.env
+*.pem
+*.key
+
+# Backend (repo terpisah: greenhouse_arutmin_backend)
+backend-nodejs/
+# Repo induk (repo terpisah: greenhouse_arutmin)
+deploy-pi/
+scripts/
+
+# Sampah
+.DS_Store
+*.log
+*.zip

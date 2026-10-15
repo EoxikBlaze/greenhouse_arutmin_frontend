@@ -1,0 +1,90 @@
+import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { AppShell } from './layouts/AppShell'
+import { RequireAuth } from './components/RequireAuth'
+import LoginPage from './pages/LoginPage'
+import DashboardPage from './pages/DashboardPage'
+import SensorRealtimePage from './pages/SensorRealtimePage'
+import WaterControlPage from './pages/WaterControlPage'
+import TanamSayaPage from './pages/TanamSayaPage'
+import CctvPage from './pages/CctvPage'
+import AsistenAiPage from './pages/AsistenAiPage'
+import DosingPage from './pages/DosingPage'
+import {
+  SemaiPage,
+  PeremajaanPage,
+  PendewasaanPage,
+  PanenPage,
+  DurasiSiklusPage,
+} from './pages/stagePages'
+import {
+  JenisTanamanPage,
+  MejaTanamanPage,
+  AmbangSensorPage,
+} from './pages/masterPages'
+import { NotifWaPage, LaporanPage } from './pages/notifLaporanPages'
+import { ManajemenUserPage, ProfilPage } from './pages/userProfilPages'
+
+/** Guard gaya .pen — semua role yang boleh masuk */
+const ALL: Array<'admin' | 'petani' | 'demo'> = ['admin', 'petani', 'demo']
+/** admin + demo (demo = read-only) */
+const ADMIN_DEMO: Array<'admin' | 'demo'> = ['admin', 'demo']
+
+export const router = createBrowserRouter([
+  { path: '/', element: <Navigate to="/dashboard" replace /> },
+  { path: '/login', element: <LoginPage /> },
+  {
+    element: <RequireAuth />,
+    children: [
+      {
+        element: <AppShell />,
+        children: [
+          // 00/01 · semua role
+          { path: '/dashboard', element: <RequireAuth allow={ALL} element={<DashboardPage />} /> },
+          { path: '/sensor', element: <Navigate to="/sensor-realtime" replace /> },
+          { path: '/sensor-realtime', element: <RequireAuth allow={ALL} element={<SensorRealtimePage />} /> },
+          { path: '/tanam', element: <RequireAuth allow={ALL} element={<TanamSayaPage />} /> },
+          { path: '/cctv', element: <RequireAuth allow={ALL} element={<CctvPage />} /> },
+          { path: '/asisten-ai', element: <RequireAuth allow={ALL} element={<AsistenAiPage />} /> },
+          { path: '/profil', element: <RequireAuth allow={ALL} element={<ProfilPage />} /> },
+          { path: '/dosing', element: <RequireAuth allow={ADMIN_DEMO} element={<DosingPage />} /> },
+
+          // 02 · Kebun & Sensor — admin (demo read-only)
+          { path: '/watercontrol', element: <RequireAuth allow={ADMIN_DEMO} element={<WaterControlPage />} /> },
+
+          // 03 · Data Tahap + Durasi Siklus — admin (demo read-only)
+          { path: '/semai', element: <RequireAuth allow={ADMIN_DEMO} element={<SemaiPage />} /> },
+          { path: '/peremajaan', element: <RequireAuth allow={ADMIN_DEMO} element={<PeremajaanPage />} /> },
+          { path: '/pendewasaan', element: <RequireAuth allow={ADMIN_DEMO} element={<PendewasaanPage />} /> },
+          { path: '/panen', element: <RequireAuth allow={ADMIN_DEMO} element={<PanenPage />} /> },
+          { path: '/siklus', element: <RequireAuth allow={ADMIN_DEMO} element={<DurasiSiklusPage />} /> },
+
+          // 04 · Master Data — admin (demo read-only)
+          { path: '/tanaman', element: <RequireAuth allow={ADMIN_DEMO} element={<JenisTanamanPage />} /> },
+          { path: '/meja', element: <RequireAuth allow={ADMIN_DEMO} element={<MejaTanamanPage />} /> },
+          { path: '/ambang', element: <RequireAuth allow={ADMIN_DEMO} element={<AmbangSensorPage />} /> },
+
+          // 05 · Laporan & Notifikasi — admin (demo read-only)
+          { path: '/laporan', element: <RequireAuth allow={ADMIN_DEMO} element={<LaporanPage />} /> },
+          { path: '/notifikasi-wa', element: <RequireAuth allow={ADMIN_DEMO} element={<NotifWaPage />} /> },
+
+          // 06 · Sistem — Manajemen User [admin] + [demo] (demo = admin read-only)
+          { path: '/user', element: <RequireAuth allow={ADMIN_DEMO} element={<ManajemenUserPage />} /> },
+
+          // alias gaya .pen / mockup → resource route Laravel
+          { path: '/master/jenis-tanaman', element: <Navigate to="/tanaman" replace /> },
+          { path: '/master/meja-tanaman', element: <Navigate to="/meja" replace /> },
+          { path: '/master/ambang-sensor', element: <Navigate to="/ambang" replace /> },
+          { path: '/water-control', element: <Navigate to="/watercontrol" replace /> },
+          { path: '/tanam-saya', element: <Navigate to="/tanam" replace /> },
+          { path: '/durasi-siklus', element: <Navigate to="/siklus" replace /> },
+          { path: '/manajemen-user', element: <Navigate to="/user" replace /> },
+          { path: '/notifikasi-whatsapp', element: <Navigate to="/notifikasi-wa" replace /> },
+          { path: '/data-tahap/semai', element: <Navigate to="/semai" replace /> },
+          { path: '/data-tahap/peremajaan', element: <Navigate to="/peremajaan" replace /> },
+          { path: '/data-tahap/pendewasaan', element: <Navigate to="/pendewasaan" replace /> },
+          { path: '/data-tahap/panen', element: <Navigate to="/panen" replace /> },
+        ],
+      },
+    ],
+  },
+])

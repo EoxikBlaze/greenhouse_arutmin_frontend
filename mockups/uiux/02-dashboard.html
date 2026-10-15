@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>02 • Dashboard — Wireframe • Vertonik Smart Farm</title><style>
+*{box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:#f3f4f6;color:#111;margin:0}
+.pagehead{background:#111;color:#fff;padding:14px 20px}
+.pagehead h1{margin:0;font-size:16px;letter-spacing:-.01em}
+.pagehead .meta{font-size:10px;color:#9ca3af;margin-top:4px;letter-spacing:.06em}
+.pagehead .meta b{color:#E9CD53;font-weight:700}
+.wf{display:flex;min-height:calc(100vh - 60px)}
+.side{width:212px;flex:0 0 212px;background:#e5e7eb;border-right:1px dashed #9ca3af;padding:12px 10px}
+.side .brand{border:1.5px dashed #9ca3af;border-radius:8px;padding:8px;text-align:center;font-size:10px;color:#6b7280;margin-bottom:8px;background:#fafafa}
+.side .grp{font-size:8.5px;letter-spacing:.14em;color:#6b7280;margin:12px 2px 4px;font-weight:800;text-transform:uppercase}
+.side .it{font-size:11px;padding:5px 8px;border-radius:7px;color:#374151;margin:2px 0;border:1px solid transparent}
+.side .it.on{background:#111;color:#fff;font-weight:700}
+.side .it.dash{border-style:dashed;border-color:#9ca3af;color:#6b7280}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.top{min-height:52px;background:#fff;border-bottom:1.5px solid #d1d5db;display:flex;align-items:center;gap:12px;padding:8px 16px;flex-wrap:wrap}
+.top .ttl{min-width:150px}
+.top .ttl b{font-size:13px;display:block}
+.top .ttl small{font-size:8.5px;letter-spacing:.1em;color:#9ca3af;text-transform:uppercase}
+.chip{font-size:9px;border:1.5px solid #9ca3af;border-radius:999px;padding:3px 9px;color:#4b5563;background:#fff;white-space:nowrap}
+.chip.dots::before{content:'●';margin-right:5px;color:#111}
+.chip.warn{border-color:#111;background:#111;color:#fff}
+.content{padding:16px;display:flex;flex-direction:column;gap:13px}
+.wz{border:1.5px dashed #9ca3af;background:#fafafa;border-radius:9px;padding:10px 11px}
+.wz>.lbl{font-size:8.5px;letter-spacing:.14em;color:#6b7280;font-weight:800;margin-bottom:7px;text-transform:uppercase}
+.wz>.lbl i{font-style:normal;color:#111}
+.row{display:flex;gap:11px;flex-wrap:wrap}
+.cell{flex:1;min-width:130px}
+.mut{font-size:10px;color:#6b7280;line-height:1.5}
+.winput{height:30px;border:1.5px solid #9ca3af;border-radius:7px;background:#fff}
+.warea{height:64px;border:1.5px solid #9ca3af;border-radius:7px;background:#fff}
+.wbtn{height:30px;border-radius:999px;background:#111;color:#fff;font-size:9.5px;display:flex;align-items:center;justify-content:center;padding:0 14px;font-weight:700;white-space:nowrap}
+.wbtn.ghost{background:#fff;color:#111;border:1.5px solid #111}
+.wbtn.mutd{background:#e5e7eb;color:#9ca3af;border:1.5px dashed #9ca3af}
+.tbl{width:100%;border-collapse:collapse;font-size:10px;background:#fff}
+.tbl th{background:#e5e7eb;text-align:left;padding:6px 7px;border:1px solid #d1d5db;font-size:8.5px;text-transform:uppercase;letter-spacing:.08em;color:#374151}
+.tbl td{padding:6px 7px;border:1px solid #eef0f3;color:#6b7280}
+.tbl td.act{color:#111;font-weight:700}
+.hatch{background:repeating-linear-gradient(45deg,#eceef1 0 7px,#f8f9fa 7px 14px);border:1.5px dashed #9ca3af;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#6b7280;font-size:10px;text-align:center;padding:10px}
+.pill{display:inline-block;font-size:8.5px;border:1px solid #9ca3af;border-radius:999px;padding:2px 8px;color:#4b5563;background:#fff;margin-right:4px}
+.pill.on{background:#111;color:#fff;border-color:#111}
+.state{border-left:3px solid #111;background:#fff;border-radius:0 7px 7px 0;padding:7px 9px;font-size:9.5px;color:#4b5563}
+.state b{color:#111;display:block;font-size:9px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.metric{border:1.5px solid #d1d5db;background:#fff;border-radius:9px;padding:9px;flex:1;min-width:112px}
+.metric .k{font-size:8.5px;color:#9ca3af;text-transform:uppercase;letter-spacing:.1em}
+.metric .v{font-size:17px;font-weight:800;margin:3px 0}
+.metric .s{font-size:8.5px;color:#6b7280}
+.notes{margin-top:16px;padding:14px 16px;background:#fff;border:1.5px solid #d1d5db;border-radius:10px}
+.notes h4{margin:0 0 8px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#111}
+.notes ul{margin:0;padding-left:16px;font-size:10.5px;color:#4b5563;line-height:1.7}
+.wrap{max-width:1180px}
+a.back{display:inline-block;margin:14px 20px;font-size:11px;color:#111;font-weight:700}
+</style></head><body>
+<div class="pagehead"><h1>02 • Dashboard</h1>
+<div class="meta">route <b>GET /dashboard</b> • akses <b>admin • petani • demo</b> • wireframe struktural grayscale — fungsi saja, tanpa styling produk final)</div></div>
+<header class="top"><button class="wbtn ghost" style="width:30px;padding:0">≡</button><div class="ttl"><b>02 • Dashboard</b><small>Vertonik Smart Farm • Arutmin Indonesia</small></div><span class="chip dots">Alat Terhubung (Aktif)</span><span class="chip">📅 Sen, 12 Okt • 08:15 WIB</span><span class="chip"><b>ADMIN</b> ⌄</span></header>
+<div class="wf"><aside class="side"><div class="brand">◧ PT ARUTMIN INDONESIA<br><b>VERTONIK SMART FARM</b></div><div class="grp">Ikhtisar</div><div class="it on">Dashboard</div><div class="grp">Kebun & Sensor</div><div class="it">Sensor Real-Time</div><div class="it">Water Control</div><div class="grp">Siklus Tanam</div><div class="it">Tanam Saya</div><div class="it">Data Tahap (Detail)</div><div class="it">Durasi Siklus</div><div class="grp">Master Data</div><div class="it">Jenis Tanaman</div><div class="it">Meja Tanam</div><div class="it">Ambang Sensor</div><div class="grp">Laporan & Notifikasi</div><div class="it">Matriks Laporan</div><div class="it">Notifikasi WhatsApp</div><div class="grp">Sistem</div><div class="it">Manajemen User</div></aside>
+<main class="main"><div class="content"><div class="wrap">
+<section class="wz" ><div class="lbl">Hero sambutan + aksi cepat</div>
+<div class="row"><div class="cell"><b style="font-size:13px">Selamat Datang di Vertonik Smart Farm — PT Arutmin Indonesia</b>
+<div class="mut">Pantau kondisi air nutrisi, suhu tanaman, dan jadwal panen hidroponik.</div>
+<div class="row" style="margin-top:9px"><span class="wbtn ghost">Lihat Grafik Sensor</span><span class="wbtn ghost">Mulai Semai Baru</span><span class="wbtn ghost">Water Control</span></div></div>
+<div class="hatch" style="flex:0 0 130px">logo</div></div></section><section class="wz" ><div class="lbl">Kondisi Air &amp; Tanaman Terkini — 6 kartu metrik live</div><div class="row"><div class="metric"><div class="k">pH (Asam-Basa)</div><div class="v">6.43</div><div class="s">target 5.5–6.5 • Mati</div></div><div class="metric"><div class="k">Suhu Air Tandon</div><div class="v">26.2 °C</div><div class="s">target 24–28 • Mati</div></div><div class="metric"><div class="k">TDS Nutrisi</div><div class="v">1180 ppm</div><div class="s">target 900–1400 • Mati</div></div><div class="metric"><div class="k">Suhu Udara</div><div class="v">31.5 °C</div><div class="s">target 25–33 • Mati</div></div><div class="metric"><div class="k">Kelembapan</div><div class="v">68 %</div><div class="s">target 60–80 • Mati</div></div><div class="metric"><div class="k">Tandon Air</div><div class="v">74 %</div><div class="s">Katup: OFF • AUTO</div></div></div><div class="mut">▶ link "Detail Grafik" per kartu → halaman Sensor Real-Time</div></section><section class="wz" ><div class="lbl">Pipeline Siklus Tanam + total varietas</div><div class="row"><div class="metric" style="border-left:4px solid #111"><div class="k">Tahap 1</div><div class="v" style="font-size:12px">Penyemaian</div><div class="s">2 Batch Terdata</div></div><div class="metric" style="border-left:4px solid #111"><div class="k">Tahap 2</div><div class="v" style="font-size:12px">Peremajaan</div><div class="s">4 Batch Aktif</div></div><div class="metric" style="border-left:4px solid #111"><div class="k">Tahap 3</div><div class="v" style="font-size:12px">Pendewasaan</div><div class="s">3 Batch Siap Panen</div></div><div class="metric" style="border-left:4px solid #111"><div class="k">Tahap 4</div><div class="v" style="font-size:12px">Hasil Panen</div><div class="s">2 Panen Sukses</div></div><div class="metric" style="flex:0 0 140px"><div class="k">Varietas</div><div class="v">12</div><div class="s">Total Terdaftar</div></div></div></section><section class="wz" ><div class="lbl">Rata-rata sensor + daftar alert terbaru</div><div class="row"><div class="cell"><table class="tbl"><thead><tr><th>Parameter</th><th>Rata-rata 24 jam</th></tr></thead><tbody><tr><td class="act">pH</td><td class="">6.38</td></tr><tr><td class="act">Suhu Air</td><td class="">26.1 °C</td></tr><tr><td class="act">TDS</td><td class="">1165 ppm</td></tr><tr><td class="act">Kelembapan</td><td class="">67 %</td></tr></tbody></table></div><div class="cell"><table class="tbl"><thead><tr><th>Waktu</th><th>Tipe</th><th>Nilai</th></tr></thead><tbody><tr><td class="act">3 mnt lalu</td><td class="">pH tinggi</td><td class="">7.12</td></tr><tr><td class="act">1 jam lalu</td><td class="">Suhu</td><td class="">34.2 °C</td></tr><tr><td class="act">3 jam lalu</td><td class="">Level air</td><td class="">22 %</td></tr></tbody></table></div></div></section><div class="notes"><h4>Catatan struktur & state</h4><ul><li>Status koneksi di topbar: Terhubung / Periksa Alat (anomali) / Terputus + durasi.</li><li>State offline: 6 kartu nilai '--' + banner merah 'Alat Sensor Mati / Tidak Terhubung' + tombol ALAT MATI.</li><li>State loading: skeleton kartu, teks nilai tidak boleh pindah posisi (layout shift = larang).</li><li>Demo: banner kuning 'data otomatis terhapus maks 1 jam', aksi edit/hapus/kontrol dinonaktifkan.</li><li>Petani: hero + 6 kartu + pipeline; angka batch tetap, aksi kontrol tersembunyi.</li></ul></div></div></div></main>
+</div>
+<a class="back" href="00-index.html">← Semua halaman</a>
+</body></html>
