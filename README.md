@@ -41,11 +41,14 @@ tidak pernah muncul di browser.
 
 ## Cara update (kerja dua orang)
 
-1. `git pull` sebelum mulai kerja
-2. Buat branch: `git checkout -b fitur/nama-fitur`
+1. `git checkout dev && git pull` — kerja di branch **`dev`**
+2. Buat branch fitur (opsional): `git checkout -b fitur/nama-fitur`
 3. Kerja, commit dengan pesan jelas: `git commit -m "web: tambah grafik pH"`
-4. `git push -u origin fitur/nama-fitur` → buka Pull Request ke `main`
-5. Setelah review, merge. Jangan push langsung ke `main` bila berdua.
+4. `git push origin dev` (atau `fitur/nama-fitur`) → buka Pull Request ke `dev`
+5. Setelah review, merge. `main` hanya untuk versi stabil (diberi tag `v1.0`, `v1.1`, ...)
+
+Di GitHub, menu **Switch branches/tags** (kiri atas daftar file) untuk berpindah
+antara `main` / `dev` dan melihat tag versi.
 
 Aturan: yang diubah di repo ini = web + mobile saja. Perubahan API = di repo
 `greenhouse_arutmin_backend`.
