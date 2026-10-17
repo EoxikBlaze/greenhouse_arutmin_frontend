@@ -100,13 +100,25 @@ bash scripts/smoke-test.sh      # 20 pemeriksaan harus LULUS semua
 ```bash
 cd ~/Project/Vertoniksmartfarm/backend-nodejs
 DBURL=$(grep '^DATABASE_URL=' .env | cut -d= -f2-)
-createdb vertonik_smartfarm                     # kalau belum ada
-psql "$DBURL" -f database/vertonik.sql          # skema + data awal
-psql "$DBURL" -f scripts/fix-sequences.sql      # ★ WAJIB setelah import dump
-psql "$DBURL" -tAc "select count(*)||' baris alert_logs' from alert_logs"
+
+# ★ owner WAJIB = peran aplikasi (dibaca dari .env), kalau tidak error "permission denied for schema public"
+APPUSER=$(echo "$DBURL" | sed -E 's#^postgres://([^:/]+).*#\1#')
+createdb -O "$APPUSER" vertonik_smartfarm        # kalau belum ada
+
+psql "$DBURL" -f database/schema.sql             # 13 tabel · 35 index · 10 FK
+psql "$DBURL" -f database/seed.sql               # 3 akun + ambang + katup + WA + setval sequence
+psql "$DBURL" -tAc "select count(*)||' akun' from users"
 ```
 
-**Verifikasi (hasil nyata):** `51 baris alert_logs`
+**Verifikasi (hasil nyata):** `3 akun` · schema `CREATE` sukses · seed bisa dijalankan
+berulang (idempoten, `ON CONFLICT DO NOTHING`) · login `admin/petani/demo` cocok semua.
+
+**Alternatif (isi data lama lengkap, termasuk log sensor & panen):**
+
+```bash
+psql "$DBURL" -f database/vertonik.sql           # dump penuh
+psql "$DBURL" -f scripts/fix-sequences.sql       # ★ WAJIB setelah import dump
+```
 
 **⚠️ PERBAIKAN PALING PENTING — `scripts/fix-sequences.sql`**
 
