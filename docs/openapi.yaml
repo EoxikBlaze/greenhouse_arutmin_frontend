@@ -1,0 +1,635 @@
+openapi: 3.0.3
+info:
+  title: Vertonik Smart Farm API
+  description: |
+    Kontrak resmi backend Node.js Vertonik Smart Farm (Express 4 + PostgreSQL 17).
+    Nama rute 1:1 dengan kontrak Laravel lama. JSON-only kecuali 3 rute CSV.
+    Sumber manusia-baca: docs/KONTRAK_API.md · smoke test: backend-nodejs/scripts/smoke-test.sh
+  version: 1.0.0
+  contact:
+    name: Vertonik Smart Farm
+servers:
+  - url: http://127.0.0.1:8000
+    description: Development (Mac, bind localhost)
+  - url: http://raspberry-pi.local
+    description: Produksi (Raspberry Pi, nginx :80 ke 127.0.0.1:8000)
+tags:
+  - name: Autentikasi
+  - name: ESP32
+  - name: Dashboard dan Monitoring
+  - name: Tanam
+  - name: Water Control dan Laporan
+  - name: Master dan Tahap
+  - name: User dan Profil
+
+security:
+  - bearerAuth: []
+
+paths:
+  /:
+    get:
+      tags: [Autentikasi]
+      summary: Info endpoint (publik)
+      security: []
+      responses:
+        "200":
+          description: Info singkat
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Message" }
+        "204": { description: "Dibuka dari address bar (Sec-Fetch-Mode navigate) — body kosong" }
+
+  /login:
+    get:
+      tags: [Autentikasi]
+      summary: Info endpoint login (publik)
+      security: []
+      responses:
+        "200":
+          description: Info
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Message" }
+    post:
+      tags: [Autentikasi]
+      summary: "Login, menghasilkan JWT (rate limit 10/menit/IP)"
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginRequest" }
+            example: { username: admin, password: "***" }
+      responses:
+        "200":
+          description: Login berhasil
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LoginResponse" }
+        "422":
+          description: Username atau password salah / data tidak valid
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+        "429": { description: "Rate limit — coba lagi dalam 60 detik" }
+
+  /logout:
+    get:
+      tags: [Autentikasi]
+      summary: Logout (stateless, client membuang token)
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Message" }
+
+  /dashboard:
+    get:
+      tags: [Dashboard dan Monitoring]
+      summary: Ringkasan dashboard semua role, cache 5 detik
+      responses:
+        "200":
+          description: Metrik + status IoT + pipeline 4 tahap
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Dashboard" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /monitoring:
+    get:
+      tags: [Dashboard dan Monitoring]
+      summary: Halaman monitoring (semua role)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { page: { type: string, example: monitoring } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /monitoring/chart-data:
+    get:
+      tags: [Dashboard dan Monitoring]
+      summary: 288 baris sensor terakhir untuk grafik, urut mundur
+      responses:
+        "200":
+          description: Array pembacaan sensor
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Monitoring" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /monitoring/getReport6Jam:
+    get:
+      tags: [Dashboard dan Monitoring]
+      summary: Rata-rata sensor 6 jam + alert 6 jam (publik)
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sensor: { type: object, additionalProperties: true }
+                  alerts: { type: array, items: { $ref: "#/components/schemas/Alert" } }
+
+  /monitoring/tarik/csv:
+    get:
+      tags: [Dashboard dan Monitoring]
+      summary: Unduh riwayat sensor dalam CSV
+      responses:
+        "200":
+          description: file CSV (BOM UTF-8)
+          content:
+            text/csv:
+              schema: { type: string }
+
+  /monitoring/saveAlert:
+    post:
+      tags: [Dashboard dan Monitoring]
+      summary: Simpan alert (publik, kompatibilitas lama)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, value]
+              properties:
+                type: { type: string, example: solenoid }
+                value: { type: string, example: "ON (manual)" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { status: { type: string, example: ok } }
+
+  /api/latest-sensor:
+    get:
+      tags: [ESP32]
+      summary: Sensor terkini + status alat + anomali (publik, cache 2 detik)
+      security: []
+      parameters:
+        - name: device
+          in: query
+          required: false
+          description: "(USULAN, belum aktif) filter perangkat untuk skema 2 ESP32"
+          schema: { type: string, example: esp32-a }
+      responses:
+        "200":
+          description: Payload live
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LatestSensor" }
+
+  /api/get-thresholds:
+    get:
+      tags: [ESP32]
+      summary: Ambang sensor untuk perangkat (X-API-KEY, cache 60 detik)
+      security: [ { apiKeyHeader: [] } ]
+      responses:
+        "200":
+          description: Ambang 5 sensor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Thresholds" }
+        "403": { $ref: "#/components/responses/ForbiddenDevice" }
+
+  /api/save-sensor:
+    post:
+      tags: [ESP32]
+      summary: "Simpan bacaan sensor (X-API-KEY), 1 CTE, anti-duplikat + insert + state katup"
+      security: [ { apiKeyHeader: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SaveSensorRequest" }
+            example:
+              waterTemp: 26.9
+              ph: 6.5
+              tds: 1200
+              airTemp: 31
+              humidity: 66
+              water_level: Sedang
+              solenoid_state: "OFF"
+      responses:
+        "200":
+          description: Diterima, command harus dieksekusi perangkat
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SaveSensorResponse" }
+        "403": { $ref: "#/components/responses/ForbiddenDevice" }
+
+  /api/notif-hardware:
+    post:
+      tags: [ESP32]
+      summary: Peringatan hardware masuk alert_logs (X-API-KEY)
+      security: [ { apiKeyHeader: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type, value]
+              properties:
+                type: { type: string, example: solenoid }
+                value: { type: string, example: "ON (uji node)" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { status: { type: string, example: ok } }
+        "403": { $ref: "#/components/responses/ForbiddenDevice" }
+
+  /tanam:
+    get:
+      tags: [Tanam]
+      summary: Gabungan semai, peremajaan, pendewasaan (semua role)
+      responses:
+        "200":
+          description: Daftar aktif
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page: { type: string, example: tanam }
+                  list:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /tanam/mulai:
+    post:
+      tags: [Tanam]
+      summary: "Mulai tanam baru = buat batch semai (demo, expires_at +1 jam)"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_tanaman: { type: string }
+                id_siklus: { type: string }
+                id_meja: { type: string }
+                jumlah_benih: { type: integer, example: 1000 }
+                tgl_awal_semai: { type: string, format: date }
+                keterangan: { type: string }
+      responses:
+        "201":
+          description: Berhasil
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CreatedResponse" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+
+  /watercontrol/status:
+    get:
+      tags: [Water Control dan Laporan]
+      summary: State katup dan mode (admin + demo)
+      responses:
+        "200":
+          description: State
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string, example: "1" }
+                  command: { type: string, example: AUTO }
+                  mode: { type: string, example: MANUAL }
+                  valve_state: { type: string, example: "OFF" }
+                  updated_at: { type: string, format: date-time }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+
+  /watercontrol/setMode:
+    post:
+      tags: [Water Control dan Laporan]
+      summary: Ubah mode katup (admin, demo ditolak)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mode: { type: string, enum: [AUTO, MANUAL] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Message" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+
+  /laporan:
+    get:
+      tags: [Water Control dan Laporan]
+      summary: Matriks laporan per bulan (admin + demo)
+      responses:
+        "200":
+          description: Matriks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page: { type: string, example: laporan }
+                  matriks:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /user:
+    get:
+      tags: [User dan Profil]
+      summary: Daftar akun (admin + demo), tanpa field password
+      responses:
+        "200":
+          description: Daftar user
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/User" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+
+  /meja:
+    get:
+      tags: [Master dan Tahap]
+      summary: Daftar meja (admin + demo)
+      responses:
+        "200":
+          description: Daftar meja
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Meja" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+    post:
+      tags: [Master dan Tahap]
+      summary: "Tambah meja (201), kolom whitelist, meja dan jumlah_lubang"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MejaInput" }
+      responses:
+        "201":
+          description: Berhasil ditambahkan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CreatedResponse" }
+        "422":
+          description: Tidak ada kolom yang dikenal
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Message" }
+
+  /profil:
+    get:
+      tags: [User dan Profil]
+      summary: Profil sendiri (semua role)
+      responses:
+        "200":
+          description: Profil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page: { type: string, example: profil }
+                  user: { $ref: "#/components/schemas/User" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Token dari POST /login, berlaku 12 jam, header Authorization: Bearer ***"
+    apiKeyHeader:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+      description: "Kunci ESP32 dari .env (ESP32_API_KEY); skema 2 perangkat memakai ESP32_KEY_A dan ESP32_KEY_B"
+
+  responses:
+    Unauthorized:
+      description: Tidak ada atau tidak valid token
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Message" }
+          example: { message: "Tidak terautentikasi." }
+    ForbiddenRole:
+      description: Role tidak diizinkan
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Message" }
+          example: { message: "Menu ini untuk pengelola. Silakan gunakan menu Tanam Saya." }
+    ForbiddenDevice:
+      description: X-API-KEY salah
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status: { type: boolean, example: false }
+              msg: { type: string, example: Unauthorized }
+
+  schemas:
+    Message:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+
+    ValidationError:
+      type: object
+      properties:
+        message: { type: string, example: "Data tidak valid." }
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+        input:
+          type: object
+          additionalProperties: true
+
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, minLength: 3, example: admin }
+        password: { type: string, minLength: 3, format: password }
+        remember: { type: boolean, nullable: true }
+
+    LoginResponse:
+      type: object
+      properties:
+        status: { type: boolean, example: true }
+        message: { type: string, example: "Login berhasil." }
+        token: { type: string, description: "JWT HS256, 12 jam, sekitar 205 karakter" }
+        user: { $ref: "#/components/schemas/User" }
+        redirect: { type: string, example: /dashboard }
+
+    User:
+      type: object
+      properties:
+        id: { type: string, example: "1" }
+        username: { type: string, example: admin }
+        email: { type: string, nullable: true, example: admin@politala.ac.id }
+        level: { type: string, enum: [admin, user, petani], example: admin }
+        is_demo: { type: boolean, example: false }
+
+    Dashboard:
+      type: object
+      properties:
+        page: { type: string, example: dashboard }
+        iotStatus:
+          type: object
+          properties:
+            online: { type: boolean, example: false }
+            seconds_ago: { type: integer, example: 196944 }
+            diff_text: { type: string, example: "196944 detik yang lalu" }
+            last_seen: { type: string, format: date-time, nullable: true }
+        total_tanaman: { type: integer, example: 2 }
+        total_meja: { type: integer, example: 5 }
+        total_siklus: { type: integer, example: 6 }
+        total_semai: { type: integer, example: 2 }
+        total_peremajaan: { type: integer, example: 4 }
+        total_pendewasaan: { type: integer, example: 3 }
+        total_panen: { type: integer, example: 2 }
+        total_panen_qty: { type: integer, example: 22 }
+        latest_sensor: { type: object, additionalProperties: true }
+
+    Monitoring:
+      type: object
+      properties:
+        id: { type: string, example: "1" }
+        waterTemp: { type: number, nullable: true, example: 26.1 }
+        ph: { type: number, nullable: true, example: 6.4 }
+        tds: { type: number, nullable: true, example: 1180 }
+        airTemp: { type: number, nullable: true, example: 31.2 }
+        humidity: { type: number, nullable: true, example: 68 }
+        water_level: { type: string, nullable: true, example: Sedang }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    Alert:
+      type: object
+      properties:
+        id: { type: string, example: "3" }
+        type: { type: string, example: uji }
+        value: { type: string, example: x0 }
+        created_at: { type: string, format: date-time }
+
+    LatestSensor:
+      type: object
+      properties:
+        is_online: { type: boolean, description: "true bila data terakhir <= 120 detik" }
+        seconds_ago: { type: integer, nullable: true, example: 196944 }
+        anomalies:
+          type: array
+          items:
+            type: object
+            properties:
+              sensor: { type: string, example: tds }
+              value: { type: number, example: 1200 }
+              min: { type: number, example: 50 }
+              max: { type: number, example: 1000 }
+        sensor:
+          oneOf:
+            - $ref: "#/components/schemas/Monitoring"
+            - type: "null"
+        water_control:
+          type: object
+          nullable: true
+          properties:
+            mode: { type: string, example: MANUAL }
+            valve_state: { type: string, example: "OFF" }
+            command: { type: string, example: AUTO }
+            updated_at: { type: string, format: date-time }
+
+    Thresholds:
+      type: object
+      properties:
+        status: { type: boolean, example: true }
+        thresholds:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              min: { type: number }
+              max: { type: number }
+        fetched_at: { type: string, format: date-time }
+
+    SaveSensorRequest:
+      type: object
+      properties:
+        waterTemp: { type: number, nullable: true }
+        ph: { type: number, nullable: true }
+        tds: { type: number, nullable: true }
+        airTemp: { type: number, nullable: true }
+        humidity: { type: number, nullable: true }
+        water_level: { type: string, nullable: true, example: Sedang }
+        solenoid_state: { type: string, nullable: true, example: "OFF" }
+        device: { type: string, nullable: true, description: "(USULAN, belum aktif) identitas perangkat untuk skema 2 ESP32" }
+
+    SaveSensorResponse:
+      type: object
+      properties:
+        status: { type: string, example: ok }
+        command: { type: string, enum: [AUTO, FORCE_STOP], example: AUTO }
+        mode: { type: string, enum: [AUTO, MANUAL], example: MANUAL }
+        server_time: { type: string, format: date-time }
+
+    CreatedResponse:
+      type: object
+      properties:
+        status: { type: boolean, example: true }
+        message: { type: string, example: "Data berhasil ditambahkan." }
+        data:
+          type: object
+          additionalProperties: true
+
+    Meja:
+      type: object
+      properties:
+        meja: { type: string, example: Pendewasaan 2 }
+        jumlah_lubang: { type: integer, example: 200 }
+      description: "Primary key id_meja belum ikut terkirim, lihat docs/ANALISIS_BACKEND.md bagian 6.2"
+
+    MejaInput:
+      type: object
+      required: [meja, jumlah_lubang]
+      properties:
+        meja: { type: string, example: "MEJA A" }
+        jumlah_lubang: { type: integer, example: 8 }
