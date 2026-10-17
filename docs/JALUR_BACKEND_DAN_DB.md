@@ -35,7 +35,7 @@ flowchart TD
     C -->|"latest-sensor 2 dtk<br/>dashboard 5 dtk<br/>thresholds 60 dtk"| RESP
     C -->|"miss / tanpa cache"| Q["db.js — pool max 50<br/>q() / one() parameterized"]
 
-    Q --> DB[("PostgreSQL 17<br/>vertonik_smartfarm<br/>13 tabel · 35 index · 10 FK")]
+    Q --> DB[("PostgreSQL 17<br/>vertonik_smartfarm<br/>13 tabel · 35 index (domain) · 10 FK")]
     DB --> Q
     Q --> RESP
     Q -->|error| E500["500 generik"]
@@ -270,7 +270,7 @@ Skema + seed siap pakai ulang: `database/schema.sql` · `database/seed.sql`
 grep -oiE "(from|into|update|delete from)[[:space:]]+TABLE" src/routes/*.js
 
 # relasi FK langsung dari database
-psql "$DATABASE_URL" -c "SELECT conname, pg_get_constraintdef(oid) FROM pg_constraint WHERE contype='f'"
+psql "$DATABASE_URL" -c "SELECT c.conname, pg_get_constraintdef(c.oid) FROM pg_constraint c JOIN pg_class t ON t.oid = c.conrelid WHERE c.contype='f' AND c.connamespace = 'public'::regnamespace AND t.relname IN ('users','mejas','tanamen','sikluses','semais','peremajaans','pendewasaans','panens','monitorings','alert_logs','sensor_thresholds','water_controls','wa_settings')"   # hanya 13 tabel domain = 10 relasi
 
 # query paling lambat (butuh log)
 psql "$DATABASE_URL" -c "SELECT query, calls, mean_exec_time FROM pg_stat_statements ORDER BY mean_exec_time DESC LIMIT 5"

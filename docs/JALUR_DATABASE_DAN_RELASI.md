@@ -19,7 +19,7 @@ dan file kode, **17 Okt 2026**.
 | **Ukuran** | 16 MB |
 | **Tabel** | **21 total** = 13 tabel domain (dipakai Node.js) + 8 tabel sisa Laravel |
 | **Foreign key** | **10** |
-| **Index** | **35** |
+| **Index** | **35 (domain)** — total DB **50** = 35 domain + 15 sisa Laravel |
 | **Sequence (auto increment)** | 16 |
 
 **Satu-satunya database** — proyek ini tidak memakai MySQL, SQLite, MongoDB, maupun
@@ -168,7 +168,7 @@ DBURL=$(grep '^DATABASE_URL=' .env | cut -d= -f2-)
 
 # mesin baru — urutan wajib
 createdb -O vertonik vertonik_smartfarm      # owner = peran aplikasi (kalau tidak: permission denied)
-psql "$DBURL" -f database/schema.sql         # 13 tabel + 35 index + 10 FK
+psql "$DBURL" -f database/schema.sql         # 13 tabel + 35 index (domain) + 10 FK
 psql "$DBURL" -f database/seed.sql           # 3 akun + ambang + katup + setval (idempoten)
 
 # setiap habis import dump penuh (database/vertonik.sql)
@@ -179,7 +179,7 @@ pg_dump "$DBURL" > backup-$(date +%F).sql
 psql "$DBURL" -f backup-2026-10-17.sql
 
 # verifikasi jalur database
-psql "$DBURL" -c "SELECT count(*) FROM pg_constraint WHERE contype='f'"   # harus 10
+psql "$DBURL" -c "SELECT count(*) FROM pg_constraint c JOIN pg_class t ON t.oid = c.conrelid WHERE c.contype='f' AND c.connamespace = 'public'::regnamespace AND t.relname IN ('users','mejas','tanamen','sikluses','semais','peremajaans','pendewasaans','panens','monitorings','alert_logs','sensor_thresholds','water_controls','wa_settings')"   # = 10, hanya 13 tabel domain
 psql "$DBURL" -c "SELECT count(*) FROM pg_indexes WHERE schemaname='public'"  # total 50 = 35 domain + 15 sisa Laravel
 ```
 
