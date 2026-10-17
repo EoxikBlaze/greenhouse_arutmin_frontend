@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-/// Vertonik Smart Farm — monitoring greenhouse hidroponik (Arutmin Light).
+/// GARAP — monitoring greenhouse hidroponik (Arutmin Light).
 /// Terhubung ke backend Node.js lokal: http://127.0.0.1:8000
 /// (di iOS Simulator, 127.0.0.1 = Mac host — tidak perlu konfigurasi tambahan).
 
@@ -21,16 +21,16 @@ const Color warning = Color(0xFFE0A42B);
 const String apiBase = 'http://127.0.0.1:8000';
 
 void main() {
-  runApp(const VertonikApp());
+  runApp(const GarapApp());
 }
 
-class VertonikApp extends StatelessWidget {
-  const VertonikApp({super.key});
+class GarapApp extends StatelessWidget {
+  const GarapApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Vertonik Smart Farm',
+      title: 'GARAP',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -119,7 +119,7 @@ class _MonitoringPageState extends State<MonitoringPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Vertonik Smart Farm',
+          'GARAP',
           style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.2),
         ),
         actions: [

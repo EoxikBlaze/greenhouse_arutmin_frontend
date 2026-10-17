@@ -1,4 +1,4 @@
-# KONTRAK API — Vertonik Smart Farm
+# KONTRAK API — GARAP
 
 Kontrak resmi backend Node.js (`backend-nodejs/`). Nama rute **sama persis** dengan kontrak
 Laravel lama (`docs/API_ROUTES.md`) — tidak boleh diganti sendiri.

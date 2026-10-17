@@ -5,7 +5,7 @@ export default function DashboardPage() {
         <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Hero sambutan + aksi cepat</div>
         <div className="mt-3 flex flex-wrap gap-4 items-center">
           <div className="flex-1 min-w-[260px]">
-            <div className="text-[18px] font-bold">Selamat Datang di Vertonik Smart Farm — PT Arutmin Indonesia</div>
+            <div className="text-[18px] font-bold">Selamat Datang di GARAP — PT Arutmin Indonesia</div>
             <div className="text-[13px] text-slate-600 mt-1">
               Pantau kondisi air nutrisi, suhu tanaman, dan jadwal panen hidroponik.
             </div>

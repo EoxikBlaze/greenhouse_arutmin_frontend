@@ -89,7 +89,7 @@ npm ls --depth=0
 
 ```bash
 curl -s http://127.0.0.1:8000/
-# {"message":"Vertonik Smart Farm API — gunakan POST /login untuk autentikasi."}
+# {"message":"GARAP API — gunakan POST /login untuk autentikasi."}
 bash scripts/smoke-test.sh      # 20 pemeriksaan harus LULUS semua
 ```
 

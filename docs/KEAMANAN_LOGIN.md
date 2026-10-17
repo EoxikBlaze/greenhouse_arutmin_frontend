@@ -1,4 +1,4 @@
-# Audit Keamanan Login — Vertonik Smart Farm
+# Audit Keamanan Login — GARAP
 
 Tanggal: 2026-10-15 · Verifikasi live terhadap jalur web (:5173 → backend).
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Jalankan seluruh stack Vertonik Smart Farm secara lokal (macOS).
+# Jalankan seluruh stack GARAP secara lokal (macOS).
 # Usage: ./jalankan-local.sh
 set -euo pipefail
 

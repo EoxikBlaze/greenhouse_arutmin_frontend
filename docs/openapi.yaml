@@ -1,13 +1,13 @@
 openapi: 3.0.3
 info:
-  title: Vertonik Smart Farm API
+  title: GARAP API
   description: |
-    Kontrak resmi backend Node.js Vertonik Smart Farm (Express 4 + PostgreSQL 17).
+    Kontrak resmi backend Node.js GARAP (Express 4 + PostgreSQL 17).
     Nama rute 1:1 dengan kontrak Laravel lama. JSON-only kecuali 3 rute CSV.
     Sumber manusia-baca: docs/KONTRAK_API.md · smoke test: backend-nodejs/scripts/smoke-test.sh
   version: 1.0.0
   contact:
-    name: Vertonik Smart Farm
+    name: GARAP
 servers:
   - url: http://127.0.0.1:8000
     description: Development (Mac, bind localhost)

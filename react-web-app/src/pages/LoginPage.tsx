@@ -110,7 +110,7 @@ export default function LoginPage() {
             </button>
 
             <div className="mt-4 text-center text-[12px] text-slate-500">
-              © 2026 PT Arutmin Indonesia • Vertonik Smart Farm
+              © 2026 PT Arutmin Indonesia • GARAP
             </div>
           </div>
         </form>

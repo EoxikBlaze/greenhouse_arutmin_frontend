@@ -76,7 +76,7 @@ export function AppShell() {
 
   const title =
     TITLES[location.pathname] ??
-    (TITLES[location.pathname.replace(/\/$/, '')] ?? 'Vertonik Smart Farm')
+    (TITLES[location.pathname.replace(/\/$/, '')] ?? 'GARAP')
 
   function doLogout() {
     setConfirmKeluar(false)
@@ -91,7 +91,7 @@ export function AppShell() {
         <aside className="w-[260px] shrink-0 bg-sidebar text-white px-4 py-4 vsf-stagger overflow-y-auto max-h-dvh">
           <div className="rounded-card border border-white/10 bg-white/5 p-3">
             <div className="text-[11px] tracking-[.14em] uppercase text-white/70">PT ARUTMIN INDONESIA</div>
-            <div className="mt-1 text-[14px] font-extrabold">VERTONIK SMART FARM</div>
+            <div className="mt-1 text-[14px] font-extrabold">GARAP</div>
           </div>
 
           <GroupLabel>Ikhtisar</GroupLabel>
@@ -151,7 +151,7 @@ export function AppShell() {
             <div>
               <div className="text-[18px] font-bold leading-tight">{title}</div>
               <div className="text-[10px] uppercase tracking-[.14em] text-slate-500">
-                Vertonik Smart Farm · greenhouse hidroponik
+                GARAP · greenhouse hidroponik
               </div>
             </div>
             <div className="ml-auto flex items-center gap-3">

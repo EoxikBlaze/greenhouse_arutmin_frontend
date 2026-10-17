@@ -1,4 +1,4 @@
-# Setup Flutter + iOS Simulator di Mac (Vertonik Smart Farm)
+# Setup Flutter + iOS Simulator di Mac (GARAP)
 
 Tutorial klik-per-klik untuk menjalankan aplikasi Flutter di **iOS Simulator**
 pada Mac Apple Silicon. Semua command siap salin.

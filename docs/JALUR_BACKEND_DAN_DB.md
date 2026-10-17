@@ -1,4 +1,4 @@
-# JALUR BACKEND + JALUR DATABASE — Vertonik Smart Farm
+# JALUR BACKEND + JALUR DATABASE — GARAP
 
 Gabungan dua jalur: **request masuk sampai respons** dan **data sampai ke tabel mana**.
 Sumber kebenaran: `backend-nodejs/src/` + query langsung ke PostgreSQL (17 Okt 2026).
