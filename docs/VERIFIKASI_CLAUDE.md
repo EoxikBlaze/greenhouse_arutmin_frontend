@@ -79,11 +79,16 @@ cd .. && git diff --name-only 271a12d..852c2bb
 ```bash
 cd /Users/rizki/Project/Vertoniksmartfarm/backend-nodejs
 node --check src/index.js && node --check src/routes/auth.js && node --check src/routes/notifWa.js
-bash scripts/smoke-test.sh 2>&1 | grep -cE "^HTTP 2[0-9][0-9]|^HTTP 4"   # 20 pemeriksaan jalan
-bash scripts/smoke-test.sh 2>&1 | tail -1                                 # baris 422...429 (rate limit)
+
+# jalankan TEPAT SEKALI (membakar rate limit login 10/menit/IP), simpan outputnya
+bash scripts/smoke-test.sh 2>&1 | tee /tmp/smoke.out >/dev/null
+grep -c "^=== " /tmp/smoke.out        # EKSPEKTASI: 20  → 20 bagian pemeriksaan selesai
+grep -oE "HTTP (200|201|204|400|401|403|404|422|429)" /tmp/smoke.out | sort -u   # status yang benar-benar muncul
+tail -1 /tmp/smoke.out                # loop login terakhir: 422 berulang lalu 429 (rate limit aktif)
 ```
-**Ekspektasi:** `node --check` tanpa error · smoke test 20 pemeriksaan berjalan ·
-login sukses, guard 401/403, CRUD 201/DELETE 200, 404/400 benar, rate limit `429`.
+**Ekspektasi:** `node --check` tanpa error · **20 bagian pemeriksaan** (`^=== ` = 20,
+bukan dihitung dari baris `HTTP` — hanya ~16 baris yang diawali `HTTP`) · status muncul
+`200 201 204 400 401 403 404 422 429` · bagian 16 CRUD `201` lalu `DELETE 200`.
 > Catatan: `smoke-test.sh` membakar kuota login 10/menit/IP — beri jeda 60 dtk bila diulang.
 
 **Integritas database** (harus identik sebelum/sesudah rename):
