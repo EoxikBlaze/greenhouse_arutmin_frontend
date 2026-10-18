@@ -51,6 +51,7 @@ Beberapa rute memakai format validasi Laravel-style:
 | `401` | tanpa/salah token | `Tidak terautentikasi.` |
 | `403` | role / API key ditolak | `Akses ditolak.` · `Unauthorized` |
 | `404` | rute tak dikenal | `The route /x could not be found.` |
+| `404` | data tidak ada / id tidak valid | `Data tidak ditemukan.` — body **identik** (lihat catatan §2b) |
 | `422` | validasi gagal | `Username / Password salah.` |
 | `429` | rate limit | header `Retry-After` |
 | `500` | error server | `Terjadi kesalahan pada server.` |
@@ -65,9 +66,21 @@ Beberapa rute memakai format validasi Laravel-style:
 {"status":false,"msg":"Unauthorized"}
 // 404
 {"message":"The route /tidak-ada could not be found."}
+// 404 data tidak ada — dipakai juga untuk id non-angka & id melebihi rentang bigint
+{"message":"Data tidak ditemukan.","errors":{}}
 // 422 (login salah)
 {"message":"Username / Password salah.","errors":{"username":["Username / Password salah."]},"input":{"username":"admin"}}
 ```
+
+**§2b — 404 seragam (anti-enumeration).** Untuk rute `/:id`, tiga kondisi dibalas
+**byte-identik** `{"message":"Data tidak ditemukan.","errors":{}}`:
+(1) id salah format seperti `abc`, (2) id angka melebihi rentang `bigint`
+(`9223372036854775808`), (3) id valid tetapi tidak ada di database.
+Validasi format id dijalankan **sebelum** query — PostgreSQL tidak pernah sempat
+melempar `invalid input syntax` (500). Dasar: RFC 9110 §15.5.5 (server tidak wajib
+mengungkap keberadaan resource) + OWASP IDOR Prevention (*map both cases to the same
+public response, such as a 404*). `400` hanya untuk body/query rusak; `422` tidak
+dipakai untuk path parameter. *(Diverifikasi independen oleh agent verifier, 19 Okt 2026.)*
 
 ---
 
