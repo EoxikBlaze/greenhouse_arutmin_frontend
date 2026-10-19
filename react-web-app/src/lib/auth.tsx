@@ -3,10 +3,10 @@ import { api } from './api'
 import { AuthCtx, defaultAuth, roleFromLevel, type AuthValue } from './authContext'
 import { AUTH_KEY } from './token'
 
-/** Persist data auth + token (sessionStorage — hilang saat tab ditutup). */
+/** Persist data auth + token (localStorage — selamat saat tab ditutup). */
 function load(): Partial<AuthValue> {
   try {
-    const raw = sessionStorage.getItem(AUTH_KEY)
+    const raw = localStorage.getItem(AUTH_KEY) ?? sessionStorage.getItem(AUTH_KEY)
     if (!raw) return {}
     const d = JSON.parse(raw)
     return {
@@ -23,7 +23,7 @@ function load(): Partial<AuthValue> {
 
 function save(data: Partial<AuthValue>) {
   try {
-    sessionStorage.setItem(
+    localStorage.setItem(
       AUTH_KEY,
       JSON.stringify({
         isAuthenticated: data.isAuthenticated,
@@ -33,6 +33,8 @@ function save(data: Partial<AuthValue>) {
         token: data.token,
       }),
     )
+    // bersihkan sesi lama (migrasi localStorage)
+    sessionStorage.removeItem(AUTH_KEY)
   } catch {
     /* storage penuh/di-block — abaikan */
   }
