@@ -205,7 +205,7 @@ echo "gh:    $(gh api user --jq .login 2>&1 | head -1)"
 cd ~/Project/Vertoniksmartfarm && ./jalankan-local.sh
 ```
 Output yang diharapkan: `PostgreSQL 17` → `Backend Node.js (:8000)` → `React SPA (:5173)`,
-login web `admin / @adminbersabda123`.
+login web `admin / <ADMIN_PASSWORD>`.
 
 Terkait: `docs/ANALISIS_BACKEND.md` (hasil uji 20 titik) ·
 `docs/JALUR_BACKEND.md` (peta rute) · `docs/FLOWCHART_BACKEND.md` (diagram jalur).

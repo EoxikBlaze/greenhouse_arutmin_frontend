@@ -67,7 +67,7 @@ curl -s $BE/
 
 # 4.2 Login -> token JWT (simpan token-nya)
 curl -s -X POST $BE/login -H 'Content-Type: application/json' \
-  -d '{"username":"admin","password":"@adminbersabda123"}'
+  -d '{"username":"admin","password":"<ADMIN_PASSWORD>"}'
 #    -> {"status":true,"token":"eyJhbG...","user":{...},"redirect":"/dashboard"}
 
 # 4.3 Pakai token (ganti $TOK dengan nilai token di atas)
@@ -82,7 +82,7 @@ curl -s $BE/api/get-thresholds  -H "X-API-KEY: $(grep '^ESP32_API_KEY=' .env | c
 curl -s $BE/monitoring/tarik/csv -H "Authorization: Bearer $TOK" -o monitoring.csv
 ```
 
-Akun seed: `admin/@adminbersabda123` · `petani/petani123` · `demo/demo123`
+Akun seed: `admin/<ADMIN_PASSWORD>` · `petani/<PETANI_PASSWORD>` · `demo/<DEMO_PASSWORD>` (nilai password: `backend-nodejs/.env`)
 (login `/login` dikunci 10×/menit/IP — kalau kena `429`, tunggu 60 detik).
 
 ---

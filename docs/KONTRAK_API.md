@@ -104,7 +104,7 @@ Respons `200`:
 ```
 Respons `422` (salah) → lihat §2. `redirect` = `/tanam` untuk role petani.
 
-Akun seed: `admin / @adminbersabda123` · `petani / petani123` · `demo / demo123`
+Akun seed: `admin / <ADMIN_PASSWORD>` · `petani / <PETANI_PASSWORD>` · `demo / <DEMO_PASSWORD>` (nilai password: `backend-nodejs/.env`)
 
 | Endpoint | Method | Guard |
 |---|---|---|
