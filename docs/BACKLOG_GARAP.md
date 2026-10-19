@@ -47,3 +47,9 @@
 - Body depth tanpa limit (ukuran sudah 413) · bcryptjs 2.x / express 4→5 · tabel `sessions` legacy · skema global non-multi-tenant · `pg_stat_statements` belum pasang.
 - Kepatuhan model: **15/16 delegasi `mimo-v2.6-flash`+`ultra`** — 1 pelanggaran `deleg_2bea5085` (jalan 10-18 22:20, **sebelum** pin `delegation.*` diset 23:01; model tak tercatat, mustahil dibuktikan retroaktif). Sejak pin: **100% patuh**.
 - Rekomendasi PM: cron audit rutin (kepatuhan model + kesehatan repo/server + sanitasi token) — menunggu persetujuan user.
+
+
+## Keputusan USER (19 Okt, via konfirmasi langsung)
+1. **Eksekusi 4 migrasi perancangan** → *TUNGGU rancangan DB v2 selesai, lalu eksekusi sekali jalan* (hindari migrasi dobel). File sudah `LAYAK COMMIT 7/7` & ter-commit `4186c19`.
+2. **sensor_thresholds min/max** → *BIARKAN nilai live* (5–40 / 5–7 / 50–1000 / 20–40 / 50–90); perubahan ke Tabel 13 ditunda sampai riset petani (Lampiran B).
+3. **Data meja live (5 baris / 1.346 lubang)** → *BIARKAN*; penyelarasan ke 4 meja dokumen ditunda sampai data lapangan asli masuk.
