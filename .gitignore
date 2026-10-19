@@ -22,3 +22,8 @@ scripts/
 .DS_Store
 *.log
 *.zip
+
+# Sampah instalasi skills (npx skills add)
+.agents/
+.claude/
+skills-lock.json
