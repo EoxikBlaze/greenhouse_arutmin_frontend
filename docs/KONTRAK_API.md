@@ -224,7 +224,7 @@ Contoh `GET /monitoring/chart-data` (elemen pertama):
 ### Master & tahap (CRUD, admin + demo)
 | Path | Tabel | Kolom yang diterima (whitelist) |
 |---|---|---|
-| `/meja` | `mejas` | `meja`, `jumlah_lubang` |
+| `/meja` | `mejas` | `meja`, `jumlah_lubang`, `jenis_talang` (enum `NFT\|DFT`), `kapasitas_penampung_l` (angka > 0), `jumlah_talang`, `lubang_per_talang`, `panjang_talang_m`, `laju_per_talang_lpm`, `kenaikan_air_cm` (integer, DEFAULT 40) — **+ kolom baca-saja `created_at`, `updated_at`, `expires_at`** (ikut `GET`, ditolak saat `POST`/`PUT`) |
 | `/tanaman` | `tanamen` | `nama_tanaman`, `id_meja` |
 | `/siklus` (+ `GET /siklus/csv`) | `sikluses` | `id_tanaman`, `nama_siklus`, `waktu_siklus` |
 | `/ambang` | `sensor_thresholds` | `sensor`, `min`, `max` |
@@ -236,6 +236,68 @@ Pola CRUD: `GET /x` daftar · `POST /x` → **201** `{"status":true,"message":"D
 
 > **⚠️ Kontrak yang belum terpenuhi:** `GET /x` (daftar) **tidak mengirim primary key**,
 > sedangkan `PUT/DELETE /x/:id` membutuhkannya. Lihat `docs/ANALISIS_BACKEND.md` §6.2.
+
+### Konfigurasi & acuan skema V2 (gelombang 8 · 19 Okt 2026)
+
+Delapan tabel hasil migrasi `database/migrations/2026-10-19_*` kini terbaca lewat JWT
+dengan **guard sama seperti `/meja` · `/ambang`**: baca = admin + demo (petani → 403
+`Menu ini untuk pengelola...`), tulis = **admin saja** (demo ditolak `demoGuard`,
+tanpa token → `401 {"message":"Tidak terautentikasi."}`). Rute baru: `src/routes/konfigurasi.js`.
+
+| Method | Path | Guard | Baris | Catatan |
+|---|---|---|---|---|
+| GET · PUT | `/konfigurasi-dosis` (+ `/:param`) | admin+demo · **PUT admin** | 19 | PUT kolom `nilai`, `satuan`, `keterangan`, `sumber` |
+| GET · PUT | `/timing-operasi` (+ `/:param`) | admin+demo · **PUT admin** | 16 | PUT kolom sama |
+| GET | `/aturan-fail-safe` (+ `/:kode`) | admin+demo | 20 | baca saja |
+| GET | `/jadwal-perawatan` (+ `/:kode`) | admin+demo | 5 | baca saja |
+| GET | `/kalibrasi-sensor` (+ `/:sensor`) | admin+demo | 8 | baca saja |
+| GET | `/mapping-channel` (+ `/:kode`) | admin+demo | 15 | baca saja |
+| GET · PUT | `/target-nutrisi` (+ `/:id`) | admin+demo · **PUT admin** | 3 | PUT kolom `id_tanaman`, `tahap`, `umur_*_hari`, `ec_*_ppm`, `ph_*`, `status`, `keterangan`, `sumber` |
+| GET | `/penampung-states` (+ `/:id_meja`) | admin+demo | 5 | `?id_meja=` per meja (satu-satunya sumber dengan kolom `id_meja`) |
+
+Ketentuan:
+- **`?id_meja=`** hanya dijalankan pada `/penampung-states`; pada tabel lain param
+  **diabaikan** (tabel itu tidak punya kolom `id_meja`). Nilai non-angka →
+  `422 {"message":"Data tidak valid.","errors":{"id_meja":["Filter id_meja harus berupa angka yang valid."]}}`.
+- **`GET /x/:id`** memakai 404 seragam §2b — PK varchar (`param`/`kode`/`sensor`) maupun
+  id non-angka/tidak-ada sama-sama `{"message":"Data tidak ditemukan.","errors":{}}`.
+- **`PUT`** → `{"status":true,"message":"Data berhasil diperbarui.","data":{...}}`;
+  body kosong (tanpa kolom whitelist) → `422 {"message":"Tidak ada data yang dikirim.","errors":{}}`;
+  kolom di luar whitelist dibuang + dicatat di log server; PK tidak pernah bisa diubah.
+- **Validasi Zod SEBELUM query** (422 kontrak §2): `nilai` number, `umur_*_hari` integer,
+  `status` enum `menunggu_konfirmasi|aktif|kadaluarsa`, `id_tanaman` harus terdaftar, dan
+  rentang `ec_min_ppm ≤ ec_max_ppm` / `ph_min ≤ ph_max` / `umur_min_hari ≤ umur_max_hari`
+  diperiksa terhadap gabungan nilai lama + kiriman — semua dilakukan di aplikasi agar
+  CHECK/FK Postgres tidak pernah berujung 500.
+- **Stempel waktu tidak disentuh saat PUT** (`diubah_pada`/`updated_at` tetap nilai lama) —
+  hanya kolom yang diminta klien yang berubah, sehingga update selalu net-zero bila
+  nilainya dikembalikan (uji gelombang 8: `SELECT *` sebelum == sesudah).
+- Rute tulis memakai rate limit tulis 60/menit/IP (§1).
+
+Contoh respons (server hidup):
+```jsonc
+// GET /konfigurasi-dosis → 200 (potongan)
+[ { "param": "deadband_ec_ppm", "nilai": "100.0000", "satuan": "ppm",
+    "keterangan": "Pita mati EC (±0,1 mS/cm) — masuk deadband = MONITORING",
+    "sumber": "Perancangan FINAL Tabel 13", "diubah_pada": "2026-10-19T11:42:37.870Z" }, ... ]
+
+// PUT /konfigurasi-dosis/deadband_ec_ppm  body: {"nilai":120} → 200
+{ "status": true, "message": "Data berhasil diperbarui.",
+  "data": { "param": "deadband_ec_ppm", "nilai": "120.0000", "satuan": "ppm", ... } }
+
+// GET /penampung-states?id_meja=3 → 200
+[ { "id_meja": "3", "status_lock": false, "lock_alasan": null, "lock_sejak": null,
+    "mode_pemeliharaan": false, "kejadian_dosis_hari": 0, "volume_ab_hari_ml": "0.00",
+    "volume_ph_hari_ml": "0.00", "target_ec_ppm": null, "target_ph": null,
+    "reset_harian_pada": null, "updated_at": "2026-10-19T11:42:37.791Z" } ]
+
+// PUT /target-nutrisi/1  body: {"ec_min_ppm":500,"ec_max_ppm":300} → 422
+{ "message": "Data tidak valid.",
+  "errors": { "ec_min_ppm": ["Nilai ec_min_ppm tidak boleh lebih besar dari ec_max_ppm."] } }
+
+// GET /target-nutrisi/abc → 404 identik (§2b)
+{ "message": "Data tidak ditemukan.", "errors": {} }
+```
 
 ### User · Profil
 | Method | Path | Guard |
