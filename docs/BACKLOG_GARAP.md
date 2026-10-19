@@ -57,3 +57,10 @@
 ## Status eksekusi DB (19 Okt, lanjutan)
 - **S11 SELESAI**: 4 migrasi perancangan + skema V2 **dieksekusi penuh ke live** (5 file OK, backup `backup_garap_pre_v2_*.dump`) — detail `docs/VERIFIKASI/EKSEKUSI_V2.md`; semua rekomendasi §12 dipakai.
 - Fase aplikasi (belum): whitelist/TABLE_SPECS 19 kolom baru, endpoint §11, backfill monitorings→readings, cron retensi, regenerasi schema.sql.
+
+## Temuan gelombang G8 + F1 (19/20 Okt, masuk lewat verdict)
+- **SEDANG — demoGuard `/meja`**: `routeName 'meja.store'` dipakai utk SEMUA method → demo **PUT /meja = 200** (bukti verifier F1) → demo bisa mengedit meja; harusnya 403. (Bukan blocker F1 karena front menangani keduanya.)
+- CATATAN — semantik audit ganda: `PUT /meja` selalu `updated_at=now()`, 3 PUT V2 tidak (net-zero) → pilih `last_edited_by/at` atau standardisasi.
+- CATATAN — validasi klien nama meja 200 vs DB varchar(50) → input 51–200 lolos klien (UX).
+- MINOR — `KONTRAK_API.md` blok basi "daftar tidak kirim PK" (pra-diff) → bersihkan.
+- INFO — token pindah ke `localStorage` (F1): jangka panjang pertimbangkan httpOnly cookie + CSP (bergandengan dgn S3 helmet).
