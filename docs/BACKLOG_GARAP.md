@@ -64,3 +64,26 @@
 - CATATAN — validasi klien nama meja 200 vs DB varchar(50) → input 51–200 lolos klien (UX).
 - MINOR — `KONTRAK_API.md` blok basi "daftar tidak kirim PK" (pra-diff) → bersihkan.
 - INFO — token pindah ke `localStorage` (F1): jangka panjang pertimbangkan httpOnly cookie + CSP (bergandengan dgn S3 helmet).
+
+## Temuan gelombang debugging 9-worker (20 Okt, deleg_d4b55adb) — 8 kelas 500 BARU + UX
+| Sev | Endpoint | Isi |
+|---|---|---|
+| TINGGI | PUT /konfigurasi-dosis, /timing-operasi, /target-nutrisi | `nilai=1e30` → 500 `numeric field overflow`; `umur_min_hari=9999999999` → 500 int4 out-of-range — Zod `number` tanpa max/min (melanggar janji 'rentang → 422') |
+| TINGGI | GET /penampung-states?id_meja[]=2 | array lolos `idValidValue` (RegExp#test coerce) → pg kirim '{2}' → 500 bigint |
+| SEDANG | POST /meja, PUT /konfigurasi-dosis | byte NUL `0x00` → 500 invalid UTF-8 (Zod tak menolak) |
+| SEDANG | POST /semai tanpa `tgl_awal_semai` | 500 NOT NULL (SQLSTATE 23502) — sisa kelas baru utk G9b → petakan 23502→422 per-field |
+| SEDANG | PUT /semai/:id status='dibuang' | 500 CHECK `semais_status_check` — enum status belum divalidasi Zod |
+| RENDAH | PUT dosis/timing `nilai` negatif | diterima 200 (tanpa min Zod & tanpa CHECK DB) — dosis negatif nyata |
+| RENDAH | PUT /timing-operasi `nilai:null` | 422 padahal kolom DB boleh NULL — tak bisa dikosongkan lewat API |
+| RENDAH | GET ?ID_MEJA=3 (casing) | 200 tanpa filter — query param case-sensitive, diabaikan senyap |
+| INFO | header 20 KB / method tak didukung | 431 body kosong (core Node) · 404 utk 405 — konsisten gaya lama |
+
+## UI/UX (docs/AUDIT_UI_UX.md — 6 TINGGI, 8 SEDANG, 6 RENDAH)
+Quick-win gelombang frontend berikut: (1) error+empty saling eksklusif + tombol coba-lagi + hapus teks dev (judul 'TOOLBAR', catatan placeholder), (2) tombol dashboard hero → `<Link>` + target aksi baris 22×18px → ≥44px, (3) focus-trap/Escape/role=dialog modal + kontras nav aktif 3.75:1 + role=alert error login; plus: filter sidebar per role (T6), breakpoint mobile (T1: overflow 251px di 390px).
+
+## Utang proses (PM audit 20 Okt)
+- Commit F1 `a6773c9` subject TANPA stempel `[verified:]` (aturan-1 dilanggar; body menyebut verifier) — koreksi kebiasaan: stempel wajib di SUBJECT.
+- openapi.yaml hanya 23/110 operasi (19 rute V2 absen; saveSensor hilang; saveAlert `security:[]` padahal wajib API-key) → butuh gelombang sinkronisasi kontrak docs.
+- G5 (penomoran) & G6 (merge tanpa verifier) legacy tak diperbaiki.
+- Token scratch `*.tok` tanpa TTL; audit kepatuhan model belum cron (menunggu izin).
+- Insiden PM: PUT demo `ZZZ-AUDIT` di meja 11 → sudah dipulihkan (nilai asli; sisa updated_at).
