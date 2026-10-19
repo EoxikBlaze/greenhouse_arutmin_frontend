@@ -168,9 +168,10 @@ Respons `200`:
 ```
 Cache 2 detik. `is_online = true` bila data terakhir ≤ 120 detik.
 
-> **⚠️ Kontrak lama:** `POST /monitoring/saveSensor` dan `POST /monitoring/saveAlert`
-> juga **publik tanpa API key** (kompatibilitas lama) — terbukti bisa menulis data dari
-> siapa pun. Lihat `docs/ANALISIS_BACKEND.md` §6 untuk rekomendasi.
+> **✅ Sejak gelombang 7 (19 Okt 2026):** `POST /monitoring/saveSensor` dan
+> `POST /monitoring/saveAlert` **wajib `X-API-KEY`** (guard `requireApiKey`, sama dengan
+> `/api/save-sensor`) — tanpa key → `403 {"status":false,"msg":"Unauthorized"}`.
+> Kontrak lama "publik tanpa API key" resmi DIHAPUS; nol pemanggil legacy terdampak.
 
 ---
 

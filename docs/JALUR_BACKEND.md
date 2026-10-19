@@ -91,8 +91,8 @@ dikenal tetap jatuh ke 404 JSON, bukan 401.
 | Method | Path | Guard | Alur |
 |---|---|---|---|
 | GET | `/monitoring/getReport6Jam` | publik | rata-rata 6 jam + alert 6 jam |
-| POST | `/monitoring/saveSensor` | publik | duplikat `save-sensor` (kompatibilitas lama) |
-| POST | `/monitoring/saveAlert` | publik | insert `alert_logs` |
+| POST | `/monitoring/saveSensor` | butuh `X-API-KEY` | duplikat `save-sensor` (guard sama, sejak G7) |
+| POST | `/monitoring/saveAlert` | butuh `X-API-KEY` | insert `alert_logs` (sejak G7) |
 | GET | `/monitoring` | `requireAuth` | `{page:'monitoring'}` |
 | GET | `/monitoring/chart-data` | `requireAuth` | `monitorings` 288 baris terakhir (index `created_at DESC`) |
 | GET | `/monitoring/tarik` | `requireAuth` | paginasi `?dari&sampai&per_page` |

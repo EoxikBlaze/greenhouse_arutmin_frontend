@@ -155,7 +155,7 @@ paths:
   /monitoring/saveAlert:
     post:
       tags: [Dashboard dan Monitoring]
-      summary: Simpan alert (publik, kompatibilitas lama)
+      summary: Simpan alert (wajib X-API-KEY)
       security: []
       requestBody:
         required: true

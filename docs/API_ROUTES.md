@@ -11,8 +11,8 @@ Sumber: `/Users/rizki/Documents/Vertonik-Smart-Farm/routes/web.php` dan `routes/
 | POST | `/login` | `login.proses` |
 | GET | `/logout` | `logout` |
 | GET | `/monitoring/getReport6Jam` |  |
-| POST | `/monitoring/saveAlert` |  |
-| POST | `/monitoring/saveSensor` |  |
+| POST | `/monitoring/saveAlert` | X-API-KEY (sejak G7) |
+| POST | `/monitoring/saveSensor` | X-API-KEY (sejak G7) |
 | GET | `/dashboard` | `dashboard` |
 | GET | `/tanam` | `tanam.index` |
 | POST | `/tanam/mulai` | `tanam.mulai` |
