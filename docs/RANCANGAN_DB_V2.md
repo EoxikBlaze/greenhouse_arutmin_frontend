@@ -1,6 +1,6 @@
 # RANCANGAN DATABASE V2 — GARAP
 
-> Perancang database (subagend `deleg_cccb7846`) · 19 Okt 2026 · **STATUS: RANCANGAN — belum dieksekusi, belum di-commit**
+> Perancang database (subagend `deleg_cccb7846`) · 19 Okt 2026 · **STATUS: RANCANGAN TERVERIFIKASI — sudah di-commit (f638c22 dokumen, 3c8f70d DDL); verdict ulang `deleg_e6d5d40f` = **LAYAK EKSEKUSI** (rantai + retensi teruji di scratch); menunggu keputusan eksekusi user — paket gabungan 4 migrasi perancangan + 9 tabel V2**
 > Berkas pendamping SQL: **`backend-nodejs/database/proposal_skema_v2.sql`** (DI LUAR `database/migrations/`, tidak dijalankan ke mana pun)
 > Sumber: `docs/ANALISIS_DB_PERANCANGAN.md` (13 gap perancangan vs live) · `backend-nodejs/database/schema.sql` (13 tabel live) · `AUDIT_PERFORMA_GARAP.md` (monitorings 100k+ terisi→terhapus, 371.128 seq_scan, indeks duplikat, `/laporan` non-sargable 8,2 ms) · `/tmp/perancangan_text.json` (dokumen FINAL: §1.4 bacaan bergiliran, §2.2 EC mS/cm, §4 timing, §5 aturan dosing di ESP32, §9 fail-safe, §10 kalibrasi, Aturan 9/13) · `docs/KONTRAK_API.md`
 > Ruang lingkup: **6 butir** yang diminta user (bacaan per meja, override, dosing, isi air, laporan, audit). Tabel perancangan lain (`penampung_states`, `konfigurasi_dosis`, `timing_operasi`, `aturan_fail_safe`, `target_nutrisi`, `kalibrasi_sensor`, `jadwal_perawatan`, `mapping_channel_esp32`) **bukan** bagian rancangan ini — sudah ditangani 4 file migrasi `2026-10-19_perancangan_*.sql` yang sedang diverifikasi pihak lain dan **tidak disentuh**.
@@ -18,7 +18,7 @@
 | 5 | Laporan | `report_logs` | jenis, periode, filter JSONB, pembuat, waktu, status, referensi file/JSON |
 | 6 | Audit | `audit_logs` | actor (user/system/ESP32), aksi CRUD+login+override+command, tabel/row, before/after JSONB, IP+UA; **tulis async batch** dari middleware, retensi 365 hari |
 
-9 tabel baru + 2 view + 3 fungsi. Tabel lama **tidak ada yang di-drop**; `monitorings` berhenti ditulis dan menjadi arsip (lihat §10).
+9 tabel baru + 2 view + **4 fungsi** (partisi, pensiun/retensi, rollup, override-aktif). Tabel lama **tidak ada yang di-drop**; `monitorings` berhenti ditulis dan menjadi arsip (lihat §10).
 
 ---
 
@@ -368,8 +368,8 @@ Cukup untuk "siapa kapan membuat laporan apa": `SELECT * FROM report_logs ORDER 
 | Fase | Isi | Risiko / rollback |
 |---|---|---|
 | **0 (prasyarat)** | 4 file `2026-10-19_perancangan_*.sql` **terpasang & diverifikasi pihak lain lebih dulu** (menyediakan `penampung_states`, `konfigurasi_dosis`, `timing_operasi`, kolom `monitorings.id_meja/ec_ms_cm`, `sensor_thresholds.deadband/sanity_*`). V2 dibangun di atasnya — jangan dijalankan berurutan tanpa fase ini. | mundur = jangan lanjut ke fase 1 |
-| **1** | Jalankan `database/proposal_skema_v2.sql` (tabel baru murni; tidak menyentuh tabel lama) di **DB scratch**, uji idempoten + uji negatif (FK/CHECK/unique override) | `DROP` 9 tabel baru + 2 view + 3 fungsi |
-| **2** | **Backfill** `monitorings` → `sensor_readings` (hanya baris `id_meja IS NOT NULL`; **tanpa kolom `id`** agar sequence identity tidak perlu `setval`; `sumber='IMPORT'`; `suhu_air="waterTemp"`, `suhu_ruangan="airTemp"`, `kelembapan=humidity`, **`ec_ms_cm` hanya bila kolom hasil migrasi perancangan terisi — `tds` (ppm) TIDAK dijadikan EC agar tidak menebak**). Lalu `fn_rollup_readings()` untuk rentang tersebut. | hapus `WHERE sumber='IMPORT'` |
+| **1** | Jalankan `database/proposal_skema_v2.sql` (tabel baru murni; tidak menyentuh tabel lama) di **DB scratch**, uji idempoten + uji negatif (FK/CHECK/unique override) | `DROP` 9 tabel baru + 2 view + 4 fungsi |
+| **2** | **Backfill** `monitorings` → `sensor_readings` (hanya baris `id_meja IS NOT NULL`; **tanpa kolom `id`** agar sequence identity tidak perlu `setval`; `sumber='IMPORT'`; `suhu_air="waterTemp"`, `suhu_ruangan="airTemp"`, `kelembapan=humidity`, **`ec_ms_cm` hanya bila kolom hasil migrasi perancangan terisi — `tds` (ppm) TIDAK dijadikan EC agar tidak menebak**). Lalu `fn_rollup_readings(awal::timestamp, akhir::timestamp)` untuk rentang tersebut (signature `timestamp without time zone` — pemanggilan literal `now()` perlu cast `::timestamp`). | hapus `WHERE sumber='IMPORT'` |
 | **3** | **Ganti jalur tulis/baca aplikasi** (di luar berkas ini): `POST /api/save-sensor` INSERT `sensor_readings` + UPSERT `sensor_readings_latest`; `chart-data`/`tarik`/`latest-sensor` membaca tabel baru. `monitorings` jadi read-only. | kembali membaca `monitorings` sementara (masih ada) |
 | **4** | **Event dosing & isi air** mulai diisi (laporan ESP32 via endpoint baru, atau diisi server saat menerima `notif-hardware`); sinkronkan cache `penampung_states` dari `v_dosing_harian` | tabel murni tambahan |
 | **5** | **Middleware audit async** + `report_logs` pada `/laporan` & `getReport6Jam` + cron retensi (`fn_pensiun_readings(60)`, DELETE rollup/audit/laporan kadaluarsa) | matikan korsleting middleware |
@@ -435,7 +435,7 @@ Cukup untuk "siapa kapan membuat laporan apa": `SELECT * FROM report_logs ORDER 
 
 | Tabel | Retensi | Mekanisme |
 |---|---|---|
-| `sensor_readings` (mentah) | **60 hari** (saran) | `SELECT fn_pensiun_readings(60)` → DETACH+DROP partisi; cron bulanan + `fn_partisi_readings_bulanan(now()+30)` untuk partisi depan |
+| `sensor_readings` (mentah) | **60 hari** (saran) | `SELECT fn_pensiun_readings(60)` → DETACH+DROP partisi; cron bulanan + `fn_partisi_readings_bulanan(now()::date + 30)` untuk partisi depan (tipe date; `now()+30` invalid) |
 | `sensor_readings_hourly` | **2 tahun** (saran) | `DELETE ... bucket_start < now() - interval '2 years'` (±8 MB total) |
 | `sensor_readings_latest` | tak habis | 1 baris/meja |
 | `audit_logs` | **365 hari** (saran) | `DELETE ... terjadi_pada < now() - interval '365 days'` |
@@ -449,6 +449,6 @@ Cukup untuk "siapa kapan membuat laporan apa": `SELECT * FROM report_logs ORDER 
 | Berkas | Isi |
 |---|---|
 | **`docs/RANCANGAN_DB_V2.md`** (berkas ini) | ERD, alasan desain 6 butir, perbandingan lama-vs-baru, jalur migrasi, dampak API, keputusan user |
-| **`backend-nodejs/database/proposal_skema_v2.sql`** | DDL lengkap: 9 tabel + 1 partisi helper/fungsi retensi + 2 view + fungsi rollup, `IF NOT EXISTS`, FK, CHECK, index, `COMMENT ON` sumber — **belum dijalankan, belum di-commit** |
+| **`backend-nodejs/database/proposal_skema_v2.sql`** | DDL lengkap: 9 tabel + 1 partisi helper/fungsi retensi + 2 view + 4 fungsi (partisi/retensi/rollup/override), `IF NOT EXISTS`, FK, CHECK, index, `COMMENT ON` sumber — **sudah di-commit `3c8f70d`, BELUM dieksekusi ke live** |
 
 Langkah berikut (setelah review user): (1) putuskan 11 butir §12, (2) uji file SQL di DB scratch bersama 4 file migrasi perancangan, (3) jalankan fase 1–2, (4) implementasi kode (fase 3–5, di luar rancangan ini), (5) regenerasi `schema.sql` + `openapi.yaml`.
