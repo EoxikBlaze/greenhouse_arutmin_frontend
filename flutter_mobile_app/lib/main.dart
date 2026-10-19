@@ -4,6 +4,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import 'config.dart';
+import 'pages/login_page.dart';
+import 'pages/meja_page.dart';
+import 'pages/riwayat_monitoring_page.dart';
+import 'services/api_service.dart';
+
 /// GARAP — monitoring greenhouse hidroponik (Arutmin Light).
 /// Terhubung ke backend Node.js lokal: http://127.0.0.1:8000
 /// (di iOS Simulator, 127.0.0.1 = Mac host — tidak perlu konfigurasi tambahan).
@@ -18,7 +24,8 @@ const Color cardBorder = Color(0xFFE2E8DD);
 const Color danger = Color(0xFFC0392B);
 const Color warning = Color(0xFFE0A42B);
 
-const String apiBase = 'http://127.0.0.1:8000';
+/// Satu klien API untuk seluruh aplikasi (token disimpan di memori di sini).
+final ApiService apiService = ApiService();
 
 void main() {
   runApp(const GarapApp());
@@ -55,7 +62,126 @@ class GarapApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const MonitoringPage(),
+      home: const _GarapRoot(),
+    );
+  }
+}
+
+/// Gerbang aplikasi: belum ada token → halaman masuk, sudah login → shell utama.
+class _GarapRoot extends StatefulWidget {
+  const _GarapRoot();
+
+  @override
+  State<_GarapRoot> createState() => _GarapRootState();
+}
+
+class _GarapRootState extends State<_GarapRoot> {
+  @override
+  void initState() {
+    super.initState();
+    apiService.onUnauthorized = _sesiBerakhir;
+  }
+
+  void _sesiBerakhir() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    apiService.onUnauthorized = null;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!apiService.isLoggedIn) {
+      return LoginPage(
+        api: apiService,
+        onLoggedIn: () {
+          if (mounted) setState(() {});
+        },
+      );
+    }
+    return const _MainShell();
+  }
+}
+
+/// Shell utama: tab Sensor (live), Meja, Riwayat + aksi Keluar.
+class _MainShell extends StatefulWidget {
+  const _MainShell();
+
+  @override
+  State<_MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends State<_MainShell> {
+  int _index = 0;
+
+  late final List<Widget> _pages = [
+    const MonitoringPage(),
+    MejaPage(api: apiService),
+    RiwayatMonitoringPage(api: apiService),
+  ];
+
+  Future<void> _keluar() async {
+    final konfirmasi = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Keluar?'),
+        content: const Text('Sesi akan dihapus dari perangkat ini.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Keluar'),
+          ),
+        ],
+      ),
+    );
+    if (konfirmasi != true) return;
+    apiService.clearSession();
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(index: _index, children: _pages),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _index.clamp(0, _pages.length - 1),
+        onDestinationSelected: (i) {
+          if (i >= _pages.length) {
+            _keluar();
+            return;
+          }
+          setState(() => _index = i);
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.sensors_outlined),
+            selectedIcon: Icon(Icons.sensors),
+            label: 'Sensor',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.table_restaurant_outlined),
+            selectedIcon: Icon(Icons.table_restaurant),
+            label: 'Meja',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.monitor_heart_outlined),
+            selectedIcon: Icon(Icons.monitor_heart),
+            label: 'Riwayat',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.logout),
+            label: 'Keluar',
+          ),
+        ],
+      ),
     );
   }
 }
