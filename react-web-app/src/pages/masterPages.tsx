@@ -84,40 +84,225 @@ function inputFor(
   )
 }
 
-/* ============= 11 · JENIS TANAMAN ============= */
-type Jenis = { nama: string; kategori: string; hari: string }
+/* ============= 11 · JENIS TANAMAN — API NYATA ============= */
+
+/** Baris GET /tanaman — kolom whitelist backend: `nama_tanaman`, `id_meja`. */
+type TanamanRow = Record<string, unknown> & {
+  id_tanaman: string | number
+  nama_tanaman: string
+  /** FK → mejas.id_meja, nullable. */
+  id_meja: string | number | null
+}
+
+/**
+ * Validasi klien hanya untuk "wajib isi" — batas panjang varchar & FK meja tetap
+ * urusan Zod backend, supaya 422 per-field kontrak (§2) yang muncul di UI memang
+ * berasal dari server (bukan tebakan klien).
+ */
+function validateTanaman(form: FormState): Record<string, string[]> {
+  const errs: Record<string, string[]> = {}
+  if (!(form.nama_tanaman ?? '').trim()) errs.nama_tanaman = ['Kolom nama_tanaman wajib diisi.']
+  return errs
+}
+
+/** Susun body: nilai kosong TIDAK dikirim (`id_meja` nullable, tapi Zod menolak `null`). */
+function payloadTanaman(form: FormState): Record<string, unknown> {
+  const payload: Record<string, unknown> = {}
+  const nama = (form.nama_tanaman ?? '').trim()
+  if (nama) payload.nama_tanaman = nama
+  const meja = (form.id_meja ?? '').trim()
+  if (meja) payload.id_meja = Number(meja)
+  return payload
+}
+
+/** Label meja untuk kolom tabel (— bila kosong, `#id` bila tak ada di daftar /meja). */
+function mejaLabel(rows: MejaRow[], id: unknown): string {
+  if (id === undefined || id === null || String(id).trim() === '') return '—'
+  const m = rows.find((r) => String(r.id_meja) === String(id))
+  return m ? cell(m.meja) : `#${id}`
+}
 
 export function JenisTanamanPage() {
-  const rows: Jenis[] = [
-    { nama: 'Selada', kategori: 'Daun', hari: '42' },
-    { nama: 'Bayam', kategori: 'Daun', hari: '30' },
+  const handleApiError = useApiError()
+  const { rows, loading, error, reload } = useApiList<TanamanRow>('/tanaman')
+  // Daftar meja live dipakai untuk label kolom & pilihan select (bukan sumber utama layar).
+  const { rows: mejaRows } = useApiList<MejaRow>('/meja')
+
+  const [open, setOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [form, setForm] = useState<FormState>({})
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
+  const [formError, setFormError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  const [hapus, setHapus] = useState<HapusTarget | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const [flash, setFlash] = useState<string | null>(null)
+  useEffect(() => {
+    if (!flash) return
+    const id = setTimeout(() => setFlash(null), 4000)
+    return () => clearTimeout(id)
+  }, [flash])
+
+  function resetForm() {
+    setForm({})
+    setEditingId(null)
+    setFieldErrors({})
+    setFormError(null)
+  }
+
+  function openAdd() {
+    setForm({ nama_tanaman: '', id_meja: '' })
+    setEditingId(null)
+    setFieldErrors({})
+    setFormError(null)
+    setOpen(true)
+  }
+
+  function openEdit(row: TanamanRow) {
+    setForm({
+      nama_tanaman: row.nama_tanaman == null ? '' : String(row.nama_tanaman),
+      id_meja: row.id_meja == null ? '' : String(row.id_meja),
+    })
+    setEditingId(String(row.id_tanaman))
+    setFieldErrors({})
+    setFormError(null)
+    setOpen(true)
+  }
+
+  /** Tombol "+ Tambah" / "Batal" dari CrudScreen → siapkan atau bersihkan form. */
+  function handleOpenChange(v: boolean) {
+    if (v) {
+      if (editingId) setOpen(true)
+      else openAdd()
+    } else {
+      setOpen(false)
+      resetForm()
+    }
+  }
+
+  async function save() {
+    if (submitting) return
+    setFormError(null)
+    const errs = validateTanaman(form)
+    setFieldErrors(errs)
+    if (Object.keys(errs).length > 0) return
+
+    setSubmitting(true)
+    try {
+      const payload = payloadTanaman(form)
+      if (editingId) await api.put(`/tanaman/${editingId}`, payload)
+      else await api.post('/tanaman', payload)
+      setOpen(false)
+      resetForm()
+      setFlash('✔ Data tanaman tersimpan.')
+      reload()
+    } catch (err) {
+      const f = handleApiError(err)
+      setFieldErrors(f.fieldErrors)
+      setFormError(f.message)
+      // 404 → data sudah hilang di server: segarkan daftar di belakang modal.
+      if (f.status === 404) reload()
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function remove(id: string) {
+    if (deleting) return
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      await api.delete(`/tanaman/${id}`)
+      setHapus(null)
+      setFlash('✔ Data tanaman dihapus.')
+      reload()
+    } catch (err) {
+      const f = handleApiError(err)
+      setDeleteError(f.message)
+      if (f.status === 404) reload()
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const columns: Column<TanamanRow>[] = [
+    { key: 'id', header: 'ID', render: (r) => <span className="text-slate-400">{String(r.id_tanaman)}</span> },
+    { key: 'nama', header: 'Nama Tanaman', render: (r) => <b className="text-slate-900">{cell(r.nama_tanaman)}</b> },
+    { key: 'meja', header: 'Meja Bawaan', render: (r) => mejaLabel(mejaRows, r.id_meja) },
   ]
+
+  // Opsi select: daftar meja live + nilai baris yang diedit bila id-nya tak lagi ada.
+  const mejaOptions = mejaRows.map((m) => ({ id: String(m.id_meja), label: cell(m.meja) }))
+  const currentMeja = (form.id_meja ?? '').trim()
+  if (currentMeja && !mejaOptions.some((o) => o.id === currentMeja)) {
+    mejaOptions.push({ id: currentMeja, label: `#${currentMeja}` })
+  }
+
   return (
-    <CrudScreen<Jenis>
+    <CrudScreen<TanamanRow>
       title="Toolbar — Jenis Tanaman"
       addButton="+ Tambah"
-      columns={[
-        { key: 'nama', header: 'Nama', render: (r) => <b className="text-slate-900">{r.nama}</b> },
-        { key: 'kategori', header: 'Kategori', render: (r) => r.kategori },
-        { key: 'hari', header: 'Hari Panen', render: (r) => r.hari },
-      ]}
+      columns={columns}
       rows={rows}
-      rowKey={(r) => r.nama}
+      rowKey={(r) => String(r.id_tanaman)}
+      loading={loading}
+      listError={error}
+      flash={flash}
+      open={open}
+      onOpenChange={handleOpenChange}
+      formError={formError}
+      submitting={submitting}
+      onSubmit={() => void save()}
       form={
         <>
-          <Field label="Nama jenis"><input className="vsf-input w-full" placeholder="Selada" /></Field>
-          <Field label="Kategori"><input className="vsf-input w-full" placeholder="Daun" /></Field>
-          <Field label="Hari panen"><input className="vsf-input w-full" placeholder="42" /></Field>
-        </>        
+          {'nama_tanaman' in form && (
+            <Field label="Nama tanaman">
+              <input
+                className="vsf-input w-full"
+                placeholder="Selada"
+                value={form.nama_tanaman}
+                onChange={(e) => setForm((s) => ({ ...s, nama_tanaman: e.target.value }))}
+              />
+              <FieldError message={fieldError(fieldErrors, 'nama_tanaman')} />
+            </Field>
+          )}
+          {'id_meja' in form && (
+            <Field label="Meja bawaan (opsional)">
+              <select
+                className="vsf-input w-full"
+                value={currentMeja}
+                onChange={(e) => setForm((s) => ({ ...s, id_meja: e.target.value }))}
+              >
+                <option value="">— tanpa meja —</option>
+                {mejaOptions.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+              <FieldError message={fieldError(fieldErrors, 'id_meja')} />
+            </Field>
+          )}
+        </>
       }
+      hapus={hapus}
+      onHapusChange={setHapus}
+      deleting={deleting}
+      deleteError={deleteError}
+      onDelete={(id) => void remove(id)}
       notes={[
         ...notesMaster,
-        '⚠ MASIH MOCK — data statis, belum memanggil GET/POST /tanaman (gelombang berikutnya).',
+        'Live: GET/POST/PUT/DELETE /tanaman (Bearer JWT) — kolom whitelist backend: nama_tanaman, id_meja.',
+        'Meja bawaan diambil dari GET /meja; pilihan kosong TIDAK ikut dikirim saat simpan sehingga nilai lama tetap ada (Zod menolak null).',
+        'Error kontrak: 401 → redirect login · 422 per-field (mis. nama_tanaman terlalu panjang) → inline di bawah input · 404 → "Data tidak ditemukan." · 409 → "masih ada data terkait".',
       ]}
       actions={(r, ask) => (
         <>
-          <BtnEdit />
-          <BtnHapus label={r.nama} onPick={ask} />
+          <BtnEdit onClick={() => openEdit(r)} />
+          <BtnHapus label={cell(r.nama_tanaman)} id={String(r.id_tanaman)} onPick={ask} />
         </>
       )}
     />
