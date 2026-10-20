@@ -142,4 +142,4 @@ Quick-win gelombang frontend berikut: (1) error+empty saling eksklusif + tombol 
 ## Hasil suite (Pengembang, task-8) — 43 → **106 tes** (63 baru, 105 pass / 1 skip / 0 fail, 3+ run hijau, idempoten)
 - File baru: laporan(8), monitoring(9), watercontrol(10), esp32(11), authz(13), kontrak-aneh(9), meja-mass(3). Skip = dokumentasi 'chart-data abaikan dari/sampai'.
 - Koreksi 1 tes `kontrak-aneh` ID_MEJA oleh parent (ekspektasi status-quo → normalisasi keputusan G9b).
-- 3 perilaku `?dari=bukan-tanggal`/`tarik?dari=abc`/`?id_meja[]=2` ditulis fleksibel [500,422] — **kini semua 422** (G9b), boleh diketatkan saat G10.
+- 3 perilaku fleksibel [500,422]: `?id_meja[]=2` **kini 422** (G9b); `?dari=bukan-tanggal` & `tarik?dari=abc` **MASIH 500** — validasi G9b hanya utk kolom tgl_* di CRUD, bukan query dari/sampai (dikonfirmasi verifier suite: tes lolos dgn 500) → **target G10** (validasi date query → 422).
