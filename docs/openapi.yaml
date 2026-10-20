@@ -4,8 +4,11 @@ info:
   description: |
     Kontrak resmi backend Node.js GARAP (Express 4 + PostgreSQL 17).
     Nama rute 1:1 dengan kontrak Laravel lama. JSON-only kecuali 3 rute CSV.
+    110 operasi = seluruh rute yang terdaftar di backend-nodejs/src (index.js +
+    routes/*.js + routes/_crud.js). Tiap operasi memuat operationId unik dan
+    x-source: <file>:<baris> sebagai rujukan ke kode sumbernya.
     Sumber manusia-baca: docs/KONTRAK_API.md · smoke test: backend-nodejs/scripts/smoke-test.sh
-  version: 1.0.0
+  version: 1.1.0
   contact:
     name: GARAP
 servers:
@@ -21,6 +24,8 @@ tags:
   - name: Water Control dan Laporan
   - name: Master dan Tahap
   - name: User dan Profil
+  - name: Notifikasi WA
+  - name: Konfigurasi V2
 
 security:
   - bearerAuth: []
@@ -28,6 +33,8 @@ security:
 paths:
   /:
     get:
+      operationId: getRoot
+      x-source: backend-nodejs/src/routes/auth.js:8
       tags: [Autentikasi]
       summary: Info endpoint (publik)
       security: []
@@ -38,9 +45,12 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Message" }
         "204": { description: "Dibuka dari address bar (Sec-Fetch-Mode navigate) — body kosong" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /login:
     get:
+      operationId: getLogin
+      x-source: backend-nodejs/src/routes/auth.js:12
       tags: [Autentikasi]
       summary: Info endpoint login (publik)
       security: []
@@ -50,7 +60,10 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Message" }
+        "500": { $ref: "#/components/responses/ServerError" }
     post:
+      operationId: postLogin
+      x-source: backend-nodejs/src/routes/auth.js:16
       tags: [Autentikasi]
       summary: "Login, menghasilkan JWT (rate limit 10/menit/IP)"
       security: []
@@ -72,9 +85,12 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ValidationError" }
         "429": { description: "Rate limit — coba lagi dalam 60 detik" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /logout:
     get:
+      operationId: getLogout
+      x-source: backend-nodejs/src/routes/auth.js:45
       tags: [Autentikasi]
       summary: Logout (stateless, client membuang token)
       security: []
@@ -84,21 +100,27 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Message" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /dashboard:
     get:
+      operationId: getDashboard
+      x-source: backend-nodejs/src/routes/dashboard.js:9
       tags: [Dashboard dan Monitoring]
       summary: Ringkasan dashboard semua role, cache 5 detik
       responses:
         "200":
-          description: Metrik + status IoT + pipeline 4 tahap
+          description: Metrik + status IoT + pipeline 4 tahap + riwayat panen/alert
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Dashboard" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /monitoring:
     get:
+      operationId: getMonitoring
+      x-source: backend-nodejs/src/routes/monitoring.js:134
       tags: [Dashboard dan Monitoring]
       summary: Halaman monitoring (semua role)
       responses:
@@ -110,9 +132,12 @@ paths:
                 type: object
                 properties: { page: { type: string, example: monitoring } }
         "401": { $ref: "#/components/responses/Unauthorized" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /monitoring/chart-data:
     get:
+      operationId: getMonitoringChartData
+      x-source: backend-nodejs/src/routes/monitoring.js:138
       tags: [Dashboard dan Monitoring]
       summary: 288 baris sensor terakhir untuk grafik, urut mundur
       responses:
@@ -124,9 +149,74 @@ paths:
                 type: array
                 items: { $ref: "#/components/schemas/Monitoring" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /monitoring/tarik:
+    get:
+      operationId: getMonitoringTarik
+      x-source: backend-nodejs/src/routes/monitoring.js:145
+      tags: [Dashboard dan Monitoring]
+      summary: Riwayat sensor terfilter (dari/sampai/per_page)
+      parameters:
+        - name: dari
+          in: query
+          required: false
+          description: Batas bawah (timestamptz; kosong = tanpa batas)
+          schema: { type: string }
+        - name: sampai
+          in: query
+          required: false
+          description: Batas atas (timestamptz; kosong = tanpa batas)
+          schema: { type: string }
+        - name: per_page
+          in: query
+          required: false
+          description: "Batas baris — nilai di luar daftar jatuh ke 10"
+          schema: { type: integer, enum: [10, 25, 50, 100], default: 10 }
+      responses:
+        "200":
+          description: "Objek {dari, sampai, data:[…]}"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dari: { type: string, nullable: true }
+                  sampai: { type: string, nullable: true }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Monitoring" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /monitoring/tarik/csv:
+    get:
+      operationId: getMonitoringTarikCsv
+      x-source: backend-nodejs/src/routes/monitoring.js:160
+      tags: [Dashboard dan Monitoring]
+      summary: Unduh riwayat sensor dalam CSV (maks 5000 baris)
+      parameters:
+        - name: dari
+          in: query
+          required: false
+          schema: { type: string }
+        - name: sampai
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: file CSV (BOM UTF-8)
+          content:
+            text/csv:
+              schema: { type: string }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /monitoring/getReport6Jam:
     get:
+      operationId: getMonitoringGetReport6Jam
+      x-source: backend-nodejs/src/routes/monitoring.js:99
       tags: [Dashboard dan Monitoring]
       summary: Rata-rata sensor 6 jam + alert 6 jam (publik)
       security: []
@@ -140,23 +230,41 @@ paths:
                 properties:
                   sensor: { type: object, additionalProperties: true }
                   alerts: { type: array, items: { $ref: "#/components/schemas/Alert" } }
+        "500": { $ref: "#/components/responses/ServerError" }
 
-  /monitoring/tarik/csv:
-    get:
+  /monitoring/saveSensor:
+    post:
+      operationId: postMonitoringSaveSensor
+      x-source: backend-nodejs/src/routes/monitoring.js:114
       tags: [Dashboard dan Monitoring]
-      summary: Unduh riwayat sensor dalam CSV
+      summary: "Kompatibilitas CI4 — simpan bacaan sensor (wajib X-API-KEY), identik /api/save-sensor"
+      security: [{ apiKeyHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SaveSensorRequest" }
       responses:
         "200":
-          description: file CSV (BOM UTF-8)
+          description: Diterima, command harus dieksekusi perangkat
           content:
-            text/csv:
-              schema: { type: string }
+            application/json:
+              schema: { $ref: "#/components/schemas/SaveSensorResponse" }
+        "400":
+          description: 'Payload kosong — {"status":"error","message":"No payload"}'
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Message" }
+        "403": { $ref: "#/components/responses/ForbiddenDevice" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /monitoring/saveAlert:
     post:
+      operationId: postMonitoringSaveAlert
+      x-source: backend-nodejs/src/routes/monitoring.js:124
       tags: [Dashboard dan Monitoring]
       summary: Simpan alert (wajib X-API-KEY)
-      security: []
+      security: [{ apiKeyHeader: [] }]
       requestBody:
         required: true
         content:
@@ -175,9 +283,18 @@ paths:
               schema:
                 type: object
                 properties: { status: { type: string, example: ok } }
+        "400":
+          description: 'type/value tidak terkirim — {"status":"error"}'
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "403": { $ref: "#/components/responses/ForbiddenDevice" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /api/latest-sensor:
     get:
+      operationId: getApiLatestSensor
+      x-source: backend-nodejs/src/routes/monitoring.js:180
       tags: [ESP32]
       summary: Sensor terkini + status alat + anomali (publik, cache 2 detik)
       security: []
@@ -193,12 +310,15 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/LatestSensor" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /api/get-thresholds:
     get:
+      operationId: getApiGetThresholds
+      x-source: backend-nodejs/src/routes/monitoring.js:184
       tags: [ESP32]
       summary: Ambang sensor untuk perangkat (X-API-KEY, cache 60 detik)
-      security: [ { apiKeyHeader: [] } ]
+      security: [{ apiKeyHeader: [] }]
       responses:
         "200":
           description: Ambang 5 sensor
@@ -206,12 +326,15 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Thresholds" }
         "403": { $ref: "#/components/responses/ForbiddenDevice" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /api/save-sensor:
     post:
+      operationId: postApiSaveSensor
+      x-source: backend-nodejs/src/routes/monitoring.js:196
       tags: [ESP32]
       summary: "Simpan bacaan sensor (X-API-KEY), 1 CTE, anti-duplikat + insert + state katup"
-      security: [ { apiKeyHeader: [] } ]
+      security: [{ apiKeyHeader: [] }]
       requestBody:
         required: true
         content:
@@ -231,13 +354,21 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/SaveSensorResponse" }
+        "400":
+          description: 'Payload kosong — {"status":"error","message":"No payload"}'
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Message" }
         "403": { $ref: "#/components/responses/ForbiddenDevice" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /api/notif-hardware:
     post:
+      operationId: postApiNotifHardware
+      x-source: backend-nodejs/src/routes/monitoring.js:206
       tags: [ESP32]
-      summary: Peringatan hardware masuk alert_logs (X-API-KEY)
-      security: [ { apiKeyHeader: [] } ]
+      summary: Peringatan hardware masuk alert_logs (X-API-KEY, cooldown per tipe)
+      security: [{ apiKeyHeader: [] }]
       requestBody:
         required: true
         content:
@@ -250,16 +381,26 @@ paths:
                 value: { type: string, example: "ON (uji node)" }
       responses:
         "200":
-          description: OK
+          description: 'OK — {"status":"cooldown"} bila masih dalam jeda'
           content:
             application/json:
               schema:
                 type: object
-                properties: { status: { type: string, example: ok } }
+                additionalProperties: true
+                properties:
+                  status: { description: "true bila tersimpan, 'cooldown' bila masih dalam jeda" }
+        "400":
+          description: 'type/value kosong — {"status":false,"msg":"type dan value wajib"}'
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
         "403": { $ref: "#/components/responses/ForbiddenDevice" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /tanam:
     get:
+      operationId: getTanam
+      x-source: backend-nodejs/src/routes/tanam.js:62
       tags: [Tanam]
       summary: Gabungan semai, peremajaan, pendewasaan (semua role)
       responses:
@@ -277,9 +418,12 @@ paths:
                       type: object
                       additionalProperties: true
         "401": { $ref: "#/components/responses/Unauthorized" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /tanam/mulai:
     post:
+      operationId: postTanamMulai
+      x-source: backend-nodejs/src/routes/tanam.js:89
       tags: [Tanam]
       summary: "Mulai tanam baru = buat batch semai (demo, expires_at +1 jam)"
       requestBody:
@@ -289,9 +433,9 @@ paths:
             schema:
               type: object
               properties:
-                id_tanaman: { type: string }
-                id_siklus: { type: string }
-                id_meja: { type: string }
+                id_tanaman: { type: integer }
+                id_siklus: { type: integer }
+                id_meja: { type: integer }
                 jumlah_benih: { type: integer, example: 1000 }
                 tgl_awal_semai: { type: string, format: date }
                 keterangan: { type: string }
@@ -301,10 +445,98 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/CreatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "422":
+          description: "FK tak terdaftar / tanggal bukan YYYY-MM-DD / integer salah"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /tanam/{tipe}/{id}/selesai:
+    post:
+      operationId: postTanamTipeIdSelesai
+      x-source: backend-nodejs/src/routes/tanam.js:107
+      tags: [Tanam]
+      summary: Selesai satu tahap — tutup tanggal akhir + status selesai
+      parameters:
+        - name: tipe
+          in: path
+          required: true
+          description: Tahap yang diselesaikan (nilai lain → 422)
+          schema: { type: string, enum: [semai, peremajaan, pendewasaan, panen] }
+        - name: id
+          in: path
+          required: true
+          description: "PK bigint — non-angka / di luar rentang → 404 seragam (kontrak §2b)"
+          schema: { type: string, pattern: "^[0-9]+$" }
+      responses:
+        "200":
+          description: Tahap diselesaikan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422":
+          description: Tahap tidak dikenal
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /tanam/{id}/hapus:
+    post:
+      operationId: postTanamIdHapus
+      x-source: backend-nodejs/src/routes/tanam.js:129
+      tags: [Tanam]
+      summary: Hapus batch semai (konfirmasi di client; demo ditolak)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, pattern: "^[0-9]+$" }
+      responses:
+        "200":
+          description: Terhapus
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeletedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403":
+          description: Mode demo tidak boleh menghapus data
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Message" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /watercontrol:
+    get:
+      operationId: getWatercontrol
+      x-source: backend-nodejs/src/routes/watercontrol.js:9
+      tags: [Water Control dan Laporan]
+      summary: Halaman kontrol air + state katup (admin + demo)
+      responses:
+        "200":
+          description: "Objek {page, wc}"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page: { type: string, example: watercontrol }
+                  wc: { type: object, additionalProperties: true }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /watercontrol/status:
     get:
+      operationId: getWatercontrolStatus
+      x-source: backend-nodejs/src/routes/watercontrol.js:14
       tags: [Water Control dan Laporan]
       summary: State katup dan mode (admin + demo)
       responses:
@@ -322,9 +554,44 @@ paths:
                   updated_at: { type: string, format: date-time }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /watercontrol/fill:
+    post:
+      operationId: postWatercontrolFill
+      x-source: backend-nodejs/src/routes/watercontrol.js:19
+      tags: [Water Control dan Laporan]
+      summary: Perintah isi air FORCE_FILL (admin; demo ditolak)
+      responses:
+        "200":
+          description: Perintah terkirim
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Message" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /watercontrol/stop:
+    post:
+      operationId: postWatercontrolStop
+      x-source: backend-nodejs/src/routes/watercontrol.js:26
+      tags: [Water Control dan Laporan]
+      summary: Hentikan pengisian FORCE_STOP (admin; demo ditolak)
+      responses:
+        "200":
+          description: Perintah terkirim
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Message" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /watercontrol/setMode:
     post:
+      operationId: postWatercontrolSetMode
+      x-source: backend-nodejs/src/routes/watercontrol.js:33
       tags: [Water Control dan Laporan]
       summary: Ubah mode katup (admin, demo ditolak)
       requestBody:
@@ -341,12 +608,30 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Message" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "422":
+          description: Mode bukan AUTO/MANUAL
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /laporan:
     get:
+      operationId: getLaporan
+      x-source: backend-nodejs/src/routes/laporan.js:26
       tags: [Water Control dan Laporan]
       summary: Matriks laporan per bulan (admin + demo)
+      parameters:
+        - name: dari
+          in: query
+          required: false
+          schema: { type: string }
+        - name: sampai
+          in: query
+          required: false
+          schema: { type: string }
       responses:
         "200":
           description: Matriks
@@ -362,9 +647,94 @@ paths:
                       type: object
                       additionalProperties: true
         "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /laporan/csv:
+    get:
+      operationId: getLaporanCsv
+      x-source: backend-nodejs/src/routes/laporan.js:33
+      tags: [Water Control dan Laporan]
+      summary: Unduh matriks laporan sebagai CSV
+      parameters:
+        - name: dari
+          in: query
+          required: false
+          schema: { type: string }
+        - name: sampai
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        "200":
+          description: 'file CSV — nama laporan-<dari>_<sampai>.csv (BOM UTF-8)'
+          content:
+            text/csv:
+              schema: { type: string }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /notifikasi-wa:
+    get:
+      operationId: getNotifikasiWa
+      x-source: backend-nodejs/src/routes/notifWa.js:49
+      tags: [Notifikasi WA]
+      summary: Pengaturan notifikasi WA (api_key hanya versi tersamar)
+      responses:
+        "200":
+          description: Pengaturan + daftar tipe pesan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NotifWaSetting" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    post:
+      operationId: postNotifikasiWa
+      x-source: backend-nodejs/src/routes/notifWa.js:66
+      tags: [Notifikasi WA]
+      summary: Simpan pengaturan notifikasi WA (api_key di-encrypt AES, demo ditolak)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NotifWaInput" }
+      responses:
+        "200":
+          description: Tersimpan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Message" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /notifikasi-wa/uji:
+    post:
+      operationId: postNotifikasiWaUji
+      x-source: backend-nodejs/src/routes/notifWa.js:77
+      tags: [Notifikasi WA]
+      summary: Kirim pesan uji Fonnte (best-effort, demo ditolak)
+      responses:
+        "200":
+          description: Hasil pengiriman (berhasil / gagal / belum dikonfigurasi)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: boolean }
+                  message: { type: string }
+                  log: { type: object, additionalProperties: true }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /user:
     get:
+      operationId: getUser
+      x-source: backend-nodejs/src/routes/user.js:21
       tags: [User dan Profil]
       summary: Daftar akun (admin + demo), tanpa field password
       responses:
@@ -377,42 +747,123 @@ paths:
                 items: { $ref: "#/components/schemas/User" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/ForbiddenRole" }
-
-  /meja:
-    get:
-      tags: [Master dan Tahap]
-      summary: Daftar meja (admin + demo)
-      responses:
-        "200":
-          description: Daftar meja
-          content:
-            application/json:
-              schema:
-                type: array
-                items: { $ref: "#/components/schemas/Meja" }
-        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
     post:
-      tags: [Master dan Tahap]
-      summary: "Tambah meja (201), kolom whitelist, meja dan jumlah_lubang"
+      operationId: postUser
+      x-source: backend-nodejs/src/routes/user.js:28
+      tags: [User dan Profil]
+      summary: Tambah akun (admin; demo ditolak di handler)
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/MejaInput" }
+            schema: { $ref: "#/components/schemas/UserInput" }
       responses:
         "201":
           description: Berhasil ditambahkan
           content:
             application/json:
               schema: { $ref: "#/components/schemas/CreatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
         "422":
-          description: Tidak ada kolom yang dikenal
+          description: Validasi gagal / username sudah dipakai
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/Message" }
+              schema: { $ref: "#/components/schemas/ValidationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /user/{id}:
+    get:
+      operationId: getUserById
+      x-source: backend-nodejs/src/routes/user.js:54
+      tags: [User dan Profil]
+      summary: Detail satu akun (admin + demo)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Akun
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    put:
+      operationId: putUserById
+      x-source: backend-nodejs/src/routes/user.js:63
+      tags: [User dan Profil]
+      summary: Ubah akun (admin; demo ditolak di handler)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UserUpdate" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422":
+          description: "level di luar enum / tidak ada data yang dikirim"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    patch:
+      operationId: patchUserById
+      x-source: backend-nodejs/src/routes/user.js:89
+      tags: [User dan Profil]
+      summary: Alias PATCH — diredispatch ke handler PUT yang sama
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UserUpdate" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    delete:
+      operationId: deleteUserById
+      x-source: backend-nodejs/src/routes/user.js:94
+      tags: [User dan Profil]
+      summary: Hapus akun (admin; demo ditolak; akun sendiri → 422)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Terhapus
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeletedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422":
+          description: Tidak bisa hapus akun sendiri
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
   /profil:
     get:
+      operationId: getProfil
+      x-source: backend-nodejs/src/routes/profil.js:10
       tags: [User dan Profil]
       summary: Profil sendiri (semua role)
       responses:
@@ -426,6 +877,1459 @@ paths:
                   page: { type: string, example: profil }
                   user: { $ref: "#/components/schemas/User" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /profil/update:
+    post:
+      operationId: postProfilUpdate
+      x-source: backend-nodejs/src/routes/profil.js:17
+      tags: [User dan Profil]
+      summary: Ubah username/email sendiri (demo ditolak)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProfilUpdate" }
+      responses:
+        "200":
+          description: Tersimpan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: boolean, example: true }
+                  message: { type: string, example: "Perubahan tersimpan." }
+                  user: { $ref: "#/components/schemas/User" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /profil/password:
+    get:
+      operationId: getProfilPassword
+      x-source: backend-nodejs/src/routes/profil.js:34
+      tags: [User dan Profil]
+      summary: Daftar field formulir ganti password
+      responses:
+        "200":
+          description: "Objek {page, fields:[…]}"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page: { type: string, example: profil.password }
+                  fields: { type: array, items: { type: string } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    post:
+      operationId: postProfilPassword
+      x-source: backend-nodejs/src/routes/profil.js:38
+      tags: [User dan Profil]
+      summary: Ganti password (butuh password_lama; demo ditolak, bcrypt cost 12)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PasswordInput" }
+      responses:
+        "200":
+          description: Tersimpan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Message" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /meja:
+    get:
+      operationId: getMeja
+      x-source: backend-nodejs/src/routes/master.js:11 + routes/_crud.js:140
+      tags: [Master dan Tahap]
+      summary: Daftar meja (admin + demo) — 13 kolom termasuk id_meja
+      responses:
+        "200":
+          description: Daftar meja
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Meja" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    post:
+      operationId: postMeja
+      x-source: backend-nodejs/src/routes/master.js:11 + routes/_crud.js:154
+      tags: [Master dan Tahap]
+      summary: "Tambah meja (201), kolom whitelist, meja dan jumlah_lubang"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MejaInput" }
+      responses:
+        "201":
+          description: Berhasil ditambahkan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CreatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "422":
+          description: Tidak ada kolom yang dikenal / validasi Zod gagal
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /meja/{id}:
+    get:
+      operationId: getMejaById
+      x-source: backend-nodejs/src/routes/master.js:11 + routes/_crud.js:146
+      tags: [Master dan Tahap]
+      summary: Detail satu meja (404 seragam, kontrak §2b)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Baris meja
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Meja" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    put:
+      operationId: putMejaById
+      x-source: backend-nodejs/src/routes/master.js:11 + routes/_crud.js:209
+      tags: [Master dan Tahap]
+      summary: Ubah meja (admin; demo ditolak; selalu updated_at = now())
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MejaInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    patch:
+      operationId: patchMejaById
+      x-source: backend-nodejs/src/routes/master.js:11 + routes/_crud.js:210
+      tags: [Master dan Tahap]
+      summary: Alias PATCH — handler UPDATE yang sama dengan PUT
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MejaInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    delete:
+      operationId: deleteMejaById
+      x-source: backend-nodejs/src/routes/master.js:11 + routes/_crud.js:212
+      tags: [Master dan Tahap]
+      summary: Hapus meja (FK terkait → 409, bukan 500)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Terhapus
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeletedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /tanaman:
+    get:
+      operationId: getTanaman
+      x-source: backend-nodejs/src/routes/master.js:32 + routes/_crud.js:140
+      tags: [Master dan Tahap]
+      summary: Daftar jenis tanaman (admin + demo)
+      responses:
+        "200":
+          description: Daftar tanaman (SELECT whitelist + PK)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                  x-columns: [id_tanaman, nama_tanaman, id_meja]
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    post:
+      operationId: postTanaman
+      x-source: backend-nodejs/src/routes/master.js:32 + routes/_crud.js:154
+      tags: [Master dan Tahap]
+      summary: Tambah jenis tanaman (201)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TanamanInput" }
+      responses:
+        "201":
+          description: Berhasil ditambahkan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CreatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /tanaman/{id}:
+    get:
+      operationId: getTanamanById
+      x-source: backend-nodejs/src/routes/master.js:32 + routes/_crud.js:146
+      tags: [Master dan Tahap]
+      summary: Detail satu jenis tanaman
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Baris tanaman
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    put:
+      operationId: putTanamanById
+      x-source: backend-nodejs/src/routes/master.js:32 + routes/_crud.js:209
+      tags: [Master dan Tahap]
+      summary: Ubah jenis tanaman (admin; demo ditolak)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TanamanInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    patch:
+      operationId: patchTanamanById
+      x-source: backend-nodejs/src/routes/master.js:32 + routes/_crud.js:210
+      tags: [Master dan Tahap]
+      summary: Alias PATCH — handler UPDATE yang sama dengan PUT
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TanamanInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    delete:
+      operationId: deleteTanamanById
+      x-source: backend-nodejs/src/routes/master.js:32 + routes/_crud.js:212
+      tags: [Master dan Tahap]
+      summary: Hapus jenis tanaman (FK terkait → 409)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Terhapus
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeletedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /siklus:
+    get:
+      operationId: getSiklus
+      x-source: backend-nodejs/src/routes/master.js:50 + routes/_crud.js:140
+      tags: [Master dan Tahap]
+      summary: Daftar siklus (admin + demo)
+      responses:
+        "200":
+          description: Daftar siklus
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                  x-columns: [id_siklus, id_tanaman, nama_siklus, waktu_siklus]
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    post:
+      operationId: postSiklus
+      x-source: backend-nodejs/src/routes/master.js:50 + routes/_crud.js:154
+      tags: [Master dan Tahap]
+      summary: Tambah siklus (201)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SiklusInput" }
+      responses:
+        "201":
+          description: Berhasil ditambahkan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CreatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /siklus/csv:
+    get:
+      operationId: getSiklusCsv
+      x-source: backend-nodejs/src/routes/master.js:37
+      tags: [Master dan Tahap]
+      summary: Unduh daftar siklus sebagai CSV (di depan route /siklus/{id})
+      responses:
+        "200":
+          description: file CSV (BOM UTF-8)
+          content:
+            text/csv:
+              schema: { type: string }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /siklus/{id}:
+    get:
+      operationId: getSiklusById
+      x-source: backend-nodejs/src/routes/master.js:50 + routes/_crud.js:146
+      tags: [Master dan Tahap]
+      summary: Detail satu siklus
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Baris siklus
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    put:
+      operationId: putSiklusById
+      x-source: backend-nodejs/src/routes/master.js:50 + routes/_crud.js:209
+      tags: [Master dan Tahap]
+      summary: Ubah siklus (admin; demo ditolak)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SiklusInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    patch:
+      operationId: patchSiklusById
+      x-source: backend-nodejs/src/routes/master.js:50 + routes/_crud.js:210
+      tags: [Master dan Tahap]
+      summary: Alias PATCH — handler UPDATE yang sama dengan PUT
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SiklusInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    delete:
+      operationId: deleteSiklusById
+      x-source: backend-nodejs/src/routes/master.js:50 + routes/_crud.js:212
+      tags: [Master dan Tahap]
+      summary: Hapus siklus (FK terkait → 409)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Terhapus
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeletedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /ambang:
+    get:
+      operationId: getAmbang
+      x-source: backend-nodejs/src/routes/master.js:57 + routes/_crud.js:140
+      tags: [Master dan Tahap]
+      summary: Daftar ambang sensor (admin + demo)
+      responses:
+        "200":
+          description: Daftar ambang
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                  x-columns: [id, sensor, min, max]
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    post:
+      operationId: postAmbang
+      x-source: backend-nodejs/src/routes/master.js:57 + routes/_crud.js:154
+      tags: [Master dan Tahap]
+      summary: Tambah ambang sensor (201)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AmbangInput" }
+      responses:
+        "201":
+          description: Berhasil ditambahkan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CreatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /ambang/{id}:
+    get:
+      operationId: getAmbangById
+      x-source: backend-nodejs/src/routes/master.js:57 + routes/_crud.js:146
+      tags: [Master dan Tahap]
+      summary: Detail satu ambang
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Baris ambang
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    put:
+      operationId: putAmbangById
+      x-source: backend-nodejs/src/routes/master.js:57 + routes/_crud.js:209
+      tags: [Master dan Tahap]
+      summary: Ubah ambang sensor (admin; demo ditolak)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AmbangInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    patch:
+      operationId: patchAmbangById
+      x-source: backend-nodejs/src/routes/master.js:57 + routes/_crud.js:210
+      tags: [Master dan Tahap]
+      summary: Alias PATCH — handler UPDATE yang sama dengan PUT
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AmbangInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    delete:
+      operationId: deleteAmbangById
+      x-source: backend-nodejs/src/routes/master.js:57 + routes/_crud.js:212
+      tags: [Master dan Tahap]
+      summary: Hapus ambang sensor
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Terhapus
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeletedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /semai:
+    get:
+      operationId: getSemai
+      x-source: backend-nodejs/src/routes/tahap.js:47 + routes/_crud.js:140
+      tags: [Master dan Tahap]
+      summary: Daftar batch semai (admin + demo)
+      responses:
+        "200":
+          description: Daftar semai
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                  x-columns: [id_semai, id_tanaman, id_siklus, id_meja, jumlah_benih, tgl_awal_semai, tgl_akhir_semai, status, keterangan, benih_berhasil, benih_gagal]
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    post:
+      operationId: postSemai
+      x-source: backend-nodejs/src/routes/tahap.js:47 + routes/_crud.js:154
+      tags: [Master dan Tahap]
+      summary: Tambah batch semai (201)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SemaiInput" }
+      responses:
+        "201":
+          description: Berhasil ditambahkan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CreatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /semai/selesai:
+    get:
+      operationId: getSemaiSelesai
+      x-source: backend-nodejs/src/routes/tahap.js:19
+      tags: [Master dan Tahap]
+      summary: Daftar semai berstatus selesai
+      responses:
+        "200":
+          description: Daftar semai selesai (join nama_tanaman)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /semai/batch/{id}:
+    get:
+      operationId: getSemaiBatchById
+      x-source: backend-nodejs/src/routes/tahap.js:27
+      tags: [Master dan Tahap]
+      summary: Detail batch semai + peremajaan + pendewasaan + panen
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: "Objek {semai, peremajaan, pendewasaan, panen}"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  semai: { type: object, nullable: true, additionalProperties: true }
+                  peremajaan: { type: array, items: { type: object, additionalProperties: true } }
+                  pendewasaan: { type: array, items: { type: object, additionalProperties: true } }
+                  panen: { type: array, items: { type: object, additionalProperties: true } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /semai/{id}:
+    get:
+      operationId: getSemaiById
+      x-source: backend-nodejs/src/routes/tahap.js:47 + routes/_crud.js:146
+      tags: [Master dan Tahap]
+      summary: Detail satu batch semai
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Baris semai
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    put:
+      operationId: putSemaiById
+      x-source: backend-nodejs/src/routes/tahap.js:47 + routes/_crud.js:209
+      tags: [Master dan Tahap]
+      summary: Ubah batch semai (admin; demo ditolak)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SemaiInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    patch:
+      operationId: patchSemaiById
+      x-source: backend-nodejs/src/routes/tahap.js:47 + routes/_crud.js:210
+      tags: [Master dan Tahap]
+      summary: Alias PATCH — handler UPDATE yang sama dengan PUT
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SemaiInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    delete:
+      operationId: deleteSemaiById
+      x-source: backend-nodejs/src/routes/tahap.js:47 + routes/_crud.js:212
+      tags: [Master dan Tahap]
+      summary: Hapus batch semai (FK terkait → 409)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Terhapus
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeletedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /peremajaan:
+    get:
+      operationId: getPeremajaan
+      x-source: backend-nodejs/src/routes/tahap.js:52 + routes/_crud.js:140
+      tags: [Master dan Tahap]
+      summary: Daftar peremajaan (admin + demo)
+      responses:
+        "200":
+          description: Daftar peremajaan
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                  x-columns: [id_peremajaan, id_semai, id_meja, jumlah_masuk, benih_berhasil, benih_gagal, tgl_awal_peremajaan, tgl_akhir_peremajaan, keterangan]
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    post:
+      operationId: postPeremajaan
+      x-source: backend-nodejs/src/routes/tahap.js:52 + routes/_crud.js:154
+      tags: [Master dan Tahap]
+      summary: Tambah peremajaan (201)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PeremajaanInput" }
+      responses:
+        "201":
+          description: Berhasil ditambahkan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CreatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /peremajaan/{id}:
+    get:
+      operationId: getPeremajaanById
+      x-source: backend-nodejs/src/routes/tahap.js:52 + routes/_crud.js:146
+      tags: [Master dan Tahap]
+      summary: Detail satu peremajaan
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Baris peremajaan
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    put:
+      operationId: putPeremajaanById
+      x-source: backend-nodejs/src/routes/tahap.js:52 + routes/_crud.js:209
+      tags: [Master dan Tahap]
+      summary: Ubah peremajaan (admin; demo ditolak)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PeremajaanInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    patch:
+      operationId: patchPeremajaanById
+      x-source: backend-nodejs/src/routes/tahap.js:52 + routes/_crud.js:210
+      tags: [Master dan Tahap]
+      summary: Alias PATCH — handler UPDATE yang sama dengan PUT
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PeremajaanInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    delete:
+      operationId: deletePeremajaanById
+      x-source: backend-nodejs/src/routes/tahap.js:52 + routes/_crud.js:212
+      tags: [Master dan Tahap]
+      summary: Hapus peremajaan (FK terkait → 409)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Terhapus
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeletedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /pendewasaan:
+    get:
+      operationId: getPendewasaan
+      x-source: backend-nodejs/src/routes/tahap.js:57 + routes/_crud.js:140
+      tags: [Master dan Tahap]
+      summary: Daftar pendewasaan (admin + demo)
+      responses:
+        "200":
+          description: Daftar pendewasaan
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                  x-columns: [id_pendewasaan, id_peremajaan, id_meja, jumlah_masuk, tanaman_berhasil, tanaman_gagal, tgl_awal_pendewasaan, tgl_akhir_pendewasaan, keterangan]
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    post:
+      operationId: postPendewasaan
+      x-source: backend-nodejs/src/routes/tahap.js:57 + routes/_crud.js:154
+      tags: [Master dan Tahap]
+      summary: Tambah pendewasaan (201)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PendewasaanInput" }
+      responses:
+        "201":
+          description: Berhasil ditambahkan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CreatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /pendewasaan/{id}:
+    get:
+      operationId: getPendewasaanById
+      x-source: backend-nodejs/src/routes/tahap.js:57 + routes/_crud.js:146
+      tags: [Master dan Tahap]
+      summary: Detail satu pendewasaan
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Baris pendewasaan
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    put:
+      operationId: putPendewasaanById
+      x-source: backend-nodejs/src/routes/tahap.js:57 + routes/_crud.js:209
+      tags: [Master dan Tahap]
+      summary: Ubah pendewasaan (admin; demo ditolak)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PendewasaanInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    patch:
+      operationId: patchPendewasaanById
+      x-source: backend-nodejs/src/routes/tahap.js:57 + routes/_crud.js:210
+      tags: [Master dan Tahap]
+      summary: Alias PATCH — handler UPDATE yang sama dengan PUT
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PendewasaanInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    delete:
+      operationId: deletePendewasaanById
+      x-source: backend-nodejs/src/routes/tahap.js:57 + routes/_crud.js:212
+      tags: [Master dan Tahap]
+      summary: Hapus pendewasaan (FK terkait → 409)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Terhapus
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeletedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /panen:
+    get:
+      operationId: getPanen
+      x-source: backend-nodejs/src/routes/tahap.js:62 + routes/_crud.js:140
+      tags: [Master dan Tahap]
+      summary: Daftar panen (admin + demo)
+      responses:
+        "200":
+          description: Daftar panen
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                  x-columns: [id_panen, id_pendewasaan, panen_berhasil, panen_gagal, tgl_panen, keterangan]
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    post:
+      operationId: postPanen
+      x-source: backend-nodejs/src/routes/tahap.js:62 + routes/_crud.js:154
+      tags: [Master dan Tahap]
+      summary: Tambah panen (201)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PanenInput" }
+      responses:
+        "201":
+          description: Berhasil ditambahkan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CreatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /panen/{id}:
+    get:
+      operationId: getPanenById
+      x-source: backend-nodejs/src/routes/tahap.js:62 + routes/_crud.js:146
+      tags: [Master dan Tahap]
+      summary: Detail satu panen
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Baris panen
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    put:
+      operationId: putPanenById
+      x-source: backend-nodejs/src/routes/tahap.js:62 + routes/_crud.js:209
+      tags: [Master dan Tahap]
+      summary: Ubah panen (admin; demo ditolak)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PanenInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    patch:
+      operationId: patchPanenById
+      x-source: backend-nodejs/src/routes/tahap.js:62 + routes/_crud.js:210
+      tags: [Master dan Tahap]
+      summary: Alias PATCH — handler UPDATE yang sama dengan PUT
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PanenInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    delete:
+      operationId: deletePanenById
+      x-source: backend-nodejs/src/routes/tahap.js:62 + routes/_crud.js:212
+      tags: [Master dan Tahap]
+      summary: Hapus panen (FK terkait → 409)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Terhapus
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeletedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /konfigurasi-dosis:
+    get:
+      operationId: getKonfigurasiDosis
+      x-source: backend-nodejs/src/routes/konfigurasi.js:231
+      tags: [Konfigurasi V2]
+      summary: Daftar dosis (19 baris, admin + demo)
+      responses:
+        "200":
+          description: Array baris konfigurasi_dosis
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/KonfigurasiDosis" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /konfigurasi-dosis/{param}:
+    get:
+      operationId: getKonfigurasiDosisByParam
+      x-source: backend-nodejs/src/routes/konfigurasi.js:232
+      tags: [Konfigurasi V2]
+      summary: Detail satu baris dosis (PK varchar, 404 seragam §2b)
+      parameters: [{ $ref: "#/components/parameters/ParamVarchar" }]
+      responses:
+        "200":
+          description: Baris konfigurasi_dosis
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KonfigurasiDosis" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    put:
+      operationId: putKonfigurasiDosisByParam
+      x-source: backend-nodejs/src/routes/konfigurasi.js:233
+      tags: [Konfigurasi V2]
+      summary: Ubah dosis (admin saja; stempel waktu tidak disentuh, net-zero)
+      parameters: [{ $ref: "#/components/parameters/ParamVarchar" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/KonfigurasiDosisInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /timing-operasi:
+    get:
+      operationId: getTimingOperasi
+      x-source: backend-nodejs/src/routes/konfigurasi.js:231
+      tags: [Konfigurasi V2]
+      summary: Daftar timing operasi (16 baris, admin + demo)
+      responses:
+        "200":
+          description: Array baris timing_operasi
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/TimingOperasi" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /timing-operasi/{param}:
+    get:
+      operationId: getTimingOperasiByParam
+      x-source: backend-nodejs/src/routes/konfigurasi.js:232
+      tags: [Konfigurasi V2]
+      summary: Detail satu baris timing operasi (404 seragam §2b)
+      parameters: [{ $ref: "#/components/parameters/ParamVarchar" }]
+      responses:
+        "200":
+          description: Baris timing_operasi
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TimingOperasi" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    put:
+      operationId: putTimingOperasiByParam
+      x-source: backend-nodejs/src/routes/konfigurasi.js:233
+      tags: [Konfigurasi V2]
+      summary: Ubah timing operasi (admin saja; stempel waktu tidak disentuh)
+      parameters: [{ $ref: "#/components/parameters/ParamVarchar" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TimingOperasiInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /aturan-fail-safe:
+    get:
+      operationId: getAturanFailSafe
+      x-source: backend-nodejs/src/routes/konfigurasi.js:231
+      tags: [Konfigurasi V2]
+      summary: Daftar aturan fail-safe (20 baris, baca saja)
+      responses:
+        "200":
+          description: Array baris aturan_fail_safe
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AturanFailSafe" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /aturan-fail-safe/{kode}:
+    get:
+      operationId: getAturanFailSafeByKode
+      x-source: backend-nodejs/src/routes/konfigurasi.js:232
+      tags: [Konfigurasi V2]
+      summary: Detail satu aturan fail-safe (404 seragam §2b)
+      parameters: [{ $ref: "#/components/parameters/KodeVarchar" }]
+      responses:
+        "200":
+          description: Baris aturan_fail_safe
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AturanFailSafe" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /jadwal-perawatan:
+    get:
+      operationId: getJadwalPerawatan
+      x-source: backend-nodejs/src/routes/konfigurasi.js:231
+      tags: [Konfigurasi V2]
+      summary: Daftar jadwal perawatan (5 baris, baca saja)
+      responses:
+        "200":
+          description: Array baris jadwal_perawatan
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/JadwalPerawatan" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /jadwal-perawatan/{kode}:
+    get:
+      operationId: getJadwalPerawatanByKode
+      x-source: backend-nodejs/src/routes/konfigurasi.js:232
+      tags: [Konfigurasi V2]
+      summary: Detail satu jadwal perawatan (404 seragam §2b)
+      parameters: [{ $ref: "#/components/parameters/KodeVarchar" }]
+      responses:
+        "200":
+          description: Baris jadwal_perawatan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/JadwalPerawatan" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /kalibrasi-sensor:
+    get:
+      operationId: getKalibrasiSensor
+      x-source: backend-nodejs/src/routes/konfigurasi.js:231
+      tags: [Konfigurasi V2]
+      summary: Daftar kalibrasi sensor (8 baris, baca saja)
+      responses:
+        "200":
+          description: Array baris kalibrasi_sensor
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/KalibrasiSensor" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /kalibrasi-sensor/{sensor}:
+    get:
+      operationId: getKalibrasiSensorBySensor
+      x-source: backend-nodejs/src/routes/konfigurasi.js:232
+      tags: [Konfigurasi V2]
+      summary: Detail satu kalibrasi sensor (PK varchar sensor, 404 seragam)
+      parameters: [{ $ref: "#/components/parameters/SensorVarchar" }]
+      responses:
+        "200":
+          description: Baris kalibrasi_sensor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KalibrasiSensor" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /mapping-channel:
+    get:
+      operationId: getMappingChannel
+      x-source: backend-nodejs/src/routes/konfigurasi.js:231
+      tags: [Konfigurasi V2]
+      summary: Daftar mapping channel ESP32 (15 baris, baca saja)
+      responses:
+        "200":
+          description: Array baris mapping_channel_esp32
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/MappingChannel" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /mapping-channel/{kode}:
+    get:
+      operationId: getMappingChannelByKode
+      x-source: backend-nodejs/src/routes/konfigurasi.js:232
+      tags: [Konfigurasi V2]
+      summary: Detail satu mapping channel (404 seragam §2b)
+      parameters: [{ $ref: "#/components/parameters/KodeVarchar" }]
+      responses:
+        "200":
+          description: Baris mapping_channel_esp32
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MappingChannel" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /target-nutrisi:
+    get:
+      operationId: getTargetNutrisi
+      x-source: backend-nodejs/src/routes/konfigurasi.js:231
+      tags: [Konfigurasi V2]
+      summary: Daftar target nutrisi (3 baris, admin + demo)
+      responses:
+        "200":
+          description: Array baris target_nutrisi
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/TargetNutrisi" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /target-nutrisi/{id}:
+    get:
+      operationId: getTargetNutrisiById
+      x-source: backend-nodejs/src/routes/konfigurasi.js:232
+      tags: [Konfigurasi V2]
+      summary: Detail satu target nutrisi (PK angka, 404 seragam §2b)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200":
+          description: Baris target_nutrisi
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TargetNutrisi" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    put:
+      operationId: putTargetNutrisiById
+      x-source: backend-nodejs/src/routes/konfigurasi.js:233
+      tags: [Konfigurasi V2]
+      summary: Ubah target nutrisi (admin saja; cek rentang + FK → 422, bukan 500)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TargetNutrisiInput" }
+      responses:
+        "200":
+          description: Berhasil diperbarui
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UpdatedResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /penampung-states:
+    get:
+      operationId: getPenampungStates
+      x-source: backend-nodejs/src/routes/konfigurasi.js:231
+      tags: [Konfigurasi V2]
+      summary: Daftar state penampung (5 baris, admin + demo)
+      parameters:
+        - name: id_meja
+          in: query
+          required: false
+          description: "Filter per meja — satu-satunya sumber dengan kolom id_meja (param diabaikan di tabel lain); non-angka → 422"
+          schema: { type: string, pattern: "^[0-9]+$" }
+      responses:
+        "200":
+          description: Array baris penampung_states
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/PenampungState" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /penampung-states/{id_meja}:
+    get:
+      operationId: getPenampungStatesByIdMeja
+      x-source: backend-nodejs/src/routes/konfigurasi.js:232
+      tags: [Konfigurasi V2]
+      summary: Detail satu state penampung (PK angka, 404 seragam §2b)
+      parameters:
+        - name: id_meja
+          in: path
+          required: true
+          schema: { type: string, pattern: "^[0-9]+$" }
+      responses:
+        "200":
+          description: Baris penampung_states
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PenampungState" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
 
 components:
   securitySchemes:
@@ -439,6 +2343,32 @@ components:
       in: header
       name: X-API-KEY
       description: "Kunci ESP32 dari .env (ESP32_API_KEY); skema 2 perangkat memakai ESP32_KEY_A dan ESP32_KEY_B"
+
+  parameters:
+    IdBigint:
+      name: id
+      in: path
+      required: true
+      description: "PK bigint — non-angka ATAU di luar rentang → 404 identik dengan id yang tidak ada (kontrak §2b, anti-enumeration)"
+      schema: { type: string, pattern: "^[0-9]+$" }
+    ParamVarchar:
+      name: param
+      in: path
+      required: true
+      description: "PK varchar(64) — melebihi panjang → 404 identik (kontrak §2b)"
+      schema: { type: string, maxLength: 64 }
+    KodeVarchar:
+      name: kode
+      in: path
+      required: true
+      description: "PK varchar(64) — melebihi panjang → 404 identik (kontrak §2b)"
+      schema: { type: string, maxLength: 64 }
+    SensorVarchar:
+      name: sensor
+      in: path
+      required: true
+      description: "PK varchar — nama sensor (kolom kalibrasi_sensor.sensor)"
+      schema: { type: string, maxLength: 64 }
 
   responses:
     Unauthorized:
@@ -462,6 +2392,29 @@ components:
             properties:
               status: { type: boolean, example: false }
               msg: { type: string, example: Unauthorized }
+    NotFound:
+      description: "Data tidak ada / id tidak valid — body byte-identik untuk ketiga kasus (kontrak §2b)"
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/MessageErrors" }
+          example: { message: "Data tidak ditemukan.", errors: {} }
+    Conflict:
+      description: "FK ON DELETE RESTRICT — data terkait masih merujuk (_crud.js P4)"
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/MessageErrors" }
+          example: { message: "Tidak bisa menghapus meja: masih ada data terkait yang merujuknya.", errors: {} }
+    ValidationFailed:
+      description: Validasi aplikasi gagal (Zod / cek FK / cek rentang) — kontrak §2
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ValidationError" }
+    ServerError:
+      description: "Kesalahan tak terduga di server (handler global index.js) — generik, tanpa stack trace"
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Message" }
+          example: { message: "Terjadi kesalahan pada server." }
 
   schemas:
     Message:
@@ -469,6 +2422,13 @@ components:
       required: [message]
       properties:
         message: { type: string }
+
+    MessageErrors:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+        errors: { type: object, additionalProperties: true }
 
     ValidationError:
       type: object
@@ -509,6 +2469,65 @@ components:
         level: { type: string, enum: [admin, user, petani], example: admin }
         is_demo: { type: boolean, example: false }
 
+    UserInput:
+      type: object
+      required: [username, password]
+      description: "Sumber: routes/user.js:31-36 (validasi manual, bukan Zod)"
+      properties:
+        username: { type: string, minLength: 3, description: "min 3 karakter; unik" }
+        email: { type: string, nullable: true }
+        password: { type: string, minLength: 6, format: password }
+        level: { type: string, enum: [admin, user, petani], default: user }
+        is_demo: { type: boolean, default: false }
+
+    UserUpdate:
+      type: object
+      description: "Semua opsional; setidaknya satu kolom wajib (user.js:79). password di-hash bcrypt cost 12."
+      properties:
+        username: { type: string, minLength: 3 }
+        email: { type: string, nullable: true }
+        password: { type: string, minLength: 6, format: password }
+        level: { type: string, enum: [admin, user, petani] }
+        is_demo: { type: boolean }
+
+    ProfilUpdate:
+      type: object
+      properties:
+        username: { type: string, minLength: 3 }
+        email: { type: string, nullable: true }
+
+    PasswordInput:
+      type: object
+      required: [password_lama, password, password_confirmation]
+      properties:
+        password_lama: { type: string, format: password }
+        password: { type: string, minLength: 6, format: password }
+        password_confirmation: { type: string, minLength: 6 }
+
+    NotifWaInput:
+      type: object
+      description: "api_key di-encrypt AES (crypto.js) dan tidak pernah dikirim balik (notifWa.js:66-75)"
+      properties:
+        aktif: { type: boolean, default: false }
+        api_key: { type: string, description: "kosong/null → kolom di-set NULL" }
+        target: { type: string, description: "nomor WA, dipisah koma" }
+
+    NotifWaSetting:
+      type: object
+      properties:
+        page: { type: string, example: notifikasi-wa }
+        aktif: { type: boolean }
+        api_key_masked: { type: string, nullable: true, example: "abcdef***" }
+        target: { type: string, nullable: true }
+        tipe_pesan:
+          type: array
+          items:
+            type: object
+            properties:
+              tipe: { type: string, example: solenoid }
+              pemicu: { type: string }
+              konten: { type: string }
+
     Dashboard:
       type: object
       properties:
@@ -528,7 +2547,14 @@ components:
         total_pendewasaan: { type: integer, example: 3 }
         total_panen: { type: integer, example: 2 }
         total_panen_qty: { type: integer, example: 22 }
+        semai_aktif: { type: integer }
+        peremajaan_aktif: { type: integer }
+        pendewasaan_aktif: { type: integer }
         latest_sensor: { type: object, additionalProperties: true }
+        sensor_avg: { type: object, nullable: true, additionalProperties: true }
+        water_control: { type: object, nullable: true, additionalProperties: true }
+        recent_alerts: { type: array, items: { $ref: "#/components/schemas/Alert" } }
+        recent_panen: { type: array, items: { type: object, additionalProperties: true } }
 
     Monitoring:
       type: object
@@ -620,16 +2646,198 @@ components:
           type: object
           additionalProperties: true
 
-    Meja:
+    UpdatedResponse:
       type: object
       properties:
+        status: { type: boolean, example: true }
+        message: { type: string, example: "Data berhasil diperbarui." }
+        data:
+          type: object
+          additionalProperties: true
+
+    DeletedResponse:
+      type: object
+      properties:
+        status: { type: boolean, example: true }
+        message: { type: string, example: "Data dihapus." }
+
+    Meja:
+      type: object
+      description: "13 kolom (master.js readColumns + whitelist): 1 PK + 9 tulis + 3 waktu — id_meja IKUT terkirim sejak G8."
+      properties:
+        id_meja: { type: string, example: "1" }
         meja: { type: string, example: Pendewasaan 2 }
         jumlah_lubang: { type: integer, example: 200 }
-      description: "Primary key id_meja belum ikut terkirim, lihat docs/ANALISIS_BACKEND.md bagian 6.2"
+        jenis_talang: { type: string, enum: [NFT, DFT], nullable: true }
+        kapasitas_penampung_l: { type: string, nullable: true, description: "numeric(6,2) — terkirim sebagai string dari PostgreSQL", example: "1500.00" }
+        jumlah_talang: { type: integer, nullable: true, example: 3 }
+        lubang_per_talang: { type: integer, nullable: true, example: 8 }
+        panjang_talang_m: { type: string, nullable: true, example: "12.00" }
+        laju_per_talang_lpm: { type: string, nullable: true, example: "1.50" }
+        kenaikan_air_cm: { type: integer, nullable: true, example: 40 }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        expires_at: { type: string, format: date-time, nullable: true, description: "hanya baris demo (auto-hapus ±1 jam)" }
 
     MejaInput:
       type: object
       required: [meja, jumlah_lubang]
+      description: "Whitelist kolom TULIS — master.js:21-25 + TABLE_SPECS _validate.js:86-101 (9 kolom)"
       properties:
-        meja: { type: string, example: "MEJA A" }
-        jumlah_lubang: { type: integer, example: 8 }
+        meja: { type: string, minLength: 1, maxLength: 200, example: "MEJA A" }
+        jumlah_lubang: { type: integer, minimum: 1, maximum: 1000000, example: 8 }
+        jenis_talang: { type: string, enum: [NFT, DFT] }
+        kapasitas_penampung_l: { type: number, exclusiveMinimum: 0, maximum: 999999.99, description: "CHECK > 0 (numeric 6,2)" }
+        jumlah_talang: { type: integer, minimum: 0 }
+        lubang_per_talang: { type: integer, minimum: 0 }
+        panjang_talang_m: { type: number, minimum: 0, maximum: 99.99 }
+        laju_per_talang_lpm: { type: number, minimum: 0, maximum: 999.99 }
+        kenaikan_air_cm: { type: integer, minimum: 0, default: 40 }
+
+    TanamanInput:
+      type: object
+      description: "Whitelist tanamen — master.js:34; id_meja divalidasi FK → 422 bila tak terdaftar"
+      properties:
+        nama_tanaman: { type: string, minLength: 1 }
+        id_meja: { type: integer }
+
+    SiklusInput:
+      type: object
+      description: "Whitelist sikluses — master.js:54; id_tanaman divalidasi FK → 422"
+      properties:
+        id_tanaman: { type: integer }
+        nama_siklus: { type: string, minLength: 1 }
+        waktu_siklus: { type: integer, description: "integer (pola waktu_*), satuan hari" }
+
+    AmbangInput:
+      type: object
+      description: "Whitelist sensor_thresholds — master.js:59 + TABLE_SPECS _validate.js:103-108"
+      properties:
+        sensor: { type: string, enum: [waterTemp, ph, tds, airTemp, humidity] }
+        min: { type: number }
+        max: { type: number }
+
+    SemaiInput:
+      type: object
+      description: "Whitelist semais — tahap.js:49; FK id_tanaman/id_siklus/id_meja → 422; tgl_* harus YYYY-MM-DD"
+      properties:
+        id_tanaman: { type: integer }
+        id_siklus: { type: integer }
+        id_meja: { type: integer }
+        jumlah_benih: { type: integer }
+        tgl_awal_semai: { type: string, format: date }
+        tgl_akhir_semai: { type: string, format: date }
+        status: { type: string, description: "varchar(255) tanpa enum Zod — nilai di luar CHECK DB masih bisa 500 (lihat BACKLOG G9b)" }
+        keterangan: { type: string, minLength: 1 }
+        benih_berhasil: { type: integer }
+        benih_gagal: { type: integer }
+
+    PeremajaanInput:
+      type: object
+      description: "Whitelist peremajaans — tahap.js:54; FK id_semai/id_meja → 422"
+      properties:
+        id_semai: { type: integer }
+        id_meja: { type: integer }
+        jumlah_masuk: { type: integer }
+        benih_berhasil: { type: integer }
+        benih_gagal: { type: integer }
+        tgl_awal_peremajaan: { type: string, format: date }
+        tgl_akhir_peremajaan: { type: string, format: date }
+        keterangan: { type: string, minLength: 1 }
+
+    PendewasaanInput:
+      type: object
+      description: "Whitelist pendewasaans — tahap.js:59; FK id_peremajaan/id_meja → 422"
+      properties:
+        id_peremajaan: { type: integer }
+        id_meja: { type: integer }
+        jumlah_masuk: { type: integer }
+        tanaman_berhasil: { type: integer }
+        tanaman_gagal: { type: integer }
+        tgl_awal_pendewasaan: { type: string, format: date }
+        tgl_akhir_pendewasaan: { type: string, format: date }
+        keterangan: { type: string, minLength: 1 }
+
+    PanenInput:
+      type: object
+      description: "Whitelist panens — tahap.js:64; FK id_pendewasaan → 422"
+      properties:
+        id_pendewasaan: { type: integer }
+        panen_berhasil: { type: integer }
+        panen_gagal: { type: integer }
+        tgl_panen: { type: string, format: date }
+        keterangan: { type: string, minLength: 1 }
+
+    KonfigurasiDosis:
+      type: object
+      additionalProperties: true
+      description: "Kolom SELECT (konfigurasi.js:63-66): param, nilai, satuan, keterangan, sumber, diubah_pada"
+
+    TimingOperasi:
+      type: object
+      additionalProperties: true
+      description: "Kolom SELECT (konfigurasi.js:68-71): param, nilai, satuan, keterangan, sumber, diubah_pada"
+
+    AturanFailSafe:
+      type: object
+      additionalProperties: true
+      description: "Kolom SELECT (konfigurasi.js:73-76): kode, kondisi, aksi, ambang, satuan, aktif, sumber"
+
+    JadwalPerawatan:
+      type: object
+      additionalProperties: true
+      description: "Kolom SELECT (konfigurasi.js:77-80): kode, periode, periode_hari, kegiatan, lama_menit, sumber"
+
+    KalibrasiSensor:
+      type: object
+      additionalProperties: true
+      description: "Kolom SELECT (konfigurasi.js:81-86): sensor, metode, larutan_ref, nilai_ref, satuan, periode_hari_min, periode_hari_max, penyimpanan, hasil_ukur, terakhir_dikalibrasi, keterangan, sumber"
+
+    MappingChannel:
+      type: object
+      additionalProperties: true
+      description: "Kolom SELECT (konfigurasi.js:88-90): kode, kategori, nama, jumlah_channel, pin_gpio, keterangan, sumber"
+
+    TargetNutrisi:
+      type: object
+      additionalProperties: true
+      description: "Kolom SELECT (konfigurasi.js:92-96): id, id_tanaman, tahap, umur_min_hari, umur_max_hari, ec_min_ppm, ec_max_ppm, ph_min, ph_max, status, keterangan, sumber, updated_at"
+
+    PenampungState:
+      type: object
+      additionalProperties: true
+      description: "Kolom SELECT (konfigurasi.js:104-110): id_meja, status_lock, lock_alasan, lock_sejak, mode_pemeliharaan, kejadian_dosis_hari, volume_ab_hari_ml, volume_ph_hari_ml, target_ec_ppm, target_ph, reset_harian_pada, updated_at"
+
+    KonfigurasiDosisInput:
+      type: object
+      description: "Whitelist tulis (konfigurasi.js:65) + TABLE_SPECS _validate.js:113-118; PK tidak bisa diubah"
+      properties:
+        nilai: { type: number, description: "numeric(12,4) NOT NULL — belum ada batas min/max Zod (BACKLOG G9b)" }
+        satuan: { type: string, minLength: 1, maxLength: 24 }
+        keterangan: { type: string, minLength: 1, maxLength: 500 }
+        sumber: { type: string, minLength: 1, maxLength: 120 }
+
+    TimingOperasiInput:
+      type: object
+      description: "Whitelist tulis (konfigurasi.js:70) + TABLE_SPECS _validate.js:119-124"
+      properties:
+        nilai: { type: number, nullable: true, description: "numeric(10,3) NULL" }
+        satuan: { type: string, minLength: 1, maxLength: 24 }
+        keterangan: { type: string, minLength: 1, maxLength: 500 }
+        sumber: { type: string, minLength: 1, maxLength: 120 }
+
+    TargetNutrisiInput:
+      type: object
+      description: "Whitelist tulis (konfigurasi.js:97-100) + TABLE_SPECS _validate.js:125-138; rentang ec/ph/umur dicek gabungan nilai lama+kiriman → 422"
+      properties:
+        id_tanaman: { type: integer, minimum: 1, description: "FK → tanamen, dicek aplikasi → 422" }
+        tahap: { type: string, minLength: 1, maxLength: 32 }
+        umur_min_hari: { type: integer, minimum: 0 }
+        umur_max_hari: { type: integer, minimum: 0 }
+        ec_min_ppm: { type: number, minimum: 0, maximum: 99999999.99 }
+        ec_max_ppm: { type: number, minimum: 0, maximum: 99999999.99 }
+        ph_min: { type: number, minimum: 0, maximum: 999.99 }
+        ph_max: { type: number, minimum: 0, maximum: 999.99 }
+        status: { type: string, enum: [menunggu_konfirmasi, aktif, kadaluarsa] }
+        keterangan: { type: string, minLength: 1, maxLength: 500 }
+        sumber: { type: string, minLength: 1, maxLength: 120 }
