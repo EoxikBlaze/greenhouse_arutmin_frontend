@@ -229,7 +229,7 @@ export function JenisTanamanPage() {
   }
 
   const columns: Column<TanamanRow>[] = [
-    { key: 'id', header: 'ID', render: (r) => <span className="text-slate-400">{String(r.id_tanaman)}</span> },
+    { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id_tanaman)}</span> },
     { key: 'nama', header: 'Nama Tanaman', render: (r) => <b className="text-slate-900">{cell(r.nama_tanaman)}</b> },
     { key: 'meja', header: 'Meja Bawaan', render: (r) => mejaLabel(mejaRows, r.id_meja) },
   ]
@@ -243,13 +243,15 @@ export function JenisTanamanPage() {
 
   return (
     <CrudScreen<TanamanRow>
-      title="Toolbar — Jenis Tanaman"
+      title="Jenis Tanaman"
+      moduleName="Jenis Tanaman"
       addButton="+ Tambah"
       columns={columns}
       rows={rows}
       rowKey={(r) => String(r.id_tanaman)}
       loading={loading}
       listError={error}
+      onRetry={reload}
       flash={flash}
       open={open}
       onOpenChange={handleOpenChange}
@@ -301,7 +303,7 @@ export function JenisTanamanPage() {
       ]}
       actions={(r, ask) => (
         <>
-          <BtnEdit onClick={() => openEdit(r)} />
+          <BtnEdit name={cell(r.nama_tanaman)} onClick={() => openEdit(r)} />
           <BtnHapus label={cell(r.nama_tanaman)} id={String(r.id_tanaman)} onPick={ask} />
         </>
       )}
@@ -501,7 +503,7 @@ export function MejaTanamanPage() {
   }
 
   const columns: Column<MejaRow>[] = [
-    { key: 'id', header: 'ID', render: (r) => <span className="text-slate-400">{String(r.id_meja)}</span> },
+    { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id_meja)}</span> },
     { key: 'meja', header: 'Nama Meja', render: (r) => <b className="text-slate-900">{cell(r.meja)}</b> },
     { key: 'jumlah_lubang', header: 'Jumlah Lubang', render: (r) => cell(r.jumlah_lubang) },
     ...MEJA_FIELDS.filter((f) => !f.core && present(rows, f.key)).map(
@@ -515,13 +517,15 @@ export function MejaTanamanPage() {
 
   return (
     <CrudScreen<MejaRow>
-      title="Toolbar — Meja Tanam"
+      title="Meja Tanam"
+      moduleName="Meja Tanam"
       addButton="+ Tambah"
       columns={columns}
       rows={rows}
       rowKey={(r) => String(r.id_meja)}
       loading={loading}
       listError={error}
+      onRetry={reload}
       flash={flash}
       open={open}
       onOpenChange={handleOpenChange}
@@ -576,7 +580,7 @@ export function MejaTanamanPage() {
       ]}
       actions={(r, ask) => (
         <>
-          <BtnEdit onClick={() => openEdit(r)} />
+          <BtnEdit name={cell(r.meja)} onClick={() => openEdit(r)} />
           <BtnHapus label={cell(r.meja)} id={String(r.id_meja)} onPick={ask} />
         </>
       )}
@@ -717,7 +721,7 @@ export function AmbangSensorPage() {
   const showSatuan = present(rows, 'satuan')
 
   const columns: Column<AmbangRow>[] = [
-    { key: 'id', header: 'ID', render: (r) => <span className="text-slate-400">{String(r.id)}</span> },
+    { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id)}</span> },
     { key: 'sensor', header: 'Parameter', render: (r) => <b className="text-slate-900">{cell(r.sensor)}</b> },
     { key: 'min', header: 'Minimum', render: (r) => cell(r.min) },
     { key: 'max', header: 'Maksimum', render: (r) => cell(r.max) },
@@ -731,7 +735,8 @@ export function AmbangSensorPage() {
 
   return (
     <CrudScreen<AmbangRow>
-      title="Toolbar — Ambang Sensor"
+      title="Ambang Sensor"
+      moduleName="Ambang Sensor"
       addButton="+ Tambah"
       hideAdd
       columns={columns}
@@ -739,6 +744,7 @@ export function AmbangSensorPage() {
       rowKey={(r) => String(r.id)}
       loading={loading}
       listError={error}
+      onRetry={reload}
       flash={flash}
       open={open}
       onOpenChange={handleOpenChange}
@@ -786,7 +792,7 @@ export function AmbangSensorPage() {
         'Kolom deadband/satuan tampil otomatis bila ikut dikirim backend (migrasi 2026-10-19).',
         'Error kontrak: 401 → redirect login · 422 → pesan per-field · 404 → "Data tidak ditemukan." · 403 → mode demo.',
       ]}
-      actions={(r) => <BtnEdit onClick={() => openEdit(r)} />}
+      actions={(r) => <BtnEdit name={cell(r.sensor)} onClick={() => openEdit(r)} />}
     />
   )
 }

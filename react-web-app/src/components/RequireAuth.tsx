@@ -14,7 +14,17 @@ export function RequireAuth({ allow, element }: { allow?: Role[]; element?: Reac
   const { isAuthenticated, role } = useAuth()
 
   if (!isAuthenticated) return <Navigate to="/login" replace />
-  if (allow && !allow.includes(role)) return <Navigate to="/dashboard" replace />
+  // QW5 — redirect karena role tak diizinkan mengirim state notice, yang
+  // ditampilkan AppShell sebagai role="status" di halaman tujuan (/dashboard).
+  if (allow && !allow.includes(role)) {
+    return (
+      <Navigate
+        to="/dashboard"
+        replace
+        state={{ notice: 'Halaman ini hanya untuk admin.' }}
+      />
+    )
+  }
   if (element) return element
   return <Outlet />
 }

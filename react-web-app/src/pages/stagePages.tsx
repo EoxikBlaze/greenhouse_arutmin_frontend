@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { api } from '../lib/api'
 import { fieldError, useApiError, useApiList } from '../lib/crudApi'
 import {
+  BtnDetail,
   BtnEdit,
   BtnHapus,
   CrudScreen,
@@ -10,6 +11,8 @@ import {
   type Column,
   type HapusTarget,
 } from '../components/CrudScreen'
+import { useDialog } from '../lib/useDialog'
+import { ModalBackdrop } from '../components/ModalBackdrop'
 
 /** Form terkontrol: kunci = nama kolom backend. */
 type FormState = Record<string, string>
@@ -85,7 +88,7 @@ export function SemaiPage() {
   // Dua endpoint baca yang didukung kontrak: daftar & daftar yang statusnya selesai.
   const [tab, setTab] = useState<'semua' | 'selesai'>('semua')
   const path = tab === 'selesai' ? '/semai/selesai' : '/semai'
-  const { rows, loading, error } = useApiList<SemaiRow>(path)
+  const { rows, loading, error, reload } = useApiList<SemaiRow>(path)
   const { rows: tanamanRows } = useApiList<TanamanMini>('/tanaman')
 
   // Detail per baris → GET /semai/batch/:id (aksi baca kedua yang disediakan kontrak).
@@ -115,8 +118,20 @@ export function SemaiPage() {
     setDetailError(null)
   }
 
+  // QW3 — modal detail aksesibel: fokus judul saat buka, kembali ke tombol
+  // "Detail" saat tutup, Escape (diblokir saat memuat), backdrop, Tab trap.
+  const {
+    dialogRef: detailRef,
+    onKeyDown: detailKeyDown,
+    backdropProps: detailBackdrop,
+  } = useDialog({
+    open: detailId !== null,
+    onClose: closeDetail,
+    closeDisabled: detailLoading,
+  })
+
   const columns: Column<SemaiRow>[] = [
-    { key: 'id', header: 'ID', render: (r) => <span className="text-slate-400">{String(r.id_semai)}</span> },
+    { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id_semai)}</span> },
     { key: 'tanaman', header: 'Tanaman', render: (r) => <b className="text-slate-900">{namaTanaman(tanamanRows, r.id_tanaman)}</b> },
     { key: 'siklus', header: 'Siklus', render: (r) => cell(r.id_siklus) },
     { key: 'benih', header: 'Jumlah Benih', render: (r) => cell(r.jumlah_benih) },
@@ -153,7 +168,8 @@ export function SemaiPage() {
       </div>
 
       <CrudScreen<SemaiRow>
-        title="Tab + toolbar — Semai"
+        title="Semai"
+        moduleName="Semai"
         addButton="+ Tambah Semai"
         hideAdd
         columns={columns}
@@ -161,6 +177,7 @@ export function SemaiPage() {
         rowKey={(r) => String(r.id_semai)}
         loading={loading}
         listError={error}
+        onRetry={reload}
         notes={[
           'Live: GET /semai (daftar) · GET /semai/selesai (tab) · GET /semai/batch/:id (detail) — Bearer JWT.',
           'Kolom backend: id_tanaman, id_siklus, id_meja, jumlah_benih, tgl_awal_semai, tgl_akhir_semai, status, keterangan, benih_berhasil, benih_gagal.',
@@ -168,21 +185,30 @@ export function SemaiPage() {
           'Error kontrak tetap aktif: 401 → redirect login · 404 detail → "Data tidak ditemukan." · 403 → mode demo.',
         ]}
         actions={(r) => (
-          <button
-            type="button"
-            className="text-[12px] font-semibold text-arutmin-forest underline"
+          <BtnDetail
+            name={`${namaTanaman(tanamanRows, r.id_tanaman)} (semai #${String(r.id_semai)})`}
             onClick={() => void openDetail(String(r.id_semai))}
-          >
-            Detail
-          </button>
+          />
         )}
       />
 
       {/* Modal detail — host di luar CrudScreen karena bukan form maupun dialog hapus. */}
       {detailId && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4 vsf-modal-backdrop">
-          <div className="w-full max-w-[520px] rounded-card bg-white p-5 vsf-modal-card max-h-[90vh] overflow-auto">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">
+        <ModalBackdrop onMouseDown={detailBackdrop.onMouseDown}>
+          <div
+            ref={detailRef}
+            onKeyDown={detailKeyDown}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="vsf-detail-title"
+            className="w-full max-w-[520px] rounded-card bg-white p-5 vsf-modal-card max-h-[90vh] overflow-auto"
+          >
+            <div
+              id="vsf-detail-title"
+              data-dialog-title
+              tabIndex={-1}
+              className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold outline-none"
+            >
               Detail semai #{detailId}
             </div>
 
@@ -235,7 +261,7 @@ export function SemaiPage() {
               </button>
             </div>
           </div>
-        </div>
+        </ModalBackdrop>
       )}
     </>
   )
@@ -250,7 +276,8 @@ export function PeremajaanPage() {
   ]
   return (
     <CrudScreen<Peremajaan>
-      title="Tabel data peremajaan"
+      title="Peremajaan"
+      moduleName="Peremajaan"
       addButton="+ Tambah Peremajaan"
       columns={[
         { key: 'batch', header: 'Batch', render: (r) => <b className="text-slate-900">{r.batch}</b> },
@@ -274,7 +301,7 @@ export function PeremajaanPage() {
       ]}
       actions={(r, ask) => (
         <>
-          <BtnEdit />
+          <BtnEdit name={`batch ${r.batch}`} />
           <BtnHapus label={`batch ${r.batch}`} onPick={ask} />
         </>
       )}
@@ -289,7 +316,8 @@ export function PendewasaanPage() {
   const rows: Pendewasaan[] = [{ batch: 'B-2310', varietas: 'Selada', meja: 'Meja 2', tanggal: '18 Sep' }]
   return (
     <CrudScreen<Pendewasaan>
-      title="Tabel data pendewasaan"
+      title="Pendewasaan"
+      moduleName="Pendewasaan"
       addButton="+ Tambah Pendewasaan"
       columns={[
         { key: 'batch', header: 'Batch', render: (r) => <b className="text-slate-900">{r.batch}</b> },
@@ -311,7 +339,7 @@ export function PendewasaanPage() {
       ]}
       actions={(r, ask) => (
         <>
-          <BtnEdit />
+          <BtnEdit name={`batch ${r.batch}`} />
           <BtnHapus label={`batch ${r.batch}`} onPick={ask} />
         </>
       )}
@@ -326,7 +354,8 @@ export function PanenPage() {
   const rows: Panen[] = [{ batch: 'B-2304', varietas: 'Bayam', tglPanen: '10 Sep', hasil: '12.4 kg' }]
   return (
     <CrudScreen<Panen>
-      title="Tabel data panen"
+      title="Panen"
+      moduleName="Panen"
       addButton="+ Tambah Panen"
       columns={[
         { key: 'batch', header: 'Batch', render: (r) => <b className="text-slate-900">{r.batch}</b> },
@@ -350,7 +379,7 @@ export function PanenPage() {
       ]}
       actions={(r, ask) => (
         <>
-          <BtnEdit />
+          <BtnEdit name={`batch ${r.batch}`} />
           <BtnHapus label={`batch ${r.batch}`} onPick={ask} />
         </>
       )}
@@ -499,7 +528,7 @@ export function DurasiSiklusPage() {
   }
 
   const columns: Column<SiklusRow>[] = [
-    { key: 'id', header: 'ID', render: (r) => <span className="text-slate-400">{String(r.id_siklus)}</span> },
+    { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id_siklus)}</span> },
     { key: 'tanaman', header: 'Tanaman', render: (r) => <b className="text-slate-900">{namaTanaman(tanamanRows, r.id_tanaman)}</b> },
     { key: 'nama', header: 'Nama Siklus', render: (r) => cell(r.nama_siklus) },
     { key: 'waktu', header: 'Waktu (hari)', render: (r) => cell(r.waktu_siklus) },
@@ -513,13 +542,15 @@ export function DurasiSiklusPage() {
 
   return (
     <CrudScreen<SiklusRow>
-      title="Toolbar — Durasi Siklus"
+      title="Durasi Siklus"
+      moduleName="Durasi Siklus"
       addButton="+ Tambah Siklus"
       columns={columns}
       rows={rows}
       rowKey={(r) => String(r.id_siklus)}
       loading={loading}
       listError={error}
+      onRetry={reload}
       flash={flash}
       open={open}
       onOpenChange={handleOpenChange}
@@ -586,7 +617,7 @@ export function DurasiSiklusPage() {
       ]}
       actions={(r, ask) => (
         <>
-          <BtnEdit onClick={() => openEdit(r)} />
+          <BtnEdit name={cell(r.nama_siklus)} onClick={() => openEdit(r)} />
           <BtnHapus label={`siklus ${cell(r.nama_siklus)}`} id={String(r.id_siklus)} onPick={ask} />
         </>
       )}

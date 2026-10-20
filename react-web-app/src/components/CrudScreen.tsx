@@ -1,4 +1,6 @@
 import { useState, type ReactNode } from 'react'
+import { useDialog } from '../lib/useDialog'
+import { ModalBackdrop } from './ModalBackdrop'
 
 export type Column<T> = {
   key: string
@@ -32,8 +34,20 @@ type Props<T> = {
 
   /** GET daftar sedang berjalan → baris "Memuat data…". */
   loading?: boolean
-  /** Error tingkat daftar (kontrak 401/403/404/500/offline) — banner merah di atas tabel. */
+  /**
+   * Error tingkat daftar (kontrak 401/403/404/500/offline) — tampil SEBAGAI
+   * state eksklusif di tbody (setelah loading, sebelum empty/data) lengkap
+   * dengan tombol "Muat ulang" (QW1 — satu state per layar).
+   */
   listError?: string | null
+  /** Dipanggil tombol "Muat ulang" — umumnya `reload()` dari useApiList. */
+  onRetry?: () => void
+  /**
+   * Nama modul untuk empty-state, mis. "Jenis Tanaman" →
+   * "Belum ada data Jenis Tanaman — …". Tanpa prop ini kalimatnya generik
+   * (dulu memakai `title.toLowerCase()` → "Belum ada data toolbar — …").
+   */
+  moduleName?: string
   /** Sukses mutasi — banner hijau di atas tabel (di-clear host). */
   flash?: string | null
   /** Sembunyikan tombol "+ Tambah" (mis. halaman hanya GET + PUT). */
@@ -82,6 +96,8 @@ export function CrudScreen<T>({
   actions,
   loading,
   listError,
+  onRetry,
+  moduleName,
   flash,
   hideAdd,
   open,
@@ -117,9 +133,33 @@ export function CrudScreen<T>({
   const askHapus = (label: string, id?: string) => setHapusTarget({ label, id: id ?? label })
   const colSpan = columns.length + (actions ? 1 : 0)
 
+  // QW3 — aksesibilitas modal: fokus judul saat buka, kembali ke pemicu saat
+  // tutup, Escape (diblokir saat submitting/deleting), klik backdrop, Tab trap.
+  const {
+    dialogRef: formRef,
+    onKeyDown: formKeyDown,
+    backdropProps: formBackdrop,
+  } = useDialog({
+    open: formOpen && !!form,
+    onClose: () => setFormOpen(false),
+    closeDisabled: !!submitting,
+  })
+  const {
+    dialogRef: hapusRef,
+    onKeyDown: hapusKeyDown,
+    backdropProps: hapusBackdrop,
+  } = useDialog({
+    open: hapusTarget !== null,
+    onClose: () => setHapusTarget(null),
+    closeDisabled: !!deleting,
+  })
+
+  // QW1 — judul modul (tak lagi "Toolbar — X") & nama untuk empty-state.
+  const emptyName = moduleName ?? title
+
   return (
     <div className="mx-auto max-w-[1180px] grid gap-4 vsf-stagger">
-      <section className="vsf-card p-4">
+      <section className="vsf-card p-4 min-w-0">
         <div className="flex flex-wrap items-center gap-3">
           <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">{title}</div>
           <span className="flex-1" />
@@ -140,16 +180,9 @@ export function CrudScreen<T>({
           </div>
         )}
 
-        {listError && (
-          <div
-            role="alert"
-            className="vsf-banner mt-3 rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700"
-          >
-            ✖ {listError}
-          </div>
-        )}
-
-        <div className="mt-3 overflow-auto rounded-card border border-arutmin-border bg-white vsf-table">
+        {/* QW1 — state daftar HIDUP DI tbody (satu state per layar): loading →
+            error → empty → data. Error tak lagi jadi banner terpisah di atas. */}
+        <div className="mt-3 min-w-0 overflow-auto rounded-card border border-arutmin-border bg-white vsf-table">
           <table className="w-full text-[13px]">
             <thead>
               <tr className="bg-arutmin-mint/25">
@@ -178,6 +211,21 @@ export function CrudScreen<T>({
                     </div>
                   </td>
                 </tr>
+              ) : listError ? (
+                <tr>
+                  <td colSpan={colSpan} className="px-3 py-8 text-center">
+                    <div role="alert" className="grid justify-items-center gap-2 py-4">
+                      <span className="text-[28px]" aria-hidden>⚠️</span>
+                      <b className="text-red-700">Gagal memuat data</b>
+                      <span className="text-[13px] text-red-700">✖ {listError}</span>
+                      {onRetry && (
+                        <button type="button" className="vsf-btn-primary mt-1" onClick={onRetry}>
+                          Muat ulang
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
               ) : rows.length === 0 ? (
                 <tr>
                   <td colSpan={colSpan} className="px-3 py-8 text-center text-slate-500">
@@ -185,7 +233,7 @@ export function CrudScreen<T>({
                     <div className="grid justify-items-center gap-2 py-4">
                       <span className="text-[28px]" aria-hidden>📭</span>
                       <b className="text-slate-700">Belum ada data</b>
-                      <span className="text-[13px]">Belum ada data {title.toLowerCase()} — tambah data pertama untuk memulai.</span>
+                      <span className="text-[13px]">Belum ada data {emptyName} — tambah data pertama untuk memulai.</span>
                       {!hideAdd && (
                         <button
                           type="button"
@@ -218,7 +266,8 @@ export function CrudScreen<T>({
         </div>
       </section>
 
-      {notes && (
+      {/* Catatan mockup hanya untuk pengembang (QW1 — tak tampil di produksi). */}
+      {import.meta.env.DEV && notes && (
         <section className="vsf-card p-4">
           <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">
             Catatan struktur & state
@@ -231,11 +280,27 @@ export function CrudScreen<T>({
         </section>
       )}
 
-      {/* Modal form tambah/edit */}
+      {/* Modal form tambah/edit — QW3: role=dialog, aria-modal, label judul,
+          fokus judul saat buka & kembali ke pemicu, Escape (diblokir saat
+          submitting), klik backdrop, Tab terkunci di dalam modal. */}
       {formOpen && form && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4 vsf-modal-backdrop">
-          <div className="w-full max-w-[520px] rounded-card bg-white p-5 vsf-modal-card max-h-[90vh] overflow-auto">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Form tambah / edit</div>
+        <ModalBackdrop onMouseDown={formBackdrop.onMouseDown}>
+          <div
+            ref={formRef}
+            onKeyDown={formKeyDown}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="vsf-form-title"
+            className="w-full max-w-[520px] rounded-card bg-white p-5 vsf-modal-card max-h-[90vh] overflow-auto"
+          >
+            <div
+              id="vsf-form-title"
+              data-dialog-title
+              tabIndex={-1}
+              className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold outline-none"
+            >
+              Form tambah / edit
+            </div>
             {formError && (
               <div
                 role="alert"
@@ -269,15 +334,26 @@ export function CrudScreen<T>({
               </button>
             </div>
           </div>
-        </div>
+        </ModalBackdrop>
       )}
 
-      {/* Modal konfirmasi hapus */}
+      {/* Modal konfirmasi hapus — alertdialog (keputusan destruktif) + aturan
+          QW3 yang sama; Escape/backdrop diblokir saat `deleting`. */}
       {hapusTarget && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4 vsf-modal-backdrop">
-          <div className="w-full max-w-[420px] rounded-card bg-white p-5 vsf-modal-card">
-            <div className="text-[16px] font-bold">Hapus data?</div>
-            <div className="mt-2 text-[13px] text-slate-700">
+        <ModalBackdrop onMouseDown={hapusBackdrop.onMouseDown}>
+          <div
+            ref={hapusRef}
+            onKeyDown={hapusKeyDown}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="vsf-hapus-title"
+            aria-describedby="vsf-hapus-desc"
+            className="w-full max-w-[420px] rounded-card bg-white p-5 vsf-modal-card"
+          >
+            <div id="vsf-hapus-title" data-dialog-title tabIndex={-1} className="text-[16px] font-bold outline-none">
+              Hapus data?
+            </div>
+            <div id="vsf-hapus-desc" className="mt-2 text-[13px] text-slate-700">
               Konfirmasi menghapus <b>{hapusTarget.label}</b>. Tindakan ini tidak bisa dibatalkan.
             </div>
             {deleteError && (
@@ -309,16 +385,24 @@ export function CrudScreen<T>({
               </button>
             </div>
           </div>
-        </div>
+        </ModalBackdrop>
       )}
     </div>
   )
 }
 
-/** Tombol Edit standar (hijau, outline) untuk kolom Aksi */
-export function BtnEdit({ onClick }: { onClick?: () => void }) {
+/**
+ * Tombol Edit standar (hijau, outline) untuk kolom Aksi.
+ * `name` → aria-label "Ubah <nama>" (target sentuh ≥36px, QW2).
+ */
+export function BtnEdit({ onClick, name }: { onClick?: () => void; name?: string }) {
   return (
-    <button className="text-[12px] font-semibold text-arutmin-forest underline mr-3" onClick={onClick}>
+    <button
+      type="button"
+      className="inline-flex min-h-[36px] items-center px-2.5 text-[12px] font-semibold text-arutmin-forest underline"
+      onClick={onClick}
+      aria-label={name ? `Ubah ${name}` : undefined}
+    >
       Edit
     </button>
   )
@@ -327,6 +411,7 @@ export function BtnEdit({ onClick }: { onClick?: () => void }) {
 /**
  * Tombol Hapus standar (merah, outline) untuk kolom Aksi.
  * `id` diteruskan ke `askHapus(label, id)` → DELETE /x/:id pada halaman API.
+ * aria-label "Hapus <nama>" + target sentuh ≥36px (QW2).
  */
 export function BtnHapus({
   label,
@@ -338,8 +423,30 @@ export function BtnHapus({
   onPick: (label: string, id?: string) => void
 }) {
   return (
-    <button className="text-[12px] font-semibold text-red-700 underline" onClick={() => onPick(label, id)}>
+    <button
+      type="button"
+      className="inline-flex min-h-[36px] items-center px-2.5 text-[12px] font-semibold text-red-700 underline"
+      onClick={() => onPick(label, id)}
+      aria-label={`Hapus ${label}`}
+    >
       Hapus
+    </button>
+  )
+}
+
+/**
+ * Tombol Detail standar untuk kolom Aksi (mis. modal detail Semai).
+ * aria-label "Detail <nama>" + target sentuh ≥36px (QW2).
+ */
+export function BtnDetail({ name, onClick }: { name: string; onClick?: () => void }) {
+  return (
+    <button
+      type="button"
+      className="inline-flex min-h-[36px] items-center px-2.5 text-[12px] font-semibold text-arutmin-forest underline"
+      onClick={onClick}
+      aria-label={`Detail ${name}`}
+    >
+      Detail
     </button>
   )
 }

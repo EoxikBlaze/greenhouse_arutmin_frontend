@@ -84,8 +84,9 @@
     box-shadow: theme('boxShadow.focusMoss');
   }
   .vsf-input:disabled { @apply bg-slate-50 text-slate-400 cursor-not-allowed; }
+  /* QW2 — target sentuh ≥44px untuk tombol utama/sekunder. */
   .vsf-btn-primary {
-    @apply text-white font-semibold rounded-full px-4 py-2 inline-flex items-center justify-center gap-2;
+    @apply min-h-[44px] text-white font-semibold rounded-full px-4 py-2 inline-flex items-center justify-center gap-2;
     background-image: theme('backgroundImage.primary');
     transition: transform 0.18s var(--ar-ease), box-shadow 0.18s ease, filter 0.18s ease, opacity 0.18s ease;
   }
@@ -96,6 +97,14 @@
   }
   .vsf-btn-primary:active:not(:disabled) { transform: translateY(0) scale(0.98); }
   .vsf-btn-primary:disabled { @apply opacity-50 cursor-not-allowed; }
+
+  .vsf-btn-secondary {
+    @apply min-h-[44px] inline-flex items-center justify-center gap-2 rounded-full border border-arutmin-moss px-4 py-2 text-arutmin-forest font-semibold bg-white;
+    transition: transform 0.18s var(--ar-ease), box-shadow 0.18s ease, background-color 0.18s ease;
+  }
+  .vsf-btn-secondary:hover:not(:disabled) { background-color: rgb(var(--ar-page)); transform: translateY(-1px); }
+  .vsf-btn-secondary:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+  .vsf-btn-secondary:disabled { @apply opacity-50 cursor-not-allowed; }
 
   /* Page transition (dipakai AppShell, key = pathname) */
   .vsf-page { animation: vsf-fade-up 0.3s var(--ar-ease) both; }
@@ -118,7 +127,11 @@
   .vsf-stagger > *:nth-child(12) { animation-delay: 0.69s; }
   .vsf-stagger > *:nth-child(n+13) { animation-delay: 0.75s; }
 
-  /* Tabel: baris fade-in berurutan + transisi hover */
+  /* Tabel: baris fade-in berurutan + transisi hover.
+     QW6 — min-width:0 agar pembungkus overflow-auto jadi scroll INTERNAL
+     (tabel tak lagi melebarkan dokumen di layar 390px). */
+  .vsf-table { min-width: 0; max-width: 100%; }
+  .vsf-table table { min-width: 0; }
   .vsf-table tbody tr {
     animation: vsf-fade-up 0.35s var(--ar-ease) both;
     transition: background-color 0.15s ease;

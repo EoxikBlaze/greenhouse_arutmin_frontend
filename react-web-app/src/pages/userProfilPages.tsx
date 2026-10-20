@@ -158,13 +158,15 @@ export function ManajemenUserPage() {
   return (
     <>
       <CrudScreen<UserRow>
-        title="Toolbar — Manajemen User"
+        title="Manajemen User"
+        moduleName="Manajemen User"
         addButton="+ Tambah User"
         columns={columns}
         rows={rows}
         rowKey={(r) => String(r.id ?? r.username)}
         loading={loading}
         listError={error}
+        onRetry={reload}
         flash={flash}
         open={open}
         onOpenChange={handleOpenChange}
@@ -240,7 +242,7 @@ export function ManajemenUserPage() {
         ]}
         actions={(r, ask) => (
           <>
-            <BtnEdit onClick={() => openEdit(r)} />
+            <BtnEdit name={String(r.username)} onClick={() => openEdit(r)} />
             {String(r.username) !== saya && <BtnHapus label={String(r.username)} id={String(r.id ?? '')} onPick={ask} />}
           </>
         )}
