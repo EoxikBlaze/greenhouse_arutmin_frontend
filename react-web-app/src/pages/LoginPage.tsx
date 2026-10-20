@@ -100,7 +100,7 @@ export default function LoginPage() {
           </div>
 
           <div className="relative mt-8">
-            <h1 className="max-w-[20ch] font-bold leading-[1.2]">
+            <h1 className="max-w-[20ch] font-bold leading-[1.2] text-white">
               Satu layar untuk seluruh siklus tanam hidroponik.
             </h1>
             <p className="mt-3 max-w-[54ch] text-[14px] leading-relaxed text-white/75">

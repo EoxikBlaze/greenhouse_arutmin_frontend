@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { api } from '../lib/api'
 import { useApiError } from '../lib/crudApi'
 import { useAuth } from '../lib/authContext'
-import { useApiObject } from '../lib/useApiObject'
+import { useApiObject, useFlashOnChange } from '../lib/useApiObject'
 import { StatusBadge } from '../components/StatusBadge'
 
 type Mode = 'AUTO' | 'MANUAL'
@@ -72,6 +72,8 @@ export default function WaterControlPage() {
 
   // Status live + polling senyap tiap 5 dtk (skeleton hanya saat muat pertama).
   const { data: status, loading, error, reload } = useApiObject<Status>('/watercontrol/status', { pollMs: 5_000 })
+  // P4 — sorot kilat saat nilai polling 5 dtk berubah.
+  const statusFlash = useFlashOnChange(JSON.stringify(status ?? null))
 
   const mode = (status?.mode === 'AUTO' ? 'AUTO' : status?.mode === 'MANUAL' ? 'MANUAL' : null) as Mode | null
   const terjangkau = !error
@@ -203,17 +205,17 @@ export default function WaterControlPage() {
           </div>
           <div className="rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm">
             <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Perintah Terakhir</div>
-            <div className="text-[15px] font-bold mt-1 tabular-nums">{status?.command ?? '—'}</div>
+            <div className={`text-[15px] font-bold mt-1 tabular-nums ${statusFlash}`}>{status?.command ?? '—'}</div>
             <div className="text-[12px] text-slate-600">{tgl(status?.updated_at)}</div>
           </div>
           <div className="rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm">
             <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Katup</div>
-            <div className="text-[15px] font-bold mt-1">{status?.valve_state ?? '—'}</div>
+            <div className={`text-[15px] font-bold mt-1 ${statusFlash}`}>{status?.valve_state ?? '—'}</div>
             <div className="text-[12px] text-slate-600">status katup tandon</div>
           </div>
           <div className="rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm">
             <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Mode</div>
-            <div className="text-[15px] font-bold mt-1">{mode ?? '—'}</div>
+            <div className={`text-[15px] font-bold mt-1 ${statusFlash}`}>{mode ?? '—'}</div>
             <div className="text-[12px] text-slate-600">berdasar ambang sensor</div>
           </div>
         </div>

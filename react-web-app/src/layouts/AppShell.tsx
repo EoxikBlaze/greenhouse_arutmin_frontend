@@ -133,8 +133,8 @@ function SideItem({ to, children, indent }: { to: string; children: ReactNode; i
       to={to}
       className={({ isActive }) =>
         [
-          // QW2 — target sentuh ≥44px.
-          'flex min-h-[44px] items-center rounded-std-sm px-3 py-2 text-[14px] transition-all duration-200',
+          // QW2 — target sentuh ≥44px. P7 — easing/durasi seragam dgn token (--tr 150ms).
+          'flex min-h-[44px] items-center rounded-std-sm px-3 py-2 text-[14px] transition-all duration-[150ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
           indent ? 'pl-6 text-[13px]' : '',
           // QW4 (dipertahankan) — teks putih solid, kontras ≥7:1 di atas navy.
           // Aksen "aktif" = batang moss (token --moss) di tepi kiri + pill terang.
@@ -220,6 +220,8 @@ export function AppShell() {
     dialogRef: logoutRef,
     onKeyDown: logoutKeyDown,
     backdropProps: logoutBackdrop,
+    closing: logoutClosing,
+    handleClose: logoutClose,
   } = useDialog({ open: confirmKeluar, onClose: () => setConfirmKeluar(false) })
 
   return (
@@ -237,7 +239,7 @@ export function AppShell() {
         <aside
           id="vsf-sidebar"
           className={[
-            '-translate-x-full fixed inset-y-0 left-0 z-40 w-[260px] shrink-0 overflow-y-auto bg-sidebar px-4 py-4 text-white vsf-stagger max-h-dvh transition-transform duration-200',
+            '-translate-x-full fixed inset-y-0 left-0 z-40 w-[260px] shrink-0 overflow-y-auto bg-sidebar px-4 py-4 text-white vsf-stagger max-h-dvh transition-transform duration-[150ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
             'lg:static lg:z-auto lg:translate-x-0',
             navOpen ? 'translate-x-0' : '',
           ].join(' ')}
@@ -280,18 +282,18 @@ export function AppShell() {
             <button
               type="button"
               onClick={() => setConfirmKeluar(true)}
-              className="flex min-h-[44px] w-full items-center rounded-[12px] px-3 py-2 text-left text-[14px] text-white/85 transition-all duration-200 hover:translate-x-1 hover:bg-white/10"
+              className="flex min-h-[44px] w-full items-center rounded-[12px] px-3 py-2 text-left text-[14px] text-white/85 transition-all duration-[150ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:translate-x-1 hover:bg-white/10"
             >
               Keluar
             </button>
           </div>
         </aside>
 
-        {/* Backdrop off-canvas (mobile saja). */}
+          {/* Backdrop off-canvas (mobile saja) — P7: fade 180ms (bukan pop). */}
         {navOpen && (
           <div
             aria-hidden
-            className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+            className="fixed inset-0 z-30 bg-black/40 lg:hidden vsf-backdrop"
             onClick={() => setNavOpen(false)}
           />
         )}
@@ -302,7 +304,7 @@ export function AppShell() {
           <header className="vsf-topbar flex min-h-[64px] items-center gap-3 border-b border-white/10 bg-topbar px-4 text-white shadow-[0_16px_34px_-28px_rgba(7,21,39,.95)] sm:px-6">
             <button
               type="button"
-              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-std-sm border border-white/25 text-white transition-colors hover:bg-white/10 lg:hidden"
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-std-sm border border-white/25 text-white transition-colors duration-[150ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-white/10 lg:hidden"
               aria-expanded={navOpen}
               aria-controls="vsf-sidebar"
               aria-label={navOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
@@ -313,7 +315,7 @@ export function AppShell() {
               </svg>
             </button>
             <div className="min-w-0">
-              <h1 className="truncate text-[20px] font-bold leading-tight sm:text-[24px]">{title}</h1>
+              <h1 className="truncate text-[20px] font-bold leading-tight text-white sm:text-[24px]">{title}</h1>
               <div className="vsf-eyebrow vsf-eyebrow-light hidden sm:block">GARAP · greenhouse hidroponik</div>
             </div>
             <div className="ml-auto flex items-center gap-3">
@@ -375,7 +377,7 @@ export function AppShell() {
 
       {/* Confirm sheet: Keluar — QW3: alertdialog + label + fokus + trap. */}
       {confirmKeluar && (
-        <ModalBackdrop onMouseDown={logoutBackdrop.onMouseDown}>
+        <ModalBackdrop onMouseDown={logoutBackdrop.onMouseDown} closing={logoutClosing}>
           <div
             ref={logoutRef}
             onKeyDown={logoutKeyDown}
@@ -383,7 +385,7 @@ export function AppShell() {
             aria-modal="true"
             aria-labelledby="vsf-logout-title"
             aria-describedby="vsf-logout-desc"
-            className="w-full max-w-[420px] rounded-card bg-white p-5 vsf-modal-card"
+            className={`w-full max-w-[420px] rounded-card bg-white p-5 vsf-modal-card${logoutClosing ? ' is-closing' : ''}`}
           >
             <div id="vsf-logout-title" data-dialog-title tabIndex={-1} className="text-[16px] font-bold outline-none">
               Keluar dari akun?
@@ -392,7 +394,7 @@ export function AppShell() {
               Kamu akan keluar dari sesi <b>{username || role}</b>. Untuk masuk lagi, login ulang.
             </div>
             <div className="mt-4 flex justify-end gap-2">
-              <button className="vsf-btn-secondary" onClick={() => setConfirmKeluar(false)}>
+              <button className="vsf-btn-secondary" onClick={logoutClose}>
                 Batal
               </button>
               <button className="vsf-btn-danger" onClick={doLogout}>

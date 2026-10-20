@@ -75,11 +75,22 @@ function PillStatus({ nilai }: { nilai: string }) {
 type DetailBaris = { judul: string; isi: Array<[string, string]> }
 
 function ModalDetailBaris({ data, onClose }: { data: DetailBaris | null; onClose: () => void }) {
+  // P3 — animasi keluar 180ms sebelum host melepas modal (hook sebelum early return).
+  const [closing, setClosing] = useState(false)
+  const close = () => {
+    if (closing) return
+    setClosing(true)
+    window.setTimeout(() => {
+      setClosing(false)
+      onClose()
+    }, 180)
+  }
   if (!data) return null
   return (
     <ModalBackdrop
+      closing={closing}
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose()
+        if (e.target === e.currentTarget) close()
       }}
     >
       <div
@@ -87,9 +98,9 @@ function ModalDetailBaris({ data, onClose }: { data: DetailBaris | null; onClose
         aria-modal="true"
         aria-labelledby="vsf-baris-detail-title"
         onKeyDown={(e) => {
-          if (e.key === 'Escape') onClose()
+          if (e.key === 'Escape') close()
         }}
-        className="w-full max-w-[420px] rounded-card bg-white p-5 vsf-modal-card max-h-[90vh] overflow-auto"
+        className={`w-full max-w-[420px] rounded-card bg-white p-5 vsf-modal-card max-h-[90vh] overflow-auto${closing ? ' is-closing' : ''}`}
       >
         <div
           id="vsf-baris-detail-title"
@@ -108,7 +119,7 @@ function ModalDetailBaris({ data, onClose }: { data: DetailBaris | null; onClose
           ))}
         </dl>
         <div className="mt-4 flex justify-end">
-          <button type="button" className="vsf-input rounded-full font-semibold" onClick={onClose} autoFocus>
+          <button type="button" className="vsf-input rounded-full font-semibold" onClick={close} autoFocus>
             Tutup
           </button>
         </div>
@@ -202,6 +213,8 @@ export function SemaiPage() {
     dialogRef: detailRef,
     onKeyDown: detailKeyDown,
     backdropProps: detailBackdrop,
+    closing: detailClosing,
+    handleClose: detailClose,
   } = useDialog({
     open: detailId !== null,
     onClose: closeDetail,
@@ -272,14 +285,14 @@ export function SemaiPage() {
 
       {/* Modal detail — host di luar CrudScreen karena bukan form maupun dialog hapus. */}
       {detailId && (
-        <ModalBackdrop onMouseDown={detailBackdrop.onMouseDown}>
+        <ModalBackdrop onMouseDown={detailBackdrop.onMouseDown} closing={detailClosing}>
           <div
             ref={detailRef}
             onKeyDown={detailKeyDown}
             role="dialog"
             aria-modal="true"
             aria-labelledby="vsf-detail-title"
-            className="w-full max-w-[520px] rounded-card bg-white p-5 vsf-modal-card max-h-[90vh] overflow-auto"
+            className={`w-full max-w-[520px] rounded-card bg-white p-5 vsf-modal-card max-h-[90vh] overflow-auto${detailClosing ? ' is-closing' : ''}`}
           >
             <div
               id="vsf-detail-title"
@@ -335,7 +348,7 @@ export function SemaiPage() {
             )}
 
             <div className="mt-4 flex justify-end">
-              <button className="vsf-input rounded-full" disabled={detailLoading} onClick={closeDetail}>
+              <button className="vsf-input rounded-full" disabled={detailLoading} onClick={detailClose}>
                 Tutup
               </button>
             </div>

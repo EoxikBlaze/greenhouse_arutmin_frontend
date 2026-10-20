@@ -154,7 +154,7 @@ function Grafik({ points, unit }: { points: Array<{ t: number; y: number; teks: 
   const akhir = points[points.length - 1]
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label={`Grafik ${unit || 'nilai sensor'} terhadap waktu`}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="vsf-chart w-full h-auto" role="img" aria-label={`Grafik ${unit || 'nilai sensor'} terhadap waktu`}>
       {ticks.map((v, i) => (
         <g key={i}>
           <line x1={PL} x2={W - PR} y1={y(v)} y2={y(v)} stroke="#E2E8DD" strokeWidth={1} />
@@ -420,7 +420,8 @@ export default function SensorRealtimePage() {
                   <span className="font-normal text-slate-500">({tgl(new Date(nilaiAkhir!.t).toISOString())})</span>
                 </div>
               </div>
-              <Grafik points={titik} unit={param} />
+              {/* P5 — key: remount saat param/rentang berubah → fade-in 220ms. */}
+              <Grafik key={`${param}|${range}`} points={titik} unit={param} />
             </div>
           )}
         </div>

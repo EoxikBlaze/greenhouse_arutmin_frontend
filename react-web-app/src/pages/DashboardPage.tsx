@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { StatusBadge } from '../components/StatusBadge'
 import { useAuth } from '../lib/authContext'
-import { useApiObject } from '../lib/useApiObject'
+import { useApiObject, useFlashOnChange } from '../lib/useApiObject'
 
 /**
  * Dashboard live — GET /dashboard (semua role).
@@ -136,6 +136,8 @@ function IkonMetrik({ kind }: { kind: string }) {
 export default function DashboardPage() {
   const { role } = useAuth()
   const { data, loading, error, reload } = useApiObject<DashboardData>('/dashboard')
+  // P4 — sorot kilat 0.5s saat data sensor terkini berubah (refresh senyap).
+  const sensorFlash = useFlashOnChange(JSON.stringify(data?.latest_sensor ?? null))
 
   const kelola = role !== 'petani' // menu pengelola (semai/water control) tidak ditawarkan ke petani
   const s = data?.latest_sensor ?? null
@@ -284,7 +286,7 @@ export default function DashboardPage() {
                       <IkonMetrik kind={m.k} />
                     </span>
                   </div>
-                  <div className="mt-1 text-[26px] leading-tight font-extrabold text-arutmin-forest tabular-nums">{m.nilai}</div>
+                  <div className={`mt-1 text-[26px] leading-tight font-extrabold text-arutmin-forest tabular-nums ${sensorFlash}`}>{m.nilai}</div>
                   <div className="text-[12px] text-slate-600">
                     {m.target} • {statusKata}
                   </div>

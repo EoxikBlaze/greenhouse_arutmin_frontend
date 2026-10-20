@@ -52,7 +52,9 @@ export default {
         topbar: 'linear-gradient(180deg, #0A1F38 0%, #071527 100%)',
         brandPanel: 'linear-gradient(150deg, #0A1F38 0%, #071527 55%, #123253 100%)',
         primary: 'linear-gradient(135deg, #2D452F 0%, #4C6A4B 100%)',
-        activePill: 'linear-gradient(135deg, #6B9D4A 0%, #5A8740 100%)',
+        // KONTRAS (audit): putih di moss #6B9D4A = 3.21 (GAGAL) → moss digelapkan
+        // agar putih lolos ≥4.5 di SELURUH gradasi: 0% #4E7733 = 5.24, 100% #42662B = 6.63.
+        activePill: 'linear-gradient(135deg, #4E7733 0%, #42662B 100%)',
       },
     },
   },

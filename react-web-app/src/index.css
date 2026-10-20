@@ -98,6 +98,15 @@
   0%   { background-color: rgba(107, 157, 74, 0.28); }
   100% { background-color: transparent; }
 }
+/* P3 — keluar (exit) animasi, dijalankan SEBELUM elemen dilepas host. */
+@keyframes vsf-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes vsf-fade-out-scale {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.97); }
+}
 
 @layer components {
   /* Permukaan standar: radius token + shadow halus (150ms transisi) */
@@ -122,7 +131,7 @@
     border-color: var(--moss);
     box-shadow: 0 0 0 3px rgba(107, 157, 74, 0.18);
   }
-  .vsf-input:disabled { @apply bg-slate-50 text-slate-400 cursor-not-allowed; }
+  .vsf-input:disabled { @apply bg-slate-50 text-slate-500 cursor-not-allowed; }
 
   /* ── (2) Eyebrow global — satu varian: 11px uppercase, tracking .14em, bold ── */
   .vsf-eyebrow {
@@ -188,39 +197,34 @@
   /* Page transition (dipakai AppShell, key = pathname) */
   .vsf-page { animation: vsf-fade-up 0.3s var(--ar-ease) both; }
 
-  /* Stagger: anak-anak kartu/section naik berurutan */
+  /* Stagger: anak-anak kartu/section naik berurutan.
+     P1 — fill-mode `backwards` (bukan `both`): setelah animasi selesai, fill
+     dilepas sehingga `transform` hover (.vsf-card:hover → translateY(-2px))
+     TIDAK lagi ditimpa keyframes. P6 — durasi 0.25s, delay maks 0.15s. */
   .vsf-stagger > * {
-    animation: vsf-fade-up 0.45s var(--ar-ease) both;
+    animation: vsf-fade-up 0.25s var(--ar-ease) backwards;
   }
-  .vsf-stagger > *:nth-child(1) { animation-delay: 0.03s; }
-  .vsf-stagger > *:nth-child(2) { animation-delay: 0.09s; }
-  .vsf-stagger > *:nth-child(3) { animation-delay: 0.15s; }
-  .vsf-stagger > *:nth-child(4) { animation-delay: 0.21s; }
-  .vsf-stagger > *:nth-child(5) { animation-delay: 0.27s; }
-  .vsf-stagger > *:nth-child(6) { animation-delay: 0.33s; }
-  .vsf-stagger > *:nth-child(7) { animation-delay: 0.39s; }
-  .vsf-stagger > *:nth-child(8) { animation-delay: 0.45s; }
-  .vsf-stagger > *:nth-child(9) { animation-delay: 0.51s; }
-  .vsf-stagger > *:nth-child(10) { animation-delay: 0.57s; }
-  .vsf-stagger > *:nth-child(11) { animation-delay: 0.63s; }
-  .vsf-stagger > *:nth-child(12) { animation-delay: 0.69s; }
-  .vsf-stagger > *:nth-child(n+13) { animation-delay: 0.75s; }
+  .vsf-stagger > *:nth-child(1) { animation-delay: 0s; }
+  .vsf-stagger > *:nth-child(2) { animation-delay: 0.05s; }
+  .vsf-stagger > *:nth-child(3) { animation-delay: 0.1s; }
+  .vsf-stagger > *:nth-child(4) { animation-delay: 0.15s; }
+  .vsf-stagger > *:nth-child(n+5) { animation-delay: 0.15s; }
 
   /* Tabel: baris fade-in berurutan + transisi hover.
      QW6 — min-width:0 agar pembungkus overflow-auto jadi scroll INTERNAL
-     (tabel tak lagi melebarkan dokumen di layar 390px). */
+     (tabel tak lagi melebarkan dokumen di layar 390px).
+     P6 — durasi 0.25s, delay 0.05–0.2s. */
   .vsf-table { min-width: 0; max-width: 100%; }
   .vsf-table table { min-width: 0; }
   .vsf-table tbody tr {
-    animation: vsf-fade-up 0.35s var(--ar-ease) both;
+    animation: vsf-fade-up 0.25s var(--ar-ease) backwards;
     transition: background-color 0.15s ease;
   }
-  .vsf-table tbody tr:nth-child(1) { animation-delay: 0.08s; }
-  .vsf-table tbody tr:nth-child(2) { animation-delay: 0.13s; }
-  .vsf-table tbody tr:nth-child(3) { animation-delay: 0.18s; }
-  .vsf-table tbody tr:nth-child(4) { animation-delay: 0.23s; }
-  .vsf-table tbody tr:nth-child(5) { animation-delay: 0.28s; }
-  .vsf-table tbody tr:nth-child(n+6) { animation-delay: 0.33s; }
+  .vsf-table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+  .vsf-table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+  .vsf-table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+  .vsf-table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+  .vsf-table tbody tr:nth-child(n+5) { animation-delay: 0.2s; }
   .vsf-table th { white-space: nowrap; }
 
   /* Modal + backdrop */
@@ -229,9 +233,25 @@
     animation: vsf-pop 0.24s var(--ar-ease) both;
     box-shadow: 0 24px 60px -20px rgba(17, 24, 39, 0.45);
   }
+  /* P3 — animasi KELUAR (sebelum unmount, dijalankan host via `is-closing`):
+     backdrop & kartu turun 180ms cb(.22,1,.36,1); fokus/trap tetap di host. */
+  .vsf-modal-backdrop.is-closing {
+    animation: vsf-fade-out 180ms var(--ar-ease) forwards;
+    pointer-events: none;
+  }
+  .vsf-modal-card.is-closing { animation: vsf-fade-out-scale 180ms var(--ar-ease) forwards; }
 
   /* Banner (demo / sukses / peringatan) */
   .vsf-banner { animation: vsf-slide-down 0.3s var(--ar-ease) both; }
+  /* P3 — keluar: fade 150ms ease-out sebelum dilepas host. */
+  .vsf-banner.is-closing { animation: vsf-fade-out 150ms ease-out forwards; }
+
+  /* P7 — backdrop off-canvas sidebar: fade 180ms (bukan pop instan). */
+  .vsf-backdrop { animation: vsf-fade 180ms ease-out both; }
+
+  /* P5 — grafik sensor: fade-in 220ms ease-out saat data/rentang berubah
+     (elemen di-remount host dgn `key`, animasi dijalankan ulang). */
+  .vsf-chart { animation: vsf-fade 220ms ease-out both; }
 
   /* Skeleton loading */
   .vsf-skeleton {
@@ -257,8 +277,8 @@
     border-top-color: rgb(var(--ar-forest));
   }
 
-  /* Sorotan kilat saat nilai live berubah */
-  .vsf-flash { animation: vsf-flash 0.9s ease-out 1; }
+  /* Sorotan kilat saat nilai live berubah — P4: 0.5s (0.4–0.6s sesuai panduan). */
+  .vsf-flash { animation: vsf-flash 0.5s ease-out 1; }
 
   /* Pill / chip transisi lembut */
   .vsf-pill {
@@ -270,14 +290,39 @@
   .vsf-pill:active { transform: translateY(0) scale(0.97); }
 }
 
+/* ── KONTRAS (audit WCAG 2.x) ─────────────────────────────────────────
+   RED 2.54 — placeholder bawaan #9CA3AF (2.54) → slate-500 #64748B (4.76
+   di putih; 4.55 di slate-50). `opacity:1` menetralkan alpha UA Safari/Chrome. */
+/* Selector disamakan dgn preflight Tailwind (input::placeholder — spesifisitas
+   0,1,1) supaya MENANG; aturan ini duduk di bawah file (urutan lebih akhir). */
+input::placeholder,
+textarea::placeholder,
+::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
 /* Aksesibilitas: hormati preferensi kurangi-gerak */
 @media (prefers-reduced-motion: reduce) {
   .vsf-page, .vsf-stagger > *, .vsf-table tbody tr,
   .vsf-modal-backdrop, .vsf-modal-card, .vsf-banner,
-  .vsf-skeleton, .vsf-dot, .vsf-spinner, .vsf-flash {
+  .vsf-skeleton, .vsf-dot, .vsf-spinner, .vsf-flash, .vsf-chart, .vsf-backdrop {
     animation: none !important;
   }
   .vsf-card, .vsf-input, .vsf-btn-primary, .vsf-pill {
     transition: none !important;
+  }
+
+  /* P2 (global) — SEMUA transisi & animasi dipangkas ke ~0: utilitas Tailwind
+     (transition/duration/transform) ikut mati, bukan hanya keyframes .vsf-*.
+     Indikator esensial tetap terlihat (spinner/dot sengaja `animation:none`,
+     artinya berhut diam — tanpa kedip, sesuai preferensi pengguna). */
+  *, ::before, ::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
   }
 }

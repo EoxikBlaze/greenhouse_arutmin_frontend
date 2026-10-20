@@ -1,4 +1,4 @@
-import { useEffect, useRef, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
 
 /** Selektor elemen yang bisa difokus (focus trap). */
 const FOCUSABLE =
@@ -27,6 +27,29 @@ type Opts = {
 export function useDialog({ open, onClose, closeDisabled = false }: Opts) {
   const dialogRef = useRef<HTMLDivElement | null>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
+  // P3 — animasi KELUAR: tutup lewat handleClose() → jeda 180ms (class
+  // `is-closing` dijalankan CSS vsf-fade-out*) BARU onClose() menutup state.
+  // Escape & backdrop memakai handleClose; host tinggal menambahkan class
+  // `closing ? 'is-closing' : ''` ke backdrop/kartu dialog.
+  const [closing, setClosing] = useState(false)
+  const closingTimer = useRef<number | null>(null)
+  useEffect(() => () => {
+    if (closingTimer.current) window.clearTimeout(closingTimer.current)
+  }, [])
+  useEffect(() => {
+    // eslint-disable-next-line react/set-state-in-effect -- reset animasi saat modal dibuka
+    if (open) setClosing(false)
+  }, [open])
+
+  function handleClose() {
+    if (closeDisabled || closing) return
+    setClosing(true)
+    closingTimer.current = window.setTimeout(() => {
+      closingTimer.current = null
+      setClosing(false)
+      onClose()
+    }, 180)
+  }
 
   useEffect(() => {
     if (!open) return
@@ -51,7 +74,7 @@ export function useDialog({ open, onClose, closeDisabled = false }: Opts) {
       if (!closeDisabled) {
         e.preventDefault()
         e.stopPropagation()
-        onClose()
+        handleClose() // P3 — animasi keluar 180ms sebelum state ditutup
       }
       return
     }
@@ -81,9 +104,9 @@ export function useDialog({ open, onClose, closeDisabled = false }: Opts) {
   /** Klik tepat di backdrop (bukan kartu modal) → tutup. */
   const backdropProps = {
     onMouseDown: (e: ReactMouseEvent<HTMLDivElement>) => {
-      if (e.target === e.currentTarget && !closeDisabled) onClose()
+      if (e.target === e.currentTarget && !closeDisabled) handleClose() // P3
     },
   }
 
-  return { dialogRef, onKeyDown, backdropProps }
+  return { dialogRef, onKeyDown, backdropProps, closing, handleClose }
 }

@@ -12,13 +12,16 @@ import { createPortal } from 'react-dom'
 export function ModalBackdrop({
   onMouseDown,
   children,
+  closing,
 }: {
   onMouseDown: (e: MouseEvent<HTMLDivElement>) => void
   children: ReactNode
+  /** P3 — true saat animasi keluar 180ms (dari useDialog.closing). */
+  closing?: boolean
 }) {
   return createPortal(
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4 vsf-modal-backdrop"
+      className={`fixed inset-0 z-50 grid place-items-center bg-black/40 px-4 vsf-modal-backdrop${closing ? ' is-closing' : ''}`}
       onMouseDown={onMouseDown}
     >
       {children}

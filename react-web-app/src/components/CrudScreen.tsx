@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useDialog } from '../lib/useDialog'
 import { ModalBackdrop } from './ModalBackdrop'
 
@@ -138,6 +138,8 @@ export function CrudScreen<T>({
     dialogRef: formRef,
     onKeyDown: formKeyDown,
     backdropProps: formBackdrop,
+    closing: formClosing,
+    handleClose: formClose,
   } = useDialog({
     open: formOpen && !!form,
     onClose: () => setFormOpen(false),
@@ -147,11 +149,24 @@ export function CrudScreen<T>({
     dialogRef: hapusRef,
     onKeyDown: hapusKeyDown,
     backdropProps: hapusBackdrop,
+    closing: hapusClosing,
+    handleClose: hapusClose,
   } = useDialog({
     open: hapusTarget !== null,
     onClose: () => setHapusTarget(null),
     closeDisabled: !!deleting,
   })
+
+  // P3 — animasi keluar banner flash: host menghapus flash di t+4000ms;
+  // mulai fade-out (is-closing 150ms) di t+3850ms agar tak hilang mendadak.
+  const [flashHiding, setFlashHiding] = useState(false)
+  useEffect(() => {
+    // eslint-disable-next-line react/set-state-in-effect -- reset siklus kilat saat flash berubah
+    setFlashHiding(false)
+    if (!flash) return
+    const t = window.setTimeout(() => setFlashHiding(true), 3850)
+    return () => window.clearTimeout(t)
+  }, [flash])
 
   // QW1 — judul modul (tak lagi "Toolbar — X") & nama untuk empty-state.
   const emptyName = moduleName ?? title
@@ -177,7 +192,7 @@ export function CrudScreen<T>({
           <div
             role="status"
             aria-live="polite"
-            className="vsf-banner mt-4 flex items-center gap-2 rounded-std border border-arutmin-moss bg-arutmin-mint/50 px-3 py-2 text-[13px] text-arutmin-forest"
+            className={`vsf-banner mt-4 flex items-center gap-2 rounded-std border border-arutmin-moss bg-arutmin-mint/50 px-3 py-2 text-[13px] text-arutmin-forest${flashHiding ? ' is-closing' : ''}`}
           >
             <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M5 12.5 10 17.5 19 7" />
@@ -291,14 +306,14 @@ export function CrudScreen<T>({
           fokus judul saat buka & kembali ke pemicu, Escape (diblokir saat
           submitting), klik backdrop, Tab terkunci di dalam modal. */}
       {formOpen && form && (
-        <ModalBackdrop onMouseDown={formBackdrop.onMouseDown}>
+        <ModalBackdrop onMouseDown={formBackdrop.onMouseDown} closing={formClosing}>
           <div
             ref={formRef}
             onKeyDown={formKeyDown}
             role="dialog"
             aria-modal="true"
             aria-labelledby="vsf-form-title"
-            className="vsf-modal-card max-h-[90vh] w-full max-w-[520px] overflow-auto rounded-lg border border-garis bg-white p-5"
+            className={`vsf-modal-card max-h-[90vh] w-full max-w-[520px] overflow-auto rounded-lg border border-garis bg-white p-5${formClosing ? ' is-closing' : ''}`}
           >
             <div
               id="vsf-form-title"
@@ -323,7 +338,7 @@ export function CrudScreen<T>({
                 disabled={submitting}
                 onClick={() => {
                   if (onFormCancel) onFormCancel()
-                  else setFormOpen(false)
+                  formClose() // P3 — tutup dgn animasi keluar 180ms
                 }}
               >
                 Batal
@@ -347,7 +362,7 @@ export function CrudScreen<T>({
       {/* Modal konfirmasi hapus — alertdialog (keputusan destruktif) + aturan
           QW3 yang sama; Escape/backdrop diblokir saat `deleting`. */}
       {hapusTarget && (
-        <ModalBackdrop onMouseDown={hapusBackdrop.onMouseDown}>
+        <ModalBackdrop onMouseDown={hapusBackdrop.onMouseDown} closing={hapusClosing}>
           <div
             ref={hapusRef}
             onKeyDown={hapusKeyDown}
@@ -355,7 +370,7 @@ export function CrudScreen<T>({
             aria-modal="true"
             aria-labelledby="vsf-hapus-title"
             aria-describedby="vsf-hapus-desc"
-            className="vsf-modal-card w-full max-w-[420px] rounded-lg border border-garis bg-white p-5"
+            className={`vsf-modal-card w-full max-w-[420px] rounded-lg border border-garis bg-white p-5${hapusClosing ? ' is-closing' : ''}`}
           >
             <div id="vsf-hapus-title" data-dialog-title tabIndex={-1} className="flex items-center gap-2 text-[16px] font-bold outline-none">
               <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-red-50 text-red-700">
@@ -380,7 +395,7 @@ export function CrudScreen<T>({
               <button
                 className="vsf-btn-secondary"
                 disabled={deleting}
-                onClick={() => setHapusTarget(null)}
+                onClick={hapusClose} // P3 — animasi keluar 180ms
               >
                 Batal
               </button>

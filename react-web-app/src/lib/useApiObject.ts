@@ -11,6 +11,26 @@ import { useApiError } from './crudApi'
  * `pollMs` = refresh senyap tiap N ms (status/perangkat) — skeleton hanya
  * muncul pada muat PERTAMA, data lama tetap tampil sampai pengganti tiba.
  */
+/**
+ * P4 — sorot kilat saat nilai LIVE berubah (refresh senyap polling):
+ * kelas `vsf-flash` (animasi 0.5s) menempel 550ms lalu lepas, sehingga
+ * perubahan berikutnya memicu animasi ulang. Beri nilai BERUPA STRING
+ * (JSON.stringify utk objek) supaya referensi baru tiap poll tidak
+ * memicu kilat palsu saat isi identik.
+ */
+export function useFlashOnChange(value: unknown): string {
+  const prev = useRef<unknown>(value)
+  const [flashing, setFlashing] = useState(false)
+  useEffect(() => {
+    if (prev.current === value) return
+    prev.current = value
+    setFlashing(true)
+    const t = window.setTimeout(() => setFlashing(false), 550)
+    return () => window.clearTimeout(t)
+  }, [value])
+  return flashing ? 'vsf-flash' : ''
+}
+
 export function useApiObject<T>(
   path: string,
   options?: { pollMs?: number },
