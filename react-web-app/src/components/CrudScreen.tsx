@@ -92,7 +92,6 @@ export function CrudScreen<T>({
   rows,
   rowKey,
   form,
-  notes,
   actions,
   loading,
   listError,
@@ -159,9 +158,13 @@ export function CrudScreen<T>({
 
   return (
     <div className="mx-auto max-w-[1180px] grid gap-4 vsf-stagger">
-      <section className="vsf-card p-4 min-w-0">
+      <section className="vsf-card p-5 min-w-0">
+        {/* Toolbar: hierarki jelas (h2 display + aksen emas) + aksi utama. */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">{title}</div>
+          <h2 className="flex min-w-0 items-center gap-2.5 font-display text-[18px] font-bold leading-tight text-navy">
+            <span aria-hidden className="h-4 w-1 shrink-0 rounded-full bg-emas" />
+            <span className="truncate">{title}</span>
+          </h2>
           <span className="flex-1" />
           {!hideAdd && (
             <button className="vsf-btn-primary" disabled={!form} onClick={() => setFormOpen(true)}>
@@ -174,28 +177,35 @@ export function CrudScreen<T>({
           <div
             role="status"
             aria-live="polite"
-            className="vsf-banner mt-3 rounded-input border border-arutmin-moss bg-arutmin-mint/50 px-3 py-2 text-[13px] text-arutmin-forest"
+            className="vsf-banner mt-4 flex items-center gap-2 rounded-std border border-arutmin-moss bg-arutmin-mint/50 px-3 py-2 text-[13px] text-arutmin-forest"
           >
+            <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M5 12.5 10 17.5 19 7" />
+            </svg>
             {flash}
           </div>
         )}
 
         {/* QW1 — state daftar HIDUP DI tbody (satu state per layar): loading →
             error → empty → data. Error tak lagi jadi banner terpisah di atas. */}
-        <div className="mt-3 min-w-0 overflow-auto rounded-card border border-arutmin-border bg-white vsf-table">
+        <div className="mt-4 min-w-0 overflow-auto rounded-std border border-garis bg-white vsf-table">
           <table className="w-full text-[13px]">
             <thead>
-              <tr className="bg-arutmin-mint/25">
+              <tr className="bg-navy/[.055]">
                 {columns.map((c) => (
                   <th
                     key={c.key}
-                    className="text-left px-3 py-2 text-[11px] uppercase tracking-[.12em] text-arutmin-forest border-b-2 border-arutmin-moss"
+                    scope="col"
+                    className="vsf-eyebrow vsf-eyebrow-navy border-b border-navy/25 px-4 py-2.5 text-left"
                   >
                     {c.header}
                   </th>
                 ))}
                 {actions && (
-                  <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[.12em] text-arutmin-forest border-b-2 border-arutmin-moss">
+                  <th
+                    scope="col"
+                    className="vsf-eyebrow vsf-eyebrow-navy border-b border-navy/25 px-4 py-2.5 text-left"
+                  >
                     Aksi
                   </th>
                 )}
@@ -204,7 +214,7 @@ export function CrudScreen<T>({
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={colSpan} className="px-3 py-8 text-center text-slate-500">
+                  <td colSpan={colSpan} className="px-4 py-10 text-center text-slate-500">
                     <div className="grid justify-items-center gap-2 py-4">
                       <span className="vsf-spinner vsf-spinner-dark" aria-hidden />
                       <span className="text-[13px]">Memuat data…</span>
@@ -213,13 +223,18 @@ export function CrudScreen<T>({
                 </tr>
               ) : listError ? (
                 <tr>
-                  <td colSpan={colSpan} className="px-3 py-8 text-center">
+                  <td colSpan={colSpan} className="px-4 py-10 text-center">
                     <div role="alert" className="grid justify-items-center gap-2 py-4">
-                      <span className="text-[28px]" aria-hidden>⚠️</span>
+                      <span className="grid h-12 w-12 place-items-center rounded-full bg-red-50 text-red-600">
+                        <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+                          <path d="M12 3 1.8 20.5h20.4z" />
+                          <path d="M12 9.5v4.5M12 17.2v.2" />
+                        </svg>
+                      </span>
                       <b className="text-red-700">Gagal memuat data</b>
-                      <span className="text-[13px] text-red-700">✖ {listError}</span>
+                      <span className="text-[13px] text-red-700">{listError}</span>
                       {onRetry && (
-                        <button type="button" className="vsf-btn-primary mt-1" onClick={onRetry}>
+                        <button type="button" className="vsf-btn-secondary mt-1" onClick={onRetry}>
                           Muat ulang
                         </button>
                       )}
@@ -228,10 +243,15 @@ export function CrudScreen<T>({
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={colSpan} className="px-3 py-8 text-center text-slate-500">
+                  <td colSpan={colSpan} className="px-4 py-10 text-center text-slate-500">
                     {/* State Gallery: ikon + 1 kalimat + aksi utama */}
                     <div className="grid justify-items-center gap-2 py-4">
-                      <span className="text-[28px]" aria-hidden>📭</span>
+                      <span className="grid h-12 w-12 place-items-center rounded-full bg-navy/[.06] text-navy">
+                        <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                          <path d="M3 13h5l1.5 2.5h5L16 13h5" />
+                          <path d="M4.5 5.5h15L21 13v5.5H3V13z" />
+                        </svg>
+                      </span>
                       <b className="text-slate-700">Belum ada data</b>
                       <span className="text-[13px]">Belum ada data {emptyName} — tambah data pertama untuk memulai.</span>
                       {!hideAdd && (
@@ -249,14 +269,14 @@ export function CrudScreen<T>({
                 </tr>
               ) : (
                 rows.map((r) => (
-                  <tr key={rowKey(r)} className="hover:bg-arutmin-mint/15">
+                  <tr key={rowKey(r)} className="border-b border-garis/70 last:border-0 transition-colors hover:bg-navy/[.04]">
                     {columns.map((c) => (
-                      <td key={c.key} className="px-3 py-2 text-slate-700">
+                      <td key={c.key} className="px-4 py-2.5 text-slate-700">
                         {c.render(r)}
                       </td>
                     ))}
                     {actions && (
-                      <td className="px-3 py-2 whitespace-nowrap">{actions(r, askHapus)}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5">{actions(r, askHapus)}</td>
                     )}
                   </tr>
                 ))
@@ -266,19 +286,6 @@ export function CrudScreen<T>({
         </div>
       </section>
 
-      {/* Catatan mockup hanya untuk pengembang (QW1 — tak tampil di produksi). */}
-      {import.meta.env.DEV && notes && (
-        <section className="vsf-card p-4">
-          <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">
-            Catatan struktur & state
-          </div>
-          <ul className="mt-2 list-disc pl-5 text-[13px] text-slate-700 leading-relaxed">
-            {notes.map((n) => (
-              <li key={n}>{n}</li>
-            ))}
-          </ul>
-        </section>
-      )}
 
       {/* Modal form tambah/edit — QW3: role=dialog, aria-modal, label judul,
           fokus judul saat buka & kembali ke pemicu, Escape (diblokir saat
@@ -291,28 +298,28 @@ export function CrudScreen<T>({
             role="dialog"
             aria-modal="true"
             aria-labelledby="vsf-form-title"
-            className="w-full max-w-[520px] rounded-card bg-white p-5 vsf-modal-card max-h-[90vh] overflow-auto"
+            className="vsf-modal-card max-h-[90vh] w-full max-w-[520px] overflow-auto rounded-lg border border-garis bg-white p-5"
           >
             <div
               id="vsf-form-title"
               data-dialog-title
               tabIndex={-1}
-              className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold outline-none"
+              className="vsf-eyebrow outline-none"
             >
               Form tambah / edit
             </div>
             {formError && (
               <div
                 role="alert"
-                className="vsf-banner mt-3 rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700"
+                className="vsf-banner mt-3 rounded-std border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700"
               >
-                ✖ {formError}
+                {formError}
               </div>
             )}
-            <div className="mt-3 grid gap-1">{form}</div>
-            <div className="mt-4 flex justify-end gap-2">
+            <div className="mt-4 grid gap-1">{form}</div>
+            <div className="mt-5 flex justify-end gap-2 border-t border-garis pt-4">
               <button
-                className="vsf-input rounded-full"
+                className="vsf-btn-secondary"
                 disabled={submitting}
                 onClick={() => {
                   if (onFormCancel) onFormCancel()
@@ -329,7 +336,7 @@ export function CrudScreen<T>({
                   else setFormOpen(false)
                 }}
               >
-                {submitting && <span className="vsf-spinner" />}
+                {submitting && <span className="vsf-spinner" aria-hidden />}
                 {submitting ? 'Menyimpan…' : (submitLabel ?? 'Simpan')}
               </button>
             </div>
@@ -348,9 +355,14 @@ export function CrudScreen<T>({
             aria-modal="true"
             aria-labelledby="vsf-hapus-title"
             aria-describedby="vsf-hapus-desc"
-            className="w-full max-w-[420px] rounded-card bg-white p-5 vsf-modal-card"
+            className="vsf-modal-card w-full max-w-[420px] rounded-lg border border-garis bg-white p-5"
           >
-            <div id="vsf-hapus-title" data-dialog-title tabIndex={-1} className="text-[16px] font-bold outline-none">
+            <div id="vsf-hapus-title" data-dialog-title tabIndex={-1} className="flex items-center gap-2 text-[16px] font-bold outline-none">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-red-50 text-red-700">
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
+                  <path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13" />
+                </svg>
+              </span>
               Hapus data?
             </div>
             <div id="vsf-hapus-desc" className="mt-2 text-[13px] text-slate-700">
@@ -359,28 +371,28 @@ export function CrudScreen<T>({
             {deleteError && (
               <div
                 role="alert"
-                className="vsf-banner mt-3 rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700"
+                className="vsf-banner mt-3 rounded-std border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700"
               >
-                ✖ {deleteError}
+                {deleteError}
               </div>
             )}
-            <div className="mt-4 flex justify-end gap-2">
+            <div className="mt-5 flex justify-end gap-2 border-t border-garis pt-4">
               <button
-                className="vsf-input rounded-full"
+                className="vsf-btn-secondary"
                 disabled={deleting}
                 onClick={() => setHapusTarget(null)}
               >
                 Batal
               </button>
               <button
-                className="rounded-full bg-red-700 px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-60"
+                className="vsf-btn-danger"
                 disabled={deleting}
                 onClick={() => {
                   if (onDelete) onDelete(hapusTarget.id)
                   else setHapusTarget(null)
                 }}
               >
-                {deleting && <span className="vsf-spinner" />}
+                {deleting && <span className="vsf-spinner" aria-hidden />}
                 {deleting ? 'Menghapus…' : 'Ya, hapus'}
               </button>
             </div>
@@ -399,10 +411,13 @@ export function BtnEdit({ onClick, name }: { onClick?: () => void; name?: string
   return (
     <button
       type="button"
-      className="inline-flex min-h-[36px] items-center px-2.5 text-[12px] font-semibold text-arutmin-forest underline"
+      className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-arutmin-moss/45 bg-arutmin-mint/35 px-3 text-[12px] font-semibold text-arutmin-forest transition-colors hover:border-arutmin-moss hover:bg-arutmin-mint/70"
       onClick={onClick}
       aria-label={name ? `Ubah ${name}` : undefined}
     >
+      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M4 20h4L19 9l-4-4L4 16z" />
+      </svg>
       Edit
     </button>
   )
@@ -425,10 +440,13 @@ export function BtnHapus({
   return (
     <button
       type="button"
-      className="inline-flex min-h-[36px] items-center px-2.5 text-[12px] font-semibold text-red-700 underline"
+      className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-red-600/35 bg-red-50 px-3 text-[12px] font-semibold text-red-700 transition-colors hover:border-red-600 hover:bg-red-100"
       onClick={() => onPick(label, id)}
       aria-label={`Hapus ${label}`}
     >
+      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13" />
+      </svg>
       Hapus
     </button>
   )
@@ -442,10 +460,14 @@ export function BtnDetail({ name, onClick }: { name: string; onClick?: () => voi
   return (
     <button
       type="button"
-      className="inline-flex min-h-[36px] items-center px-2.5 text-[12px] font-semibold text-arutmin-forest underline"
+      className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-navy/25 bg-white px-3 text-[12px] font-semibold text-navy transition-colors hover:border-navy/50 hover:bg-navy/[.06]"
       onClick={onClick}
       aria-label={`Detail ${name}`}
     >
+      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" />
+        <circle cx="12" cy="12" r="2.6" />
+      </svg>
       Detail
     </button>
   )

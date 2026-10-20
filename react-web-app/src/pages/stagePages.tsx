@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import clsx from 'clsx'
 import { api } from '../lib/api'
 import { fieldError, useApiError, useApiList } from '../lib/crudApi'
 import {
@@ -37,6 +38,83 @@ function namaTanaman(rows: TanamanMini[], id: unknown): string {
   if (id === undefined || id === null || String(id).trim() === '') return '—'
   const m = rows.find((r) => String(r.id_tanaman) === String(id))
   return m ? cell(m.nama_tanaman) : `#${id}`
+}
+
+/* ── Ikon SVG inline (R3): pengganti emoji silang — aria-hidden, 16px ── */
+function IkonSalah({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="8" cy="8" r="6.4" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M6.1 6.1l3.8 3.8M9.9 6.1L6.1 9.9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+/**
+ * Pill status baris — tone mengikuti data (bukan hiasan tetap): `selesai` → hijau,
+ * sedang berjalan → netral, gagal/batal → merah. (temuan S6 — indikator dari data)
+ */
+function PillStatus({ nilai }: { nilai: string }) {
+  const v = (nilai ?? '').trim().toLowerCase()
+  if (!v || v === '—') return <span className="text-slate-500">—</span>
+  const tone = v.includes('selesai') || v.includes('panen')
+    ? 'border-arutmin-moss bg-arutmin-mint/50 text-arutmin-forest'
+    : v.includes('gagal') || v.includes('batal')
+      ? 'border-red-600/40 bg-red-50 text-red-700'
+      : 'border-navy/25 bg-navy/[.05] text-navy'
+  return (
+    <span className={clsx('inline-flex items-center rounded-full border px-2.5 py-0.5 text-[12px] font-semibold', tone)}>
+      {nilai}
+    </span>
+  )
+}
+
+/* ── S3 — modal DETAIL baris untuk 3 halaman mock (Peremajaan/Pendewasaan/Panen):
+     barisnya statis & kontrak tak punya aksi ubah/hapus per baris, jadi tombol
+     "Edit" mati diganti "Detail" yang membuka isi baris (baca, tanpa API). ── */
+type DetailBaris = { judul: string; isi: Array<[string, string]> }
+
+function ModalDetailBaris({ data, onClose }: { data: DetailBaris | null; onClose: () => void }) {
+  if (!data) return null
+  return (
+    <ModalBackdrop
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="vsf-baris-detail-title"
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') onClose()
+        }}
+        className="w-full max-w-[420px] rounded-card bg-white p-5 vsf-modal-card max-h-[90vh] overflow-auto"
+      >
+        <div
+          id="vsf-baris-detail-title"
+          data-dialog-title
+          tabIndex={-1}
+          className="text-[11px] uppercase tracking-[.14em] font-bold text-slate-500 outline-none"
+        >
+          {data.judul}
+        </div>
+        <dl className="mt-3 grid gap-2">
+          {data.isi.map(([k, v]) => (
+            <div key={k} className="flex items-baseline justify-between gap-3 text-[13px]">
+              <dt className="text-slate-500">{k}</dt>
+              <dd className="text-right font-semibold text-slate-900">{v}</dd>
+            </div>
+          ))}
+        </dl>
+        <div className="mt-4 flex justify-end">
+          <button type="button" className="vsf-input rounded-full font-semibold" onClick={onClose} autoFocus>
+            Tutup
+          </button>
+        </div>
+      </div>
+    </ModalBackdrop>
+  )
 }
 
 /* ================= 06 · SEMAI — API NYATA (baca) ================= */
@@ -138,7 +216,7 @@ export function SemaiPage() {
     { key: 'mulai', header: 'Mulai Semai', render: (r) => tgl(r.tgl_awal_semai) },
     { key: 'akhir', header: 'Akhir Semai', render: (r) => tgl(r.tgl_akhir_semai) },
     { key: 'hasil', header: 'Berhasil / Gagal', render: (r) => `${cell(r.benih_berhasil)} / ${cell(r.benih_gagal)}` },
-    { key: 'status', header: 'Status', render: (r) => cell(r.status) },
+    { key: 'status', header: 'Status', render: (r) => <PillStatus nilai={cell(r.status)} /> },
   ]
 
   const d = detail?.semai
@@ -146,7 +224,7 @@ export function SemaiPage() {
   return (
     <>
       {/* Tab baca: /semai (semua) · /semai/selesai (hanya yang status selesai). */}
-      <div className="mx-auto max-w-[1180px] vsf-card p-3 flex flex-wrap items-center gap-2">
+      <div className="mx-auto max-w-[1180px] vsf-card p-4 flex flex-wrap items-center gap-3">
         <span className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Tampilan</span>
         <button
           type="button"
@@ -222,9 +300,10 @@ export function SemaiPage() {
             {!detailLoading && detailError && (
               <div
                 role="alert"
-                className="vsf-banner mt-3 rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700"
+                className="vsf-banner mt-3 rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700 flex items-start gap-2"
               >
-                ✖ {detailError}
+                <IkonSalah className="mt-[2px] shrink-0" />
+                <span>{detailError}</span>
               </div>
             )}
 
@@ -246,7 +325,7 @@ export function SemaiPage() {
                   <b>Keterangan</b>: {cell(d?.keterangan)}
                 </div>
 
-                <div className="mt-2 border-t border-arutmin-border pt-2 text-[11px] uppercase tracking-[.12em] text-slate-500 font-bold">
+                <div className="mt-2 border-t border-arutmin-border pt-2 text-[11px] uppercase tracking-[.14em] font-bold text-slate-500">
                   Riwayat tahap berikutnya
                 </div>
                 {daftarTahap('Peremajaan', detail.peremajaan, 'tgl_awal_peremajaan')}
@@ -274,38 +353,57 @@ export function PeremajaanPage() {
   const rows: Peremajaan[] = [
     { batch: 'B-2312', varietas: 'Kangkung', umur: '21', tanggal: '20 Sep' },
   ]
+  // S3 — baris masih mock (tanpa API tulis/ubah per baris): "Edit" mati diganti
+  // "Detail" yang membuka isi baris (baca saja, keputusan rombak-B dicatat di audit).
+  const [lihat, setLihat] = useState<DetailBaris | null>(null)
   return (
-    <CrudScreen<Peremajaan>
-      title="Peremajaan"
-      moduleName="Peremajaan"
-      addButton="+ Tambah Peremajaan"
-      columns={[
-        { key: 'batch', header: 'Batch', render: (r) => <b className="text-slate-900">{r.batch}</b> },
-        { key: 'varietas', header: 'Varietas', render: (r) => r.varietas },
-        { key: 'umur', header: 'Umur (hari)', render: (r) => r.umur },
-        { key: 'tanggal', header: 'Tanggal', render: (r) => r.tanggal },
-      ]}
-      rows={rows}
-      rowKey={(r) => r.batch}
-      form={
-        <>
-          <Field label="Umur (hari)"><input className="vsf-input w-full" placeholder="21" /></Field>
-          <Field label="Jumlah pindah"><input className="vsf-input w-full" placeholder="80" /></Field>
-          <Field label="Kondisi"><input className="vsf-input w-full" placeholder="Baik" /></Field>
-        </>
-      }
-      notes={[
-        'Field khas modul ini: Umur (hari) • Jumlah pindah • Kondisi.',
-        'Pola identik dengan halaman 06 — konsistensi komponen (tabel + form + modal hapus).',
-        'Navigasi tahap: Penyemaian → Peremajaan → Pendewasaan → Panen (alur satu arah).',
-      ]}
-      actions={(r, ask) => (
-        <>
-          <BtnEdit name={`batch ${r.batch}`} />
-          <BtnHapus label={`batch ${r.batch}`} onPick={ask} />
-        </>
-      )}
-    />
+    <>
+      <CrudScreen<Peremajaan>
+        title="Peremajaan"
+        moduleName="Peremajaan"
+        addButton="+ Tambah Peremajaan"
+        columns={[
+          { key: 'batch', header: 'Batch', render: (r) => <b className="text-slate-900">{r.batch}</b> },
+          { key: 'varietas', header: 'Varietas', render: (r) => r.varietas },
+          { key: 'umur', header: 'Umur (hari)', render: (r) => r.umur },
+          { key: 'tanggal', header: 'Tanggal', render: (r) => r.tanggal },
+        ]}
+        rows={rows}
+        rowKey={(r) => r.batch}
+        form={
+          <>
+            <Field label="Umur (hari)"><input className="vsf-input w-full" placeholder="21" /></Field>
+            <Field label="Jumlah pindah"><input className="vsf-input w-full" placeholder="80" /></Field>
+            <Field label="Kondisi"><input className="vsf-input w-full" placeholder="Baik" /></Field>
+          </>
+        }
+        notes={[
+          'Field khas modul ini: Umur (hari) • Jumlah pindah • Kondisi.',
+          'Pola identik dengan halaman 06 — konsistensi komponen (tabel + form + modal hapus).',
+          'Navigasi tahap: Penyemaian → Peremajaan → Pendewasaan → Panen (alur satu arah).',
+        ]}
+        actions={(r, ask) => (
+          <>
+            <BtnDetail
+              name={`batch ${r.batch}`}
+              onClick={() =>
+                setLihat({
+                  judul: `Detail batch ${r.batch}`,
+                  isi: [
+                    ['Batch', r.batch],
+                    ['Varietas', r.varietas],
+                    ['Umur (hari)', r.umur],
+                    ['Tanggal', r.tanggal],
+                  ],
+                })
+              }
+            />
+            <BtnHapus label={`batch ${r.batch}`} onPick={ask} />
+          </>
+        )}
+      />
+      <ModalDetailBaris data={lihat} onClose={() => setLihat(null)} />
+    </>
   )
 }
 
@@ -314,36 +412,54 @@ type Pendewasaan = { batch: string; varietas: string; meja: string; tanggal: str
 
 export function PendewasaanPage() {
   const rows: Pendewasaan[] = [{ batch: 'B-2310', varietas: 'Selada', meja: 'Meja 2', tanggal: '18 Sep' }]
+  // S3 — lihat catatan keputusan di PeremajaanPage (Edit mati → Detail berfungsi).
+  const [lihat, setLihat] = useState<DetailBaris | null>(null)
   return (
-    <CrudScreen<Pendewasaan>
-      title="Pendewasaan"
-      moduleName="Pendewasaan"
-      addButton="+ Tambah Pendewasaan"
-      columns={[
-        { key: 'batch', header: 'Batch', render: (r) => <b className="text-slate-900">{r.batch}</b> },
-        { key: 'varietas', header: 'Varietas', render: (r) => r.varietas },
-        { key: 'meja', header: 'Meja', render: (r) => r.meja },
-        { key: 'tanggal', header: 'Tanggal', render: (r) => r.tanggal },
-      ]}
-      rows={rows}
-      rowKey={(r) => r.batch}
-      form={
-        <>
-          <Field label="Meja tanam"><input className="vsf-input w-full" placeholder="Meja 2" /></Field>
-          <Field label="Tanggal"><input className="vsf-input w-full" placeholder="18 Sep" /></Field>
-        </>
-      }
-      notes={[
-        'Pola identik dengan halaman 06 — konsistensi komponen (tabel + form + modal hapus).',
-        'Navigasi tahap: Penyemaian → Peremajaan → Pendewasaan → Panen (alur satu arah).',
-      ]}
-      actions={(r, ask) => (
-        <>
-          <BtnEdit name={`batch ${r.batch}`} />
-          <BtnHapus label={`batch ${r.batch}`} onPick={ask} />
-        </>
-      )}
-    />
+    <>
+      <CrudScreen<Pendewasaan>
+        title="Pendewasaan"
+        moduleName="Pendewasaan"
+        addButton="+ Tambah Pendewasaan"
+        columns={[
+          { key: 'batch', header: 'Batch', render: (r) => <b className="text-slate-900">{r.batch}</b> },
+          { key: 'varietas', header: 'Varietas', render: (r) => r.varietas },
+          { key: 'meja', header: 'Meja', render: (r) => r.meja },
+          { key: 'tanggal', header: 'Tanggal', render: (r) => r.tanggal },
+        ]}
+        rows={rows}
+        rowKey={(r) => r.batch}
+        form={
+          <>
+            <Field label="Meja tanam"><input className="vsf-input w-full" placeholder="Meja 2" /></Field>
+            <Field label="Tanggal"><input className="vsf-input w-full" placeholder="18 Sep" /></Field>
+          </>
+        }
+        notes={[
+          'Pola identik dengan halaman 06 — konsistensi komponen (tabel + form + modal hapus).',
+          'Navigasi tahap: Penyemaian → Peremajaan → Pendewasaan → Panen (alur satu arah).',
+        ]}
+        actions={(r, ask) => (
+          <>
+            <BtnDetail
+              name={`batch ${r.batch}`}
+              onClick={() =>
+                setLihat({
+                  judul: `Detail batch ${r.batch}`,
+                  isi: [
+                    ['Batch', r.batch],
+                    ['Varietas', r.varietas],
+                    ['Meja', r.meja],
+                    ['Tanggal', r.tanggal],
+                  ],
+                })
+              }
+            />
+            <BtnHapus label={`batch ${r.batch}`} onPick={ask} />
+          </>
+        )}
+      />
+      <ModalDetailBaris data={lihat} onClose={() => setLihat(null)} />
+    </>
   )
 }
 
@@ -352,38 +468,56 @@ type Panen = { batch: string; varietas: string; tglPanen: string; hasil: string 
 
 export function PanenPage() {
   const rows: Panen[] = [{ batch: 'B-2304', varietas: 'Bayam', tglPanen: '10 Sep', hasil: '12.4 kg' }]
+  // S3 — lihat catatan keputusan di PeremajaanPage (Edit mati → Detail berfungsi).
+  const [lihat, setLihat] = useState<DetailBaris | null>(null)
   return (
-    <CrudScreen<Panen>
-      title="Panen"
-      moduleName="Panen"
-      addButton="+ Tambah Panen"
-      columns={[
-        { key: 'batch', header: 'Batch', render: (r) => <b className="text-slate-900">{r.batch}</b> },
-        { key: 'varietas', header: 'Varietas', render: (r) => r.varietas },
-        { key: 'tglPanen', header: 'Tanggal panen', render: (r) => r.tglPanen },
-        { key: 'hasil', header: 'Hasil', render: (r) => r.hasil },
-      ]}
-      rows={rows}
-      rowKey={(r) => r.batch}
-      form={
-        <>
-          <Field label="Tanggal panen"><input className="vsf-input w-full" placeholder="14 Okt" /></Field>
-          <Field label="Hasil (kg)"><input className="vsf-input w-full" placeholder="12.4" /></Field>
-          <Field label="Kualitas (A/B/C)"><input className="vsf-input w-full" placeholder="A" /></Field>
-        </>
-      }
-      notes={[
-        'Field khas modul ini: Tanggal panen • Hasil (kg) • Kualitas (A/B/C).',
-        'Pola identik dengan halaman 06 — konsistensi komponen (tabel + form + modal hapus).',
-        'Navigasi tahap: Penyemaian → Peremajaan → Pendewasaan → Panen (alur satu arah).',
-      ]}
-      actions={(r, ask) => (
-        <>
-          <BtnEdit name={`batch ${r.batch}`} />
-          <BtnHapus label={`batch ${r.batch}`} onPick={ask} />
-        </>
-      )}
-    />
+    <>
+      <CrudScreen<Panen>
+        title="Panen"
+        moduleName="Panen"
+        addButton="+ Tambah Panen"
+        columns={[
+          { key: 'batch', header: 'Batch', render: (r) => <b className="text-slate-900">{r.batch}</b> },
+          { key: 'varietas', header: 'Varietas', render: (r) => r.varietas },
+          { key: 'tglPanen', header: 'Tanggal panen', render: (r) => r.tglPanen },
+          { key: 'hasil', header: 'Hasil', render: (r) => r.hasil },
+        ]}
+        rows={rows}
+        rowKey={(r) => r.batch}
+        form={
+          <>
+            <Field label="Tanggal panen"><input className="vsf-input w-full" placeholder="14 Okt" /></Field>
+            <Field label="Hasil (kg)"><input className="vsf-input w-full" placeholder="12.4" /></Field>
+            <Field label="Kualitas (A/B/C)"><input className="vsf-input w-full" placeholder="A" /></Field>
+          </>
+        }
+        notes={[
+          'Field khas modul ini: Tanggal panen • Hasil (kg) • Kualitas (A/B/C).',
+          'Pola identik dengan halaman 06 — konsistensi komponen (tabel + form + modal hapus).',
+          'Navigasi tahap: Penyemaian → Peremajaan → Pendewasaan → Panen (alur satu arah).',
+        ]}
+        actions={(r, ask) => (
+          <>
+            <BtnDetail
+              name={`batch ${r.batch}`}
+              onClick={() =>
+                setLihat({
+                  judul: `Detail batch ${r.batch}`,
+                  isi: [
+                    ['Batch', r.batch],
+                    ['Varietas', r.varietas],
+                    ['Tanggal panen', r.tglPanen],
+                    ['Hasil', r.hasil],
+                  ],
+                })
+              }
+            />
+            <BtnHapus label={`batch ${r.batch}`} onPick={ask} />
+          </>
+        )}
+      />
+      <ModalDetailBaris data={lihat} onClose={() => setLihat(null)} />
+    </>
   )
 }
 
@@ -495,7 +629,7 @@ export function DurasiSiklusPage() {
       else await api.post('/siklus', payload)
       setOpen(false)
       resetForm()
-      setFlash('✔ Data siklus tersimpan.')
+      setFlash('Data siklus tersimpan.')
       reload()
     } catch (err) {
       const f = handleApiError(err)
@@ -515,7 +649,7 @@ export function DurasiSiklusPage() {
     try {
       await api.delete(`/siklus/${id}`)
       setHapus(null)
-      setFlash('✔ Data siklus dihapus.')
+      setFlash('Data siklus dihapus.')
       reload()
     } catch (err) {
       const f = handleApiError(err)

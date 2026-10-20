@@ -4,8 +4,38 @@ import { api } from '../lib/api'
 import { useApiError } from '../lib/crudApi'
 import { useAuth } from '../lib/authContext'
 import { useApiObject } from '../lib/useApiObject'
+import { StatusBadge } from '../components/StatusBadge'
 
 type Mode = 'AUTO' | 'MANUAL'
+
+/* ── Ikon SVG inline (R3): pengganti emoji silang/centang/peringatan/titik — aria-hidden, 16px ── */
+function IkonSalah({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="8" cy="8" r="6.4" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M6.1 6.1l3.8 3.8M9.9 6.1L6.1 9.9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function IkonOk({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="8" cy="8" r="6.4" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M5.3 8.3l1.9 1.9 3.5-4.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function IkonPeringatan({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M8 2.4l5.6 10.2H2.4L8 2.4z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M8 6.4v3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <circle cx="8" cy="11.3" r="0.85" fill="currentColor" />
+    </svg>
+  )
+}
 
 /** Baris GET /watercontrol/status (tabel `water_controls`). */
 type Status = {
@@ -78,12 +108,12 @@ export default function WaterControlPage() {
       const res = await api.post('/watercontrol/setMode', { mode: next })
       const msg = String((res.data as { message?: unknown })?.message ?? `Mode diubah ke ${next}.`)
       setPesan({ teks: msg, ok: true })
-      catat(next, `✔ ${msg}`, true)
+      catat(next, msg, true)
       reload()
     } catch (err) {
       const f = handleApiError(err)
       setPesan({ teks: f.message, ok: false })
-      catat(next, `✖ ${f.message}`, false)
+      catat(next, f.message, false)
     } finally {
       setBusy(null)
     }
@@ -98,12 +128,12 @@ export default function WaterControlPage() {
       const res = await api.post(path)
       const msg = String((res.data as { message?: unknown })?.message ?? 'Perintah diterima.')
       setPesan({ teks: msg, ok: true })
-      catat(label, `✔ ${msg}`, true)
+      catat(label, msg, true)
       reload()
     } catch (err) {
       const f = handleApiError(err)
       setPesan({ teks: f.message, ok: false })
-      catat(label, `✖ ${f.message}`, false)
+      catat(label, f.message, false)
     } finally {
       setBusy(null)
     }
@@ -128,7 +158,10 @@ export default function WaterControlPage() {
           role="alert"
           className="vsf-banner rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700 flex flex-wrap items-center gap-3"
         >
-          <span>✖ {error}</span>
+          <span className="flex items-center gap-2">
+            <IkonSalah className="shrink-0" />
+            <span>{error}</span>
+          </span>
           <button type="button" className="vsf-input rounded-full font-semibold" onClick={reload}>
             Coba lagi
           </button>
@@ -139,13 +172,14 @@ export default function WaterControlPage() {
         <div
           role={pesan.ok ? 'status' : 'alert'}
           className={clsx(
-            'vsf-banner rounded-input border px-3 py-2 text-[13px]',
+            'vsf-banner rounded-input border px-3 py-2 text-[13px] flex items-start gap-2',
             pesan.ok
               ? 'border-arutmin-moss bg-arutmin-mint/50 text-arutmin-forest'
               : 'border-red-600/50 bg-red-50 text-red-700',
           )}
         >
-          {pesan.teks}
+          {pesan.ok ? <IkonOk className="mt-[2px] shrink-0" /> : <IkonSalah className="mt-[2px] shrink-0" />}
+          <span>{pesan.teks}</span>
         </div>
       )}
 
@@ -153,25 +187,32 @@ export default function WaterControlPage() {
       <section className="vsf-card p-4">
         <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Status perangkat &amp; tandon</div>
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 vsf-stagger">
-          <div className="rounded-card border border-arutmin-border bg-white p-4">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500">Status API</div>
-            <div className={clsx('text-[15px] font-bold mt-1', terjangkau ? 'text-arutmin-forest' : 'text-red-700')}>
-              {loading && !status ? <span className="vsf-skeleton inline-block h-[16px] w-[110px]" /> : terjangkau ? '● TERHUBUNG' : '● TERPUTUS'}
+          <div className="rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm">
+            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Status API</div>
+            <div className="mt-2">
+              {loading && !status ? (
+                <span className="vsf-skeleton inline-block h-[24px] w-[130px]" />
+              ) : (
+                <StatusBadge
+                  tone={terjangkau ? 'online' : 'offline'}
+                  label={terjangkau ? 'Terhubung' : 'Terputus'}
+                />
+              )}
             </div>
-            <div className="text-[12px] text-slate-600">pembaruan terakhir {tgl(status?.updated_at)}</div>
+            <div className="mt-1 text-[12px] text-slate-600">pembaruan terakhir {tgl(status?.updated_at)}</div>
           </div>
-          <div className="rounded-card border border-arutmin-border bg-white p-4">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500">Perintah Terakhir</div>
-            <div className="text-[15px] font-bold mt-1">{status?.command ?? '—'}</div>
+          <div className="rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm">
+            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Perintah Terakhir</div>
+            <div className="text-[15px] font-bold mt-1 tabular-nums">{status?.command ?? '—'}</div>
             <div className="text-[12px] text-slate-600">{tgl(status?.updated_at)}</div>
           </div>
-          <div className="rounded-card border border-arutmin-border bg-white p-4">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500">Katup</div>
+          <div className="rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm">
+            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Katup</div>
             <div className="text-[15px] font-bold mt-1">{status?.valve_state ?? '—'}</div>
             <div className="text-[12px] text-slate-600">status katup tandon</div>
           </div>
-          <div className="rounded-card border border-arutmin-border bg-white p-4">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500">Mode</div>
+          <div className="rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm">
+            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Mode</div>
             <div className="text-[15px] font-bold mt-1">{mode ?? '—'}</div>
             <div className="text-[12px] text-slate-600">berdasar ambang sensor</div>
           </div>
@@ -181,7 +222,7 @@ export default function WaterControlPage() {
       {/* Pengaturan mode */}
       <section className="vsf-card p-4">
         <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Pengaturan mode</div>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-3">
           {(['AUTO', 'MANUAL'] as Mode[]).map((m) => (
             <button
               key={m}
@@ -189,10 +230,10 @@ export default function WaterControlPage() {
               disabled={busy !== null || !terjangkau || !mode}
               onClick={() => void sendMode(m)}
               className={clsx(
-                'inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-semibold disabled:opacity-60',
+                'inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-semibold transition disabled:opacity-60',
                 mode === m
                   ? 'border-arutmin-moss bg-activePill text-white'
-                  : 'border-arutmin-border bg-white text-slate-700 hover:border-arutmin-moss/60',
+                  : 'border-arutmin-border bg-white text-slate-700 hover:border-arutmin-moss/60 hover:shadow-sm',
               )}
             >
               {busy === 'mode' && mode !== m && <span className="vsf-spinner vsf-spinner-dark mr-2" />}
@@ -206,7 +247,7 @@ export default function WaterControlPage() {
       {/* Aksi manual */}
       <section className="vsf-card p-4">
         <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Aksi manual (hanya mode MANUAL)</div>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-3">
           <button
             type="button"
             disabled={busy !== null || !terjangkau || mode !== 'MANUAL'}
@@ -228,13 +269,15 @@ export default function WaterControlPage() {
           <span className="text-[12px] text-slate-500">status polling tiap 5 dtk, tombol nonaktif saat perintah diproses</span>
         </div>
         {mode === 'MANUAL' && (
-          <div className="mt-2 text-[12px] text-amber-800 bg-amber-50 border border-amber-500/40 rounded-input px-3 py-2">
-            ⚠ Mode MANUAL aktif — sistem tidak akan mengisi air otomatis.
+          <div className="mt-2 flex items-start gap-2 text-[12px] text-amber-800 bg-amber-50 border border-amber-500/40 rounded-input px-3 py-2">
+            <IkonPeringatan className="mt-[1px] shrink-0" />
+            <span>Mode MANUAL aktif — sistem tidak akan mengisi air otomatis.</span>
           </div>
         )}
         {!terjangkau && (
-          <div className="mt-2 text-[12px] text-red-700 bg-red-50 border border-red-600/40 rounded-input px-3 py-2">
-            ✖ Status tidak terjangkau — aksi dinonaktifkan sampai koneksi pulih.
+          <div className="mt-2 flex items-start gap-2 text-[12px] text-red-700 bg-red-50 border border-red-600/40 rounded-input px-3 py-2">
+            <IkonSalah className="mt-[1px] shrink-0" />
+            <span>Status tidak terjangkau — aksi dinonaktifkan sampai koneksi pulih.</span>
           </div>
         )}
       </section>
@@ -245,11 +288,12 @@ export default function WaterControlPage() {
         <div className="mt-3 overflow-auto rounded-card border border-arutmin-border bg-white vsf-table">
           <table className="w-full text-[13px]">
             <thead>
-              <tr className="bg-arutmin-mint/25">
+              <tr className="bg-navy/[.055]">
                 {['Waktu', 'Perintah', 'Sumber', 'Hasil'].map((h) => (
                   <th
                     key={h}
-                    className="text-left px-3 py-2 text-[11px] uppercase tracking-[.12em] text-arutmin-forest border-b-2 border-arutmin-moss"
+                    scope="col"
+                    className="border-b border-navy/25 px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-[.14em] text-navy"
                   >
                     {h}
                   </th>
@@ -265,11 +309,16 @@ export default function WaterControlPage() {
                 </tr>
               ) : (
                 barisRiwayat.map((r) => (
-                  <tr key={r.key} className="hover:bg-arutmin-mint/15">
-                    <td className="px-3 py-2 font-semibold text-slate-900">{tgl(r.waktu)}</td>
-                    <td className="px-3 py-2 text-slate-700">{r.perintah}</td>
-                    <td className="px-3 py-2 text-slate-700">{r.sumber}</td>
-                    <td className={clsx('px-3 py-2', r.ok ? 'text-arutmin-forest' : 'text-red-700')}>{r.hasil}</td>
+                  <tr key={r.key} className="even:bg-navy/[.03] hover:bg-navy/[.06] transition-colors">
+                    <td className="px-4 py-2.5 font-semibold text-slate-900 tabular-nums">{tgl(r.waktu)}</td>
+                    <td className="px-4 py-2.5 text-slate-700">{r.perintah}</td>
+                    <td className="px-4 py-2.5 text-slate-700">{r.sumber}</td>
+                    <td className={clsx('px-4 py-2.5', r.ok ? 'text-arutmin-forest' : 'text-red-700')}>
+                      <span className="flex items-start gap-2">
+                        {r.ok ? <IkonOk className="mt-[2px] shrink-0" /> : <IkonSalah className="mt-[2px] shrink-0" />}
+                        <span>{r.hasil}</span>
+                      </span>
+                    </td>
                   </tr>
                 ))
               )}
@@ -279,7 +328,7 @@ export default function WaterControlPage() {
       </section>
 
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Catatan struktur &amp; state</div>
+        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Tentang layar ini</div>
         <ul className="mt-2 list-disc pl-5 text-[13px] text-slate-700 leading-relaxed">
           <li>
             Live: GET /watercontrol/status (polling 5 dtk) · POST /watercontrol/setMode · POST /watercontrol/fill|stop —

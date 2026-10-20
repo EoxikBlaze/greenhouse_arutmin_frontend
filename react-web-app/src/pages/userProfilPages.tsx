@@ -3,7 +3,27 @@ import { api } from '../lib/api'
 import { fieldError, useApiError, useApiList } from '../lib/crudApi'
 import { useApiObject } from '../lib/useApiObject'
 import { useAuth } from '../lib/authContext'
+import { StatusBadge } from '../components/StatusBadge'
 import { BtnEdit, BtnHapus, CrudScreen, Field, FieldError, type Column, type HapusTarget } from '../components/CrudScreen'
+
+/* ── Ikon SVG inline (R3): pengganti emoji silang/centang — aria-hidden, 16px ── */
+function IkonSalah({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="8" cy="8" r="6.4" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M6.1 6.1l3.8 3.8M9.9 6.1L6.1 9.9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function IkonOk({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="8" cy="8" r="6.4" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M5.3 8.3l1.9 1.9 3.5-4.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
 
 type FormState = Record<string, string>
 
@@ -118,7 +138,7 @@ export function ManajemenUserPage() {
 
       setOpen(false)
       resetForm()
-      setFlash(editingId ? '✔ Data user diperbarui.' : '✔ User berhasil ditambahkan.')
+      setFlash(editingId ? 'Data user diperbarui.' : 'User berhasil ditambahkan.')
       reload()
     } catch (err) {
       const f = handleApiError(err)
@@ -137,7 +157,7 @@ export function ManajemenUserPage() {
     try {
       await api.delete(`/user/${id}`)
       setHapus(null)
-      setFlash('✔ User dihapus.')
+      setFlash('User dihapus.')
       reload()
     } catch (err) {
       const f = handleApiError(err)
@@ -297,7 +317,7 @@ export function ProfilPage() {
         email: nilai.email.trim() || null,
       })
       const msg = String((res.data as { message?: unknown })?.message ?? 'Perubahan tersimpan.')
-      setBanner(`✔ ${msg}`)
+      setBanner(msg)
       setEdit(null)
       reload()
     } catch (err) {
@@ -327,7 +347,7 @@ export function ProfilPage() {
         password_confirmation: sandi.password_confirmation,
       })
       const msg = String((res.data as { message?: unknown })?.message ?? 'Perubahan tersimpan.')
-      setBanner(`✔ ${msg}`)
+      setBanner(msg)
       setSandi({ password_lama: '', password: '', password_confirmation: '' })
       setSandiErr({})
     } catch (err) {
@@ -346,9 +366,10 @@ export function ProfilPage() {
       {banner && (
         <div
           role="status"
-          className="vsf-banner rounded-card border border-arutmin-moss bg-arutmin-mint/40 px-4 py-2 text-[13px] text-arutmin-forest"
+          className="vsf-banner rounded-card border border-arutmin-moss bg-arutmin-mint/40 px-4 py-2 text-[13px] text-arutmin-forest flex items-start gap-2"
         >
-          {banner}
+          <IkonOk className="mt-[2px] shrink-0" />
+          <span>{banner}</span>
         </div>
       )}
 
@@ -357,7 +378,10 @@ export function ProfilPage() {
           role="alert"
           className="vsf-banner rounded-card border border-red-600/50 bg-red-50 px-4 py-2 text-[13px] text-red-700 flex flex-wrap items-center gap-3"
         >
-          <span>✖ {daftarError}</span>
+          <span className="flex items-center gap-2">
+            <IkonSalah className="shrink-0" />
+            <span>{daftarError}</span>
+          </span>
           <button type="button" className="vsf-input rounded-full font-semibold" onClick={reload}>
             Coba lagi
           </button>
@@ -367,8 +391,8 @@ export function ProfilPage() {
       {/* Kartu identitas */}
       <section className="vsf-card p-4">
         <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Kartu identitas</div>
-        <div className="mt-3 flex items-center gap-4">
-          <div className="h-[64px] w-[64px] rounded-full border border-dashed border-arutmin-border grid place-items-center text-slate-500 uppercase">
+        <div className="mt-3 flex flex-wrap items-center gap-4">
+          <div className="h-[64px] w-[64px] rounded-full border border-arutmin-moss bg-arutmin-mint/40 grid place-items-center text-arutmin-forest font-bold uppercase">
             {loading && !user ? '…' : (user?.username ?? '?').slice(0, 2) || '—'}
           </div>
           <div>
@@ -377,6 +401,14 @@ export function ProfilPage() {
               username: {cell(user?.username)} • level: {cell(user?.level)} • email: {cell(user?.email)}
             </div>
           </div>
+          {!loading && user && (
+            <div className="ml-auto">
+              <StatusBadge
+                tone={user.is_demo ? 'warning' : 'online'}
+                label={user.is_demo ? 'Akun demo' : 'Akun aktif'}
+              />
+            </div>
+          )}
         </div>
       </section>
 
@@ -384,11 +416,15 @@ export function ProfilPage() {
       <section className="vsf-card p-4">
         <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Edit profil</div>
         {editError && (
-          <div role="alert" className="mt-3 vsf-banner rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700">
-            ✖ {editError}
+          <div
+            role="alert"
+            className="mt-3 vsf-banner rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700 flex items-start gap-2"
+          >
+            <IkonSalah className="mt-[2px] shrink-0" />
+            <span>{editError}</span>
           </div>
         )}
-        <div className="mt-3 grid gap-1 sm:grid-cols-2">
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <Field label="Nama">
             <input
               className="vsf-input w-full"
@@ -417,15 +453,18 @@ export function ProfilPage() {
 
       {/* Ganti password */}
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">
-          Ganti password (form terpisah: /profil/password)
-        </div>
+        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Ganti password</div>
+        <div className="mt-1 text-[12px] text-slate-500">Kata sandi lama diperiksa sebelum diganti.</div>
         {sandiError && (
-          <div role="alert" className="mt-3 vsf-banner rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700">
-            ✖ {sandiError}
+          <div
+            role="alert"
+            className="mt-3 vsf-banner rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700 flex items-start gap-2"
+          >
+            <IkonSalah className="mt-[2px] shrink-0" />
+            <span>{sandiError}</span>
           </div>
         )}
-        <div className="mt-3 grid gap-1 max-w-sm">
+        <div className="mt-3 grid gap-3 max-w-sm">
           <Field label="Password lama">
             <input
               className="vsf-input w-full"
@@ -461,7 +500,7 @@ export function ProfilPage() {
       </section>
 
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Catatan struktur &amp; state</div>
+        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Tentang layar ini</div>
         <ul className="mt-2 list-disc pl-5 text-[13px] text-slate-700 leading-relaxed">
           <li>Live: GET /profil (identitas sesuai role) · POST /profil/update · POST /profil/password — Bearer JWT.</li>
           <li>Daftar user (GET /user) hanya untuk pengelola; role yang ditolak mendapat pesan ramah tanpa data.</li>

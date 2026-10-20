@@ -6,6 +6,28 @@ import { useAuth } from '../lib/authContext'
 import type { Role } from '../lib/authTypes'
 import { useDialog } from '../lib/useDialog'
 import { ModalBackdrop } from '../components/ModalBackdrop'
+import { useApiObject } from '../lib/useApiObject'
+
+/** Bentuk data /dashboard yang dipakai chrome (hanya utk indikator IoT). */
+type DashboardStatus = { iotStatus?: { online?: boolean } | null }
+
+/** Monogram Vertonik — SVG (R3: tanpa emoji, bentuk konsisten di sidebar & login). */
+export function Monogram({ className = 'h-9 w-9' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 40 40" className={className} role="img" aria-label="Vertonik Smart Farm">
+      <rect x="1.25" y="1.25" width="37.5" height="37.5" rx="11" fill="#0A1F38" stroke="#E9CD53" strokeWidth="1.5" />
+      <path
+        d="M11.5 13 20 28.5 28.5 13"
+        fill="none"
+        stroke="#E9CD53"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M20 24.5c2.6-1 4.2-3 4.6-5.8-2.9-.1-5 1.6-5.6 4.4z" fill="#6B9D4A" />
+    </svg>
+  )
+}
 
 /** Judul halaman dinamis (sesuai topbar wireframe .pen) */
 const TITLES: Record<string, string> = {
@@ -112,13 +134,13 @@ function SideItem({ to, children, indent }: { to: string; children: ReactNode; i
       className={({ isActive }) =>
         [
           // QW2 — target sentuh ≥44px.
-          'flex min-h-[44px] items-center rounded-[12px] px-3 py-2 text-[14px] transition-all duration-200',
+          'flex min-h-[44px] items-center rounded-std-sm px-3 py-2 text-[14px] transition-all duration-200',
           indent ? 'pl-6 text-[13px]' : '',
-          // QW4 — nav aktif: gradient #3F5C41→#2D452F + teks putih SOLID
-          // (dulu text-white/85 menumpuk di atas pill → kontras 2.76:1).
+          // QW4 (dipertahankan) — teks putih solid, kontras ≥7:1 di atas navy.
+          // Aksen "aktif" = batang moss (token --moss) di tepi kiri + pill terang.
           isActive
-            ? 'bg-[linear-gradient(135deg,#3F5C41_0%,#2D452F_100%)] text-white font-semibold shadow-[0_4px_12px_-6px_rgba(107,157,74,.9)]'
-            : 'text-white/85 hover:bg-white/10 hover:translate-x-1',
+            ? 'bg-white/[.12] font-semibold text-white shadow-[inset_3px_0_0_0_var(--moss)] ring-1 ring-white/15'
+            : 'text-white/80 hover:bg-white/[.08] hover:text-white hover:translate-x-1',
         ].join(' ')
       }
     >
@@ -129,7 +151,10 @@ function SideItem({ to, children, indent }: { to: string; children: ReactNode; i
 
 function GroupLabel({ children }: { children: ReactNode }) {
   return (
-    <div className="mt-4 text-[11px] tracking-[.14em] uppercase text-white/60 font-bold">{children}</div>
+    <div className="vsf-eyebrow vsf-eyebrow-light mt-5 mb-1 flex items-center gap-2">
+      <span aria-hidden className="h-px w-3 bg-emas/70" />
+      {children}
+    </div>
   )
 }
 
@@ -151,6 +176,14 @@ export function AppShell() {
   const [confirmKeluar, setConfirmKeluar] = useState(false)
   // QW6 — sidebar off-canvas di layar kecil (hamburger + backdrop).
   const [navOpen, setNavOpen] = useState(false)
+
+  // S6 — indikator IoT topbar DARI data live (bukan hard-code selalu hijau).
+  // Satu GET /dashboard per sesi AppShell + senyap tiap 60s; bila belum ada
+  // data / gagal → badge disembunyikan (tak menampilkan status bohong).
+  const { data: dash } = useApiObject<DashboardStatus>('/dashboard', { pollMs: 60_000 })
+  const iotOnline = dash?.iotStatus?.online
+  const namaUser = (username || role || '').trim()
+  const inisial = (namaUser || '?').slice(0, 2).toUpperCase()
 
   useEffect(() => {
     const id = setInterval(() => setClock(formatClock()), 1000)
@@ -192,6 +225,13 @@ export function AppShell() {
   return (
     <div className="min-h-dvh bg-arutmin-page">
       <DemoBanner demo={demo} />
+      {/* R4 — skip-link ke konten utama (sembunyi sampai difokus keyboard). */}
+      <a
+        href="#vsf-main"
+        className="vsf-btn-secondary sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:shadow-deep"
+      >
+        Lewati ke konten utama
+      </a>
       <div className="flex min-h-dvh">
         {/* QW6 — mobile: fixed off-canvas (tersembunyi ke kiri), desktop: statis. */}
         <aside
@@ -202,9 +242,14 @@ export function AppShell() {
             navOpen ? 'translate-x-0' : '',
           ].join(' ')}
         >
-          <div className="rounded-card border border-white/10 bg-white/5 p-3">
-            <div className="text-[11px] tracking-[.14em] uppercase text-white/70">PT ARUTMIN INDONESIA</div>
-            <div className="mt-1 text-[14px] font-extrabold">GARAP</div>
+          {/* Kepala sidebar — brand Vertonik/Arutmin: monogram SVG + teks (R3). */}
+          <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[.06] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]">
+            <Monogram className="h-9 w-9 shrink-0" />
+            <div className="min-w-0">
+              <div className="truncate font-display text-[16px] font-bold leading-tight text-white">Vertonik</div>
+              <div className="vsf-eyebrow vsf-eyebrow-emas mt-0.5 truncate">Smart Farm</div>
+              <div className="truncate text-[11px] text-white/55">PT Arutmin Indonesia</div>
+            </div>
           </div>
 
           {/* QW5 — grup & item terfilter per role (petani: dashboard, asisten,
@@ -251,32 +296,47 @@ export function AppShell() {
           />
         )}
 
-        <main className="flex-1 min-w-0">
-          {/* QW6 — header responsif: hamburger di <lg, badge/clock disederhanakan. */}
-          <header className="flex min-h-[64px] items-center gap-3 border-b border-arutmin-border bg-white/90 px-4 backdrop-blur sm:px-6">
+        <main id="vsf-main" tabIndex={-1} className="min-w-0 flex-1 outline-none">
+          {/* QW6 — header responsif: hamburger di <lg, badge/clock disederhanakan.
+              Chrome navy (token --navy/--navy2) + aksen emas. */}
+          <header className="vsf-topbar flex min-h-[64px] items-center gap-3 border-b border-white/10 bg-topbar px-4 text-white shadow-[0_16px_34px_-28px_rgba(7,21,39,.95)] sm:px-6">
             <button
               type="button"
-              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[10px] border border-arutmin-border text-[18px] text-slate-700 lg:hidden"
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-std-sm border border-white/25 text-white transition-colors hover:bg-white/10 lg:hidden"
               aria-expanded={navOpen}
               aria-controls="vsf-sidebar"
               aria-label={navOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
               onClick={() => setNavOpen((v) => !v)}
             >
-              {navOpen ? '✕' : '☰'}
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+                {navOpen ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+              </svg>
             </button>
             <div className="min-w-0">
-              <div className="truncate text-[18px] font-bold leading-tight">{title}</div>
-              <div className="hidden text-[10px] uppercase tracking-[.14em] text-slate-500 sm:block">
-                GARAP · greenhouse hidroponik
-              </div>
+              <h1 className="truncate text-[20px] font-bold leading-tight sm:text-[24px]">{title}</h1>
+              <div className="vsf-eyebrow vsf-eyebrow-light hidden sm:block">GARAP · greenhouse hidroponik</div>
             </div>
             <div className="ml-auto flex items-center gap-3">
-              <span className="hidden md:inline-flex">
-                <StatusBadge tone="online" label="Alat Terhubung" />
-              </span>
-              <div className="hidden text-[13px] font-mono tabular-nums text-slate-600 sm:block">{clock}</div>
-              <div className="rounded-full border border-arutmin-border px-3 py-1 text-[12px] font-semibold text-slate-700">
-                ▾ {username || role}
+              {/* S6 — status IoT dari data live /dashboard (lihat useApiObject di atas). */}
+              {dash && (
+                <span className="hidden md:inline-flex">
+                  <StatusBadge
+                    tone={iotOnline ? 'online' : 'offline'}
+                    label={iotOnline ? 'Alat Terhubung' : 'Alat Terputus'}
+                  />
+                </span>
+              )}
+              <span className="hidden font-mono text-[13px] tabular-nums text-white/75 sm:block">{clock}</span>
+              {/* Avatar inisial user (bukan emoji) + nama & role. */}
+              <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/10 py-1 pl-1 pr-3">
+                <span
+                  className="grid h-7 w-7 place-items-center rounded-full bg-emas text-[12px] font-bold uppercase leading-none text-navy"
+                  aria-hidden
+                >
+                  {inisial}
+                </span>
+                <span className="text-[13px] font-semibold text-white">{namaUser || role}</span>
+                <span className="hidden text-[11px] text-white/60 lg:block">{role}</span>
               </div>
             </div>
           </header>
@@ -287,16 +347,22 @@ export function AppShell() {
               <div
                 role="status"
                 aria-live="polite"
-                className="vsf-banner mb-4 flex items-center gap-3 rounded-input border border-amber-600/40 bg-amber-50 px-3 py-2 text-[13px] text-amber-800"
+                className="vsf-banner mb-4 flex items-center gap-3 rounded-std border border-amber-600/40 bg-amber-50 px-3 py-2 text-[13px] text-amber-800"
               >
-                <span>⚠ {notice}</span>
+                <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+                  <path d="M12 3 1.8 20.5h20.4z" />
+                  <path d="M12 9.5v4.5M12 17.2v.2" />
+                </svg>
+                <span>{notice}</span>
                 <button
                   type="button"
                   aria-label="Tutup pemberitahuan"
-                  className="ml-auto min-h-[36px] min-w-[36px] rounded-full px-2 text-amber-800 hover:bg-amber-100"
+                  className="ml-auto inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-full px-2 text-amber-800 hover:bg-amber-100"
                   onClick={dismissNotice}
                 >
-                  ✕
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+                    <path d="M6 6l12 12M18 6L6 18" />
+                  </svg>
                 </button>
               </div>
             )}
@@ -326,10 +392,10 @@ export function AppShell() {
               Kamu akan keluar dari sesi <b>{username || role}</b>. Untuk masuk lagi, login ulang.
             </div>
             <div className="mt-4 flex justify-end gap-2">
-              <button className="vsf-input rounded-full" onClick={() => setConfirmKeluar(false)}>
+              <button className="vsf-btn-secondary" onClick={() => setConfirmKeluar(false)}>
                 Batal
               </button>
-              <button className="rounded-full bg-red-700 px-4 py-2 text-[13px] font-semibold text-white" onClick={doLogout}>
+              <button className="vsf-btn-danger" onClick={doLogout}>
                 Ya, keluar
               </button>
             </div>

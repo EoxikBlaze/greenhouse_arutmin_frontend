@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import { api } from '../lib/api'
 import { useApiError, useApiList } from '../lib/crudApi'
 import { useAuth } from '../lib/authContext'
+import { StatusBadge } from '../components/StatusBadge'
 
 type Param = 'pH' | 'Suhu Air' | 'TDS' | 'Suhu Udara' | 'Kelembapan' | 'Level Air'
 type Range = '6 Jam' | '24 Jam' | '7 Hari'
@@ -71,7 +72,7 @@ function Pill({ active, children, onClick }: { active?: boolean; children: strin
       type="button"
       onClick={onClick}
       className={clsx(
-        'inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-semibold',
+        'inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-semibold transition',
         active
           ? 'border-arutmin-moss bg-activePill text-white'
           : 'border-arutmin-border bg-white text-slate-700 hover:border-arutmin-moss/60',
@@ -79,6 +80,48 @@ function Pill({ active, children, onClick }: { active?: boolean; children: strin
     >
       {children}
     </button>
+  )
+}
+
+/* ── Ikon SVG inline (R3): pengganti emoji ikon kotak/jam/peringatan — aria-hidden, 16px ── */
+function IkonSalah({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="8" cy="8" r="6.4" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M6.1 6.1l3.8 3.8M9.9 6.1L6.1 9.9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function IkonPeringatan({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M8 2.4l5.6 10.2H2.4L8 2.4z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M8 6.4v3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <circle cx="8" cy="11.3" r="0.85" fill="currentColor" />
+    </svg>
+  )
+}
+
+/** Ilustrasi kotak kosong — empty state "belum ada data" (44px). */
+function IlustrasiKotakKosong() {
+  return (
+    <svg width="44" height="44" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <rect x="7" y="14" width="34" height="24" rx="4" stroke="#6B9D4A" strokeWidth="2" fill="#CFE2CE" fillOpacity="0.45" />
+      <path d="M7 26h9l3 5h10l3-5h9" stroke="#6B9D4A" strokeWidth="2" strokeLinejoin="round" fill="none" />
+      <path d="M17 10.5h14M20 6.5h8" stroke="#6B9D4A" strokeWidth="2" strokeLinecap="round" opacity="0.55" />
+    </svg>
+  )
+}
+
+/** Ilustrasi jam — empty state "rentang kosong" (44px). */
+function IlustrasiJam() {
+  return (
+    <svg width="44" height="44" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <circle cx="24" cy="25" r="15" stroke="#6B9D4A" strokeWidth="2" fill="#CFE2CE" fillOpacity="0.45" />
+      <path d="M24 17v8.5l5.5 3.5" stroke="#2D452F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M18 6.5h12" stroke="#6B9D4A" strokeWidth="2" strokeLinecap="round" opacity="0.55" />
+    </svg>
   )
 }
 
@@ -255,10 +298,10 @@ export default function SensorRealtimePage() {
 
   return (
     <div className="mx-auto max-w-[1180px] grid gap-4 vsf-stagger">
-      {/* Baris kontrol grafik */}
+      {/* Kendali grafik: pilihan parameter & rentang */}
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Baris kontrol grafik</div>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Parameter &amp; Rentang</div>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
           {(Object.keys(PARAM_DEFS) as Param[]).map((p) => (
             <Pill key={p} active={param === p} onClick={() => setParam(p)}>
               {p}
@@ -275,36 +318,54 @@ export default function SensorRealtimePage() {
 
           <span className="flex-1" />
           {role !== 'petani' && (
-            <button type="button" className="vsf-input rounded-full" disabled={terlihat.length === 0} onClick={unduhCsv}>
+            <button
+              type="button"
+              className="vsf-input rounded-full font-semibold transition hover:border-arutmin-moss/60"
+              disabled={terlihat.length === 0}
+              onClick={unduhCsv}
+            >
               Unduh CSV
             </button>
           )}
         </div>
-        <div className="mt-2 text-[12px] text-slate-500">
-          Sumber: GET /monitoring/chart-data — {rows.length} titik tersimpan
-          {waktuTerbaru !== null && <> • terakhir {tgl(new Date(waktuTerbaru).toISOString())}</>}
+        <div className="mt-2 flex flex-wrap items-center gap-3 text-[12px] text-slate-500">
+          <span>
+            {rows.length} titik tersimpan
+            {waktuTerbaru !== null && <> • terakhir {tgl(new Date(waktuTerbaru).toISOString())}</>}
+          </span>
+          {waktuTerbaru !== null && (
+            <StatusBadge
+              tone={basi ? 'warning' : 'online'}
+              label={basi ? `Bacaan ${relatif(kini - waktuTerbaru)}` : 'Bacaan segar'}
+            />
+          )}
         </div>
         {basi && (
           <div
             role="status"
-            className="mt-2 vsf-banner rounded-input border border-amber-500/40 bg-amber-50 px-3 py-2 text-[12px] text-amber-800"
+            className="mt-2 vsf-banner rounded-input border border-amber-500/40 bg-amber-50 px-3 py-2 text-[12px] text-amber-800 flex items-start gap-2"
           >
-            ⚠ Bacaan terakhir {relatif(kini - waktuTerbaru!)} — grafik menampilkan riwayat terakhir yang tersedia di
-            server.
+            <IkonPeringatan className="mt-[2px] shrink-0" />
+            <span>
+              Bacaan terakhir {relatif(kini - waktuTerbaru!)} — grafik menampilkan riwayat terakhir yang tersedia di server.
+            </span>
           </div>
         )}
       </section>
 
-      {/* Panel grafik (chart live) */}
+      {/* Grafik sensor (chart live) */}
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Panel grafik (chart live)</div>
+        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Grafik Sensor</div>
 
         {error && (
           <div
             role="alert"
             className="mt-3 vsf-banner rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700 flex flex-wrap items-center gap-3"
           >
-            <span>✖ {error}</span>
+            <span className="flex items-center gap-2">
+              <IkonSalah className="shrink-0" />
+              <span>{error}</span>
+            </span>
             <button type="button" className="vsf-input rounded-full font-semibold" onClick={reload}>
               Coba lagi
             </button>
@@ -316,30 +377,37 @@ export default function SensorRealtimePage() {
             <div className="vsf-skeleton h-[250px]" />
           ) : error && rows.length === 0 ? null : rows.length === 0 ? (
             <div className="h-[250px] flex flex-col items-center justify-center gap-2 text-center text-[13px] text-slate-600">
-              <span className="text-[28px]" aria-hidden>
-                📭
-              </span>
+              <IlustrasiKotakKosong />
               <b className="text-slate-700">Belum ada data sensor</b>
               <span>Grafik akan terisi otomatis begitu perangkat mengirim bacaan.</span>
-              <button type="button" className="vsf-input rounded-full font-semibold mt-1" onClick={reload}>
+              <button
+                type="button"
+                className="vsf-input rounded-full font-semibold mt-1 transition hover:border-arutmin-moss/60"
+                onClick={reload}
+              >
                 Muat ulang
               </button>
             </div>
           ) : terlihat.length === 0 ? (
             <div className="h-[250px] flex flex-col items-center justify-center gap-2 text-center text-[13px] text-slate-600">
-              <span className="text-[28px]" aria-hidden>
-                🕒
-              </span>
+              <IlustrasiJam />
               <b className="text-slate-700">Belum ada data pada rentang ini — coba pilih rentang lain.</b>
               {range !== '7 Hari' && (
-                <button type="button" className="vsf-input rounded-full font-semibold mt-1" onClick={() => setRange('7 Hari')}>
+                <button
+                  type="button"
+                  className="vsf-input rounded-full font-semibold mt-1 transition hover:border-arutmin-moss/60"
+                  onClick={() => setRange('7 Hari')}
+                >
                   Lihat 7 Hari
                 </button>
               )}
             </div>
           ) : titik.length === 0 ? (
-            <div className="h-[250px] flex items-center justify-center text-center text-[13px] text-slate-600">
-              Belum ada nilai {param} pada rentang {range}.
+            <div className="h-[250px] flex flex-col items-center justify-center gap-2 text-center text-[13px] text-slate-600">
+              <IlustrasiKotakKosong />
+              <b className="text-slate-700">
+                Belum ada nilai {param} pada rentang {range}.
+              </b>
             </div>
           ) : (
             <div>
@@ -358,13 +426,11 @@ export default function SensorRealtimePage() {
         </div>
       </section>
 
-      {/* Tarik data historis — hanya role pengelola (petani: lihat grafik saja) */}
+      {/* Riwayat data historis — hanya role pengelola (petani: lihat grafik saja) */}
       {role !== 'petani' && (
         <section className="vsf-card p-4">
-          <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">
-            Tarik data historis (riwayat manual)
-          </div>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Riwayat Data Historis</div>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
             <input
               type="date"
               className="vsf-input w-[220px]"
@@ -379,32 +445,49 @@ export default function SensorRealtimePage() {
               value={sampai}
               onChange={(e) => setSampai(e.target.value)}
             />
-            <button type="button" className="vsf-input rounded-full font-semibold" disabled={tarikLoading} onClick={() => void tarik()}>
+            <button
+              type="button"
+              className="vsf-input rounded-full font-semibold transition hover:border-arutmin-moss/60"
+              disabled={tarikLoading}
+              onClick={() => void tarik()}
+            >
               {tarikLoading && <span className="vsf-spinner vsf-spinner-dark mr-2" />}
               {tarikLoading ? 'Menarik…' : 'Tarik'}
             </button>
-            <span className="text-[12px] text-slate-500">GET /monitoring/tarik — maksimal 50 baris per tarikan</span>
+            <span className="text-[12px] text-slate-500">Maksimal 50 baris per tarikan.</span>
           </div>
 
           {tarikError && (
             <div
               role="alert"
-              className="mt-3 vsf-banner rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700"
+              className="mt-3 vsf-banner rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700 flex items-start gap-2"
             >
-              ✖ {tarikError}
+              <IkonSalah className="mt-[2px] shrink-0" />
+              <span>{tarikError}</span>
             </div>
           )}
 
           <div className="mt-3 overflow-auto rounded-card border border-arutmin-border bg-white vsf-table">
             <table className="w-full text-[13px]">
               <thead>
-                <tr className="bg-arutmin-mint/25">
-                  {['Waktu', 'pH', 'Suhu Air', 'TDS', 'Suhu Udara', 'Kelembapan', 'Level'].map((h) => (
+                <tr className="bg-navy/[.055]">
+                  {[
+                    { h: 'Waktu', right: false },
+                    { h: 'pH', right: true },
+                    { h: 'Suhu Air', right: true },
+                    { h: 'TDS', right: true },
+                    { h: 'Suhu Udara', right: true },
+                    { h: 'Kelembapan', right: true },
+                    { h: 'Level', right: true },
+                  ].map((c) => (
                     <th
-                      key={h}
-                      className="text-left px-3 py-2 text-[11px] uppercase tracking-[.12em] text-arutmin-forest border-b-2 border-arutmin-moss"
+                      key={c.h}
+                      scope="col"
+                      className={`border-b border-navy/25 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.14em] text-navy ${
+                        c.right ? 'text-right' : 'text-left'
+                      }`}
                     >
-                      {h}
+                      {c.h}
                     </th>
                   ))}
                 </tr>
@@ -420,14 +503,17 @@ export default function SensorRealtimePage() {
                   </tr>
                 ) : (
                   tarikRows.map((r) => (
-                    <tr key={String(r.id ?? waktu(r))} className="hover:bg-arutmin-mint/15">
-                      <td className="px-3 py-2 font-semibold text-slate-900">{tgl(waktu(r))}</td>
-                      <td className="px-3 py-2 text-slate-700">{r.ph ?? '—'}</td>
-                      <td className="px-3 py-2 text-slate-700">{r.waterTemp ?? '—'}</td>
-                      <td className="px-3 py-2 text-slate-700">{r.tds ?? '—'}</td>
-                      <td className="px-3 py-2 text-slate-700">{r.airTemp ?? '—'}</td>
-                      <td className="px-3 py-2 text-slate-700">{r.humidity ?? '—'}</td>
-                      <td className="px-3 py-2 text-slate-700">{r.water_level ?? '—'}</td>
+                    <tr
+                      key={String(r.id ?? waktu(r))}
+                      className="even:bg-navy/[.03] hover:bg-navy/[.06] transition-colors"
+                    >
+                      <td className="px-4 py-2.5 font-semibold text-slate-900">{tgl(waktu(r))}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{r.ph ?? '—'}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{r.waterTemp ?? '—'}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{r.tds ?? '—'}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{r.airTemp ?? '—'}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{r.humidity ?? '—'}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{r.water_level ?? '—'}</td>
                     </tr>
                   ))
                 )}
@@ -438,7 +524,7 @@ export default function SensorRealtimePage() {
       )}
 
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Catatan struktur &amp; state</div>
+        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Tentang layar ini</div>
         <ul className="mt-2 list-disc pl-5 text-[13px] text-slate-700 leading-relaxed">
           <li>Live: GET /monitoring/chart-data (polling 15 dtk) · GET /monitoring/tarik (riwayat manual) — Bearer JWT.</li>
           <li>Rentang difilter di klien dari titik terakhir yang tersedia; bacaan basi ditandai banner peringatan.</li>

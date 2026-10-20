@@ -197,7 +197,7 @@ export function JenisTanamanPage() {
       else await api.post('/tanaman', payload)
       setOpen(false)
       resetForm()
-      setFlash('✔ Data tanaman tersimpan.')
+      setFlash('Data tanaman tersimpan.')
       reload()
     } catch (err) {
       const f = handleApiError(err)
@@ -217,7 +217,7 @@ export function JenisTanamanPage() {
     try {
       await api.delete(`/tanaman/${id}`)
       setHapus(null)
-      setFlash('✔ Data tanaman dihapus.')
+      setFlash('Data tanaman dihapus.')
       reload()
     } catch (err) {
       const f = handleApiError(err)
@@ -338,20 +338,24 @@ type MejaRow = Record<string, unknown> & {
   jumlah_lubang: number | string
 }
 
-/** Validasi klien — kalimat sengaja disamakan dengan pesan 422 backend (Zod). */
+/**
+ * Validasi klien — kalimat SENADA dengan pesan 422 backend (`_validate.js messageFor`)
+ * supaya pengguna tak melihat dua gaya pesan berbeda untuk kesalahan yang sama.
+ * Panjang teks sengaja TIDAK dicek di sini: batas efektif = MIN(spec, panjang kolom
+ * live) dan hanya backend yang tahu → pesan `Kolom meja maksimal N karakter.`
+ * selalu datang dari server (persis format 422, §2 kontrak).
+ */
 function validateMeja(form: FormState): Record<string, string[]> {
   const errs: Record<string, string[]> = {}
   const nama = (form.meja ?? '').trim()
   if (!nama) errs.meja = ['Kolom meja wajib diisi.']
-  else if (nama.length > 200) errs.meja = ['Kolom meja maksimal 200 karakter.']
 
   const lubang = (form.jumlah_lubang ?? '').trim()
   if (!lubang) errs.jumlah_lubang = ['Kolom jumlah_lubang wajib diisi.']
   else {
     const n = Number(lubang)
-    if (!Number.isInteger(n) || n < 1 || n > 1_000_000) {
-      errs.jumlah_lubang = ['Kolom jumlah_lubang harus antara 1 dan 1000000.']
-    }
+    if (!Number.isInteger(n)) errs.jumlah_lubang = ['Kolom jumlah_lubang harus berupa bilangan bulat.']
+    else if (n < 1 || n > 1_000_000) errs.jumlah_lubang = ['Kolom jumlah_lubang harus antara 1 dan 1000000.']
   }
 
   for (const f of MEJA_FIELDS) {
@@ -471,7 +475,7 @@ export function MejaTanamanPage() {
       else await api.post('/meja', payload)
       setOpen(false)
       resetForm()
-      setFlash('✔ Data meja tersimpan.')
+      setFlash('Data meja tersimpan.')
       reload()
     } catch (err) {
       const f = handleApiError(err)
@@ -491,7 +495,7 @@ export function MejaTanamanPage() {
     try {
       await api.delete(`/meja/${id}`)
       setHapus(null)
-      setFlash('✔ Data meja dihapus.')
+      setFlash('Data meja dihapus.')
       reload()
     } catch (err) {
       const f = handleApiError(err)
@@ -705,7 +709,7 @@ export function AmbangSensorPage() {
       setEditingId(null)
       setFieldErrors({})
       setFormError(null)
-      setFlash('✔ Ambang sensor diperbarui.')
+      setFlash('Ambang sensor diperbarui.')
       reload()
     } catch (err) {
       const f = handleApiError(err)

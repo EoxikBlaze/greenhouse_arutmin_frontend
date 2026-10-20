@@ -1,164 +1,133 @@
-import { useState, type FormEvent } from 'react'
-import clsx from 'clsx'
-import { useSearchParams } from 'react-router-dom'
-
-type Pesan = { dari: 'ANDA' | 'ASISTEN AI'; teks: string; waktu: string }
-
-const AWAL: Pesan[] = [
-  {
-    dari: 'ANDA',
-    teks: 'Bagaimana kondisi pH air tandon hari ini? Apakah aman untuk tahap Pendewasaan?',
-    waktu: '07:41',
-  },
-  {
-    dari: 'ASISTEN AI',
-    teks: 'pH tandon saat ini 6.2 — dalam rentang aman Pendewasaan (target 6.0–6.5). TDS 1.180 ppm juga stabil. Tidak ada tindakan yang diperlukan saat ini.',
-    waktu: '07:41',
-  },
-  { dari: 'ANDA', teks: "Kalau K-04 terus 'Periksa Alat', apa yang harus dilakukan?", waktu: '07:43' },
-]
-
-const QUICK = ['✦ Ringkas sensor hari ini', '✦ Rekomendasi penyiraman', '✦ Jadwal panen terdekat']
-
-function jam(): string {
-  return new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date())
+/** Ilustrasi: gelembung percakapan + percikan ide (SVG murni, bukan emoji). */
+function IlustrasiAsisten() {
+  return (
+    <svg viewBox="0 0 180 118" className="mx-auto h-[104px] w-[168px]" aria-hidden="true" focusable="false">
+      <ellipse cx="90" cy="108" rx="62" ry="7" fill="#E2E8DD" />
+      {/* gelembung utama */}
+      <path
+        d="M34 24h84a12 12 0 0 1 12 12v34a12 12 0 0 1-12 12H70l-20 16v-16H34a12 12 0 0 1-12-12V36a12 12 0 0 1 12-12z"
+        fill="#fff"
+        stroke="#6B9D4A"
+        strokeWidth="2"
+      />
+      <path d="M44 44h64M44 56h48M44 68h34" stroke="#CFE2CE" strokeWidth="6" strokeLinecap="round" />
+      {/* gelembung balasan (kosong) */}
+      <path
+        d="M120 66h34a10 10 0 0 1 10 10v18a10 10 0 0 1-10 10h-8v10l-14-10h-12a10 10 0 0 1-10-10V76a10 10 0 0 1 10-10z"
+        fill="#CFE2CE"
+        stroke="#6B9D4A"
+        strokeWidth="2"
+      />
+      <circle cx="134" cy="85" r="3" fill="#4C6A4B" />
+      <circle cx="144" cy="85" r="3" fill="#4C6A4B" />
+      <circle cx="154" cy="85" r="3" fill="#4C6A4B" />
+      {/* percikan */}
+      <path d="M150 18l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#F59E0B" opacity=".85" />
+      <path d="M22 12l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#6B9D4A" opacity=".7" />
+    </svg>
+  )
 }
 
+const RENCANA = [
+  {
+    judul: 'Ringkas kondisi kebun',
+    teks: 'Padatkan nilai sensor, ambang, dan peringatan aktif menjadi jawaban singkat.',
+  },
+  {
+    judul: 'Rekomendasi tindakan',
+    teks: 'Saran penyiraman, penyesuaian nutrisi, dan jadwal berdasarkan tahap tanam berjalan.',
+  },
+  {
+    judul: 'Tanya-jawab riwayat tanam',
+    teks: 'Jawaban atas pertanyaan panen, produktivitas, dan riwayat batch per meja.',
+  },
+]
+
+const KONTEKS = [
+  'Data sensor & ambang (modul Sensor Real-Time)',
+  'Daftar tanam aktif (GET /tanam)',
+  'Riwayat laporan panen per bulan (GET /laporan)',
+]
+
 export default function AsistenAiPage() {
-  const [searchParams] = useSearchParams()
-  const stateVariant = searchParams.get('state') ?? 'ok' // loading | offline | ok
-  const [pesan, setPesan] = useState<Pesan[]>(AWAL)
-  const [input, setInput] = useState('')
-  const [mengetik, setMengetik] = useState(false)
-  const [sSensor, setSSensor] = useState(true)
-  const [sRiwayat, setSRiwayat] = useState(true)
-
-  const offline = stateVariant === 'offline'
-  const loading = stateVariant === 'loading'
-
-  function kirim(teks: string) {
-    const t = teks.trim()
-    if (!t || offline || mengetik) return
-    setPesan((p) => [...p, { dari: 'ANDA', teks: t, waktu: jam() }])
-    setInput('')
-    setMengetik(true)
-    // TODO tahap API: streaming per-kalimat dari endpoint asisten
-    setTimeout(() => {
-      setPesan((p) => [
-        ...p,
-        {
-          dari: 'ASISTEN AI',
-          teks: 'Baik — berdasarkan data sensor terkini, kondisi kebun dalam batas normal. Saya akan kabari bila ada nilai keluar ambang.',
-          waktu: jam(),
-        },
-      ])
-      setMengetik(false)
-    }, 1200)
-  }
-
-  function onSubmit(e: FormEvent) {
-    e.preventDefault()
-    kirim(input)
-  }
-
   return (
     <div className="mx-auto max-w-[1180px] grid gap-4 vsf-stagger">
-      {/* Konteks percakapan */}
+      {/* Ringkas modul */}
       <section className="vsf-card p-4">
-        <div className="flex flex-wrap items-center gap-3 text-[13px]">
-          <b className="text-slate-900">Konteks aktif:</b>
-          <span className="text-slate-600">6 sensor live · 12 batch · tahap Pendewasaan</span>
-        </div>
-        <div className="mt-2 text-[12px] text-slate-500">
-          states: loading (bubble skeleton) · AI offline (‘Asisten tidak tersedia — coba lagi’) · guard [petani]
-          (hanya baca data sendiri)
+        <div className="flex flex-wrap items-start gap-3">
+          <div className="min-w-0">
+            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Asisten AI</div>
+            <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
+              Kolom tanya-jawab untuk kebun: tanyakan kondisi air, ambang, atau jadwal tanam, lalu dapatkan
+              jawaban yang merujuk data sensor dan riwayat tanam.
+            </p>
+          </div>
+          <span className="flex-1" />
+          <span className="vsf-pill border-amber-500/60 bg-amber-50 text-amber-800">
+            <span className="vsf-dot mr-1 h-[7px] w-[7px] rounded-full bg-amber-500" aria-hidden="true" />
+            Menunggu integrasi
+          </span>
         </div>
       </section>
 
-      {/* Panel chat */}
-      <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Panel chat</div>
-
-        {offline && (
-          <div className="vsf-banner mt-3 rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700" role="alert">
-            ✖ Asisten tidak tersedia — coba lagi
-          </div>
-        )}
-
-        <div className="mt-3 grid gap-3 max-h-[420px] overflow-y-auto pr-1" aria-live="polite">
-          {loading ? (
-            <>
-              <div className="vsf-skeleton h-[64px] w-[70%] justify-self-end rounded-2xl" />
-              <div className="vsf-skeleton h-[64px] w-[75%] rounded-2xl" />
-            </>
-          ) : (
-            pesan.map((m, i) => (
-              <div key={i} className={clsx('flex', m.dari === 'ANDA' ? 'justify-end' : 'justify-start')}>
-                <div
-                  className={clsx(
-                    'max-w-[80%] rounded-2xl px-4 py-2 text-[13px]',
-                    m.dari === 'ANDA'
-                      ? 'bg-activePill text-white rounded-br-md'
-                      : 'bg-arutmin-mint/40 text-slate-800 rounded-bl-md border border-arutmin-border',
-                  )}
-                >
-                  <div className={clsx('text-[10px] font-bold tracking-[.12em] uppercase mb-1', m.dari === 'ANDA' ? 'text-white/70' : 'text-arutmin-forest/70')}>
-                    {m.dari}
-                  </div>
-                  <div>{m.teks}</div>
-                  <div className={clsx('mt-1 text-[10px]', m.dari === 'ANDA' ? 'text-white/70' : 'text-slate-500')}>{m.waktu}</div>
-                </div>
-              </div>
-            ))
-          )}
-
-          {(mengetik || loading) && (
-            <div className="flex items-center gap-2 text-[12px] text-slate-500" role="status">
-              <span className="vsf-dot text-arutmin-moss">●</span> Asisten AI sedang mengetik…
+      {/* Layar jujur */}
+      <section className="vsf-card p-6">
+        <div className="rounded-card border border-dashed border-arutmin-border px-4 py-8 text-center">
+          <IlustrasiAsisten />
+          <div className="mx-auto mt-4 max-w-[560px]">
+            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Status modul</div>
+            <h2 className="mt-1.5 text-[17px] font-bold text-slate-900">Asisten AI belum terhubung ke backend</h2>
+            <p className="mt-2 text-[13px] leading-relaxed text-slate-600">
+              Kontrak backend (<code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">docs/openapi.yaml</code>)
+              belum memuat endpoint percakapan AI. Karena itu kotak percakapan, tombol kirim, dan contoh
+              jawaban tidak ditampilkan — agar tidak ada yang terlihat berfungsi padahal belum ada.
+            </p>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <span className="vsf-pill border-arutmin-border bg-white text-slate-600">Status: menunggu integrasi</span>
+              <span className="vsf-pill border-arutmin-moss/50 bg-arutmin-mint/25 text-arutmin-forest">
+                Tersedia untuk semua peran
+              </span>
             </div>
-          )}
+          </div>
         </div>
+      </section>
 
-        {/* Quick prompts */}
-        <div className="mt-4 flex flex-wrap gap-2">
-          {QUICK.map((q) => (
-            <button
-              key={q}
-              type="button"
-              disabled={offline || loading}
-              onClick={() => kirim(q.replace('✦ ', ''))}
-              className="vsf-pill border-arutmin-border bg-white text-slate-700 hover:border-arutmin-moss/60 disabled:opacity-50"
-            >
-              {q}
-            </button>
+      {/* Rencana kapabilitas */}
+      <section className="vsf-card p-4">
+        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Rencana kapabilitas</div>
+        <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 vsf-stagger">
+          {RENCANA.map((r) => (
+            <article key={r.judul} className="rounded-card border border-arutmin-border bg-white p-4">
+              <div className="flex items-center gap-2">
+                <svg viewBox="0 0 20 20" className="h-4 w-4 shrink-0" aria-hidden="true" focusable="false">
+                  <circle cx="10" cy="10" r="8" fill="#CFE2CE" stroke="#6B9D4A" strokeWidth="1.6" />
+                  <path d="M6.5 10.2l2.4 2.4 4.6-5" fill="none" stroke="#2D452F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="text-[13px] font-bold text-slate-900">{r.judul}</span>
+              </div>
+              <p className="mt-2 text-[12.5px] leading-relaxed text-slate-600">{r.teks}</p>
+            </article>
           ))}
         </div>
+        <div className="mt-2 text-[12px] text-slate-500">Di atas adalah rencana modul, bukan fitur yang sedang berjalan.</div>
+      </section>
 
-        {/* Input bar */}
-        <form className="mt-3 flex gap-2" onSubmit={onSubmit}>
-          <input
-            className="vsf-input flex-1"
-            placeholder="Tanyakan kondisi kebun…"
-            value={input}
-            disabled={offline || loading}
-            onChange={(e) => setInput(e.target.value)}
-            aria-label="Tanyakan kondisi kebun"
-          />
-          <button type="submit" className="vsf-btn-primary" disabled={offline || loading || mengetik}>
-            Kirim ➤
-          </button>
-        </form>
-
-        <div className="mt-3 flex flex-wrap gap-4 text-[12px] text-slate-600">
-          <label className="inline-flex items-center gap-2">
-            <input type="checkbox" checked={sSensor} onChange={(e) => setSSensor(e.target.checked)} />
-            Sertakan data sensor
-          </label>
-          <label className="inline-flex items-center gap-2">
-            <input type="checkbox" checked={sRiwayat} onChange={(e) => setSRiwayat(e.target.checked)} />
-            Sertakan riwayat tanam
-          </label>
-        </div>
+      {/* Konteks data saat integrasi berjalan */}
+      <section className="vsf-card p-4">
+        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Konteks data (saat integrasi aktif)</div>
+        <ul className="mt-3 grid gap-2">
+          {KONTEKS.map((k) => (
+            <li
+              key={k}
+              className="flex items-start gap-2 rounded-input border border-arutmin-border bg-white px-3 py-2 text-[13px] text-slate-700"
+            >
+              <svg viewBox="0 0 16 16" className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" focusable="false">
+                <path d="M8 1.5l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.3 4.2 13.3l.7-4.3-3.1-3 4.3-.6z" fill="#CFE2CE" stroke="#6B9D4A" strokeWidth="1.3" strokeLinejoin="round" />
+              </svg>
+              <span>{k}</span>
+            </li>
+          ))}
+        </ul>
       </section>
     </div>
   )
