@@ -1,62 +1,178 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import clsx from 'clsx'
-import { useSearchParams } from 'react-router-dom'
+import { api } from '../lib/api'
+import { useApiError } from '../lib/crudApi'
+import { useAuth } from '../lib/authContext'
+import { useApiObject } from '../lib/useApiObject'
 
 type Mode = 'AUTO' | 'MANUAL'
 
-export default function WaterControlPage() {
-  const [mode, setMode] = useState<Mode>('AUTO')
-  const [busy, setBusy] = useState<null | 'fill' | 'stop' | 'mode'>(null)
-  // State variant via URL (QA/debug): ?state=offline
-  const [searchParams] = useSearchParams()
-  const isOffline = searchParams.get('state') === 'offline'
+/** Baris GET /watercontrol/status (tabel `water_controls`). */
+type Status = {
+  id?: string | number
+  command?: string | null
+  mode?: string | null
+  valve_state?: string | null
+  updated_at?: string | null
+}
 
-  // data statis sementara (meniru mockup) — nanti diganti polling /watercontrol/status
-  const device = { online: true, lastSend: '12 dtk lalu', level: 74, valve: 'OFF' as 'ON' | 'OFF' }
+/** Satu baris riwayat perintah: baris server + perintah yang dikirim sesi ini. */
+type Riwayat = {
+  key: string
+  waktu: string
+  perintah: string
+  sumber: string
+  hasil: string
+  ok: boolean
+}
+
+const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+
+function tgl(iso?: string | null): string {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '—'
+  const jam = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()} ${jam}`
+}
+
+export default function WaterControlPage() {
+  const { username } = useAuth()
+  const handleApiError = useApiError()
+
+  // Status live + polling senyap tiap 5 dtk (skeleton hanya saat muat pertama).
+  const { data: status, loading, error, reload } = useApiObject<Status>('/watercontrol/status', { pollMs: 5_000 })
+
+  const mode = (status?.mode === 'AUTO' ? 'AUTO' : status?.mode === 'MANUAL' ? 'MANUAL' : null) as Mode | null
+  const terjangkau = !error
+
+  const [busy, setBusy] = useState<null | 'fill' | 'stop' | 'mode'>(null)
+  const [pesan, setPesan] = useState<{ teks: string; ok: boolean } | null>(null)
+  const [riwayat, setRiwayat] = useState<Riwayat[]>([])
+
+  // Auto-hilang (5 dtk) — sama dengan pola flash di halaman master.
+  useEffect(() => {
+    if (!pesan) return
+    const id = setTimeout(() => setPesan(null), 5000)
+    return () => clearTimeout(id)
+  }, [pesan])
+
+  function catat(perintah: string, hasil: string, ok: boolean) {
+    setRiwayat((old) => [
+      {
+        key: `${Date.now()}-${old.length}`,
+        waktu: new Date().toISOString(),
+        perintah,
+        sumber: username || 'sesi ini',
+        hasil,
+        ok,
+      },
+      ...old,
+    ])
+  }
 
   async function sendMode(next: Mode) {
-    if (busy) return
+    if (busy || next === mode) return
     setBusy('mode')
-    // TODO: api.post('/watercontrol/setMode', { mode: next })
-    await new Promise((r) => setTimeout(r, 400))
-    setMode(next)
-    setBusy(null)
+    try {
+      const res = await api.post('/watercontrol/setMode', { mode: next })
+      const msg = String((res.data as { message?: unknown })?.message ?? `Mode diubah ke ${next}.`)
+      setPesan({ teks: msg, ok: true })
+      catat(next, `✔ ${msg}`, true)
+      reload()
+    } catch (err) {
+      const f = handleApiError(err)
+      setPesan({ teks: f.message, ok: false })
+      catat(next, `✖ ${f.message}`, false)
+    } finally {
+      setBusy(null)
+    }
   }
 
   async function action(kind: 'fill' | 'stop') {
-    if (busy || isOffline || mode !== 'MANUAL') return
+    if (busy || !terjangkau || mode !== 'MANUAL') return
     setBusy(kind)
-    // TODO: api.post(kind === 'fill' ? '/watercontrol/fill' : '/watercontrol/stop')
-    await new Promise((r) => setTimeout(r, 400))
-    setBusy(null)
+    const path = kind === 'fill' ? '/watercontrol/fill' : '/watercontrol/stop'
+    const label = kind === 'fill' ? 'FILL' : 'STOP'
+    try {
+      const res = await api.post(path)
+      const msg = String((res.data as { message?: unknown })?.message ?? 'Perintah diterima.')
+      setPesan({ teks: msg, ok: true })
+      catat(label, `✔ ${msg}`, true)
+      reload()
+    } catch (err) {
+      const f = handleApiError(err)
+      setPesan({ teks: f.message, ok: false })
+      catat(label, `✖ ${f.message}`, false)
+    } finally {
+      setBusy(null)
+    }
   }
+
+  const serverRow: Riwayat | null = status?.updated_at
+    ? {
+        key: 'server',
+        waktu: String(status.updated_at),
+        perintah: status.command ?? '—',
+        sumber: 'server',
+        hasil: `tersimpan • mode ${status.mode ?? '—'}`,
+        ok: true,
+      }
+    : null
+  const barisRiwayat: Riwayat[] = serverRow ? [serverRow, ...riwayat] : riwayat
 
   return (
     <div className="mx-auto max-w-[1180px] grid gap-4 vsf-stagger">
+      {error && (
+        <div
+          role="alert"
+          className="vsf-banner rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700 flex flex-wrap items-center gap-3"
+        >
+          <span>✖ {error}</span>
+          <button type="button" className="vsf-input rounded-full font-semibold" onClick={reload}>
+            Coba lagi
+          </button>
+        </div>
+      )}
+
+      {pesan && (
+        <div
+          role={pesan.ok ? 'status' : 'alert'}
+          className={clsx(
+            'vsf-banner rounded-input border px-3 py-2 text-[13px]',
+            pesan.ok
+              ? 'border-arutmin-moss bg-arutmin-mint/50 text-arutmin-forest'
+              : 'border-red-600/50 bg-red-50 text-red-700',
+          )}
+        >
+          {pesan.teks}
+        </div>
+      )}
+
       {/* Status perangkat & tandon */}
       <section className="vsf-card p-4">
         <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Status perangkat &amp; tandon</div>
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 vsf-stagger">
           <div className="rounded-card border border-arutmin-border bg-white p-4">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500">Status Alat</div>
-            <div className={clsx('text-[15px] font-bold mt-1', isOffline ? 'text-red-700' : 'text-arutmin-forest')}>
-              {isOffline ? '● TERPUTUS' : '● TERHUBUNG'}
+            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500">Status API</div>
+            <div className={clsx('text-[15px] font-bold mt-1', terjangkau ? 'text-arutmin-forest' : 'text-red-700')}>
+              {loading && !status ? <span className="vsf-skeleton inline-block h-[16px] w-[110px]" /> : terjangkau ? '● TERHUBUNG' : '● TERPUTUS'}
             </div>
-            <div className="text-[12px] text-slate-600">terakhir kirim {device.lastSend}</div>
+            <div className="text-[12px] text-slate-600">pembaruan terakhir {tgl(status?.updated_at)}</div>
           </div>
           <div className="rounded-card border border-arutmin-border bg-white p-4">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500">Level Tandon</div>
-            <div className="text-[22px] font-extrabold mt-1">{device.level} %</div>
-            <div className="text-[12px] text-slate-600">batas min 20% / maks 95%</div>
+            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500">Perintah Terakhir</div>
+            <div className="text-[15px] font-bold mt-1">{status?.command ?? '—'}</div>
+            <div className="text-[12px] text-slate-600">{tgl(status?.updated_at)}</div>
           </div>
           <div className="rounded-card border border-arutmin-border bg-white p-4">
             <div className="text-[11px] uppercase tracking-[.14em] text-slate-500">Katup</div>
-            <div className="text-[15px] font-bold mt-1">{device.valve}</div>
-            <div className="text-[12px] text-slate-600">perintah terakhir: manual stop</div>
+            <div className="text-[15px] font-bold mt-1">{status?.valve_state ?? '—'}</div>
+            <div className="text-[12px] text-slate-600">status katup tandon</div>
           </div>
           <div className="rounded-card border border-arutmin-border bg-white p-4">
             <div className="text-[11px] uppercase tracking-[.14em] text-slate-500">Mode</div>
-            <div className="text-[15px] font-bold mt-1">{mode}</div>
+            <div className="text-[15px] font-bold mt-1">{mode ?? '—'}</div>
             <div className="text-[12px] text-slate-600">berdasar ambang sensor</div>
           </div>
         </div>
@@ -70,8 +186,8 @@ export default function WaterControlPage() {
             <button
               key={m}
               type="button"
-              disabled={busy === 'mode'}
-              onClick={() => sendMode(m)}
+              disabled={busy !== null || !terjangkau || !mode}
+              onClick={() => void sendMode(m)}
               className={clsx(
                 'inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-semibold disabled:opacity-60',
                 mode === m
@@ -79,12 +195,11 @@ export default function WaterControlPage() {
                   : 'border-arutmin-border bg-white text-slate-700 hover:border-arutmin-moss/60',
               )}
             >
+              {busy === 'mode' && mode !== m && <span className="vsf-spinner vsf-spinner-dark mr-2" />}
               {m === 'AUTO' ? 'AUTO (otomatis)' : 'MANUAL'}
             </button>
           ))}
-          <span className="text-[12px] text-slate-500">
-            balik ke AUTO = kontrol kembali ke sistem sesuai ambang
-          </span>
+          <span className="text-[12px] text-slate-500">balik ke AUTO = kontrol kembali ke sistem sesuai ambang</span>
         </div>
       </section>
 
@@ -94,8 +209,8 @@ export default function WaterControlPage() {
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <button
             type="button"
-            disabled={busy !== null || isOffline || mode !== 'MANUAL'}
-            onClick={() => action('fill')}
+            disabled={busy !== null || !terjangkau || mode !== 'MANUAL'}
+            onClick={() => void action('fill')}
             className="vsf-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {busy === 'fill' && <span className="vsf-spinner" />}
@@ -103,25 +218,23 @@ export default function WaterControlPage() {
           </button>
           <button
             type="button"
-            disabled={busy !== null || isOffline || mode !== 'MANUAL'}
-            onClick={() => action('stop')}
+            disabled={busy !== null || !terjangkau || mode !== 'MANUAL'}
+            onClick={() => void action('stop')}
             className="vsf-input rounded-full font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {busy === 'stop' && <span className="vsf-spinner vsf-spinner-dark" />}
             {busy === 'stop' ? 'Mengirim…' : 'Stop'}
           </button>
-          <span className="text-[12px] text-slate-500">
-            status polling tiap 3–5 dtk, tombol nonaktif saat perintah diproses
-          </span>
+          <span className="text-[12px] text-slate-500">status polling tiap 5 dtk, tombol nonaktif saat perintah diproses</span>
         </div>
         {mode === 'MANUAL' && (
           <div className="mt-2 text-[12px] text-amber-800 bg-amber-50 border border-amber-500/40 rounded-input px-3 py-2">
             ⚠ Mode MANUAL aktif — sistem tidak akan mengisi air otomatis.
           </div>
         )}
-        {isOffline && (
+        {!terjangkau && (
           <div className="mt-2 text-[12px] text-red-700 bg-red-50 border border-red-600/40 rounded-input px-3 py-2">
-            ✖ Perangkat offline — aksi dinonaktifkan sampai alat terhubung kembali.
+            ✖ Status tidak terjangkau — aksi dinonaktifkan sampai koneksi pulih.
           </div>
         )}
       </section>
@@ -133,7 +246,7 @@ export default function WaterControlPage() {
           <table className="w-full text-[13px]">
             <thead>
               <tr className="bg-arutmin-mint/25">
-                {['Waktu', 'Perintah', 'Oleh', 'Hasil'].map((h) => (
+                {['Waktu', 'Perintah', 'Sumber', 'Hasil'].map((h) => (
                   <th
                     key={h}
                     className="text-left px-3 py-2 text-[11px] uppercase tracking-[.12em] text-arutmin-forest border-b-2 border-arutmin-moss"
@@ -144,27 +257,36 @@ export default function WaterControlPage() {
               </tr>
             </thead>
             <tbody>
-              {[
-                ['12 Okt 08:02', 'STOP', 'admin', '✔ diterima'],
-                ['12 Okt 07:58', 'FILL', 'admin', '✔ diterima'],
-                ['11 Okt 21:14', 'AUTO', 'sistem', '✔ aktif'],
-              ].map(([w, p, o, h]) => (
-                <tr key={w} className="hover:bg-arutmin-mint/15">
-                  <td className="px-3 py-2 font-semibold text-slate-900">{w}</td>
-                  <td className="px-3 py-2 text-slate-700">{p}</td>
-                  <td className="px-3 py-2 text-slate-700">{o}</td>
-                  <td className="px-3 py-2 text-arutmin-forest">{h}</td>
+              {barisRiwayat.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-3 py-8 text-center text-slate-500">
+                    Belum ada perintah — perintah terakhir dari server akan tampil di sini.
+                  </td>
                 </tr>
-              ))}
+              ) : (
+                barisRiwayat.map((r) => (
+                  <tr key={r.key} className="hover:bg-arutmin-mint/15">
+                    <td className="px-3 py-2 font-semibold text-slate-900">{tgl(r.waktu)}</td>
+                    <td className="px-3 py-2 text-slate-700">{r.perintah}</td>
+                    <td className="px-3 py-2 text-slate-700">{r.sumber}</td>
+                    <td className={clsx('px-3 py-2', r.ok ? 'text-arutmin-forest' : 'text-red-700')}>{r.hasil}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </section>
 
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Catatan struktur & state</div>
+        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Catatan struktur &amp; state</div>
         <ul className="mt-2 list-disc pl-5 text-[13px] text-slate-700 leading-relaxed">
-          <li>State: perangkat offline → tombol aksi disabled + penjelasan.</li>
+          <li>
+            Live: GET /watercontrol/status (polling 5 dtk) · POST /watercontrol/setMode · POST /watercontrol/fill|stop —
+            Bearer JWT.
+          </li>
+          <li>Error kontrak aktif: 401 → redirect login · 403 mode demo → pesan ramah dari server · offline → banner +
+            aksi dinonaktifkan.</li>
           <li>State: perintah terkirim → spinner di tombol sampai status terbaru masuk (polling).</li>
         </ul>
       </section>
