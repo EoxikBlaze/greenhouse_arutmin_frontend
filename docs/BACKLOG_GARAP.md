@@ -149,3 +149,12 @@ Quick-win gelombang frontend berikut: (1) error+empty saling eksklusif + tombol 
 - Audit animasi: 18 pola terdokumentasi, 7 temuan diperbaiki (stagger fill, reduced-motion global, exit animasi 5 modal+flash, polling flash, grafik fade, durasi micro, backdrop+easing) — verifier deleg_9b9828c0 LAYAK 11/11.
 - PRE-EXISTING utk gelombang berikut: saat submit, tombol Simpan disabled -> blur fokus ke <body>; Escape kembar terblokir (fokus luar + closeDisabled) sehingga setelah submit GAGAL modal tak bisa ditutup Escape sampai fokus kembali (perilaku identik HEAD — perbaikan = logic change, butuh perbaikan terpisah + verifier). Juga: jeda focus-title setTimeout(0) — Tab <10ms setelah buka bisa lolos sekali (cosmetic).
 - Artefak: react-web-app/.playwright-cli/ (16 snapshot tak ter-track) — jangan di-commit; bersihkan bila perlu.
+
+## Review ORANG AWAM (deleg_4251b88e, 21 Okt) — verdict: RIBET 4/5, AWAM_KESULITAN
+Diuji via browser sungguhan (klik+form), 32 langkah, data uji bersih (baseline utuh).
+- MUDAH: login 3 langkah (5/5) · tambah tanaman 4 langkah (5/5) · tambah meja 6 langkah (5/5) · siklus 6 langkah (3/5 — pesan error teknis).
+- ❌ TINGGI #1 — FORM PALSU: Peremajaan/Pendewasaan/Panen (stagePages:374/432/488) TANPA onSubmit → tombol Simpan = default setFormOpen(false) → TUTUP TANPA SIMPAIN & TANPA PESAN (hanya Siklus:706 yg nyata). Terkonfirmasi dgn 2 percobaan + 0 request jaringan.
+- ❌ TINGGI #2 — 'Mulai Semai Baru' (Dashboard:225) = <Link to="/semai"> → halaman baca-saja; padahal backend POST /tanam/mulai HIDUP (G10) — tak ada form-nya di frontend.
+- ⚠️ SEDANG #3 — Tombol 'Tandai Selesai' (POST /tanam/:tipe/:id/selesai, backend hidup) TAK PERNAH dipasang di frontend — semua tahap hanya punya 'Detail'.
+- UX AWAM: pesan validasi 'Kolom nama_siklus wajib diisi.' (bahasa kolom DB) → saran 'Nama siklus wajib diisi.'; judul dialog generik 'Form tambah / edit' → spesifik ('Tambah Meja Tanaman'); field opsional ('Meja bawaan') bikin ragu; istilah 'Kenaikan air (cm)' tanpa petunjuk 1 baris.
+- Ringkasan langkah: termudah tanaman (4), terpanjang meja/panen/siklus (6) — jumlah langkah BUKAN masalah; yang bikin RIBET = pekerjaan inti buntu + Simpan pura-pura berhasil. Screenshot: scratch/awam_shots/.
