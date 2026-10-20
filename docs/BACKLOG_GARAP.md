@@ -158,3 +158,9 @@ Diuji via browser sungguhan (klik+form), 32 langkah, data uji bersih (baseline u
 - ⚠️ SEDANG #3 — Tombol 'Tandai Selesai' (POST /tanam/:tipe/:id/selesai, backend hidup) TAK PERNAH dipasang di frontend — semua tahap hanya punya 'Detail'.
 - UX AWAM: pesan validasi 'Kolom nama_siklus wajib diisi.' (bahasa kolom DB) → saran 'Nama siklus wajib diisi.'; judul dialog generik 'Form tambah / edit' → spesifik ('Tambah Meja Tanaman'); field opsional ('Meja bawaan') bikin ragu; istilah 'Kenaikan air (cm)' tanpa petunjuk 1 baris.
 - Ringkasan langkah: termudah tanaman (4), terpanjang meja/panen/siklus (6) — jumlah langkah BUKAN masalah; yang bikin RIBET = pekerjaan inti buntu + Simpan pura-pura berhasil. Screenshot: scratch/awam_shots/.
+
+## Debugging ulang putaran ke-2 (deleg_f1fcdce9, 21 Okt) — LAYAK (15/16 PASS)
+Suite 112/111/0/1 utuh · 0 regresi G10/ESP32/AI · BFLA aman · net-zero 53 tabel (diff kosong) · frontend 0 console error & kontras+animasi utuh · rate-limit 429+Retry-After teruji, diputuskan AMAN utk ESP32 (24 POST/mnt < 60, per-IP req.ip + trust proxy 1).
+- SEDANG (SUDAH DIPERBAIKI): openapi.yaml tak memuat POST /api/ai/langkah-selanjutnya -> ditambahkan (path, tag AI Lokal, schema lengkap 200/401/403/422/500) — 69 paths / 111 operasi, 0 ref rusak.
+- RENDAH #1: PUT /konfigurasi-dosis/:param tolak string numeric '20.0000' (nilai hasil GET) -> 422; number -> 200 — round-trip GET->PUT asimetris; belum ada konsumen frontend.
+- RENDAH #2: respons 429 tanpa header X-RateLimit-* (hanya Retry-After) — src/rateLimit.js:43-47.

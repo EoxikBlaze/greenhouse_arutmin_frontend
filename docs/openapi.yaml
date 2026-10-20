@@ -26,6 +26,7 @@ tags:
   - name: User dan Profil
   - name: Notifikasi WA
   - name: Konfigurasi V2
+  - name: AI Lokal
 
 security:
   - bearerAuth: []
@@ -2329,6 +2330,60 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/ForbiddenRole" }
         "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/ai/langkah-selanjutnya:
+    post:
+      operationId: postApiAiLangkahSelanjutnya
+      x-source: backend-nodejs/src/routes/ai.js
+      tags: [AI Lokal]
+      summary: "Asisten keputusan — AI lokal (Ollama) atau fallback heuristik dari data nyata"
+      description: >-
+        Menganalisa tahap berjalan, bacaan sensor terakhir, alert terbuka, ambang
+        dan panen lalu menyarankan langkah berikutnya. Memakai model AI_MODEL di
+        AI_OLLAMA_URL bila Ollama hidup; bila mati/timeout/JSON invalid -> fallback
+        heuristik transparan (field sumber dan fallback_karena menjelaskan asalnya).
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_tanaman: { type: integer, description: "Fokus tanaman tertentu (opsional)" }
+                id_meja: { type: integer, description: "Fokus meja tertentu (opsional)" }
+            example: { id_tanaman: 1 }
+      responses:
+        "200":
+          description: Keputusan langkah berikutnya (Ollama atau heuristik)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [keputusan, alasan, prioritas, sumber, generated_at]
+                properties:
+                  keputusan: { type: string, description: Tindakan yang disarankan }
+                  alasan: { type: string, description: Penjelasan singkat berbasis data }
+                  prioritas: { type: string, enum: [tinggi, sedang, rendah] }
+                  sumber: { type: string, enum: [ollama, heuristik], description: Asal keputusan }
+                  model: { type: string, nullable: true, description: "Nama model Ollama; null bila heuristik" }
+                  fallback_karena:
+                    type: string
+                    nullable: true
+                    enum: [koneksi, timeout, json_invalid, respons_ollama_tidak_valid, null]
+                  aturan:
+                    type: array
+                    items: { type: string }
+                    description: Aturan heuristik yang menyusun keputusan (kosong bila Ollama)
+                  ringkasan:
+                    type: object
+                    additionalProperties: true
+                    description: Angka nyata dari DB (alert, sensor, tahap, panen)
+                  generated_at: { type: string, format: date-time }
+                additionalProperties: false
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
         "500": { $ref: "#/components/responses/ServerError" }
 
 components:
