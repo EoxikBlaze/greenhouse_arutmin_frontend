@@ -143,3 +143,9 @@ Quick-win gelombang frontend berikut: (1) error+empty saling eksklusif + tombol 
 - File baru: laporan(8), monitoring(9), watercontrol(10), esp32(11), authz(13), kontrak-aneh(9), meja-mass(3). Skip = dokumentasi 'chart-data abaikan dari/sampai'.
 - Koreksi 1 tes `kontrak-aneh` ID_MEJA oleh parent (ekspektasi status-quo → normalisasi keputusan G9b).
 - 3 perilaku fleksibel [500,422]: `?id_meja[]=2` **kini 422** (G9b); `?dari=bukan-tanggal` & `tarik?dari=abc` **MASIH 500** — validasi G9b hanya utk kolom tgl_* di CRUD, bukan query dari/sampai (dikonfirmasi verifier suite: tes lolos dgn 500) → **target G10** (validasi date query → 422).
+
+## Debugging UI gelombang-5 (20 Okt, deleg_6edbde8c + fix 146ad1b) — SELESAI
+- Audit kontras (472+ elemen, 16 halaman): 4 titik gagal diperbaiki & diukur ulang runtime (h1 1.01->16.6, placeholder 2.54->4.76, disabled 2.45->slate-500, pill 3.21->5.24-6.63). Runtime audit: 17 halaman, 0 console/pageerror, CLS<=0.001.
+- Audit animasi: 18 pola terdokumentasi, 7 temuan diperbaiki (stagger fill, reduced-motion global, exit animasi 5 modal+flash, polling flash, grafik fade, durasi micro, backdrop+easing) — verifier deleg_9b9828c0 LAYAK 11/11.
+- PRE-EXISTING utk gelombang berikut: saat submit, tombol Simpan disabled -> blur fokus ke <body>; Escape kembar terblokir (fokus luar + closeDisabled) sehingga setelah submit GAGAL modal tak bisa ditutup Escape sampai fokus kembali (perilaku identik HEAD — perbaikan = logic change, butuh perbaikan terpisah + verifier). Juga: jeda focus-title setTimeout(0) — Tab <10ms setelah buka bisa lolos sekali (cosmetic).
+- Artefak: react-web-app/.playwright-cli/ (16 snapshot tak ter-track) — jangan di-commit; bersihkan bila perlu.
