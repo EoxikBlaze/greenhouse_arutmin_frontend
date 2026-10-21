@@ -5,15 +5,23 @@ Isi paket: backend Node.js · aplikasi web (React) · database PostgreSQL ·
 konfigurasi nginx · service otomatis.
 
 ```
-vertonik-pi/
+vertonik-pi/                    ← hasil unzip (selalu -d vertonik-pi)
 ├── PANDUAN.md            ← dokumen ini
 ├── setup-pi.sh           ← instalator sekali jalan
 ├── backend/              ← API Node.js (sudah termasuk .env)
 ├── dist/                 ← aplikasi web (React, sudah dibuild)
-├── database/vertonik.sql ← skema + data awal PostgreSQL
+├── database/vertonik.sql ← skema + data awal PostgreSQL (dump SEGAR dari DB live)
 ├── nginx/vertonik.conf   ← konfigurasi web + reverse proxy
-└── systemd/              ← service agar auto-start saat boot
+├── systemd/              ← service agar auto-start saat boot
+├── docs/                 ← BACKUP_RESTORE_PI.md · ESP32_API.md · ARSITEKTUR_PI_2ESP32.md
+├── vertonik-update       ← update program dari GitHub (lihat Bagian H3)
+├── vertonik-hotspot      ← nyalakan hotspot Wi-Fi (lihat Bagian I1)
+├── WIFI_POKJAR_PERMATA.md · KREDENSIAL-LOKAL.txt · README-INDUK.md
 ```
+> Isi zip ditampilkan **langsung di root** (tanpa folder pembungkus), jadi
+> `unzip -d vertonik-pi` selalu menghasilkan `vertonik-pi/setup-pi.sh` —
+> **tanpa nesting ganda**. Setelah instalasi, salinan dokumen + utilitas
+> ada juga di `/opt/vertonik/deploy-pi/`.
 
 ---
 
@@ -60,6 +68,17 @@ ssh namauser@vertonik.local
 # (ganti namauser dengan username yang Anda buat saat imaging)
 ```
 
+> **Konvensi satu nama (pakai di SELURUH panduan ini):**
+> - hostname Pi = `vertonik` (diisi di Imager, langkah A1) → alamat `vertonik.local`
+> - user SSH = `namauser` (username buatan Anda saat imaging; contoh lama:
+>   `garap`, `rizki`)
+> - bila hostname Pi **belum diganti** (masih bawaan), pakai
+>   `raspberrypi.local`; bila mDNS buntu, pakai IP langsung
+>   `ssh namauser@192.168.x.x`
+> - skrip Mac `scripts/pi` & `scripts/update-di-pi.sh` memakai default
+>   `rizki@raspberrypi.local` — timpa dengan argumen pertama
+>   (`./scripts/pi ...` → `PI=namauser@vertonik.local ./scripts/pi ...`).
+
 ---
 
 ## Bagian B — Kirim paket dari Mac ke Pi
@@ -74,6 +93,7 @@ Alternatif: salin zip ke flash drive → pindahkan di Pi.
 
 ## Bagian C — Instalasi di Pi (1 perintah)
 
+Dari **Mac**, kirim paket (Bagian B), lalu di Pi:
 ```bash
 ssh namauser@vertonik.local
 sudo apt install -y unzip
@@ -82,6 +102,12 @@ cd vertonik-pi
 chmod +x setup-pi.sh
 ./setup-pi.sh
 ```
+> - `unzip ... -d vertonik-pi` wajib — file zip memang berada di root archive,
+>   jadi hasilnya **persis** `vertonik-pi/setup-pi.sh` (tidak ada lapisan kedua).
+> - Kalau di `~/` ada lebih dari satu file `vertonik-pi-*.zip`, tulis nama file
+>   persisnya, mis. `unzip vertonik-pi-20261021.zip -d vertonik-pi`.
+> - Muncul `vertonik-pi/vertonik-pi-...`? Itu sisa paket LAMA — bersihkan:
+>   `rm -rf vertonik-pi` lalu ulangi perintah unzip di atas.
 
 Instalator otomatis melakukan:
 1. Pasang PostgreSQL, nginx, Node.js (v20 LTS bila perlu)
@@ -130,6 +156,12 @@ const char* API_KEY    = "xxxxx";   // sama dengan ESP32_API_KEY di /opt/vertoni
 Catatan: ESP32 bicara ke **nginx port 80** (backend Node.js sengaja hanya
 dengar di localhost demi keamanan).
 
+> **Kunci ESP32:** kuncinya ada di baris `ESP32_API_KEY=<kunci-unik>` di
+> `/opt/vertonik/backend/.env`. Bila baris itu belum ada, backend memakai
+> fallback lama (`HARVEST123`) dan menolak semua request ber-*header*
+> `X-API-KEY` (lihat warning di log). Tambahkan barisnya lalu
+> `sudo systemctl restart vertonik-api`, dan pakai nilai itu di firmware.
+
 ---
 
 ## Bagian F — Perawatan harian
@@ -144,11 +176,30 @@ dengar di localhost demi keamanan).
 | Update aplikasi | lihat Bagian G |
 
 ### Backup database (disarankan)
-Buat backup otomatis tiap hari jam 2 pagi:
-```bash
-(crontab -l 2>/dev/null; echo '0 2 * * * pg_dump -U vertonik -h 127.0.0.1 vertonik_smartfarm | gzip > ~/backup-vertonik-$(date +\%F).sql.gz') | crontab -
+Buat backup otomatis tiap hari pukul 02:30. Di Pi jalankan `crontab -e`
+(lalu tempel **satu baris** berikut, simpan, keluar):
+```cron
+30 2 * * * cd /opt/vertonik/backend && mkdir -p $HOME/backup-vertonik && pg_dump --no-owner --no-privileges "$(grep -E '^DATABASE_URL=' .env | cut -d= -f2-)" | gzip > $HOME/backup-vertonik/vertonik-$(date +\%Y\%m\%d-\%H\%M).sql.gz
 ```
-Simpan file `~/backup-vertonik-*.sql.gz` ke tempat aman.
+> **Penting — kenapa tidak `pg_dump -U vertonik ...` saja?** Cron berjalan
+> **tanpa terminal interaktif**, jadi `pg_dump` tidak bisa menanyakan password
+> → backup gagal diam-diam (`password authentication failed`). Baris di atas
+> membaca `DATABASE_URL` (sudah termasuk password) dari
+> `/opt/vertonik/backend/.env` saat cron dieksekusi — tidak ada password yang
+> diketik atau ditulis di file crontab. `%` di crontab wajib di-escape `\%`.
+
+Cek hasilnya:
+```bash
+crontab -l                       # baris cron sudah terdaftar
+ls -lh ~/backup-vertonik/        # file .sql.gz hari ini harus ada & tidak 0 byte
+```
+Alternatif memakai skrip resmi (dump + salinan `.env` + rotasi 7 file terakhir):
+```cron
+30 2 * * * cd /opt/vertonik/backend && ./scripts/backup-pi.sh --dir $HOME/backup-vertonik >> $HOME/backup-vertonik/cron.log 2>&1
+```
+Simpan file `~/backup-vertonik/*.sql.gz` ke tempat aman (detail & cara restore:
+**docs/BACKUP_RESTORE_PI.md** di paket / `deploy-pi` — juga ada di
+`/opt/vertonik/docs/`).
 
 ---
 
@@ -165,7 +216,7 @@ Di Pi:
 ```bash
 unzip -o vertonik-pi-*.zip -d vertonik-pi
 cd vertonik-pi
-./setup-pi.sh          # aman dijalankan ulang — data lama tidak ditimpa
+./setup-pi.sh          # aman dijalankan ulang — data & .env lama tidak ditimpa
 sudo systemctl restart vertonik-api
 ```
 
@@ -177,10 +228,11 @@ Setelah Pi terpasang, SEMUA bisa dikendalikan dari Mac lewat terminal —
 SD card **tidak perlu pernah dilepas lagi**.
 
 ### H1. Update program (kode aplikasi)
-Satu perintah dari Mac:
+Satu perintah dari Mac — **selalu sebut targetnya** (skrip tanpa argumen
+memakai default lama `rizki@raspberrypi.local`):
 ```bash
-./scripts/update-di-pi.sh
-# atau: ./scripts/update-di-pi.sh rizki@192.168.1.50
+./scripts/update-di-pi.sh namauser@vertonik.local
+# atau: ./scripts/update-di-pi.sh namauser@192.168.1.50
 ```
 Perintah ini otomatis: build web → kirim backend + web ke Pi →
 install dependensi → restart service. **Konfigurasi (.env) tidak tertimpa.**
@@ -188,21 +240,21 @@ install dependensi → restart service. **Konfigurasi (.env) tidak tertimpa.**
 ### H2. Update konfigurasi (API key, database, port, dst.)
 Konfigurasi hidup di SATU file saja: `/opt/vertonik/backend/.env`
 ```bash
-ssh rizki@raspberrypi.local
+ssh namauser@vertonik.local
 nano /opt/vertonik/backend/.env        # edit yang perlu, Ctrl+X lalu Y
 sudo systemctl restart vertonik-api
 ```
 
 ### H3. Update dari GitHub (alternatif, tanpa Mac)
 ```bash
-ssh rizki@raspberrypi.local
+ssh namauser@vertonik.local
 bash /opt/vertonik/deploy-pi/vertonik-update   # tarik dari GitHub + restart
 ```
 
 ### H4. Lihat kondisi dari Mac
 ```bash
-ssh rizki@raspberrypi.local 'sudo systemctl status vertonik-api nginx --no-pager'
-ssh rizki@raspberrypi.local 'sudo journalctl -u vertonik-api -n 50'
+ssh namauser@vertonik.local 'sudo systemctl status vertonik-api nginx --no-pager'
+ssh namauser@vertonik.local 'sudo journalctl -u vertonik-api -n 50'
 ```
 
 Agar SSH tidak pernah menanyakan password: gunakan kunci SSH
@@ -235,7 +287,9 @@ tercatat di situ, termasuk password bila dibuat otomatis.
 ### J4. Hasil akhir
 - Hotspot **VERTONIK** menyala → HP sambung → buka **http://vertonik**
 - Login web: `garap` / `<ADMIN_PASSWORD>`
-- SSH dari Mac tanpa password: `ssh rizki@raspberrypi.local`
+- SSH dari Mac tanpa password: `ssh rizki@vertonik.local` (user `rizki`
+  dibuat otomatis provisioning sesuai J1; bila hostname belum `vertonik`,
+  pakai `raspberrypi.local` — lihat konvensi di Bagian A3)
 - File `password.txt` otomatis terhapus setelah instalasi.
 
 Jika gagal (mis. tidak ada internet), Pi mencoba lagi otomatis sampai 3× —
@@ -250,7 +304,7 @@ itu lalu membuka website — cocok untuk greenhouse di lokasi tanpa router.
 
 ### I1. Aktifkan hotspot (1 perintah di Pi)
 ```bash
-ssh rizki@raspberrypi.local
+ssh namauser@vertonik.local
 bash /opt/vertonik/deploy-pi/vertonik-hotspot
 # atau dengan nama + sandi sendiri:
 # bash /opt/vertonik/deploy-pi/vertonik-hotspot "VERTONIK-GH" "sandi-min8huruf"
@@ -290,12 +344,18 @@ ESP32 → hotspot Pi → data langsung masuk. **Tidak butuh internet sama sekali
 
 | Gejala | Penyebab / solusi |
 |---|---|
+| `./setup-pi.sh: command not found` / ada `vertonik-pi/vertonik-pi-...` | unzip tanpa `-d` (atau paket lama ber-folder pembungkus) → `rm -rf vertonik-pi` lalu `unzip vertonik-pi-*.zip -d vertonik-pi` (lihat Bagian C) |
 | Halaman web tidak muncul | `sudo systemctl status nginx` · cek IP dengan `hostname -I` |
 | API error 502/504 | backend mati: `sudo systemctl status vertonik-api` · `sudo journalctl -u vertonik-api -n 50` |
 | "Backend tidak terjangkau" di aplikasi | pastikan `curl http://127.0.0.1:8000/api/latest-sensor` jalan di Pi |
-| Impor database gagal | PostgreSQL terlalu tua? jalankan `psql -f database/vertonik.sql` manual dan lihat error-nya |
-| ESP32 tidak bisa kirim | cek IP di firmware, firewall: `sudo ufw status` (bila aktif: `sudo ufw allow 80`) |
-| Lupa password login aplikasi | akun bawaan ada di `database/vertonik.sql` (tabel `users`) |
+| Login `garap` ditolak / akun tidak ada | dump basi (paket lama) — regenerasi paket: `./scripts/siapkan-paket-pi.sh` (dump diambil dari DB live, akun `garap`/`petani`/`demo` ikut di dalamnya) |
+| Halaman konfigurasi dosis/target kosong atau 404 | dump basi tanpa tabel V2 — solusi sama: paket ulang dengan dump segar, lalu `./setup-pi.sh` lagi (impor dilewati bila DB sudah ada → kosongkan schema dulu, lihat docs/BACKUP_RESTORE_PI.md §2) |
+| `bash: /opt/vertonik/deploy-pi/vertonik-hotspot: No such file` | `setup-pi.sh` versi lama tidak menyalin utilitas — jalankan ulang `./setup-pi.sh` dari paket TERBARU (kini menyalin ke `/opt/vertonik/deploy-pi/`) |
+| Backup cron gagal `password authentication failed` | baris cron lama `pg_dump -U vertonik` tanpa password — ganti dengan baris di Bagian F (baca `DATABASE_URL` dari `.env`) |
+| Impor database gagal | lihat error: `psql -h 127.0.0.1 -U vertonik -d vertonik_smartfarm -f database/vertonik.sql` · `sudo -u postgres psql -c '\l'` cek versi/izin |
+| ESP32 tidak bisa kirim | cek IP di firmware, firewall: `sudo ufw status` (bila aktif: `sudo ufw allow 80`) · `ESP32_API_KEY` di `.env` (Bagian E) |
+| `ssh: Could not resolve vertonik.local` | hostname belum diganti → pakai `raspberrypi.local` atau IP (`ping`/lihat router) — konvensi di Bagian A3 |
+| Lupa password login aplikasi | akun bawaan: **`garap` (admin)**, `petani`, `demo` — sandinya ada di `/opt/vertonik/backend/.env` (`ADMIN_PASSWORD` / `PETANI_PASSWORD` / `DEMO_PASSWORD`) dan di `deploy-pi/KREDENSIAL-LOKAL.txt`. Hash-nya juga tersimpan di tabel `users` dump `database/vertonik.sql` |
 | Ingin ganti APP_KEY | mengganti APP_KEY membuat data terenkripsi lama tidak terbaca — masukkan ulang API key WhatsApp via aplikasi |
 
 ---

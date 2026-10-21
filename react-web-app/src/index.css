@@ -87,6 +87,22 @@
   from { background-position: 200% 0; }
   to   { background-position: -200% 0; }
 }
+/* Login — aliran nutrisi pada motif pipa (dekorasi hero, selang-seling arah) */
+@keyframes vsf-flow {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: -48; }
+}
+@keyframes vsf-flow-rev {
+  from { stroke-dashoffset: -48; }
+  to   { stroke-dashoffset: 0; }
+}
+/* Login — banner ditolak: turun lalu goyang halus (sinyal "gagal" yang jelas) */
+@keyframes vsf-shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-3px); }
+  50%      { transform: translateX(3px); }
+  75%      { transform: translateX(-2px); }
+}
 @keyframes vsf-pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
   50%      { opacity: 0.45; transform: scale(0.8); }
@@ -130,6 +146,15 @@
   .vsf-input:focus {
     border-color: var(--moss);
     box-shadow: 0 0 0 3px rgba(107, 157, 74, 0.18);
+  }
+  /* State error field — merah lembut, tetap terbaca & konsisten dgn banner. */
+  .vsf-input[aria-invalid='true'] {
+    border-color: rgba(192, 57, 43, 0.7);
+    background-color: #FEF5F4;
+  }
+  .vsf-input[aria-invalid='true']:focus {
+    border-color: #C0392B;
+    box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.16);
   }
   .vsf-input:disabled { @apply bg-slate-50 text-slate-500 cursor-not-allowed; }
 
@@ -243,8 +268,31 @@
 
   /* Banner (demo / sukses / peringatan) */
   .vsf-banner { animation: vsf-slide-down 0.3s var(--ar-ease) both; }
+  /* Login — banner error server: turun dulu, lalu goyang halus (0.3s) */
+  .vsf-banner-danger {
+    animation: vsf-slide-down 0.3s var(--ar-ease) both, vsf-shake 0.32s var(--ar-ease) 0.3s 1;
+  }
   /* P3 — keluar: fade 150ms ease-out sebelum dilepas host. */
   .vsf-banner.is-closing { animation: vsf-fade-out 150ms ease-out forwards; }
+
+  /* Login — motif pipa hero: garis aliran nutrisi bergeser pelan */
+  .vsf-flow {
+    stroke-dashoffset: 0;
+    animation: vsf-flow 4.5s linear infinite;
+  }
+  .vsf-flow-rev { animation-name: vsf-flow-rev; }
+
+  /* Login — progress bar di atas kartu, hanya saat proses login berjalan */
+  .vsf-progress {
+    background: linear-gradient(
+      100deg,
+      rgba(107, 157, 74, 0.25) 20%,
+      rgba(107, 157, 74, 0.95) 50%,
+      rgba(107, 157, 74, 0.25) 80%
+    );
+    background-size: 200% 100%;
+    animation: vsf-shimmer 1.1s linear infinite;
+  }
 
   /* P7 — backdrop off-canvas sidebar: fade 180ms (bukan pop instan). */
   .vsf-backdrop { animation: vsf-fade 180ms ease-out both; }
@@ -305,7 +353,8 @@ textarea::placeholder,
 /* Aksesibilitas: hormati preferensi kurangi-gerak */
 @media (prefers-reduced-motion: reduce) {
   .vsf-page, .vsf-stagger > *, .vsf-table tbody tr,
-  .vsf-modal-backdrop, .vsf-modal-card, .vsf-banner,
+  .vsf-modal-backdrop, .vsf-modal-card, .vsf-banner, .vsf-banner-danger,
+  .vsf-flow, .vsf-progress,
   .vsf-skeleton, .vsf-dot, .vsf-spinner, .vsf-flash, .vsf-chart, .vsf-backdrop {
     animation: none !important;
   }

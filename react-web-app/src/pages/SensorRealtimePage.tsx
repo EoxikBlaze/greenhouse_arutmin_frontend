@@ -297,7 +297,7 @@ export default function SensorRealtimePage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1180px] grid gap-4 vsf-stagger">
+    <div className="mx-auto w-full max-w-[1180px] grid grid-cols-[minmax(0,1fr)] gap-4 vsf-stagger">
       {/* Kendali grafik: pilihan parameter & rentang */}
       <section className="vsf-card p-4">
         <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Parameter &amp; Rentang</div>

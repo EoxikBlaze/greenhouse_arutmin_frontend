@@ -154,7 +154,7 @@ export default function WaterControlPage() {
   const barisRiwayat: Riwayat[] = serverRow ? [serverRow, ...riwayat] : riwayat
 
   return (
-    <div className="mx-auto max-w-[1180px] grid gap-4 vsf-stagger">
+    <div className="mx-auto w-full max-w-[1180px] grid grid-cols-[minmax(0,1fr)] gap-4 vsf-stagger">
       {error && (
         <div
           role="alert"

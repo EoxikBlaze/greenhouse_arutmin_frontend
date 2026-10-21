@@ -1,8 +1,52 @@
+import { useEffect, useState, type ReactNode } from 'react'
 import clsx from 'clsx'
 import { Link } from 'react-router-dom'
+import { api } from '../lib/api'
+import { fieldError, useApiError, useApiList } from '../lib/crudApi'
 import { useApiObject } from '../lib/useApiObject'
 
-/** Baris GET /watercontrol/status (routes/watercontrol.js) — dipakai sbg ringkasan katup. */
+/**
+ * Dosing otomatis — terhubung ke endpoint KONFIGURASI V2 riil (routes/konfigurasi.js):
+ *   GET  /konfigurasi-dosis   → parameter racikan (19 baris)   PUT /konfigurasi-dosis/:param  (admin)
+ *   GET  /timing-operasi      → timing operasi   (16 baris)    PUT /timing-operasi/:param     (admin)
+ *   GET  /aturan-fail-safe    → aturan fail-safe (20 baris, baca saja)
+ *   GET  /jadwal-perawatan    → jadwal perawatan (5 baris, baca saja)
+ * Semua nilai di layar berasal dari server — tidak ada angka simulasi.
+ * Ringkasan katup tetap dari GET /watercontrol/status (perangkat berbagi).
+ */
+
+/** Baris GET /konfigurasi-dosis & /timing-operasi — PK `param`, `nilai` numeric dari pg. */
+type ParameterRow = {
+  param: string
+  nilai: string | number
+  satuan: string | null
+  keterangan: string | null
+  sumber: string | null
+  diubah_pada?: string | null
+}
+
+/** Baris GET /aturan-fail-safe — PK `kode`, tanpa stempel waktu. */
+type FailSafeRow = {
+  kode: string
+  kondisi: string
+  aksi: string
+  ambang: string | number | null
+  satuan: string | null
+  aktif: boolean | null
+  sumber: string | null
+}
+
+/** Baris GET /jadwal-perawatan — PK `kode`. */
+type JadwalRow = {
+  kode: string
+  periode: string
+  periode_hari: number | null
+  kegiatan: string
+  lama_menit: number | null
+  sumber: string | null
+}
+
+/** Baris GET /watercontrol/status (routes/watercontrol.js) — ringkasan katup. */
 type Status = {
   id?: string | number
   command?: string | null
@@ -21,77 +65,444 @@ function tgl(iso?: string | null): string {
   return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()} · ${jam}`
 }
 
-/** Ilustrasi empty-state: botol nutrisi + tetesan (SVG, bukan emoji). */
-function IlustrasiDosing() {
+/** numeric pg datang sebagai string ("20.0000") → tampil ringkas, tetap jujur. */
+function tampilNilai(v: string | number | null | undefined): string {
+  if (v === null || v === undefined || v === '') return '—'
+  const n = Number(v)
+  return Number.isFinite(n) ? String(n) : String(v)
+}
+
+function Head({ children }: { children: ReactNode }) {
   return (
-    <svg viewBox="0 0 170 110" className="mx-auto h-[100px] w-[152px]" aria-hidden="true" focusable="false">
-      <ellipse cx="85" cy="100" rx="56" ry="7" fill="#E2E8DD" />
-      {/* botol */}
-      <path d="M62 44h30v46a10 10 0 0 1-10 10H72a10 10 0 0 1-10-10z" fill="#CFE2CE" stroke="#6B9D4A" strokeWidth="2" />
-      <path d="M70 30h14v14H70z" fill="#fff" stroke="#6B9D4A" strokeWidth="2" />
-      <path d="M67 24h20v8H67z" fill="#4C6A4B" />
-      <path d="M62 62h30" stroke="#6B9D4A" strokeWidth="2" strokeDasharray="4 4" />
-      {/* pompa / selang */}
-      <path d="M104 36h22a8 8 0 0 1 8 8v40" fill="none" stroke="#4C6A4B" strokeWidth="3" strokeLinecap="round" />
-      <rect x="100" y="26" width="14" height="20" rx="4" fill="#fff" stroke="#4C6A4B" strokeWidth="2" />
-      {/* tetesan */}
-      <path d="M134 66c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z" fill="#F59E0B" opacity=".85" />
-      <path d="M40 60c0-6 4-9 4-9s4 3 4 9a4 4 0 0 1-8 0z" fill="#6B9D4A" opacity=".7" />
-      <path d="M28 84h16M28 90h10" stroke="#E2E8DD" strokeWidth="3" strokeLinecap="round" />
-    </svg>
+    <th
+      scope="col"
+      className="border-b border-navy/25 px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-[.14em] text-navy"
+    >
+      {children}
+    </th>
+  )
+}
+
+/** Banner error kontrak (satu gaya dengan halaman lain). */
+function Galat({ pesan, onTutup }: { pesan: string; onTutup: () => void }) {
+  return (
+    <div
+      role="alert"
+      className="vsf-banner mb-3 rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700 flex flex-wrap items-center gap-3"
+    >
+      <span className="inline-flex items-center gap-1.5">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="shrink-0">
+          <path d="M8 1.8 14.8 13.8H1.2L8 1.8Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+          <path d="M8 6.4v3.1M8 11.5v.1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+        {pesan}
+      </span>
+      <button type="button" className="vsf-input rounded-full font-semibold" onClick={onTutup}>
+        Tutup
+      </button>
+    </div>
+  )
+}
+
+/**
+ * Tabel parameter V2 dengan EDIT inline → PUT <path>/:param { nilai }.
+ * Kolom lain (satuan/keterangan/sumber) ikut terbaca dari GET daftar.
+ */
+function TabelParameter({
+  judul,
+  sumber,
+  path,
+  rows,
+  loading,
+  error,
+  reload,
+}: {
+  judul: string
+  sumber: string
+  path: string
+  rows: ParameterRow[]
+  loading: boolean
+  error: string | null
+  reload: () => void
+}) {
+  const handleApiError = useApiError()
+  const [edit, setEdit] = useState<ParameterRow | null>(null)
+  const [nilai, setNilai] = useState('')
+  const [sedangSimpan, setSedangSimpan] = useState(false)
+  const [galat, setGalat] = useState<string | null>(null)
+  const [catatan, setCatatan] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!catatan) return
+    const id = window.setTimeout(() => setCatatan(null), 4000)
+    return () => window.clearTimeout(id)
+  }, [catatan])
+
+  function bukaEdit(row: ParameterRow) {
+    setEdit(row)
+    setNilai(tampilNilai(row.nilai) === '—' ? '' : tampilNilai(row.nilai))
+    setGalat(null)
+    setCatatan(null)
+  }
+
+  async function simpan() {
+    if (!edit || sedangSimpan) return
+    const teks = nilai.trim()
+    const n = Number(teks)
+    if (!teks || !Number.isFinite(n)) {
+      setGalat('Nilai harus berupa angka (gunakan titik untuk desimal).')
+      return
+    }
+    if (n < 0) {
+      setGalat('Nilai tidak boleh negatif.')
+      return
+    }
+    setSedangSimpan(true)
+    setGalat(null)
+    try {
+      await api.put(`${path}/${encodeURIComponent(edit.param)}`, { nilai: n })
+      setCatatan(`${edit.param} diperbarui menjadi ${n}.`)
+      setEdit(null)
+      reload()
+    } catch (err) {
+      const f = handleApiError(err)
+      setGalat(fieldError(f.fieldErrors, 'nilai') ?? f.message)
+      if (f.status === 404) {
+        setEdit(null)
+        reload()
+      }
+    } finally {
+      setSedangSimpan(false)
+    }
+  }
+
+  const kosong = !loading && !error && rows.length === 0
+
+  return (
+    <section className="vsf-card w-full min-w-0 p-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="min-w-0">
+          <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">{judul}</div>
+          <div className="mt-1 text-[12px] text-slate-500">
+            <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">GET {path}</code>
+            {' · '}
+            <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">PUT {path}/:param</code>
+            {' — '}
+            {sumber}
+          </div>
+        </div>
+        <span className="flex-1" />
+        <span className="vsf-pill border-arutmin-moss bg-white text-arutmin-forest">
+          {loading ? 'Memuat…' : `${rows.length} baris`}
+        </span>
+        <button type="button" className="vsf-btn-secondary" onClick={reload} disabled={loading}>
+          Muat ulang
+        </button>
+      </div>
+
+      {galat && <div className="mt-3"><Galat pesan={galat} onTutup={() => setGalat(null)} /></div>}
+      {catatan && (
+        <div className="vsf-banner mt-3 rounded-input border border-arutmin-moss/50 bg-arutmin-mint/40 px-3 py-2 text-[13px] text-arutmin-forest">
+          {catatan}
+        </div>
+      )}
+
+      {error && !loading ? (
+        <div
+          role="alert"
+          className="mt-3 rounded-card border border-red-600/40 bg-red-50 px-4 py-3 text-[13px] text-red-700"
+        >
+          {error}
+        </div>
+      ) : null}
+
+      <div className="mt-3 w-full min-w-0 overflow-x-auto rounded-card border border-arutmin-border bg-white vsf-table">
+        <table className="w-full text-[13px]">
+          <thead>
+            <tr className="bg-navy/[.055]">
+              <Head>Parameter</Head>
+              <Head>Nilai</Head>
+              <Head>Satuan</Head>
+              <Head>Keterangan</Head>
+              <Head>Aksi</Head>
+            </tr>
+          </thead>
+          <tbody>
+            {loading && rows.length === 0 ? (
+              [0, 1, 2, 3].map((i) => (
+                <tr key={i}>
+                  <td colSpan={5} className="px-4 py-3">
+                    <div className="vsf-skeleton h-5 w-full rounded" />
+                  </td>
+                </tr>
+              ))
+            ) : kosong ? (
+              <tr>
+                <td colSpan={5} className="px-3 py-8 text-center text-slate-500">
+                  Server belum mengirim baris parameter untuk modul ini.
+                </td>
+              </tr>
+            ) : (
+              rows.map((r) => {
+                const sedangEdit = edit?.param === r.param
+                return (
+                  <tr key={r.param} className="even:bg-navy/[.03] hover:bg-navy/[.06] transition-colors">
+                    <td className="px-4 py-2.5 font-semibold text-slate-900">{r.param}</td>
+                    <td className="px-4 py-2.5 tabular-nums">
+                      {sedangEdit ? (
+                        <input
+                          className="vsf-input w-32 text-[13px]"
+                          value={nilai}
+                          inputMode="decimal"
+                          autoFocus
+                          aria-label={`Nilai ${r.param}`}
+                          onChange={(e) => setNilai(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') void simpan()
+                            if (e.key === 'Escape') setEdit(null)
+                          }}
+                        />
+                      ) : (
+                        <b className="text-slate-900">{tampilNilai(r.nilai)}</b>
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5 text-slate-700">{r.satuan ?? '—'}</td>
+                    <td className="min-w-[240px] px-4 py-2.5 text-slate-700">{r.keterangan ?? '—'}</td>
+                    <td className="px-4 py-2.5">
+                      {sedangEdit ? (
+                        <span className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            className="vsf-btn-primary min-h-[36px] px-3 py-1 text-[13px]"
+                            onClick={() => void simpan()}
+                            disabled={sedangSimpan}
+                          >
+                            {sedangSimpan ? 'Menyimpan…' : 'Simpan'}
+                          </button>
+                          <button
+                            type="button"
+                            className="vsf-btn-secondary min-h-[36px] px-3 py-1 text-[13px]"
+                            onClick={() => setEdit(null)}
+                            disabled={sedangSimpan}
+                          >
+                            Batal
+                          </button>
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="vsf-btn-secondary min-h-[36px] px-3 py-1 text-[13px]"
+                          onClick={() => bukaEdit(r)}
+                        >
+                          Ubah
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+      <div className="mt-2 text-[12px] text-slate-500">
+        Perubahan nilai disimpan lewat <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">PUT {path}/:param</code>{' '}
+        (hanya kolom <b>nilai</b> yang dikirim — satuan, keterangan, dan stempel waktu tidak ikut diubah).
+      </div>
+    </section>
   )
 }
 
 export default function DosingPage() {
+  const dosis = useApiList<ParameterRow>('/konfigurasi-dosis')
+  const timing = useApiList<ParameterRow>('/timing-operasi')
+  const failSafe = useApiList<FailSafeRow>('/aturan-fail-safe')
+  const jadwal = useApiList<JadwalRow>('/jadwal-perawatan')
   const { data, loading, error, reload } = useApiObject<Status>('/watercontrol/status')
   const aksesDitolak = !!error && /menu ini untuk pengelola|akses ditolak/i.test(error)
 
   return (
-    <div className="mx-auto max-w-[1180px] grid gap-4 vsf-stagger">
-      {/* Ringkas modul */}
-      <section className="vsf-card p-4">
+    <div className="mx-auto w-full max-w-[1180px] grid grid-cols-[minmax(0,1fr)] gap-4 vsf-stagger">
+      {/* Ringkas modul — sumber daya nyata */}
+      <section className="vsf-card w-full min-w-0 p-4">
         <div className="flex flex-wrap items-start gap-3">
           <div className="min-w-0">
             <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Dosing otomatis</div>
             <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
               Injeksi nutrisi yang diatur sendiri: pompa dosing menambah larutan sesuai ambang TDS,
-              dengan jeda dan batas harian agar botol nutrisi tidak habis mendadak.
+              dengan jeda dan batas harian agar botol nutrisi tidak habis mendadak. Parameter, timing,
+              aturan fail-safe, dan jadwal perawatan di bawah diambil langsung dari modul Konfigurasi V2.
             </p>
           </div>
           <span className="flex-1" />
-          <span className="vsf-pill border-amber-500/60 bg-amber-50 text-amber-800">
-            <span className="vsf-dot mr-1 h-[7px] w-[7px] rounded-full bg-amber-500" aria-hidden="true" />
-            Menunggu integrasi API
+          <span className="vsf-pill border-arutmin-moss/50 bg-arutmin-mint/40 text-arutmin-forest">
+            <span className="vsf-dot mr-1 h-[7px] w-[7px] rounded-full bg-arutmin-forest" aria-hidden="true" />
+            Terhubung · Konfigurasi V2
           </span>
         </div>
       </section>
 
-      {/* Layar jujur — modul memang belum punya endpoint */}
-      <section className="vsf-card p-6">
-        <div className="rounded-card border border-dashed border-arutmin-border px-4 py-8 text-center">
-          <IlustrasiDosing />
-          <div className="mx-auto mt-4 max-w-[560px]">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Status modul</div>
-            <h2 className="mt-1.5 text-[17px] font-bold text-slate-900">
-              Modul dosing otomatis belum punya endpoint API
-            </h2>
-            <p className="mt-2 text-[13px] leading-relaxed text-slate-600">
-              Kontrak backend (<code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">docs/openapi.yaml</code>)
-              tidak memuat rute untuk status dosing, perintah injeksi, mode AUTO/MANUAL, ambang TDS, maupun
-              log injeksi. Karena itu halaman ini <b>tidak menampilkan tombol atau angka simulasi</b> —
-              semua yang tampil di bawah berasal dari server.
-            </p>
-            <ul className="mx-auto mt-3 max-w-[520px] list-disc space-y-1 pl-5 text-left text-[13px] text-slate-600">
-              <li>Parameter racikan statis tersedia lewat modul Konfigurasi V2 (<code className="text-[12px]">GET /konfigurasi-dosis</code>, <code className="text-[12px]">GET /target-nutrisi</code>).</li>
-              <li>Kendali katup &amp; pompa air yang sudah ada tetap di halaman Water Control.</li>
-              <li>Begitu endpoint dosing masuk kontrak, layar kendali + log akan diaktifkan di halaman ini.</li>
-            </ul>
+      <TabelParameter
+        judul="Parameter dosing"
+        sumber="parameter racikan statis (angka, satuan, keterangan, sumber rancangan)"
+        path="/konfigurasi-dosis"
+        rows={dosis.rows}
+        loading={dosis.loading}
+        error={dosis.error}
+        reload={dosis.reload}
+      />
+
+      <TabelParameter
+        judul="Timing operasi"
+        sumber="durasi & jeda operasi pompa, sensor, dan pengisian"
+        path="/timing-operasi"
+        rows={timing.rows}
+        loading={timing.loading}
+        error={timing.error}
+        reload={timing.reload}
+      />
+
+      {/* Aturan fail-safe — baca saja (tidak ada endpoint tulis di kontrak V2) */}
+      <section className="vsf-card w-full min-w-0 p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="min-w-0">
+            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Aturan fail-safe</div>
+            <div className="mt-1 text-[12px] text-slate-500">
+              <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">GET /aturan-fail-safe</code>
+              {' — perlindungan darurat (E-STOP, ambang EC, jatah kejadian dosing). Baca saja.'}
+            </div>
           </div>
+          <span className="flex-1" />
+          <span className="vsf-pill border-arutmin-moss bg-white text-arutmin-forest">
+            {failSafe.loading ? 'Memuat…' : `${failSafe.rows.length} baris`}
+          </span>
         </div>
+        {failSafe.error && !failSafe.loading ? (
+          <div role="alert" className="mt-3 rounded-card border border-red-600/40 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+            {failSafe.error}
+          </div>
+        ) : (
+          <div className="mt-3 w-full min-w-0 overflow-x-auto rounded-card border border-arutmin-border bg-white vsf-table">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="bg-navy/[.055]">
+                  <Head>Kode</Head>
+                  <Head>Kondisi</Head>
+                  <Head>Aksi</Head>
+                  <Head>Ambang</Head>
+                  <Head>Status</Head>
+                </tr>
+              </thead>
+              <tbody>
+                {failSafe.loading && failSafe.rows.length === 0 ? (
+                  [0, 1, 2].map((i) => (
+                    <tr key={i}>
+                      <td colSpan={5} className="px-4 py-3">
+                        <div className="vsf-skeleton h-5 w-full rounded" />
+                      </td>
+                    </tr>
+                  ))
+                ) : failSafe.rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-3 py-8 text-center text-slate-500">
+                      Server belum mengirim baris aturan fail-safe.
+                    </td>
+                  </tr>
+                ) : (
+                  failSafe.rows.map((r) => (
+                    <tr key={r.kode} className="even:bg-navy/[.03] hover:bg-navy/[.06] transition-colors">
+                      <td className="px-4 py-2.5 font-semibold text-slate-900">{r.kode}</td>
+                      <td className="min-w-[220px] px-4 py-2.5 text-slate-700">{r.kondisi}</td>
+                      <td className="min-w-[260px] px-4 py-2.5 text-slate-700">{r.aksi}</td>
+                      <td className="px-4 py-2.5 tabular-nums text-slate-700">
+                        {r.ambang == null ? '—' : `${tampilNilai(r.ambang)}${r.satuan ? ` ${r.satuan}` : ''}`}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <span
+                          className={clsx(
+                            'vsf-pill border-arutmin-moss/50 px-2 py-0.5 text-[11px]',
+                            r.aktif ? 'bg-arutmin-mint/40 text-arutmin-forest' : 'bg-slate-100 text-slate-600',
+                          )}
+                        >
+                          {r.aktif ? 'Aktif' : 'Nonaktif'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* Jadwal perawatan — baca saja */}
+      <section className="vsf-card w-full min-w-0 p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="min-w-0">
+            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Jadwal perawatan</div>
+            <div className="mt-1 text-[12px] text-slate-500">
+              <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">GET /jadwal-perawatan</code>
+              {' — kegiatan kalibrasi & pembersihan berkala. Baca saja.'}
+            </div>
+          </div>
+          <span className="flex-1" />
+          <span className="vsf-pill border-arutmin-moss bg-white text-arutmin-forest">
+            {jadwal.loading ? 'Memuat…' : `${jadwal.rows.length} baris`}
+          </span>
+        </div>
+        {jadwal.error && !jadwal.loading ? (
+          <div role="alert" className="mt-3 rounded-card border border-red-600/40 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+            {jadwal.error}
+          </div>
+        ) : (
+          <div className="mt-3 w-full min-w-0 overflow-x-auto rounded-card border border-arutmin-border bg-white vsf-table">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="bg-navy/[.055]">
+                  <Head>Periode</Head>
+                  <Head>Kegiatan</Head>
+                  <Head>Setiap</Head>
+                  <Head>Lama</Head>
+                </tr>
+              </thead>
+              <tbody>
+                {jadwal.loading && jadwal.rows.length === 0 ? (
+                  [0, 1, 2].map((i) => (
+                    <tr key={i}>
+                      <td colSpan={4} className="px-4 py-3">
+                        <div className="vsf-skeleton h-5 w-full rounded" />
+                      </td>
+                    </tr>
+                  ))
+                ) : jadwal.rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-3 py-8 text-center text-slate-500">
+                      Server belum mengirim baris jadwal perawatan.
+                    </td>
+                  </tr>
+                ) : (
+                  jadwal.rows.map((r) => (
+                    <tr key={r.kode} className="even:bg-navy/[.03] hover:bg-navy/[.06] transition-colors">
+                      <td className="px-4 py-2.5 font-semibold text-slate-900">{r.periode}</td>
+                      <td className="min-w-[300px] px-4 py-2.5 text-slate-700">{r.kegiatan}</td>
+                      <td className="px-4 py-2.5 tabular-nums text-slate-700">
+                        {r.periode_hari == null ? '—' : `${r.periode_hari} hari`}
+                      </td>
+                      <td className="px-4 py-2.5 tabular-nums text-slate-700">
+                        {r.lama_menit == null ? '—' : `${r.lama_menit} menit`}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       {/* Ringkasan status katup — sumber nyata: GET /watercontrol/status */}
-      <section className="vsf-card p-4">
+      <section className="vsf-card w-full min-w-0 p-4">
         <div className="flex flex-wrap items-center gap-3">
           <div>
             <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">
@@ -167,6 +578,17 @@ export default function DosingPage() {
             </div>
           </div>
         )}
+      </section>
+
+      {/* Sumber data — transparan */}
+      <section className="vsf-card w-full min-w-0 p-4">
+        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Sumber data layar ini</div>
+        <ul className="mt-2 grid gap-1.5 text-[13px] leading-relaxed text-slate-700">
+          <li><code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">GET/PUT /konfigurasi-dosis</code> — parameter dosing (bisa diubah admin).</li>
+          <li><code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">GET/PUT /timing-operasi</code> — timing operasi (bisa diubah admin).</li>
+          <li><code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">GET /aturan-fail-safe</code> dan <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">GET /jadwal-perawatan</code> — baca saja.</li>
+          <li><code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">GET /watercontrol/status</code> — ringkasan katup &amp; pompa.</li>
+        </ul>
       </section>
     </div>
   )

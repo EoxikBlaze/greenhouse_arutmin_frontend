@@ -206,15 +206,14 @@ Contoh `GET /monitoring/chart-data` (elemen pertama):
   "water_level": "Sedang", "created_at": "2026-10-14T22:11:32.000Z" }
 ```
 
-### Water control · Laporan · Notifikasi WA (admin + demo)
+### Water control · Laporan (admin + demo)
 | Method | Path | Guard tambahan | Body |
 |---|---|---|---|
 | GET | `/watercontrol`, `/watercontrol/status` | — | — |
 | POST | `/watercontrol/fill`, `/stop`, `/setMode` | demoGuard (demo ditolak) | `setMode`: `{"mode":"AUTO\|MANUAL"}` |
 | GET | `/laporan`, `/laporan/csv` | — | — |
-| GET | `/notifikasi-wa` | — | `api_key` hanya versi tersamar `KUNCI-***` |
-| POST | `/notifikasi-wa` | demoGuard | update target/aktif |
-| POST | `/notifikasi-wa/uji` | demoGuard | kirim pesan uji Fonnte |
+
+> Catatan: fitur notifikasi WhatsApp (`GET/POST /notifikasi-wa`, `POST /notifikasi-wa/uji`) sudah dihapus dari aplikasi — rute tersebut kini 404.
 
 `GET /watercontrol/status`:
 ```json
@@ -310,6 +309,22 @@ Contoh respons (server hidup):
 `GET /user` (tanpa field password):
 ```json
 [ { "id":"3", "username":"petani", "email":"petani@vertonik.local", "level":"petani", "is_demo":false } ]
+```
+
+### Riwayat audit (admin)
+| Method | Path | Guard |
+|---|---|---|
+| GET | `/audit-logs` | admin — **petani 403**, token demo lolos (setara halaman `/audit`) |
+
+Middleware `src/audit.js` (dipasang sekali di `index.js`) mengisi tabel `audit_logs`
+untuk tiap aksi tulis SUKSES: `create`/`update`/`delete` pada rute CRUD, perubahan
+profil & konfigurasi V2, serta `login` berhasil. Kunci rahasia (password/hash/token)
+TIDAK PERNAH ikut di `before_data`/`after_data`; peran pelaku ada di `meta.level`.
+
+Query: `?page=1` (min 1) · `?per_page=20` (1..100) · `?tabel=mejas` · `?aksi=create`
+(param cacat → 422 kontrak; filter tidak peka huruf besar/kecil). Balasan:
+```json
+{ "data": [ { "id": 1, "terjadi_pada": "2026-10-21T06:12:33.482Z", "actor_label": "garap", "aksi": "update", "tabel": "mejas", "row_id": "12", "before_data": { "jumlah_lubang": 7 }, "after_data": { "jumlah_lubang": 11 } } ], "total": 1, "page": 1, "per_page": 20 }
 ```
 
 ### CSV (satu-satunya respons non-JSON)

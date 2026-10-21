@@ -217,7 +217,10 @@ tail -n 20 ~/backup-vertonik/cron.log
 - [ ] Salinan `.env` ada (izin `600`) dan `wc -c`-nya tidak nol.
 - [ ] Zip paket terakhir dibuat ulang **setelah** dump segar — cek:
       `unzip -l vertonik-pi-YYYYMMDD.zip | grep -E "database/vertonik.sql"`
-      (dua entri `vertonik.sql` harus berisi isi yang sama / terbaru).
+      (dua entri `vertonik.sql` harus berisi isi yang sama / terbaru), dan
+      `unzip -p vertonik-pi-YYYYMMDD.zip database/vertonik.sql | grep -c 'CREATE TABLE'`
+      harus **≥ 50** + ada `konfigurasi_dosis` + akun `garap`
+      (`scripts/siapkan-paket-pi.sh` sudah memaksa semua ini sebelum zip dibuat).
 - [ ] File backup disalin ke **tempat kedua** (flashdisk / cloud / komputer lain).
 - [ ] Uji restore **ke database sambilan** (jangan ke produksi):
       `createdb vertonik_uji` lalu `scripts/restore.sh` / `--url` ke DB uji,

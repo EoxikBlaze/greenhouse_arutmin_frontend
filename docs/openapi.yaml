@@ -4,7 +4,7 @@ info:
   description: |
     Kontrak resmi backend Node.js GARAP (Express 4 + PostgreSQL 17).
     Nama rute 1:1 dengan kontrak Laravel lama. JSON-only kecuali 3 rute CSV.
-    110 operasi = seluruh rute yang terdaftar di backend-nodejs/src (index.js +
+    109 operasi = seluruh rute yang terdaftar di backend-nodejs/src (index.js +
     routes/*.js + routes/_crud.js). Tiap operasi memuat operationId unik dan
     x-source: <file>:<baris> sebagai rujukan ke kode sumbernya.
     Sumber manusia-baca: docs/KONTRAK_API.md · smoke test: backend-nodejs/scripts/smoke-test.sh
@@ -24,7 +24,6 @@ tags:
   - name: Water Control dan Laporan
   - name: Master dan Tahap
   - name: User dan Profil
-  - name: Notifikasi WA
   - name: Konfigurasi V2
   - name: AI Lokal
 
@@ -672,62 +671,6 @@ paths:
           content:
             text/csv:
               schema: { type: string }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "403": { $ref: "#/components/responses/ForbiddenRole" }
-        "500": { $ref: "#/components/responses/ServerError" }
-
-  /notifikasi-wa:
-    get:
-      operationId: getNotifikasiWa
-      x-source: backend-nodejs/src/routes/notifWa.js:49
-      tags: [Notifikasi WA]
-      summary: Pengaturan notifikasi WA (api_key hanya versi tersamar)
-      responses:
-        "200":
-          description: Pengaturan + daftar tipe pesan
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/NotifWaSetting" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "403": { $ref: "#/components/responses/ForbiddenRole" }
-        "500": { $ref: "#/components/responses/ServerError" }
-    post:
-      operationId: postNotifikasiWa
-      x-source: backend-nodejs/src/routes/notifWa.js:66
-      tags: [Notifikasi WA]
-      summary: Simpan pengaturan notifikasi WA (api_key di-encrypt AES, demo ditolak)
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/NotifWaInput" }
-      responses:
-        "200":
-          description: Tersimpan
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/Message" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "403": { $ref: "#/components/responses/ForbiddenRole" }
-        "500": { $ref: "#/components/responses/ServerError" }
-
-  /notifikasi-wa/uji:
-    post:
-      operationId: postNotifikasiWaUji
-      x-source: backend-nodejs/src/routes/notifWa.js:77
-      tags: [Notifikasi WA]
-      summary: Kirim pesan uji Fonnte (best-effort, demo ditolak)
-      responses:
-        "200":
-          description: Hasil pengiriman (berhasil / gagal / belum dikonfigurasi)
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status: { type: boolean }
-                  message: { type: string }
-                  log: { type: object, additionalProperties: true }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/ForbiddenRole" }
         "500": { $ref: "#/components/responses/ServerError" }
@@ -2386,6 +2329,64 @@ paths:
         "422": { $ref: "#/components/responses/ValidationFailed" }
         "500": { $ref: "#/components/responses/ServerError" }
 
+  /audit-logs:
+    get:
+      operationId: getAuditLogs
+      x-source: backend-nodejs/src/routes/audit.js:60 + src/audit.js
+      tags: [User dan Profil]
+      summary: Riwayat audit (admin + demo) — paginasi + filter tabel/aksi
+      description: |
+        Membaca tabel `audit_logs` yang diisi otomatis middleware src/audit.js
+        untuk SETIAP aksi tulis sukses (create/update/delete pada rute CRUD,
+        perubahan profil/konfigurasi, dan login berhasil). Field rahasia
+        (password/hash/token) tidak pernah ikut tersimpan di before_data/after_data.
+        Guard dipasang di index.js: requireAuth + requireRole(['admin']) —
+        token petani → 403, token demo lolos (setara halaman /audit di frontend).
+        Nilai `aksi` disimpan huruf kecil sesuai CHECK enum PostgreSQL
+        (create, update, delete, login); parameter filter menerima huruf besar
+        maupun kecil.
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: Nomor halaman (1-based)
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: per_page
+          in: query
+          required: false
+          description: Jumlah baris per halaman (maksimal 100)
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - name: tabel
+          in: query
+          required: false
+          description: "Filter nama tabel (mis. mejas, users) — tanpa huruf besar/kecil"
+          schema: { type: string, maxLength: 64, pattern: "^[A-Za-z0-9_.-]{1,64}$" }
+        - name: aksi
+          in: query
+          required: false
+          description: "Filter aksi (create | update | delete | login)"
+          schema: { type: string, maxLength: 64, pattern: "^[A-Za-z0-9_.-]{1,64}$" }
+      responses:
+        "200":
+          description: Satu halaman riwayat audit (terbaru di atas)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, total, page, per_page]
+                additionalProperties: false
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/AuditLog" }
+                  total: { type: integer, description: Jumlah baris sesudah filter }
+                  page: { type: integer }
+                  per_page: { type: integer }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/ForbiddenRole" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2558,31 +2559,6 @@ components:
         password_lama: { type: string, format: password }
         password: { type: string, minLength: 6, format: password }
         password_confirmation: { type: string, minLength: 6 }
-
-    NotifWaInput:
-      type: object
-      description: "api_key di-encrypt AES (crypto.js) dan tidak pernah dikirim balik (notifWa.js:66-75)"
-      properties:
-        aktif: { type: boolean, default: false }
-        api_key: { type: string, description: "kosong/null → kolom di-set NULL" }
-        target: { type: string, description: "nomor WA, dipisah koma" }
-
-    NotifWaSetting:
-      type: object
-      properties:
-        page: { type: string, example: notifikasi-wa }
-        aktif: { type: boolean }
-        api_key_masked: { type: string, nullable: true, example: "abcdef***" }
-        target: { type: string, nullable: true }
-        tipe_pesan:
-          type: array
-          items:
-            type: object
-            properties:
-              tipe: { type: string, example: solenoid }
-              pemicu: { type: string }
-              konten: { type: string }
-
     Dashboard:
       type: object
       properties:
@@ -2896,3 +2872,63 @@ components:
         status: { type: string, enum: [menunggu_konfirmasi, aktif, kadaluarsa] }
         keterangan: { type: string, minLength: 1, maxLength: 500 }
         sumber: { type: string, minLength: 1, maxLength: 120 }
+
+    AuditLog:
+      type: object
+      description: >-
+        Satu baris tabel audit_logs — diisi otomatis middleware src/audit.js.
+        Kolom before_data/after_data sudah diringkas (maks 40 kunci, teks
+        dipotong) dan kunci rahasia (password/hash/token/secret) DIHAPUS.
+      required: [id, terjadi_pada, actor_tipe, aksi]
+      properties:
+        id: { type: integer, format: int64 }
+        terjadi_pada: { type: string, format: date-time, description: Waktu kejadian }
+        actor_user_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: "FK → users.id (ON DELETE SET NULL); null bila pelaku tak dikenal"
+        actor_tipe:
+          type: string
+          enum: [user, system, esp32, api_key, anonymous]
+          description: "CHECK enum DB — peran akun (admin/petani/demo) disimpan di meta.level"
+        actor_label: { type: string, nullable: true, description: Username pelaku aksi }
+        aksi:
+          type: string
+          enum:
+            [create, update, delete, login, logout, login_failed, override_start,
+             override_stop, command, export, reset_lock, maintenance_on,
+             maintenance_off, config_change, report_generate]
+          description: "CHECK enum DB (huruf kecil); UI memakai label besar CREATE/UPDATE/DELETE/LOGIN"
+        tabel: { type: string, nullable: true, description: "Nama tabel yang disentuh; create/update/delete wajib terisi (CHECK)" }
+        row_id: { type: string, nullable: true, description: "PK baris yang disentuh (varchar agar seluruh tipe PK muat)" }
+        before_data:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: Snapshot sebelum aksi (null pada create & login)
+        after_data:
+          type: object
+          nullable: true
+          additionalProperties: true
+          description: Snapshot sesudah aksi (null pada delete)
+        ip: { type: string, nullable: true, description: IP klien (kolom inet; null bila bukan IP valid) }
+        user_agent: { type: string, nullable: true, description: Header User-Agent (dipotong 300 karakter) }
+        meta:
+          type: object
+          additionalProperties: true
+          description: "rute, status, level (peran pelaku), perubahan — kolom jsonb NOT NULL default {}"
+      example:
+        id: 1
+        terjadi_pada: "2026-10-21T06:12:33.482Z"
+        actor_user_id: 1
+        actor_tipe: user
+        actor_label: garap
+        aksi: update
+        tabel: mejas
+        row_id: "12"
+        before_data: { jumlah_lubang: 7, meja: "Meja A" }
+        after_data: { jumlah_lubang: 11, meja: "Meja A" }
+        ip: 127.0.0.1
+        user_agent: "node-superagent/8.1.2"
+        meta: { rute: "PUT /meja/12", status: 200, level: admin }

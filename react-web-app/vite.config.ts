@@ -46,8 +46,14 @@ const API_PATHS = [
   '/panen',
   '/ambang',
   '/watercontrol',
-  '/notifikasi-wa',
   '/laporan',
+  // ── Riwayat audit (khusus admin) — GET /audit-logs ──
+  '/audit-logs',
+  // ── Konfigurasi V2 (modul Dosing) — rute JSON tanpa halaman web ──
+  '/konfigurasi-dosis',
+  '/timing-operasi',
+  '/aturan-fail-safe',
+  '/jadwal-perawatan',
 ]
 
 export default defineConfig({

@@ -35,9 +35,6 @@ Sumber: `/Users/rizki/Documents/Vertonik-Smart-Farm/routes/web.php` dan `routes/
 | POST | `/profil/update` | `profil.update` |
 | GET | `/profil/password` | `profil.password` |
 | POST | `/profil/password` | `profil.password.update` |
-| GET | `/notifikasi-wa` | `notifikasi-wa.index` |
-| POST | `/notifikasi-wa` | `notifikasi-wa.update` |
-| POST | `/notifikasi-wa/uji` | `notifikasi-wa.uji` |
 | RESOURCE | `meja` | `MejaController` |
 | RESOURCE | `tanaman` | `TanamanController` |
 | RESOURCE | `siklus` | `SiklusController` |

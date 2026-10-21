@@ -44,12 +44,12 @@ const TITLES: Record<string, string> = {
   '/meja': 'Meja Tanaman',
   '/ambang': 'Ambang Sensor',
   '/laporan': 'Laporan',
-  '/notifikasi-wa': 'Notifikasi WhatsApp',
   '/user': 'Manajemen User',
   '/profil': 'Profil',
   '/cctv': 'CCTV — Ruang Greenhouse',
   '/asisten-ai': 'Asisten AI — Chat',
   '/dosing': 'Dosing Otomatis',
+  '/audit': 'Riwayat Audit',
 }
 
 /* ── QW5 · Sidebar per role ───────────────────────────────────────────
@@ -107,10 +107,9 @@ const NAV: NavGroup[] = [
     ],
   },
   {
-    label: 'Laporan & Notifikasi',
+    label: 'Laporan',
     items: [
       { to: '/laporan', label: 'Laporan', allow: ADMIN_DEMO },
-      { to: '/notifikasi-wa', label: 'Notifikasi WhatsApp', allow: ADMIN_DEMO },
     ],
   },
   {
@@ -118,6 +117,11 @@ const NAV: NavGroup[] = [
     items: [
       { to: '/profil', label: 'Profil' },
       { to: '/user', label: 'Manajemen User', allow: ADMIN_DEMO },
+      // Riwayat Audit — baca saja; guard setara backend (requireRole admin).
+      { to: '/audit', label: 'Riwayat Audit', allow: ADMIN_DEMO },
+      // Halaman publik (/tentang) — tautan agar bisa diakses dari sidebar;
+      // rutenya di luar RequireAuth sehingga tetap terbuka tanpa login.
+      { to: '/tentang', label: 'Tentang Kami' },
     ],
   },
 ]

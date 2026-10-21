@@ -21,8 +21,10 @@ import {
   MejaTanamanPage,
   AmbangSensorPage,
 } from './pages/masterPages'
-import { NotifWaPage, LaporanPage } from './pages/notifLaporanPages'
+import { LaporanPage } from './pages/notifLaporanPages'
 import { ManajemenUserPage, ProfilPage } from './pages/userProfilPages'
+import AuditPage from './pages/AuditPage'
+import TentangPage from './pages/TentangPage'
 
 /** Guard gaya .pen — semua role yang boleh masuk */
 const ALL: Array<'admin' | 'petani' | 'demo'> = ['admin', 'petani', 'demo']
@@ -32,6 +34,8 @@ const ADMIN_DEMO: Array<'admin' | 'demo'> = ['admin', 'demo']
 export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/dashboard" replace /> },
   { path: '/login', element: <LoginPage /> },
+  // Halaman publik — bisa dibuka TANPA login (di luar RequireAuth), seperti /login.
+  { path: '/tentang', element: <TentangPage /> },
   {
     element: <RequireAuth />,
     children: [
@@ -63,12 +67,13 @@ export const router = createBrowserRouter([
           { path: '/meja', element: <RequireAuth allow={ADMIN_DEMO} element={<MejaTanamanPage />} /> },
           { path: '/ambang', element: <RequireAuth allow={ADMIN_DEMO} element={<AmbangSensorPage />} /> },
 
-          // 05 · Laporan & Notifikasi — admin (demo read-only)
+          // 05 · Laporan — admin (demo read-only)
           { path: '/laporan', element: <RequireAuth allow={ADMIN_DEMO} element={<LaporanPage />} /> },
-          { path: '/notifikasi-wa', element: <RequireAuth allow={ADMIN_DEMO} element={<NotifWaPage />} /> },
 
           // 06 · Sistem — Manajemen User [admin] + [demo] (demo = admin read-only)
           { path: '/user', element: <RequireAuth allow={ADMIN_DEMO} element={<ManajemenUserPage />} /> },
+          // 07 · Riwayat Audit — admin + demo (baca saja; backend: requireRole admin)
+          { path: '/audit', element: <RequireAuth allow={ADMIN_DEMO} element={<AuditPage />} /> },
 
           // alias gaya .pen / mockup → resource route Laravel
           { path: '/master/jenis-tanaman', element: <Navigate to="/tanaman" replace /> },
@@ -78,7 +83,6 @@ export const router = createBrowserRouter([
           { path: '/tanam-saya', element: <Navigate to="/tanam" replace /> },
           { path: '/durasi-siklus', element: <Navigate to="/siklus" replace /> },
           { path: '/manajemen-user', element: <Navigate to="/user" replace /> },
-          { path: '/notifikasi-whatsapp', element: <Navigate to="/notifikasi-wa" replace /> },
           { path: '/data-tahap/semai', element: <Navigate to="/semai" replace /> },
           { path: '/data-tahap/peremajaan', element: <Navigate to="/peremajaan" replace /> },
           { path: '/data-tahap/pendewasaan', element: <Navigate to="/pendewasaan" replace /> },
