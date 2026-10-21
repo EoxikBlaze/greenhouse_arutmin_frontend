@@ -246,6 +246,7 @@ export function JenisTanamanPage() {
       title="Jenis Tanaman"
       moduleName="Jenis Tanaman"
       addButton="+ Tambah"
+      formTitle="Tambah Jenis Tanaman"
       columns={columns}
       rows={rows}
       rowKey={(r) => String(r.id_tanaman)}
@@ -524,6 +525,7 @@ export function MejaTanamanPage() {
       title="Meja Tanam"
       moduleName="Meja Tanam"
       addButton="+ Tambah"
+      formTitle="Tambah Meja Tanaman"
       columns={columns}
       rows={rows}
       rowKey={(r) => String(r.id_meja)}
@@ -742,6 +744,7 @@ export function AmbangSensorPage() {
       title="Ambang Sensor"
       moduleName="Ambang Sensor"
       addButton="+ Tambah"
+      formTitle="Tambah Ambang Sensor"
       hideAdd
       columns={columns}
       rows={rows}

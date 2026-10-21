@@ -220,7 +220,8 @@ export default function DashboardPage() {
                 {kelola ? (
                   <>
                     <Link
-                      to="/semai"
+                      to="/tanam"
+                      state={{ mulaiBaru: true }}
                       className="rounded-full border border-white/40 px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-white/10"
                     >
                       Mulai Semai Baru

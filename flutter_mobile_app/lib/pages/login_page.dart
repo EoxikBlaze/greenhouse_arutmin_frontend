@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
 
+import '../config.dart';
 import '../services/api_service.dart';
 
-/// Halaman masuk — POST /login ke backend Node.js lokal.
+/// Halaman masuk — POST /login ke backend Node.js.
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key, required this.api, required this.onLoggedIn});
+  const LoginPage({
+    super.key,
+    required this.api,
+    required this.onLoggedIn,
+    this.pesanSesi,
+  });
 
   final ApiService api;
   final VoidCallback onLoggedIn;
+
+  /// Pesan tampil sekali di atas form, mis. setelah sesi berakhir (401).
+  final String? pesanSesi;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -15,10 +24,21 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameCtrl = TextEditingController(text: 'admin');
+  // Sengaja kosong: nama akun seed berganti dari waktu ke waktu
+  // (kini `garap`/`petani`/`demo`), jadi jangan menebak di sini.
+  final _usernameCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _busy = false;
   String? _error;
+
+  /// Host:port backend yang sedang dituju (untuk teks penanda di bawah form).
+  String get _alamatBackend {
+    final uri = Uri.tryParse(apiBase);
+    if (uri == null) return apiBase;
+    return uri.host == '127.0.0.1' && uri.hasPort
+        ? '${uri.host}:${uri.port}'
+        : uri.authority;
+  }
 
   @override
   void dispose() {
@@ -87,6 +107,35 @@ class _LoginPageState extends State<LoginPage> {
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                       const SizedBox(height: 24),
+                      if (widget.pesanSesi != null) ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.secondaryContainer,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline,
+                                  size: 18,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSecondaryContainer),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  widget.pesanSesi!,
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSecondaryContainer),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
                       TextFormField(
                         controller: _usernameCtrl,
                         autofillHints: const [AutofillHints.username],
@@ -161,7 +210,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Backend: 127.0.0.1:8000',
+                        'Backend: $_alamatBackend',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),

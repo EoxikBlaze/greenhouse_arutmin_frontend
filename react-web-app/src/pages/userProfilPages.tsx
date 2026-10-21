@@ -181,6 +181,7 @@ export function ManajemenUserPage() {
         title="Manajemen User"
         moduleName="Manajemen User"
         addButton="+ Tambah User"
+        formTitle="Tambah User"
         columns={columns}
         rows={rows}
         rowKey={(r) => String(r.id ?? r.username)}

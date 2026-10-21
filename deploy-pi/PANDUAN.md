@@ -234,7 +234,7 @@ tercatat di situ, termasuk password bila dibuat otomatis.
 
 ### J4. Hasil akhir
 - Hotspot **VERTONIK** menyala → HP sambung → buka **http://vertonik**
-- Login web: `admin` / `<ADMIN_PASSWORD>`
+- Login web: `garap` / `<ADMIN_PASSWORD>`
 - SSH dari Mac tanpa password: `ssh rizki@raspberrypi.local`
 - File `password.txt` otomatis terhapus setelah instalasi.
 

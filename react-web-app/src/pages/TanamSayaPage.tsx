@@ -1,6 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
-import { useApiList } from '../lib/crudApi'
+import { api } from '../lib/api'
+import { fieldError, useApiError, useApiList } from '../lib/crudApi'
+import { useAuth } from '../lib/authContext'
+import { Field, FieldError } from '../components/CrudScreen'
+import { useDialog } from '../lib/useDialog'
+import { ModalBackdrop } from '../components/ModalBackdrop'
 
 /** Satu baris `list` dari GET /tanam (routes/tanam.js — UNION semai/peremajaan/pendewasaan). */
 type TanamRow = {
@@ -57,9 +63,237 @@ function IlustrasiTanam() {
   )
 }
 
+
+/* ── Form "Mulai Semai Baru" — field = body POST /tanam/mulai (routes/tanam.js):
+   id_tanaman · id_siklus · id_meja · jumlah_benih · tgl_awal_semai · keterangan.
+   Hanya halaman ini yang membukanya (tombol hero Dashboard & tombol di /tanam). ── */
+type TanamanOpt = Record<string, unknown> & { id_tanaman: string | number; nama_tanaman: unknown }
+type MejaOpt = Record<string, unknown> & { id_meja: string | number; meja: unknown }
+type SiklusOpt = Record<string, unknown> & {
+  id_siklus: string | number
+  id_tanaman: string | number | null
+  nama_siklus: unknown
+  waktu_siklus: number | string | null
+}
+
+/** Tanggal lokal hari ini → YYYY-MM-DD (default kolom tgl_awal_semai). */
+function hariIni(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function DialogMulaiSemai({
+  onClose,
+  onSukses,
+}: {
+  onClose: () => void
+  onSukses: (pesan: string) => void
+}) {
+  const handleApiError = useApiError()
+  const { rows: tanamanRows, error: tanamanErr } = useApiList<TanamanOpt>('/tanaman')
+  const { rows: mejaRows, error: mejaErr } = useApiList<MejaOpt>('/meja')
+  const { rows: siklusRows, error: siklusErr } = useApiList<SiklusOpt>('/siklus')
+
+  const [form, setForm] = useState<Record<string, string>>({
+    id_tanaman: '',
+    id_siklus: '',
+    id_meja: '',
+    jumlah_benih: '',
+    tgl_awal_semai: hariIni(),
+    keterangan: '',
+  })
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
+  const [formError, setFormError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  const { dialogRef, onKeyDown, backdropProps, closing, handleClose } = useDialog({
+    open: true,
+    onClose,
+    closeDisabled: submitting,
+  })
+
+  function set(key: string, v: string) {
+    setForm((s) => ({ ...s, [key]: v }))
+  }
+
+  /** Validasi minim: wajib-isi + integer. FK/tanggal/tipe → 422 backend. */
+  function validate(): Record<string, string[]> {
+    const errs: Record<string, string[]> = {}
+    if (!(form.id_tanaman ?? '').trim()) errs.id_tanaman = ['Wajib diisi.']
+    const jb = (form.jumlah_benih ?? '').trim()
+    if (!jb) errs.jumlah_benih = ['Wajib diisi.']
+    else if (!/^\d+$/.test(jb)) errs.jumlah_benih = ['Harus berupa bilangan bulat.']
+    return errs
+  }
+
+  async function save() {
+    if (submitting) return
+    setFormError(null)
+    const errs = validate()
+    setFieldErrors(errs)
+    if (Object.keys(errs).length > 0) return
+
+    setSubmitting(true)
+    try {
+      const payload: Record<string, unknown> = {}
+      for (const key of ['id_tanaman', 'id_siklus', 'id_meja', 'tgl_awal_semai', 'keterangan']) {
+        const v = (form[key] ?? '').trim()
+        if (!v) continue // kolom nullable → tidak dikirim
+        payload[key] = key.startsWith('id_') ? Number(v) : v
+      }
+      payload.jumlah_benih = Number((form.jumlah_benih ?? '').trim())
+      const res = await api.post('/tanam/mulai', payload)
+      const body = res.data as { message?: string; data?: { id_semai?: string | number } } | null
+      const id = body?.data?.id_semai
+      onSukses(`${body?.message ?? 'Tanam baru dimulai.'}${id ? ` (semai #${id})` : ''}`)
+    } catch (err) {
+      const f = handleApiError(err)
+      setFieldErrors(f.fieldErrors)
+      setFormError(f.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const idTanaman = (form.id_tanaman ?? '').trim()
+  const pilihanSiklus = idTanaman
+    ? siklusRows.filter((s) => String(s.id_tanaman ?? '') === idTanaman)
+    : siklusRows
+
+  return (
+    <ModalBackdrop onMouseDown={backdropProps.onMouseDown} closing={closing}>
+      <div
+        ref={dialogRef}
+        onKeyDown={onKeyDown}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="vsf-mulai-title"
+        className={`vsf-modal-card max-h-[90vh] w-full max-w-[520px] overflow-auto rounded-lg border border-garis bg-white p-5${closing ? ' is-closing' : ''}`}
+      >
+        <div id="vsf-mulai-title" data-dialog-title tabIndex={-1} className="vsf-eyebrow outline-none">
+          Mulai Semai Baru
+        </div>
+        {formError && (
+          <div
+            role="alert"
+            className="vsf-banner mt-3 rounded-std border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700"
+          >
+            {formError}
+          </div>
+        )}
+        <div className="mt-4 grid gap-1">
+          <Field label="Tanaman *">
+            <select
+              className="vsf-input w-full"
+              value={form.id_tanaman}
+              onChange={(e) => set('id_tanaman', e.target.value)}
+            >
+              <option value="">— pilih tanaman —</option>
+              {tanamanRows.map((t) => (
+                <option key={String(t.id_tanaman)} value={String(t.id_tanaman)}>
+                  {String(t.nama_tanaman)}
+                </option>
+              ))}
+            </select>
+            <FieldError message={fieldError(fieldErrors, 'id_tanaman') ?? tanamanErr ?? undefined} />
+          </Field>
+
+          <Field label="Siklus tanam">
+            <select className="vsf-input w-full" value={form.id_siklus} onChange={(e) => set('id_siklus', e.target.value)}>
+              <option value="">— tidak dipilih —</option>
+              {pilihanSiklus.map((s) => (
+                <option key={String(s.id_siklus)} value={String(s.id_siklus)}>
+                  {String(s.nama_siklus)}
+                  {s.waktu_siklus == null ? '' : ` (${String(s.waktu_siklus)} hari)`}
+                </option>
+              ))}
+            </select>
+            <FieldError message={siklusErr ?? undefined} />
+          </Field>
+
+          <Field label="Meja tanam">
+            <select className="vsf-input w-full" value={form.id_meja} onChange={(e) => set('id_meja', e.target.value)}>
+              <option value="">— tidak dipilih —</option>
+              {mejaRows.map((m) => (
+                <option key={String(m.id_meja)} value={String(m.id_meja)}>
+                  {String(m.meja)}
+                </option>
+              ))}
+            </select>
+            <FieldError message={mejaErr ?? undefined} />
+          </Field>
+
+          <Field label="Jumlah benih *">
+            <input
+              className="vsf-input w-full"
+              type="number"
+              inputMode="numeric"
+              step={1}
+              placeholder="100"
+              value={form.jumlah_benih}
+              onChange={(e) => set('jumlah_benih', e.target.value)}
+            />
+            <FieldError message={fieldError(fieldErrors, 'jumlah_benih')} />
+          </Field>
+
+          <Field label="Tanggal mulai semai">
+            <input
+              className="vsf-input w-full"
+              type="date"
+              value={form.tgl_awal_semai}
+              onChange={(e) => set('tgl_awal_semai', e.target.value)}
+            />
+            <FieldError message={fieldError(fieldErrors, 'tgl_awal_semai')} />
+          </Field>
+
+          <Field label="Keterangan">
+            <input
+              className="vsf-input w-full"
+              placeholder="Opsional"
+              value={form.keterangan}
+              onChange={(e) => set('keterangan', e.target.value)}
+            />
+          </Field>
+        </div>
+
+        <div className="mt-5 flex justify-end gap-2 border-t border-garis pt-4">
+          <button type="button" className="vsf-btn-secondary" disabled={submitting} onClick={handleClose}>
+            Batal
+          </button>
+          <button type="button" className="vsf-btn-primary" disabled={submitting} onClick={() => void save()}>
+            {submitting && <span className="vsf-spinner" aria-hidden />}
+            {submitting ? 'Menyimpan…' : 'Mulai Tanam'}
+          </button>
+        </div>
+      </div>
+    </ModalBackdrop>
+  )
+}
+
 export default function TanamSayaPage() {
   const { rows, loading, error, reload } = useApiList<TanamRow>('/tanam')
   const [filter, setFilter] = useState('')
+
+  const { role } = useAuth()
+  const kelola = role !== 'petani' // membuat semai = pengelola (sama dgn tombol hero Dashboard)
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  // Pesan sukses & pemicu form dari navigasi (redirect /tanam dgn flash).
+  const stateAwal = (location.state ?? null) as { flash?: string; mulaiBaru?: boolean } | null
+  const [flash, setFlash] = useState<string | null>(stateAwal?.flash ?? null)
+  const [mulaiOpen, setMulaiOpen] = useState<boolean>(!!stateAwal?.mulaiBaru)
+
+  // Bersihkan state navigasi SETELAH dibaca (refresh tidak membuka form lagi).
+  useEffect(() => {
+    if (location.state) navigate(location.pathname, { replace: true, state: null })
+  }, [location.state, location.pathname, navigate])
+
+  useEffect(() => {
+    if (!flash) return
+    const id = window.setTimeout(() => setFlash(null), 4000)
+    return () => window.clearTimeout(id)
+  }, [flash])
 
   const terfilter = useMemo(() => {
     const q = filter.trim().toLowerCase()
@@ -75,6 +309,18 @@ export default function TanamSayaPage() {
   // sehingga error apa pun cukup ditampilkan apa adanya + Muat ulang.
   return (
     <div className="mx-auto max-w-[1180px] grid gap-4 vsf-stagger">
+      {flash && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="vsf-banner flex items-center gap-2 rounded-std border border-arutmin-moss bg-arutmin-mint/50 px-3 py-2 text-[13px] text-arutmin-forest"
+        >
+          <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M5 12.5 10 17.5 19 7" />
+          </svg>
+          {flash}
+        </div>
+      )}
       {/* Ringkasan + pencarian */}
       <section className="vsf-card p-4">
         <div className="flex flex-wrap items-start gap-3">
@@ -98,6 +344,11 @@ export default function TanamSayaPage() {
             aria-label="Cari tanam aktif"
           />
           <span className="flex-1" />
+          {kelola && (
+            <button type="button" className="vsf-btn-primary" onClick={() => setMulaiOpen(true)}>
+              + Mulai Semai Baru
+            </button>
+          )}
           <button type="button" className="vsf-btn-secondary" onClick={reload}>
             Muat ulang
           </button>
@@ -194,6 +445,18 @@ export default function TanamSayaPage() {
           </div>
         )}
       </section>
+
+      {/* Form mulai tanam (POST /tanam/mulai) — terbuka dari hero Dashboard juga. */}
+      {kelola && mulaiOpen && (
+        <DialogMulaiSemai
+          onClose={() => setMulaiOpen(false)}
+          onSukses={(pesan) => {
+            setFlash(pesan)
+            setMulaiOpen(false)
+            reload()
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import 'config.dart';
 import 'pages/login_page.dart';
@@ -76,13 +74,19 @@ class _GarapRoot extends StatefulWidget {
 }
 
 class _GarapRootState extends State<_GarapRoot> {
+  /// Alasan kembali ke halaman masuk (null = belum pernah sesi berakhir).
+  String? _pesanSesi;
+
   @override
   void initState() {
     super.initState();
     apiService.onUnauthorized = _sesiBerakhir;
   }
 
+  /// 401 dari server: token dicabut di [ApiService], cukup umumkan pesan
+  /// lalu biarkan build() menampilkan halaman masuk lagi.
   void _sesiBerakhir() {
+    _pesanSesi = 'Sesi Anda berakhir. Silakan masuk kembali.';
     if (!mounted) return;
     setState(() {});
   }
@@ -98,7 +102,9 @@ class _GarapRootState extends State<_GarapRoot> {
     if (!apiService.isLoggedIn) {
       return LoginPage(
         api: apiService,
+        pesanSesi: _pesanSesi,
         onLoggedIn: () {
+          _pesanSesi = null;
           if (mounted) setState(() {});
         },
       );
@@ -129,7 +135,13 @@ class _MainShellState extends State<_MainShell> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Keluar?'),
-        content: const Text('Sesi akan dihapus dari perangkat ini.'),
+        content: Text(
+          apiService.user == null
+              ? 'Sesi akan dihapus dari perangkat ini.'
+              : 'Sesi ${apiService.user!['username'] ?? 'akun ini'} '
+                  '(${apiService.user!['level'] ?? '-'}) akan dihapus dari '
+                  'perangkat ini.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -211,24 +223,27 @@ class _MonitoringPageState extends State<MonitoringPage> {
     super.dispose();
   }
 
+  /// Polling 5 detik. Lewat [ApiService] supaya pesan gagal sama dengan
+  /// halaman lain (Bahasa Indonesia, menyebut alamat backend), dan balasan
+  /// yang tidak sesuai kontrak ikut terdeteksi.
   Future<void> _refresh() async {
     try {
-      final res = await http
-          .get(Uri.parse('$apiBase/api/latest-sensor'))
-          .timeout(const Duration(seconds: 5));
+      final data = await apiService.fetchLatestSensor();
       if (!mounted) return;
-      if (res.statusCode == 200) {
-        setState(() {
-          _payload = jsonDecode(res.body) as Map<String, dynamic>;
-          _error = null;
-        });
-      } else {
-        setState(() => _error = 'HTTP ${res.statusCode}');
-      }
+      setState(() {
+        _payload = data;
+        _error = null;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.message;
+        _payload = null;
+      });
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _error = 'Backend tidak terjangkau';
+        _error = 'Terjadi kesalahan tak terduga saat mengambil data sensor.';
         _payload = null;
       });
     }

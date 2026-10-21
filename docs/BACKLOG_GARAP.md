@@ -32,15 +32,15 @@
 | # | Temuan | Status |
 |---|---|---|
 | S1 | BFLA `saveSensor`/`saveAlert` + `trust proxy` + timing login + JWT ketat | 🔄 dikerjakan di **G7** (verifier berjalan) |
-| S2 | TLS/HSTS — nginx `listen 80`, JWT & X-API-KEY plaintext | ⬜ TBD |
-| S3 | helmet/CSP — CSP/HSTS/ACAO null | ⬜ TBD |
+| S2 | TLS/HSTS — nginx `listen 80`, JWT & X-API-KEY plaintext | 🔄 sebagian — backend kini kirim HSTS hanya utk request bertanda TLS (`SECURITY_HSTS=auto` default; `on`/`off` utk paksa/matikan), TIDAK pernah di http:// lokal; sisa: TLS nginx `listen 80` + enkripsi transit JWT/X-API-KEY = **urusan nginx di Pi** (TBD terpisah) |
+| S3 | helmet/CSP — CSP/HSTS/ACAO null | ✅ **dikerjakan 20 Okt** — helmet 8 di `src/index.js`: CSP (`default-src 'self'`, script/style `'unsafe-inline'` utk Vite/React, `object-src 'none'`, `frame-ancestors 'none'`), `X-Frame-Options: DENY`, nosniff, `Referrer-Policy: no-referrer`, CORP/COOP `same-origin`, HSTS kondisional; SPA :5173 teruji **0 console error + login sukses**; ACAO tetap nihil disengaja (SPA lewat proxy Vite same-origin) |
 | S4 | Scope akun demo — bisa `GET /user` (daftar+email), `/laporan`, `/notifikasi-wa` | ⬜ TBD |
 | S5 | Eksposur publik `/api/latest-sensor` & `/monitoring/getReport6Jam` | ⬜ TBD (minimalkan payload / dokumentasikan) |
 | S6 | Pagination — semua list tanpa `LIMIT`; `/monitoring/tarik` tanpa `OFFSET` | ⬜ TBD |
 | S7 | Indeks duplikat 3 pasang (~2,6 MB) + FK `tanamen.id_meja`/`sikluses.id_tanaman` tanpa indeks | ⬜ TBD (DDL — butuh persetujuan; saran siap di `AUDIT_PERFORMA_GARAP.md`) |
 | S8 | Payload — `chart-data` abaikan `dari/sampai`, tanpa kompresi, `SELECT *` | ⬜ TBD |
 | S9 | Rate-limit counter in-memory (reset restart) | ⚠ separuh teratasi `trust proxy` (G7) |
-| S10 | Fallback secret lemah `dev-secret-ganti` / `HARVEST123` (hanya bila `.env` kosong) | ⬜ TBD |
+| S10 | Fallback secret lemah `dev-secret-ganti` / `HARVEST123` (hanya bila `.env` kosong) | ✅ **dikerjakan 20 Okt** — `src/auth.js`: JWT_SECRET kosong/fallback **THROW saat start** (pilihan: fail-fast, bukan secret acak proses → tiap restart tidak membatalkan semua token & konfigurasi salah terdengar keras); `requireApiKey` **menolak semua 403 + log** bila key aktif kosong/`HARVEST123` (implementasi di auth.js; fallback `config.js` dibiarkan utuh tapi tak pernah dipakai guard) |
 | S11 | Analis DB: migrasi dari dokumen perancangan (3 file `??` di worktree) | 🔄 berjalan — menunggu laporan + verifikasi |
 
 ## CATATAN

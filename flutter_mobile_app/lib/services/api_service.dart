@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import '../config.dart';
 import '../models/meja.dart';
 import '../models/monitoring_entry.dart';
+import 'client_factory.dart';
 
 /// Kegagalan API dengan pesan ramah berbahasa Indonesia.
 ///
@@ -30,7 +31,7 @@ class ApiService {
     http.Client? client,
     String? baseUrl,
     this.timeout = const Duration(seconds: apiTimeoutSeconds),
-  })  : _client = client ?? http.Client(),
+  })  : _client = client ?? buatKlienHttp(),
         baseUrl = baseUrl ?? apiBase;
 
   final http.Client _client;
@@ -41,8 +42,13 @@ class ApiService {
 
   String? _token;
 
+  /// Profil akun dari balasan login (`{status, message, token, user, redirect}`).
+  /// Hanya metadata non-sensitif (id, username, email, level, is_demo).
+  Map<String, dynamic>? _user;
+
   /// Token JWT aktif (null = belum login).
   String? get token => _token;
+  Map<String, dynamic>? get user => _user;
   bool get isLoggedIn => _token != null;
 
   /// Dipanggil otomatis saat server menjawab 401 (token kedaluwarsa/dicabut)
@@ -50,7 +56,10 @@ class ApiService {
   void Function()? onUnauthorized;
 
   /// Hapus sesi (dipanggil tombol Keluar).
-  void clearSession() => _token = null;
+  void clearSession() {
+    _token = null;
+    _user = null;
+  }
 
   Future<Map<String, String>> _headers({bool withContentType = false}) async {
     return {
@@ -81,8 +90,12 @@ class ApiService {
     } on ApiException {
       rethrow;
     } catch (_) {
-      throw const ApiException(
-          null, 'Backend tidak terjangkau. Pastikan server sedang berjalan.');
+      // Timeout / koneksi ditolak / DNS gagal — semuanya dibawa ke pesan
+      // yang menyebut alamat backend agar pengguna tahu harus menyalakan apa.
+      throw ApiException(
+          null,
+          'Backend tidak terjangkau ($baseUrl). Pastikan server sedang '
+          'berjalan dan perangkat terhubung ke jaringan yang sama.');
     }
   }
 
@@ -99,6 +112,7 @@ class ApiService {
 
     if (res.statusCode == 401) {
       _token = null;
+      _user = null;
       onUnauthorized?.call();
       throw const ApiException(
           401, 'Anda belum masuk atau sesi sudah berakhir. Silakan login ulang.');
@@ -169,6 +183,10 @@ class ApiService {
           200, 'Login berhasil tetapi token tidak diterima server.');
     }
     _token = token;
+    // `user` opsional dalam kontrak, tetapi selalu ada pada backend ini.
+    _user = data is Map<String, dynamic> && data['user'] is Map<String, dynamic>
+        ? Map<String, dynamic>.from(data['user'] as Map)
+        : null;
     return token;
   }
 

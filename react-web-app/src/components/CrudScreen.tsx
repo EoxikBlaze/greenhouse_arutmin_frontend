@@ -52,6 +52,11 @@ type Props<T> = {
   flash?: string | null
   /** Sembunyikan tombol "+ Tambah" (mis. halaman hanya GET + PUT). */
   hideAdd?: boolean
+  /**
+   * Judul dialog form SPESIFIK per jenis data (mis. "Tambah Panen") —
+   * default-nya generik ("Form tambah / edit"). Satu-satunya judul di dialog.
+   */
+  formTitle?: string
 
   /** Modal form — terkontrol host bila `open`/`onOpenChange` diisi. */
   open?: boolean
@@ -99,6 +104,7 @@ export function CrudScreen<T>({
   moduleName,
   flash,
   hideAdd,
+  formTitle,
   open,
   onOpenChange,
   formError,
@@ -321,7 +327,7 @@ export function CrudScreen<T>({
               tabIndex={-1}
               className="vsf-eyebrow outline-none"
             >
-              Form tambah / edit
+              {formTitle ?? 'Form tambah / edit'}
             </div>
             {formError && (
               <div

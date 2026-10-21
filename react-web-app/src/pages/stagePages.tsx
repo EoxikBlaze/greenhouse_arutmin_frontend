@@ -69,16 +69,36 @@ function PillStatus({ nilai }: { nilai: string }) {
   )
 }
 
-/* ── S3 — modal DETAIL baris untuk 3 halaman mock (Peremajaan/Pendewasaan/Panen):
-     barisnya statis & kontrak tak punya aksi ubah/hapus per baris, jadi tombol
-     "Edit" mati diganti "Detail" yang membuka isi baris (baca, tanpa API). ── */
+/* ── S3 — modal DETAIL baris untuk 3 halaman (Peremajaan/Pendewasaan/Panen):
+     isi baris + aksi "Tandai Selesai" (konfirmasi 1 langkah di dialog yang sama →
+     POST /tanam/:tipe/:id/selesai) hanya bila tahap belum selesai. ── */
 type DetailBaris = { judul: string; isi: Array<[string, string]> }
 
-function ModalDetailBaris({ data, onClose }: { data: DetailBaris | null; onClose: () => void }) {
+/** Identitas tahap untuk tombol "Tandai Selesai" — host yang memanggil endpoint tulis. */
+type AksiSelesai = { tipe: string; id: string; label: string; sudahSelesai: boolean }
+
+function ModalDetailBaris({
+  data,
+  aksi,
+  onSelesai,
+  selesaiBusy,
+  selesaiError,
+  onClose,
+}: {
+  data: DetailBaris | null
+  aksi?: AksiSelesai | null
+  onSelesai?: () => void
+  selesaiBusy?: boolean
+  selesaiError?: string | null
+  onClose: () => void
+}) {
   // P3 — animasi keluar 180ms sebelum host melepas modal (hook sebelum early return).
   const [closing, setClosing] = useState(false)
+  // Konfirmasi Tandai Selesai — satu langkah, di dialog yang sama (tanpa jendela baru).
+  const [tanya, setTanya] = useState(false)
   const close = () => {
-    if (closing) return
+    if (closing || selesaiBusy) return
+    setTanya(false)
     setClosing(true)
     window.setTimeout(() => {
       setClosing(false)
@@ -86,6 +106,7 @@ function ModalDetailBaris({ data, onClose }: { data: DetailBaris | null; onClose
     }, 180)
   }
   if (!data) return null
+  const bisaSelesai = !!aksi && !aksi.sudahSelesai && !!onSelesai
   return (
     <ModalBackdrop
       closing={closing}
@@ -118,11 +139,61 @@ function ModalDetailBaris({ data, onClose }: { data: DetailBaris | null; onClose
             </div>
           ))}
         </dl>
-        <div className="mt-4 flex justify-end">
-          <button type="button" className="vsf-input rounded-full font-semibold" onClick={close} autoFocus>
-            Tutup
-          </button>
-        </div>
+
+        {tanya && bisaSelesai && aksi ? (
+          <div className="mt-4 border-t border-garis pt-3">
+            <div className="text-[13px] text-slate-700">
+              Tandai <b>{aksi.label}</b> sebagai <b>selesai</b>? Tanggal akhir tahap akan
+              diisi hari ini.
+            </div>
+            {selesaiError && (
+              <div
+                role="alert"
+                className="vsf-banner mt-2 rounded-std border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700"
+              >
+                {selesaiError}
+              </div>
+            )}
+            <div className="mt-3 flex justify-end gap-2">
+              <button
+                type="button"
+                className="vsf-btn-secondary"
+                disabled={selesaiBusy}
+                onClick={() => setTanya(false)}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="vsf-btn-primary"
+                disabled={selesaiBusy}
+                onClick={() => {
+                  setTanya(false)
+                  onSelesai?.()
+                }}
+              >
+                {selesaiBusy && <span className="vsf-spinner" aria-hidden />}
+                {selesaiBusy ? 'Menyimpan…' : 'Ya, tandai selesai'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-4 flex justify-end gap-2">
+            {bisaSelesai && (
+              <button type="button" className="vsf-btn-primary" onClick={() => setTanya(true)}>
+                Tandai Selesai
+              </button>
+            )}
+            <button
+              type="button"
+              className="vsf-input rounded-full font-semibold"
+              onClick={close}
+              autoFocus={!bisaSelesai}
+            >
+              Tutup
+            </button>
+          </div>
+        )}
       </div>
     </ModalBackdrop>
   )
@@ -186,10 +257,23 @@ export function SemaiPage() {
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState<string | null>(null)
 
+  // "Tandai Selesai" (POST /tanam/semai/:id/selesai) + banner sukses.
+  const [tanyaSelesai, setTanyaSelesai] = useState(false)
+  const [selesaiBusy, setSelesaiBusy] = useState(false)
+  const [selesaiError, setSelesaiError] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
+  useEffect(() => {
+    if (!flash) return
+    const id = window.setTimeout(() => setFlash(null), 4000)
+    return () => window.clearTimeout(id)
+  }, [flash])
+
   async function openDetail(id: string) {
     setDetailId(id)
     setDetail(null)
     setDetailError(null)
+    setTanyaSelesai(false)
+    setSelesaiError(null)
     setDetailLoading(true)
     try {
       const res = await api.get(`/semai/batch/${id}`)
@@ -205,6 +289,27 @@ export function SemaiPage() {
     setDetailId(null)
     setDetail(null)
     setDetailError(null)
+    setTanyaSelesai(false)
+    setSelesaiError(null)
+  }
+
+  /** Konfirmasi 1 langkah → POST /tanam/semai/:id/selesai → flash + segarkan detail & daftar. */
+  async function tandaiSelesai() {
+    if (!detailId || selesaiBusy) return
+    setSelesaiBusy(true)
+    setSelesaiError(null)
+    try {
+      const res = await api.post(`/tanam/semai/${detailId}/selesai`)
+      const pesan = (res.data as { message?: string } | null)?.message
+      setFlash(pesan ?? 'Tahap semai diselesaikan.')
+      setTanyaSelesai(false)
+      reload()
+      await openDetail(detailId)
+    } catch (err) {
+      setSelesaiError(handleApiError(err).message)
+    } finally {
+      setSelesaiBusy(false)
+    }
   }
 
   // QW3 — modal detail aksesibel: fokus judul saat buka, kembali ke tombol
@@ -258,6 +363,13 @@ export function SemaiPage() {
         </span>
       </div>
 
+      {/* Catatan jujur yang tampil: kenapa tab ini tanpa tombol Tambah. */}
+      <div className="mx-auto max-w-[1180px] vsf-card p-4 text-[13px] leading-relaxed text-slate-600">
+        <span className="font-bold text-slate-700">Catatan:</span> tab ini menampilkan daftar, detail, dan
+        penutupan tahap (Tandai Selesai). Batch semai BARU dibuat lewat tombol{' '}
+        <b>Mulai Semai Baru</b> di Dashboard atau halaman Tanam Saya.
+      </div>
+
       <CrudScreen<SemaiRow>
         title="Semai"
         moduleName="Semai"
@@ -269,10 +381,13 @@ export function SemaiPage() {
         loading={loading}
         listError={error}
         onRetry={reload}
+        flash={flash}
         notes={[
           'Live: GET /semai (daftar) · GET /semai/selesai (tab) · GET /semai/batch/:id (detail) — Bearer JWT.',
           'Kolom backend: id_tanaman, id_siklus, id_meja, jumlah_benih, tgl_awal_semai, tgl_akhir_semai, status, keterangan, benih_berhasil, benih_gagal.',
-          'Tulis (POST/PUT/DELETE /semai) sengaja tidak dipasang di layar ini: tiap baris dirujuk peremajaan/pendewasaan/panen (FK ON DELETE RESTRICT → 409) — uji tulis semai berisiko.',
+          'Batch semai BARU dibuat lewat tombol Mulai Semai Baru (POST /tanam/mulai) di Dashboard atau halaman Tanam Saya.',
+          'Tutup tahap lewat tombol Tandai Selesai di modal detail → POST /tanam/semai/:id/selesai.',
+          'Ubah/hapus baris lewat layar ini sengaja tidak dipasang: tiap baris dapat dirujuk peremajaan (FK ON DELETE RESTRICT → 409).',
           'Error kontrak tetap aktif: 401 → redirect login · 404 detail → "Data tidak ditemukan." · 403 → mode demo.',
         ]}
         actions={(r) => (
@@ -347,7 +462,52 @@ export function SemaiPage() {
               </div>
             )}
 
-            <div className="mt-4 flex justify-end">
+            {detail && !detailLoading && !detailError && tanyaSelesai && (
+              <div className="mt-4 border-t border-garis pt-3">
+                <div className="text-[13px] text-slate-700">
+                  Tandai semai <b>#{detailId}</b> sebagai <b>selesai</b>? Tanggal akhir
+                  tahap akan diisi hari ini.
+                </div>
+                {selesaiError && (
+                  <div
+                    role="alert"
+                    className="vsf-banner mt-2 rounded-std border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700"
+                  >
+                    {selesaiError}
+                  </div>
+                )}
+                <div className="mt-3 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    className="vsf-btn-secondary"
+                    disabled={selesaiBusy}
+                    onClick={() => setTanyaSelesai(false)}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    className="vsf-btn-primary"
+                    disabled={selesaiBusy}
+                    onClick={() => void tandaiSelesai()}
+                  >
+                    {selesaiBusy && <span className="vsf-spinner" aria-hidden />}
+                    {selesaiBusy ? 'Menyimpan…' : 'Ya, tandai selesai'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-4 flex justify-end gap-2">
+              {detail && !detailLoading && !detailError && !tanyaSelesai && typeof d?.status === 'string' && d.status !== 'selesai' && (
+                <button
+                  type="button"
+                  className="vsf-btn-primary"
+                  onClick={() => setTanyaSelesai(true)}
+                >
+                  Tandai Selesai
+                </button>
+              )}
               <button className="vsf-input rounded-full" disabled={detailLoading} onClick={detailClose}>
                 Tutup
               </button>
@@ -359,178 +519,598 @@ export function SemaiPage() {
   )
 }
 
-/* ============== 07 · PEREMAJAAN ============== */
-type Peremajaan = { batch: string; varietas: string; umur: string; tanggal: string }
+/* ══ 07–09 · PEREMAJAAN · PENDEWASAAN · PANEN — API NYATA ══════════════
+   Endpoint tulis ADA (routes/tahap.js → crudRouter): GET/POST/PUT/DELETE
+   /peremajaan · /pendewasaan · /panen. Tombol Simpan kini benar-benar
+   menyimpan (POST), baris tabel = GET riil, Hapus = DELETE riil.
+   CATATAN backend (diuji langsung): POST /tanam/:tipe/:id/selesai HANYA
+   berfungsi untuk tipe semai — tabel peremajaans/pendewasaans/panens tidak
+   punya kolom status (balasan 500). Karena itu penutupan tahap di layar ini:
+     · semai        → POST /tanam/semai/:id/selesai  (lihat SemaiPage)
+     · peremajaan   → PUT /peremajaan/:id {tgl_akhir_peremajaan: hari ini}
+     · pendewasaan  → PUT /pendewasaan/:id {tgl_akhir_pendewasaan: hari ini}
+     · panen        → tanpa tombol (tgl_panen = data hasil, bukan status). */
+type PeremajaanRow = Record<string, unknown> & {
+  id_peremajaan: string | number
+  id_semai: string | number | null
+  id_meja: string | number | null
+  jumlah_masuk: number | string | null
+  benih_berhasil: number | string | null
+  benih_gagal: number | string | null
+  tgl_awal_peremajaan: string | null
+  tgl_akhir_peremajaan: string | null
+  keterangan: string | null
+}
+type PendewasaanRow = Record<string, unknown> & {
+  id_pendewasaan: string | number
+  id_peremajaan: string | number | null
+  id_meja: string | number | null
+  jumlah_masuk: number | string | null
+  tanaman_berhasil: number | string | null
+  tanaman_gagal: number | string | null
+  tgl_awal_pendewasaan: string | null
+  tgl_akhir_pendewasaan: string | null
+  keterangan: string | null
+}
+type PanenRow = Record<string, unknown> & {
+  id_panen: string | number
+  id_pendewasaan: string | number | null
+  panen_berhasil: number | string | null
+  panen_gagal: number | string | null
+  tgl_panen: string | null
+  keterangan: string | null
+}
+type MejaMini = Record<string, unknown> & { id_meja: string | number; meja: unknown }
 
+/** Baris dari peta id → baris; undefined bila id kosong/tak dikenal. */
+function ambil<T>(map: Map<string, T>, id: unknown): T | undefined {
+  if (id === undefined || id === null || String(id).trim() === '') return undefined
+  return map.get(String(id))
+}
+
+/** Tanggal lokal +N hari → YYYY-MM-DD. */
+function tanggalOffset(hari: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() + hari)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+const hariIni = () => tanggalOffset(0)
+
+/**
+ * Status tahap dari tanggal akhir: sudah lewat / hari ini → 'selesai',
+ * masih di masa depan (atau kosong) → 'aktif'. Tabel tahap ini tidak punya
+ * kolom status (backend), jadi jendela tanggal = satu-satunya penanda.
+ */
+function statusTahap(akhir: unknown): string {
+  if (akhir === undefined || akhir === null || String(akhir).trim() === '') return 'aktif'
+  const d = new Date(String(akhir))
+  if (Number.isNaN(d.getTime())) return 'aktif'
+  const n = new Date()
+  const batas = new Date(n.getFullYear(), n.getMonth(), n.getDate(), 23, 59, 59)
+  return d.getTime() <= batas.getTime() ? 'selesai' : 'aktif'
+}
+
+type Opsi = { id: string; label: string }
+type FieldTahap = {
+  key: string
+  label: string
+  kind: 'select' | 'number' | 'date' | 'text'
+  /** Wajib diisi di klien (validasi minim) — mengikuti kolom NOT NULL backend. */
+  wajib?: boolean
+  placeholder?: string
+  opsi?: Opsi[]
+  /** Default tanggal form: 0 = hari ini, 1 = besok (rencana akhir tahap). */
+  offsetHari?: number
+}
+
+type PropsTahap<T> = {
+  title: string
+  moduleName: string
+  addButton: string
+  formTitle: string
+  path: string
+  tipe: 'peremajaan' | 'pendewasaan' | 'panen'
+  /** Penutupan tahap: 'post' = POST /tanam/:tipe/:id/selesai · 'put' = tutup lewat tanggal akhir. */
+  selesaiVia: 'post' | 'put'
+  selesaiField?: string
+  columns: Column<T>[]
+  rowKey: (r: T) => string
+  fields: FieldTahap[]
+  notes: string[]
+  /** Satu baris catatan jujur yang DITAMPILKAN di layar (di atas tabel). */
+  catatan?: string
+  detail: (r: T) => DetailBaris
+  sudahSelesai: (r: T) => boolean
+  labelBaris: (r: T) => string
+}
+
+/** Layar satu tahap: daftar riil + form SIMPAN nyata (POST) + hapus (DELETE) + detail/Tandai Selesai. */
+function TahapCrudPage<T>({
+  title,
+  moduleName,
+  addButton,
+  formTitle,
+  path,
+  tipe,
+  selesaiVia,
+  selesaiField,
+  columns,
+  rowKey,
+  fields,
+  notes,
+  catatan,
+  detail,
+  sudahSelesai,
+  labelBaris,
+}: PropsTahap<T>) {
+  const handleApiError = useApiError()
+  const { rows, loading, error, reload } = useApiList<T>(path)
+
+  const [open, setOpen] = useState(false)
+  const [form, setForm] = useState<FormState>({})
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
+  const [formError, setFormError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  const [hapus, setHapus] = useState<HapusTarget | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const [lihat, setLihat] = useState<T | null>(null)
+  const [selesaiBusy, setSelesaiBusy] = useState(false)
+  const [selesaiError, setSelesaiError] = useState<string | null>(null)
+
+  const [flash, setFlash] = useState<string | null>(null)
+  useEffect(() => {
+    if (!flash) return
+    const id = window.setTimeout(() => setFlash(null), 4000)
+    return () => window.clearTimeout(id)
+  }, [flash])
+
+  function resetForm() {
+    setForm({})
+    setFieldErrors({})
+    setFormError(null)
+  }
+
+  /** Buka form tambah — tanggal default sesuai config, sisanya kosong. */
+  function handleOpenChange(v: boolean) {
+    if (v) {
+      const awal: FormState = {}
+      for (const f of fields) awal[f.key] = f.kind === 'date' ? tanggalOffset(f.offsetHari ?? 0) : ''
+      setForm(awal)
+      setFieldErrors({})
+      setFormError(null)
+      setOpen(true)
+    } else {
+      setOpen(false)
+      resetForm()
+    }
+  }
+
+  /** Validasi minim di klien: wajib-isi + integer. FK/tipe/batas tetap 422 backend. */
+  function validate(): Record<string, string[]> {
+    const errs: Record<string, string[]> = {}
+    for (const f of fields) {
+      const v = (form[f.key] ?? '').trim()
+      if (f.wajib && !v) errs[f.key] = ['Wajib diisi.']
+      else if (f.kind === 'number' && v && !/^-?\d+$/.test(v)) errs[f.key] = ['Harus berupa bilangan bulat.']
+    }
+    return errs
+  }
+
+  async function save() {
+    if (submitting) return
+    setFormError(null)
+    const errs = validate()
+    setFieldErrors(errs)
+    if (Object.keys(errs).length > 0) return
+
+    setSubmitting(true)
+    try {
+      const payload: Record<string, unknown> = {}
+      for (const f of fields) {
+        const v = (form[f.key] ?? '').trim()
+        if (!v) continue // kolom kosong tidak dikirim (nullable / default backend)
+        if (f.kind === 'select') payload[f.key] = Number(v) // FK harus integer
+        else if (f.kind === 'number') payload[f.key] = Number(v)
+        else payload[f.key] = v
+      }
+      await api.post(path, payload)
+      setOpen(false)
+      resetForm()
+      setFlash(`${title} tersimpan.`)
+      reload()
+    } catch (err) {
+      const f = handleApiError(err)
+      setFieldErrors(f.fieldErrors)
+      setFormError(f.message)
+      if (f.status === 404) reload()
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function remove(id: string) {
+    if (deleting) return
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      await api.delete(`${path}/${id}`)
+      setHapus(null)
+      setFlash(`${title} dihapus.`)
+      reload()
+    } catch (err) {
+      const f = handleApiError(err)
+      setDeleteError(f.message)
+      if (f.status === 404) reload()
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  /** Konfirmasi dari modal detail → tutup tahap (POST semai / PUT tanggal akhir) → flash + segarkan. */
+  async function tandaiSelesai(r: T) {
+    if (selesaiBusy) return
+    setSelesaiBusy(true)
+    setSelesaiError(null)
+    try {
+      if (selesaiVia === 'post') {
+        const res = await api.post(`/tanam/${tipe}/${rowKey(r)}/selesai`)
+        const pesan = (res.data as { message?: string } | null)?.message
+        setFlash(pesan ?? `Tahap ${tipe} diselesaikan.`)
+      } else {
+        await api.put(`${path}/${rowKey(r)}`, { [selesaiField ?? '']: hariIni() })
+        setFlash(`${title} ditandai selesai.`)
+      }
+      setLihat(null)
+      reload()
+    } catch (err) {
+      setSelesaiError(handleApiError(err).message)
+    } finally {
+      setSelesaiBusy(false)
+    }
+  }
+
+  return (
+    <>
+      {catatan && (
+        <div className="mx-auto max-w-[1180px] vsf-card p-4 text-[13px] leading-relaxed text-slate-600">
+          <span className="font-bold text-slate-700">Catatan:</span> {catatan}
+        </div>
+      )}
+      <CrudScreen<T>
+        title={title}
+        moduleName={moduleName}
+        addButton={addButton}
+        formTitle={formTitle}
+        columns={columns}
+        rows={rows}
+        rowKey={rowKey}
+        loading={loading}
+        listError={error}
+        onRetry={reload}
+        flash={flash}
+        open={open}
+        onOpenChange={handleOpenChange}
+        formError={formError}
+        submitting={submitting}
+        onSubmit={() => void save()}
+        form={
+          <>
+            {fields.map((f) => {
+              const nilai = form[f.key] ?? ''
+              if (f.kind === 'select') {
+                const opsi = f.opsi ?? []
+                const daftar = nilai && !opsi.some((o) => o.id === nilai)
+                  ? [...opsi, { id: nilai, label: `#${nilai}` }]
+                  : opsi
+                return (
+                  <Field key={f.key} label={f.label}>
+                    <select
+                      className="vsf-input w-full"
+                      value={nilai}
+                      onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
+                    >
+                      <option value="">{f.wajib ? '— pilih —' : '— tidak dipilih —'}</option>
+                      {daftar.map((o) => (
+                        <option key={o.id} value={o.id}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                    <FieldError message={fieldError(fieldErrors, f.key)} />
+                  </Field>
+                )
+              }
+              if (f.kind === 'date') {
+                return (
+                  <Field key={f.key} label={f.label}>
+                    <input
+                      type="date"
+                      className="vsf-input w-full"
+                      value={nilai}
+                      onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
+                    />
+                    <FieldError message={fieldError(fieldErrors, f.key)} />
+                  </Field>
+                )
+              }
+              return (
+                <Field key={f.key} label={f.label}>
+                  <input
+                    className="vsf-input w-full"
+                    type={f.kind === 'number' ? 'number' : 'text'}
+                    inputMode={f.kind === 'number' ? 'numeric' : undefined}
+                    step={f.kind === 'number' ? 1 : undefined}
+                    placeholder={f.placeholder}
+                    value={nilai}
+                    onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
+                  />
+                  <FieldError message={fieldError(fieldErrors, f.key)} />
+                </Field>
+              )
+            })}
+          </>
+        }
+        hapus={hapus}
+        onHapusChange={setHapus}
+        deleting={deleting}
+        deleteError={deleteError}
+        onDelete={(id) => void remove(id)}
+        notes={notes}
+        actions={(r, ask) => (
+          <>
+            <BtnDetail name={labelBaris(r)} onClick={() => setLihat(r)} />
+            <BtnHapus label={labelBaris(r)} id={rowKey(r)} onPick={ask} />
+          </>
+        )}
+      />
+      <ModalDetailBaris
+        data={lihat ? detail(lihat) : null}
+        aksi={
+          lihat
+            ? { tipe, id: rowKey(lihat), label: labelBaris(lihat), sudahSelesai: sudahSelesai(lihat) }
+            : null
+        }
+        onSelesai={lihat ? () => void tandaiSelesai(lihat) : undefined}
+        selesaiBusy={selesaiBusy}
+        selesaiError={selesaiError}
+        onClose={() => setLihat(null)}
+      />
+    </>
+  )
+}
+
+/* ── 07 · PEREMAJAAN — GET/POST/PUT/DELETE /peremajaan ─────────────── */
 export function PeremajaanPage() {
-  const rows: Peremajaan[] = [
-    { batch: 'B-2312', varietas: 'Kangkung', umur: '21', tanggal: '20 Sep' },
-  ]
-  // S3 — baris masih mock (tanpa API tulis/ubah per baris): "Edit" mati diganti
-  // "Detail" yang membuka isi baris (baca saja, keputusan rombak-B dicatat di audit).
-  const [lihat, setLihat] = useState<DetailBaris | null>(null)
+  const { rows: semaiRows } = useApiList<SemaiRow>('/semai')
+  const { rows: tanamanRows } = useApiList<TanamanMini>('/tanaman')
+  const { rows: mejaRows } = useApiList<MejaMini>('/meja')
+
+  const semaiById = new Map(semaiRows.map((r) => [String(r.id_semai), r]))
+  const tanamanById = new Map(tanamanRows.map((r) => [String(r.id_tanaman), r]))
+  const mejaById = new Map(mejaRows.map((r) => [String(r.id_meja), r]))
+
+  const varietasDariSiklus = (idSiklus: unknown) => {
+    const s = ambil(semaiById, idSiklus)
+    const t = s ? ambil(tanamanById, s.id_tanaman) : undefined
+    return t ? cell(t.nama_tanaman) : '—'
+  }
+  const namaMeja = (id: unknown) => {
+    const m = ambil(mejaById, id)
+    return m ? cell(m.meja) : id ? `#${id}` : '—'
+  }
+
   return (
-    <>
-      <CrudScreen<Peremajaan>
-        title="Peremajaan"
-        moduleName="Peremajaan"
-        addButton="+ Tambah Peremajaan"
-        columns={[
-          { key: 'batch', header: 'Batch', render: (r) => <b className="text-slate-900">{r.batch}</b> },
-          { key: 'varietas', header: 'Varietas', render: (r) => r.varietas },
-          { key: 'umur', header: 'Umur (hari)', render: (r) => r.umur },
-          { key: 'tanggal', header: 'Tanggal', render: (r) => r.tanggal },
-        ]}
-        rows={rows}
-        rowKey={(r) => r.batch}
-        form={
-          <>
-            <Field label="Umur (hari)"><input className="vsf-input w-full" placeholder="21" /></Field>
-            <Field label="Jumlah pindah"><input className="vsf-input w-full" placeholder="80" /></Field>
-            <Field label="Kondisi"><input className="vsf-input w-full" placeholder="Baik" /></Field>
-          </>
-        }
-        notes={[
-          'Field khas modul ini: Umur (hari) • Jumlah pindah • Kondisi.',
-          'Pola identik dengan halaman 06 — konsistensi komponen (tabel + form + modal hapus).',
-          'Navigasi tahap: Penyemaian → Peremajaan → Pendewasaan → Panen (alur satu arah).',
-        ]}
-        actions={(r, ask) => (
-          <>
-            <BtnDetail
-              name={`batch ${r.batch}`}
-              onClick={() =>
-                setLihat({
-                  judul: `Detail batch ${r.batch}`,
-                  isi: [
-                    ['Batch', r.batch],
-                    ['Varietas', r.varietas],
-                    ['Umur (hari)', r.umur],
-                    ['Tanggal', r.tanggal],
-                  ],
-                })
-              }
-            />
-            <BtnHapus label={`batch ${r.batch}`} onPick={ask} />
-          </>
-        )}
-      />
-      <ModalDetailBaris data={lihat} onClose={() => setLihat(null)} />
-    </>
+    <TahapCrudPage<PeremajaanRow>
+      title="Peremajaan"
+      moduleName="Peremajaan"
+      addButton="+ Tambah Peremajaan"
+      formTitle="Tambah Peremajaan"
+      path="/peremajaan"
+      tipe="peremajaan"
+      selesaiVia="put"
+      selesaiField="tgl_akhir_peremajaan"
+      columns={[
+        { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id_peremajaan)}</span> },
+        { key: 'varietas', header: 'Varietas', render: (r) => <b className="text-slate-900">{varietasDariSiklus(r.id_semai)}</b> },
+        { key: 'meja', header: 'Meja', render: (r) => namaMeja(r.id_meja) },
+        { key: 'masuk', header: 'Jumlah pindah', render: (r) => cell(r.jumlah_masuk) },
+        { key: 'hasil', header: 'Berhasil / Gagal', render: (r) => `${cell(r.benih_berhasil)} / ${cell(r.benih_gagal)}` },
+        { key: 'mulai', header: 'Mulai', render: (r) => tgl(r.tgl_awal_peremajaan) },
+        { key: 'akhir', header: 'Selesai', render: (r) => tgl(r.tgl_akhir_peremajaan) },
+        { key: 'status', header: 'Status', render: (r) => <PillStatus nilai={statusTahap(r.tgl_akhir_peremajaan)} /> },
+      ]}
+      rowKey={(r) => String(r.id_peremajaan)}
+      fields={[
+        { key: 'id_semai', label: 'Batch semai', kind: 'select', wajib: true, opsi: semaiRows.map((r) => ({ id: String(r.id_semai), label: `Semai #${r.id_semai} — ${varietasDariSiklus(r.id_tanaman)}` })) },
+        { key: 'id_meja', label: 'Meja tanam', kind: 'select', opsi: mejaRows.map((r) => ({ id: String(r.id_meja), label: cell(r.meja) })) },
+        { key: 'jumlah_masuk', label: 'Jumlah pindah (bibit)', kind: 'number', wajib: true, placeholder: '80' },
+        { key: 'benih_berhasil', label: 'Benih berhasil', kind: 'number', wajib: true, placeholder: '70' },
+        { key: 'benih_gagal', label: 'Benih gagal', kind: 'number', wajib: true, placeholder: '10' },
+        { key: 'tgl_awal_peremajaan', label: 'Tanggal mulai', kind: 'date', wajib: true },
+        { key: 'tgl_akhir_peremajaan', label: 'Tanggal akhir (rencana)', kind: 'date', wajib: true, offsetHari: 1 },
+        { key: 'keterangan', label: 'Keterangan', kind: 'text', placeholder: 'Opsional' },
+      ]}
+      notes={[
+        'Live: GET/POST/DELETE /peremajaan — tombol Simpan benar-benar menyimpan (POST), Hapus benar-benar menghapus.',
+        'Pilihan Batch semai & Meja diambil dari server (tak perlu hafal ID); kolom wajib mengikuti kolom NOT NULL backend.',
+        'Baris yang masih dirujuk pendewasaan tidak bisa dihapus (409 "Tidak bisa menghapus…" dari backend).',
+        'Status dihitung dari Tanggal akhir: lewat hari ini = selesai; tutup lebih awal lewat Tandai Selesai di detail baris.',
+      ]}
+      detail={(r) => ({
+        judul: `Detail peremajaan #${r.id_peremajaan}`,
+        isi: [
+          ['Batch semai', r.id_semai ? `#${r.id_semai} (${varietasDariSiklus(r.id_semai)})` : '—'],
+          ['Meja', namaMeja(r.id_meja)],
+          ['Jumlah pindah', cell(r.jumlah_masuk)],
+          ['Berhasil / gagal', `${cell(r.benih_berhasil)} / ${cell(r.benih_gagal)}`],
+          ['Mulai', tgl(r.tgl_awal_peremajaan)],
+          ['Selesai', tgl(r.tgl_akhir_peremajaan)],
+          ['Status', statusTahap(r.tgl_akhir_peremajaan)],
+          ['Keterangan', cell(r.keterangan)],
+        ],
+      })}
+      sudahSelesai={(r) => statusTahap(r.tgl_akhir_peremajaan) === 'selesai'}
+      labelBaris={(r) => `peremajaan #${r.id_peremajaan}`}
+    />
   )
 }
 
-/* ============= 08 · PENDEWASAAN ============= */
-type Pendewasaan = { batch: string; varietas: string; meja: string; tanggal: string }
-
+/* ── 08 · PENDEWASAAN — GET/POST/PUT/DELETE /pendewasaan ───────────── */
 export function PendewasaanPage() {
-  const rows: Pendewasaan[] = [{ batch: 'B-2310', varietas: 'Selada', meja: 'Meja 2', tanggal: '18 Sep' }]
-  // S3 — lihat catatan keputusan di PeremajaanPage (Edit mati → Detail berfungsi).
-  const [lihat, setLihat] = useState<DetailBaris | null>(null)
+  const { rows: peremajaanRows } = useApiList<PeremajaanRow>('/peremajaan')
+  const { rows: semaiRows } = useApiList<SemaiRow>('/semai')
+  const { rows: tanamanRows } = useApiList<TanamanMini>('/tanaman')
+  const { rows: mejaRows } = useApiList<MejaMini>('/meja')
+
+  const peremajaanById = new Map(peremajaanRows.map((r) => [String(r.id_peremajaan), r]))
+  const semaiById = new Map(semaiRows.map((r) => [String(r.id_semai), r]))
+  const tanamanById = new Map(tanamanRows.map((r) => [String(r.id_tanaman), r]))
+  const mejaById = new Map(mejaRows.map((r) => [String(r.id_meja), r]))
+
+  const varietasDariPeremajaan = (idPeremajaan: unknown) => {
+    const p = ambil(peremajaanById, idPeremajaan)
+    const s = p ? ambil(semaiById, p.id_semai) : undefined
+    const t = s ? ambil(tanamanById, s.id_tanaman) : undefined
+    return t ? cell(t.nama_tanaman) : '—'
+  }
+  const namaMeja = (id: unknown) => {
+    const m = ambil(mejaById, id)
+    return m ? cell(m.meja) : id ? `#${id}` : '—'
+  }
+
   return (
-    <>
-      <CrudScreen<Pendewasaan>
-        title="Pendewasaan"
-        moduleName="Pendewasaan"
-        addButton="+ Tambah Pendewasaan"
-        columns={[
-          { key: 'batch', header: 'Batch', render: (r) => <b className="text-slate-900">{r.batch}</b> },
-          { key: 'varietas', header: 'Varietas', render: (r) => r.varietas },
-          { key: 'meja', header: 'Meja', render: (r) => r.meja },
-          { key: 'tanggal', header: 'Tanggal', render: (r) => r.tanggal },
-        ]}
-        rows={rows}
-        rowKey={(r) => r.batch}
-        form={
-          <>
-            <Field label="Meja tanam"><input className="vsf-input w-full" placeholder="Meja 2" /></Field>
-            <Field label="Tanggal"><input className="vsf-input w-full" placeholder="18 Sep" /></Field>
-          </>
-        }
-        notes={[
-          'Pola identik dengan halaman 06 — konsistensi komponen (tabel + form + modal hapus).',
-          'Navigasi tahap: Penyemaian → Peremajaan → Pendewasaan → Panen (alur satu arah).',
-        ]}
-        actions={(r, ask) => (
-          <>
-            <BtnDetail
-              name={`batch ${r.batch}`}
-              onClick={() =>
-                setLihat({
-                  judul: `Detail batch ${r.batch}`,
-                  isi: [
-                    ['Batch', r.batch],
-                    ['Varietas', r.varietas],
-                    ['Meja', r.meja],
-                    ['Tanggal', r.tanggal],
-                  ],
-                })
-              }
-            />
-            <BtnHapus label={`batch ${r.batch}`} onPick={ask} />
-          </>
-        )}
-      />
-      <ModalDetailBaris data={lihat} onClose={() => setLihat(null)} />
-    </>
+    <TahapCrudPage<PendewasaanRow>
+      title="Pendewasaan"
+      moduleName="Pendewasaan"
+      addButton="+ Tambah Pendewasaan"
+      formTitle="Tambah Pendewasaan"
+      path="/pendewasaan"
+      tipe="pendewasaan"
+      selesaiVia="put"
+      selesaiField="tgl_akhir_pendewasaan"
+      columns={[
+        { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id_pendewasaan)}</span> },
+        { key: 'varietas', header: 'Varietas', render: (r) => <b className="text-slate-900">{varietasDariPeremajaan(r.id_peremajaan)}</b> },
+        { key: 'meja', header: 'Meja', render: (r) => namaMeja(r.id_meja) },
+        { key: 'masuk', header: 'Jumlah masuk', render: (r) => cell(r.jumlah_masuk) },
+        { key: 'hasil', header: 'Berhasil / Gagal', render: (r) => `${cell(r.tanaman_berhasil)} / ${cell(r.tanaman_gagal)}` },
+        { key: 'mulai', header: 'Mulai', render: (r) => tgl(r.tgl_awal_pendewasaan) },
+        { key: 'akhir', header: 'Selesai', render: (r) => tgl(r.tgl_akhir_pendewasaan) },
+        { key: 'status', header: 'Status', render: (r) => <PillStatus nilai={statusTahap(r.tgl_akhir_pendewasaan)} /> },
+      ]}
+      rowKey={(r) => String(r.id_pendewasaan)}
+      fields={[
+        { key: 'id_peremajaan', label: 'Batch peremajaan', kind: 'select', wajib: true, opsi: peremajaanRows.map((r) => ({ id: String(r.id_peremajaan), label: `Peremajaan #${r.id_peremajaan} — ${varietasDariPeremajaan(r.id_peremajaan)}` })) },
+        { key: 'id_meja', label: 'Meja tanam', kind: 'select', opsi: mejaRows.map((r) => ({ id: String(r.id_meja), label: cell(r.meja) })) },
+        { key: 'jumlah_masuk', label: 'Jumlah masuk (tanaman)', kind: 'number', wajib: true, placeholder: '80' },
+        { key: 'tanaman_berhasil', label: 'Tanaman berhasil', kind: 'number', wajib: true, placeholder: '75' },
+        { key: 'tanaman_gagal', label: 'Tanaman gagal', kind: 'number', wajib: true, placeholder: '5' },
+        { key: 'tgl_awal_pendewasaan', label: 'Tanggal mulai', kind: 'date', wajib: true },
+        { key: 'tgl_akhir_pendewasaan', label: 'Tanggal akhir (rencana)', kind: 'date', wajib: true, offsetHari: 1 },
+        { key: 'keterangan', label: 'Keterangan', kind: 'text', placeholder: 'Opsional' },
+      ]}
+      notes={[
+        'Live: GET/POST/DELETE /pendewasaan — tombol Simpan benar-benar menyimpan (POST), Hapus benar-benar menghapus.',
+        'Pilihan Batch peremajaan & Meja diambil dari server (tak perlu hafal ID); kolom wajib mengikuti kolom NOT NULL backend.',
+        'Baris yang masih dirujuk panen tidak bisa dihapus (409 dari backend).',
+        'Status dihitung dari Tanggal akhir: lewat hari ini = selesai; tutup lebih awal lewat Tandai Selesai di detail baris.',
+      ]}
+      detail={(r) => ({
+        judul: `Detail pendewasaan #${r.id_pendewasaan}`,
+        isi: [
+          ['Batch peremajaan', r.id_peremajaan ? `#${r.id_peremajaan} (${varietasDariPeremajaan(r.id_peremajaan)})` : '—'],
+          ['Meja', namaMeja(r.id_meja)],
+          ['Jumlah masuk', cell(r.jumlah_masuk)],
+          ['Berhasil / gagal', `${cell(r.tanaman_berhasil)} / ${cell(r.tanaman_gagal)}`],
+          ['Mulai', tgl(r.tgl_awal_pendewasaan)],
+          ['Selesai', tgl(r.tgl_akhir_pendewasaan)],
+          ['Status', statusTahap(r.tgl_akhir_pendewasaan)],
+          ['Keterangan', cell(r.keterangan)],
+        ],
+      })}
+      sudahSelesai={(r) => statusTahap(r.tgl_akhir_pendewasaan) === 'selesai'}
+      labelBaris={(r) => `pendewasaan #${r.id_pendewasaan}`}
+    />
   )
 }
 
-/* ================= 09 · PANEN ================= */
-type Panen = { batch: string; varietas: string; tglPanen: string; hasil: string }
-
+/* ── 09 · PANEN — GET/POST/DELETE /panen ───────────────────────────── */
 export function PanenPage() {
-  const rows: Panen[] = [{ batch: 'B-2304', varietas: 'Bayam', tglPanen: '10 Sep', hasil: '12.4 kg' }]
-  // S3 — lihat catatan keputusan di PeremajaanPage (Edit mati → Detail berfungsi).
-  const [lihat, setLihat] = useState<DetailBaris | null>(null)
+  const { rows: pendewasaanRows } = useApiList<PendewasaanRow>('/pendewasaan')
+  const { rows: peremajaanRows } = useApiList<PeremajaanRow>('/peremajaan')
+  const { rows: semaiRows } = useApiList<SemaiRow>('/semai')
+  const { rows: tanamanRows } = useApiList<TanamanMini>('/tanaman')
+  const { rows: mejaRows } = useApiList<MejaMini>('/meja')
+
+  const pendewasaanById = new Map(pendewasaanRows.map((r) => [String(r.id_pendewasaan), r]))
+  const peremajaanById = new Map(peremajaanRows.map((r) => [String(r.id_peremajaan), r]))
+  const semaiById = new Map(semaiRows.map((r) => [String(r.id_semai), r]))
+  const tanamanById = new Map(tanamanRows.map((r) => [String(r.id_tanaman), r]))
+  const mejaById = new Map(mejaRows.map((r) => [String(r.id_meja), r]))
+
+  const varietasDariPendewasaan = (idPendewasaan: unknown) => {
+    const pd = ambil(pendewasaanById, idPendewasaan)
+    const p = pd ? ambil(peremajaanById, pd.id_peremajaan) : undefined
+    const s = p ? ambil(semaiById, p.id_semai) : undefined
+    const t = s ? ambil(tanamanById, s.id_tanaman) : undefined
+    return t ? cell(t.nama_tanaman) : '—'
+  }
+  const namaMeja = (id: unknown) => {
+    const m = ambil(mejaById, id)
+    return m ? cell(m.meja) : id ? `#${id}` : '—'
+  }
+
   return (
-    <>
-      <CrudScreen<Panen>
-        title="Panen"
-        moduleName="Panen"
-        addButton="+ Tambah Panen"
-        columns={[
-          { key: 'batch', header: 'Batch', render: (r) => <b className="text-slate-900">{r.batch}</b> },
-          { key: 'varietas', header: 'Varietas', render: (r) => r.varietas },
-          { key: 'tglPanen', header: 'Tanggal panen', render: (r) => r.tglPanen },
-          { key: 'hasil', header: 'Hasil', render: (r) => r.hasil },
-        ]}
-        rows={rows}
-        rowKey={(r) => r.batch}
-        form={
-          <>
-            <Field label="Tanggal panen"><input className="vsf-input w-full" placeholder="14 Okt" /></Field>
-            <Field label="Hasil (kg)"><input className="vsf-input w-full" placeholder="12.4" /></Field>
-            <Field label="Kualitas (A/B/C)"><input className="vsf-input w-full" placeholder="A" /></Field>
-          </>
-        }
-        notes={[
-          'Field khas modul ini: Tanggal panen • Hasil (kg) • Kualitas (A/B/C).',
-          'Pola identik dengan halaman 06 — konsistensi komponen (tabel + form + modal hapus).',
-          'Navigasi tahap: Penyemaian → Peremajaan → Pendewasaan → Panen (alur satu arah).',
-        ]}
-        actions={(r, ask) => (
-          <>
-            <BtnDetail
-              name={`batch ${r.batch}`}
-              onClick={() =>
-                setLihat({
-                  judul: `Detail batch ${r.batch}`,
-                  isi: [
-                    ['Batch', r.batch],
-                    ['Varietas', r.varietas],
-                    ['Tanggal panen', r.tglPanen],
-                    ['Hasil', r.hasil],
-                  ],
-                })
-              }
-            />
-            <BtnHapus label={`batch ${r.batch}`} onPick={ask} />
-          </>
-        )}
-      />
-      <ModalDetailBaris data={lihat} onClose={() => setLihat(null)} />
-    </>
+    <TahapCrudPage<PanenRow>
+      title="Panen"
+      moduleName="Panen"
+      addButton="+ Tambah Panen"
+      formTitle="Tambah Panen"
+      path="/panen"
+      tipe="panen"
+      selesaiVia="post"
+      catatan="Panen dihitung selesai pada Tanggal panen yang dicatat, jadi tombol Tandai Selesai tidak dipasang di tahap ini — tabel panen memang tidak menyimpan status tahap."
+
+      columns={[
+        { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id_panen)}</span> },
+        { key: 'varietas', header: 'Varietas', render: (r) => <b className="text-slate-900">{varietasDariPendewasaan(r.id_pendewasaan)}</b> },
+        { key: 'meja', header: 'Meja', render: (r) => namaMeja(ambil(pendewasaanById, r.id_pendewasaan)?.id_meja) },
+        { key: 'hasil', header: 'Berhasil', render: (r) => `${cell(r.panen_berhasil)} kg` },
+        { key: 'gagal', header: 'Gagal', render: (r) => `${cell(r.panen_gagal)} kg` },
+        { key: 'tgl', header: 'Tanggal panen', render: (r) => tgl(r.tgl_panen) },
+      ]}
+      rowKey={(r) => String(r.id_panen)}
+      fields={[
+        { key: 'id_pendewasaan', label: 'Batch pendewasaan', kind: 'select', wajib: true, opsi: pendewasaanRows.map((r) => ({ id: String(r.id_pendewasaan), label: `Pendewasaan #${r.id_pendewasaan} — ${varietasDariPendewasaan(r.id_pendewasaan)}` })) },
+        { key: 'panen_berhasil', label: 'Panen berhasil (kg)', kind: 'number', wajib: true, placeholder: '12' },
+        { key: 'panen_gagal', label: 'Panen gagal (kg)', kind: 'number', wajib: true, placeholder: '0' },
+        { key: 'tgl_panen', label: 'Tanggal panen', kind: 'date', wajib: true },
+        { key: 'keterangan', label: 'Keterangan', kind: 'text', placeholder: 'Opsional' },
+      ]}
+      notes={[
+        'Live: GET/POST/DELETE /panen — tombol Simpan benar-benar menyimpan (POST), Hapus benar-benar menghapus.',
+        'Pilihan Batch pendewasaan diambil dari GET /pendewasaan (tak perlu hafal ID).',
+        'Catatan jujur: tabel panens tidak punya kolom status — POST /tanam/panen/:id/selesai berakhir 500, jadi tombol Tandai Selesai TIDAK dipasang di sini (tonggak panen = Tanggal panen yang diisi).',
+        'Baris yang masih dirujuk tidak bisa dihapus (409 dari backend).',
+      ]}
+      detail={(r) => ({
+        judul: `Detail panen #${r.id_panen}`,
+        isi: [
+          ['Batch pendewasaan', r.id_pendewasaan ? `#${r.id_pendewasaan} (${varietasDariPendewasaan(r.id_pendewasaan)})` : '—'],
+          ['Panen berhasil', `${cell(r.panen_berhasil)} kg`],
+          ['Panen gagal', `${cell(r.panen_gagal)} kg`],
+          ['Tanggal panen', tgl(r.tgl_panen)],
+          ['Keterangan', cell(r.keterangan)],
+        ],
+      })}
+      // Tabel panens tanpa kolom status & tanpa tanggal akhir → tidak ada
+      // penutupan tahap yang bisa dilakukan tanpa merusak data tanggal panen.
+      sudahSelesai={() => true}
+      labelBaris={(r) => `panen #${r.id_panen}`}
+    />
   )
 }
 
@@ -692,6 +1272,7 @@ export function DurasiSiklusPage() {
       title="Durasi Siklus"
       moduleName="Durasi Siklus"
       addButton="+ Tambah Siklus"
+      formTitle="Tambah Durasi Siklus"
       columns={columns}
       rows={rows}
       rowKey={(r) => String(r.id_siklus)}
