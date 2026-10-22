@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { FooterPendiri } from '../components/FooterPendiri'
 import { DemoBanner } from '../components/DemoBanner'
 import { StatusBadge } from '../components/StatusBadge'
 import { useAuth } from '../lib/authContext'
@@ -375,6 +376,7 @@ export function AppShell() {
             <div key={location.pathname} className="vsf-page min-w-0">
               <Outlet />
             </div>
+            <FooterPendiri />
           </div>
         </main>
       </div>

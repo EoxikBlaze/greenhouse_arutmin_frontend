@@ -13,6 +13,7 @@ import { useAuth } from '../lib/authContext'
 
 type Peran = {
   jabatan: string
+  nama: string
   deskripsi: string
   ikon: ReactNode
 }
@@ -37,43 +38,50 @@ function Ikon({ children }: { children: ReactNode }) {
 
 const PERAN: Peran[] = [
   {
-    jabatan: 'Team Leader',
+    jabatan: 'Project Manager',
+    nama: 'Rivi Ramdani',
     deskripsi:
       'Memimpin arah proyek Vertonik Smart Farm: menyusun rencana kerja, membagi tugas, dan memastikan seluruh tim bergerak menuju tujuan yang sama.',
     ikon: <Ikon><path d="m12 3 2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.4 6.8 19.2l1-5.9L3.5 9.2l5.9-.8z" /></Ikon>,
   },
   {
     jabatan: 'Finance',
+    nama: 'Nova Atika Angelia',
     deskripsi:
       'Mengelola anggaran proyek dan mencatat setiap pengeluaran — dari pengadaan sensor, perangkat IoT, sampai kebutuhan operasional greenhouse.',
     ikon: <Ikon><rect x="2.5" y="6" width="19" height="12" rx="2.5" /><circle cx="12" cy="12" r="2.6" /><path d="M6 10v4M18 10v4" /></Ikon>,
   },
   {
     jabatan: 'Secretary',
+    nama: 'Putri Nadilatu Zahra',
     deskripsi:
       'Menata dokumentasi proyek, menyusun notulen rapat, dan menjaga komunikasi antaranggota tim tetap teratur dan mudah ditemukan.',
     ikon: <Ikon><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h4" /></Ikon>,
   },
   {
     jabatan: 'Creative & Public Relations',
+    nama: '(nama)',
     deskripsi:
       'Merancang identitas visual dan kabar terbaru proyek, serta menjaga hubungan baik dengan pengguna dan mitra Vertonik Smart Farm.',
     ikon: <Ikon><path d="M4 10v4a1 1 0 0 0 1 1h2l6 4V5L7 9H5a1 1 0 0 0-1 1z" /><path d="M17.5 9.5a4 4 0 0 1 0 5" /></Ikon>,
   },
   {
     jabatan: 'Backend Engineering',
+    nama: '(nama)',
     deskripsi:
       'Membangun dan merawat API GARAP beserta basis data greenhouse, agar data sensor dan budidaya tersimpan aman, konsisten, dan andal.',
     ikon: <Ikon><ellipse cx="12" cy="6" rx="7.5" ry="3" /><path d="M4.5 6v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6" /><path d="M4.5 12v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-6" /></Ikon>,
   },
   {
     jabatan: 'IoT Engineer',
+    nama: '(nama)',
     deskripsi:
       'Merancang perangkat ESP32 dan rangkaian sensor hidroponik yang mengirim suhu, pH, dan TDS greenhouse secara real-time ke sistem.',
     ikon: <Ikon><rect x="7" y="7" width="10" height="10" rx="2" /><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4" /></Ikon>,
   },
   {
     jabatan: 'Web & Application Developer',
+    nama: '(nama)',
     deskripsi:
       'Mengembangkan antarmuka web dan aplikasi yang membuat petani mudah memantau kondisi serta mengatur tanam dari mana saja.',
     ikon: <Ikon><rect x="2.5" y="4.5" width="19" height="13" rx="2" /><path d="M8 21h8M12 17.5V21" /><path d="m10 9-2 2 2 2M14 9l2 2-2 2" /></Ikon>,
@@ -151,7 +159,7 @@ export function TentangPage() {
                   </span>
                   <span className="min-w-0">
                     <span className="vsf-eyebrow vsf-eyebrow-light block">Nama anggota</span>
-                    <span className="block truncate text-[13px] font-semibold text-white/85">(nama)</span>
+                    <span className={`block truncate text-[13px] font-semibold text-white/85${p.nama === '(nama)' ? ' italic opacity-70' : ''}`}>{p.nama}</span>
                   </span>
                 </div>
               </article>
