@@ -27,3 +27,6 @@ scripts/
 .agents/
 .claude/
 skills-lock.json
+
+# Paket deploy berisi .env & kredensial — jangan pernah ikut git
+vertonik-pi-*/
