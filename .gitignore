@@ -40,3 +40,6 @@ _backup_*/
 _tmp_dist/
 .playwright-cli/
 *.bak-*
+
+# Hasil kerja skill desain (screenshot & laporan inspector)
+.taste-skill/
