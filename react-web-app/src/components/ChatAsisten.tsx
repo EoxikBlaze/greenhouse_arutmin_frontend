@@ -37,7 +37,8 @@ const PINTASAN = [
 ]
 
 const SUMBER: Record<string, string> = {
-  heuristik: 'Jawaban aturan (AI lokal tidak tersedia)',
+  heuristik: 'Saran berbasis aturan dari data terbaru',
+  sapaan: 'Asisten GARAP',
   diagnosa: 'Diagnosa otomatis dari database',
   data: 'Data langsung dari database',
   tolak: 'Permintaan ditolak oleh pengaman',
