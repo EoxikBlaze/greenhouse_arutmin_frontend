@@ -22,7 +22,7 @@ Status: ✅ sesuai · ⚠️ sebagian / berbeda · ❌ belum ada.
 | **Konfigurasi di DB** | ✅ Semua angka dokumen tersimpan lengkap dengan rujukan bab. |
 | **Konfigurasi dipakai kode** | ⚠️ Hanya **11 dari 38** parameter dibaca kode. 27 lainnya (retry, monitoring 60 mnt, jeda A→B, bilas, median 9, timeout, jatah 8 kejadian, …) tersimpan tapi tidak menggerakkan apa pun. |
 | **Arsitektur** | ⚠️ Dokumen: semua aturan jalan **di ESP32** dan tetap jalan saat WiFi mati (Aturan 14). Implementasi: keputusan di **server Pi** (`otomasi.js`, default MATI), ESP32 aktuator hanya pelaksana perintah dan **mematikan semua output bila server hilang 30 dtk**. |
-| **Siap dipakai di tanaman?** | ❌ Belum. Bug keselamatan B1 & B2 sudah ditutup (23 Okt); B3–B5 dan alur sampling botol, A/B terpisah, bilas, isi air ber-float belum ada di firmware. |
+| **Siap dipakai di tanaman?** | ❌ Belum. Bug keselamatan B1–B4 sudah ditutup (23 Okt; B4 tanpa pemicu EC tinggi); B5 dan alur sampling botol, A/B terpisah, bilas, isi air ber-float belum ada di firmware. |
 
 ## Bug keselamatan (prioritas)
 
@@ -30,8 +30,8 @@ Status: ✅ sesuai · ⚠️ sebagian / berbeda · ❌ belum ada.
 |---|---|---|---|
 | **B1** ✅ diperbaiki | Sanity check jauh lebih longgar dari dokumen: kode menerima pH 2–12 dan TDS 0–4000; dokumen mewajibkan pH 3–9, EC 0,1–5 mS/cm (50–2.500 ppm), suhu air 5–45 °C | `src/otomasi.js:34` | Diuji: **TDS 20 ppm (probe EC lepas) → dosis AB 214 mL** (maksimum); pH 2,5 → PH_UP; pH 9,5 → PH_DOWN. Dokumen: bacaan mustahil DIBUANG. |
 | **B2** ✅ diperbaiki | Otomasi membaca **bacaan terbaru dari meja mana saja**, bukan dari penampung yang dikendalikan | `src/otomasi.js:85` (`SELECT … FROM monitorings ORDER BY created_at DESC LIMIT 1`) | Penampung X bisa didosis dari bacaan penampung Y. Ditambah `/api/device/v1/sensor` menyimpan bacaan **tanpa `id_meja`** (`src/routes/device.js:46` → `monitoring.js:75`), jadi data per penampung memang belum ada dari perangkat. |
-| **B3** | Jatah **8 kejadian/hari tidak ditegakkan**; penghitung `kejadian_dosis_hari` naik setiap suntikan (dokumen: retry TIDAK memotong jatah) | `src/aktuator.js:128` | Batas 500 mL tetap jalan, tapi pagar kejadian & INFO dini (3 kejadian) mati. |
-| **B4** | Tidak ada yang memasang **LOCK otomatis** (retry habis, jatah habis, EC tinggi + level aman, 3× bacaan invalid) | tak ada penulis `status_lock = true` di `src/` | Batas habis hanya → 409 ke pemanggil; penampung tidak terkunci, tidak ada alert. |
+| **B3** | Jatah **8 kejadian/hari tidak ditegakkan**; penghitung `kejadian_dosis_hari` naik setiap suntikan (dokumen: retry TIDAK memotong jatah) | `src/aktuator.js:128` | Batas 500 mL tetap jalan, tapi pagar kejadian & INFO dini (3 kejadian) mati. **✅ Ditutup 23 Okt:** kejadian dicatat di `dosing_events` (≤5 suntikan, basi 60 mnt / ganti hari → ditutup); hanya kejadian baru memotong jatah; INFO dini di kejadian ke-3; suntikan gagal bukan ronde. |
+| **B4** | Tidak ada yang memasang **LOCK otomatis** (retry habis, jatah habis, EC tinggi + level aman, 3× bacaan invalid) | tak ada penulis `status_lock = true` di `src/` | Batas habis hanya → 409 ke pemanggil; penampung tidak terkunci, tidak ada alert. **✅ Ditutup 23 Okt** untuk retry habis (suntikan ke-6), jatah 8 kejadian habis, volume harian habis (otomasi), 3× bacaan invalid → LOCK + alert kritis + dosis menunggu dibatalkan. **Belum:** EC tinggi + level aman (butuh data float switch). |
 | **B5** | Katup firmware dipetakan ke penampung id **1, 2, 3**; meja di DB ber-id **3, 8, 9, 10, 11** | `firmware/aktuator/aktuator.ino:38` | Hanya "Meja Selada" (id 3) bisa didosis; dokumen: 4 meja. |
 
 ### Perbaikan B1 & B2 (23 Okt 2026)
@@ -56,15 +56,15 @@ Status: ✅ sesuai · ⚠️ sebagian / berbeda · ❌ belum ada.
 | **6** A lalu B terpisah, bilas #1/#2, jeda 2 mnt | ❌ | Hanya satu pompa `AB` (`aktuator.ino:28`). Bilas ada sebagai perintah terpisah, tidak otomatis disisipkan. |
 | **6** Mixing 15 mnt | ✅ | `otomasi.js` menunggu `mixing_menit` sejak perintah DOSIS terakhir penampung itu. |
 | **6** EC dulu, baru pH | ✅ | `putuskan()` memeriksa EC lebih dulu. pH = langkah tetap 5 mL (`ml_ph_per_langkah`). |
-| **7** Retry maks 5× EC / 3× pH → ALERT + LOCK | ❌ | `maks_retry_ec/ph` tidak dibaca kode; otomasi akan terus mendosis selama jatah volume belum habis. |
+| **7** Retry maks 5× EC / 3× pH → ALERT + LOCK | ❌ | EC: ✅ `maks_suntikan_per_kejadian` (5) ditegakkan → LOCK. pH: ❌ retry 3× belum dihitung (hanya batas 100 mL/hari). |
 | **8** Monitoring 60 mnt setelah target | ❌ | `monitoring_menit` tidak dipakai; otomasi mengecek ulang tiap 60 dtk. (Dalam praktik deadband mencegah dosis, jadi dampaknya kecil.) |
 | **9** Alert ke HP petani (Telegram) | ❌ | Alert hanya dicatat ke `alert_logs` lewat `POST /api/notif-hardware`; pengiriman ke HP tidak ada (WhatsApp sudah dihapus). |
-| **9** Peringatan dini 3 kejadian | ❌ | Lihat B3. |
+| **9** Peringatan dini 3 kejadian | ✅ | Alert `batas_dosis` (info) saat kejadian ke-3. |
 | **10** Boot: semua output OFF | ✅ | `aktuator.ino` `setup()` mematikan semua output sebelum WiFi + watchdog 15 dtk. |
 | **10** Pulihkan counter dari flash, waktu dari RTC | ⚠️ | Counter di server ✅; ESP32 tanpa RTC/flash. |
 | **11** Reset harian 00:00, LOCK tidak ikut | ✅ | `aktuator.js:118–121` reset saat tanggal WITA berganti; `status_lock` tidak disentuh. |
 | **12** E-STOP | ⚠️ | Ada lapis perangkat lunak: tombol di pin 13, perintah `STOP_DARURAT`, latch server `aktuator_state.estop` + `POST /api/aktuator/estop(/reset)`. Pemutusan daya **fisik** tetap urusan panel (wajib). |
-| **12** Tombol RESET membersihkan LOCK | ⚠️ | Tidak ada tombol fisik; LOCK bisa dibersihkan lewat `PUT /penampung-states/:id` (admin). Belum ada UI. |
+| **12** Tombol RESET membersihkan LOCK | ⚠️ | Tidak ada tombol fisik; LOCK dibersihkan lewat `POST /api/aktuator/penampung/:id/buka-kunci` (admin; hitungan harian tetap; alert `reset`). Belum ada UI. |
 | **13** Mode pemeliharaan | ⚠️ | Kolom `mode_pemeliharaan` ada; hanya menolak dosis **otomatis** (`aktuator.js:124`). Sampling tidak dijeda, bacaan tetap dicatat, belum ada UI. |
 | **14** WiFi putus: kontrol lokal jalan, alert diantre maks 20 | ❌ | Kebalikannya: aktuator mematikan semua output setelah 30 dtk tanpa server (`aktuator.ino:44`) — aman, tapi berarti tidak ada kontrol lokal. Sensor tidak mengantre data saat offline. |
 | LCD 20×4, pilot lamp RGB | ❌ | Belum ada di firmware. |
