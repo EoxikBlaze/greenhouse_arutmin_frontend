@@ -145,7 +145,7 @@ export default function LoginPage() {
 
           {/* Baris identitas */}
           <header className="relative flex items-center gap-3">
-            <Monogram className="h-11 w-11 shrink-0" />
+            <Monogram className="h-12 w-[4.5rem] shrink-0" />
             <div className="min-w-0">
               <div className="truncate font-display text-[16px] font-bold leading-tight tracking-[0.02em]">
                 GARAP
@@ -304,7 +304,7 @@ export default function LoginPage() {
               </p>
 
               <div className="mt-3 flex items-center justify-center gap-2 border-t border-garis pt-4 text-[12px] text-abu">
-                <Monogram className="h-4 w-4" />
+                <Monogram className="h-5 w-7" />
                 © 2026 PT Arutmin Indonesia · Vertonik Smart Farm
               </div>
             </div>

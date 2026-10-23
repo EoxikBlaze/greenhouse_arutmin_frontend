@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { FooterPendiri } from '../components/FooterPendiri'
+import { SiteFooter } from '../components/SiteFooter'
+import { Monogram } from '../components/Monogram'
 import { DemoBanner } from '../components/DemoBanner'
 import { StatusBadge } from '../components/StatusBadge'
 import { useAuth } from '../lib/authContext'
@@ -12,23 +13,7 @@ import { useApiObject } from '../lib/useApiObject'
 /** Bentuk data /dashboard yang dipakai chrome (hanya utk indikator IoT). */
 type DashboardStatus = { iotStatus?: { online?: boolean } | null }
 
-/** Monogram Vertonik — SVG (R3: tanpa emoji, bentuk konsisten di sidebar & login). */
-export function Monogram({ className = 'h-9 w-9' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 40 40" className={className} role="img" aria-label="Vertonik Smart Farm">
-      <rect x="1.25" y="1.25" width="37.5" height="37.5" rx="11" fill="#0A1F38" stroke="#E9CD53" strokeWidth="1.5" />
-      <path
-        d="M11.5 13 20 28.5 28.5 13"
-        fill="none"
-        stroke="#E9CD53"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path d="M20 24.5c2.6-1 4.2-3 4.6-5.8-2.9-.1-5 1.6-5.6 4.4z" fill="#6B9D4A" />
-    </svg>
-  )
-}
+export { Monogram } from '../components/Monogram'
 
 /** Judul halaman dinamis (sesuai topbar wireframe .pen) */
 const TITLES: Record<string, string> = {
@@ -122,7 +107,7 @@ const NAV: NavGroup[] = [
       { to: '/audit', label: 'Riwayat Audit', allow: ADMIN_DEMO },
       // Halaman publik (/tentang) — tautan agar bisa diakses dari sidebar;
       // rutenya di luar RequireAuth sehingga tetap terbuka tanpa login.
-      { to: '/tentang', label: 'Tentang Kami' },
+      { to: '/', label: 'Tentang Kami' },
     ],
   },
 ]
@@ -136,6 +121,7 @@ function SideItem({ to, children, indent }: { to: string; children: ReactNode; i
   return (
     <NavLink
       to={to}
+      end={to === "/"}
       className={({ isActive }) =>
         [
           // QW2 — target sentuh ≥44px. P7 — easing/durasi seragam dgn token (--tr 150ms).
@@ -197,6 +183,21 @@ export function AppShell() {
 
   // Pindah rute → tutup sidebar mobile (penyesuaian state DILARANG di effect:
   // oxlint react(set-state-in-effect); pola "adjust state during render".)
+  // Menu mobile terbuka → kunci scroll latar agar tidak "bocor" ke halaman.
+  useEffect(() => {
+    if (!navOpen) return
+    const lama = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = lama
+    }
+  }, [navOpen])
+
+  // Pindah halaman → mulai dari atas (SPA tidak mereset scroll sendiri).
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [location.pathname])
+
   const [prevPath, setPrevPath] = useState(location.pathname)
   if (prevPath !== location.pathname) {
     setPrevPath(location.pathname)
@@ -245,13 +246,13 @@ export function AppShell() {
           id="vsf-sidebar"
           className={[
             '-translate-x-full fixed inset-y-0 left-0 z-40 w-[260px] shrink-0 overflow-y-auto bg-sidebar px-4 py-4 text-white vsf-stagger max-h-dvh transition-transform duration-[150ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
-            'lg:static lg:z-auto lg:translate-x-0',
+            'overscroll-contain lg:sticky lg:top-0 lg:z-auto lg:h-dvh lg:translate-x-0',
             navOpen ? 'translate-x-0' : '',
           ].join(' ')}
         >
           {/* Kepala sidebar — brand Vertonik/Arutmin: monogram SVG + teks (R3). */}
           <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[.06] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]">
-            <Monogram className="h-9 w-9 shrink-0" />
+            <Monogram className="h-10 w-14 shrink-0" />
             <div className="min-w-0">
               <div className="truncate font-display text-[16px] font-bold leading-tight text-white">Vertonik</div>
               <div className="vsf-eyebrow vsf-eyebrow-emas mt-0.5 truncate">Smart Farm</div>
@@ -303,7 +304,7 @@ export function AppShell() {
           />
         )}
 
-        <main id="vsf-main" tabIndex={-1} className="min-w-0 flex-1 outline-none">
+        <main id="vsf-main" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-none">
           {/* QW6 — header responsif: hamburger di <lg, badge/clock disederhanakan.
               Chrome navy (token --navy/--navy2) + aksen emas. */}
           <header className="vsf-topbar flex min-h-[64px] items-center gap-3 border-b border-white/10 bg-topbar px-4 text-white shadow-[0_16px_34px_-28px_rgba(7,21,39,.95)] sm:px-6">
@@ -348,7 +349,7 @@ export function AppShell() {
             </div>
           </header>
 
-          <div className="min-w-0 overflow-x-hidden p-4 sm:p-6">
+          <div className="min-w-0 flex-1 overflow-x-clip p-4 sm:p-6">
             {/* QW5 — notice redirect role (state dari RequireAuth). */}
             {notice && (
               <div
@@ -376,8 +377,8 @@ export function AppShell() {
             <div key={location.pathname} className="vsf-page min-w-0">
               <Outlet />
             </div>
-            <FooterPendiri />
           </div>
+          <SiteFooter />
         </main>
       </div>
 

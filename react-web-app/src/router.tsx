@@ -25,6 +25,7 @@ import { LaporanPage } from './pages/notifLaporanPages'
 import { ManajemenUserPage, ProfilPage } from './pages/userProfilPages'
 import AuditPage from './pages/AuditPage'
 import TentangPage from './pages/TentangPage'
+import { GalatHalaman } from './components/GalatHalaman'
 
 /** Guard gaya .pen — semua role yang boleh masuk */
 const ALL: Array<'admin' | 'petani' | 'demo'> = ['admin', 'petani', 'demo']
@@ -32,10 +33,14 @@ const ALL: Array<'admin' | 'petani' | 'demo'> = ['admin', 'petani', 'demo']
 const ADMIN_DEMO: Array<'admin' | 'demo'> = ['admin', 'demo']
 
 export const router = createBrowserRouter([
-  { path: '/', element: <Navigate to="/dashboard" replace /> },
+  {
+    errorElement: <GalatHalaman />,
+    children: [
+  // Landing page publik (dulu halaman Tentang). Login lewat tombol "Login".
+  { path: '/', element: <TentangPage /> },
   { path: '/login', element: <LoginPage /> },
   // Halaman publik — bisa dibuka TANPA login (di luar RequireAuth), seperti /login.
-  { path: '/tentang', element: <TentangPage /> },
+  { path: '/tentang', element: <Navigate to="/" replace /> },
   {
     element: <RequireAuth />,
     children: [
@@ -90,5 +95,7 @@ export const router = createBrowserRouter([
         ],
       },
     ],
+  },
+],
   },
 ])
