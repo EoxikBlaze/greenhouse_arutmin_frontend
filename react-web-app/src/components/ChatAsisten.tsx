@@ -172,7 +172,7 @@ export function ChatAsisten() {
             <div>
               <div className="text-[14px] font-bold text-tinta">Tanya apa saja soal kebun Anda</div>
               <p className="mx-auto mt-1 max-w-[420px] text-[12.5px] text-slate-600">
-                Jawaban memakai data sensor, ambang, alert, penampung, dan tahap tanam terbaru. Coba \u201CDiagnosa menyeluruh\u201D untuk pemeriksaan lengkap berbentuk tabel.
+                Jawaban memakai data sensor, ambang, alert, penampung, dan tahap tanam terbaru. Coba “Diagnosa menyeluruh” untuk pemeriksaan lengkap berbentuk tabel.
               </p>
               <div className="mt-3 flex flex-wrap justify-center gap-2">
                 {SARAN.map((s) => (
