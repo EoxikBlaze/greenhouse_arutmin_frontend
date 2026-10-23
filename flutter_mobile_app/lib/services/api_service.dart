@@ -69,14 +69,15 @@ class ApiService {
     };
   }
 
-  Future<dynamic> _request(String path, {Object? body}) async {
+  Future<dynamic> _request(String path,
+      {Object? body, Duration? batas}) async {
     final uri = Uri.parse('$baseUrl$path');
     try {
       final http.Response res;
       if (body == null) {
         res = await _client
             .get(uri, headers: await _headers())
-            .timeout(timeout);
+            .timeout(batas ?? timeout);
       } else {
         res = await _client
             .post(
@@ -84,7 +85,7 @@ class ApiService {
               headers: await _headers(withContentType: true),
               body: jsonEncode(body),
             )
-            .timeout(timeout);
+            .timeout(batas ?? timeout);
       }
       return _handle(res);
     } on ApiException {
@@ -164,6 +165,27 @@ class ApiService {
     }
     if (msg.isEmpty || gabungan.contains(msg)) return gabungan;
     return '$msg $gabungan';
+  }
+
+  // ── Pembantu generik (dipakai halaman dashboard, kontrol, tanam, profil) ──
+
+  /// GET JSON mentah (butuh token bila endpoint-nya dilindungi).
+  Future<dynamic> getJson(String path) => _request(path);
+
+  /// POST JSON; badan kosong dikirim sebagai `{}` agar tetap berupa POST.
+  Future<dynamic> postJson(String path,
+          [Map<String, dynamic>? body, Duration? batas]) =>
+      _request(path, body: body ?? const <String, dynamic>{}, batas: batas);
+
+  /// Peran efektif — meniru `roleFromLevel` di web:
+  /// demo (is_demo / level demo), admin, selain itu petani.
+  String get role {
+    final u = _user;
+    if (u == null) return 'petani';
+    final level = u['level']?.toString().toLowerCase();
+    if (u['is_demo'] == true || level == 'demo') return 'demo';
+    if (level == 'admin') return 'admin';
+    return 'petani';
   }
 
   // ── Endpoint ────────────────────────────────────────────────────────

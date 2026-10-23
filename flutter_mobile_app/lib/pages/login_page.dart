@@ -1,9 +1,17 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../config.dart';
 import '../services/api_service.dart';
+import '../theme/tokens.dart';
+import '../widgets/brand.dart';
+import '../widgets/motion.dart';
 
 /// Halaman masuk — POST /login ke backend Node.js.
+///
+/// Tampilan mengikuti halaman login web: panel brand navy dengan motif pipa
+/// yang mengalir, formulir putih, dan getar singkat saat gagal.
 class LoginPage extends StatefulWidget {
   const LoginPage({
     super.key,
@@ -22,14 +30,25 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends State<LoginPage>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  // Sengaja kosong: nama akun seed berganti dari waktu ke waktu
-  // (kini `garap`/`petani`/`demo`), jadi jangan menebak di sini.
+  // Sengaja kosong: nama akun seed berganti dari waktu ke waktu.
   final _usernameCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  late final AnimationController _getar;
   bool _busy = false;
+  bool _lihat = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _getar = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 420),
+    );
+  }
 
   /// Host:port backend yang sedang dituju (untuk teks penanda di bawah form).
   String get _alamatBackend {
@@ -42,13 +61,17 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
+    _getar.dispose();
     _usernameCtrl.dispose();
     _passwordCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      _getar.forward(from: 0);
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
@@ -67,160 +90,310 @@ class _LoginPageState extends State<LoginPage> {
         _busy = false;
         _error = e.message;
       });
+      _getar.forward(from: 0);
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'GARAP',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: scheme.primary,
-                              letterSpacing: 1.2,
-                            ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Monitoring greenhouse hidroponik',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const SizedBox(height: 24),
-                      if (widget.pesanSesi != null) ...[
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.secondaryContainer,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.info_outline,
-                                  size: 18,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSecondaryContainer),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  widget.pesanSesi!,
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSecondaryContainer),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                      TextFormField(
-                        controller: _usernameCtrl,
-                        autofillHints: const [AutofillHints.username],
-                        textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(
-                          labelText: 'Nama pengguna',
-                          prefixIcon: Icon(Icons.person_outline),
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (v) => (v == null || v.trim().length < 3)
-                            ? 'Nama pengguna minimal 3 karakter.'
-                            : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _passwordCtrl,
-                        obscureText: true,
-                        autofillHints: const [AutofillHints.password],
-                        textInputAction: TextInputAction.done,
-                        onFieldSubmitted: (_) => _submit(),
-                        decoration: const InputDecoration(
-                          labelText: 'Kata sandi',
-                          prefixIcon: Icon(Icons.lock_outline),
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (v) => (v == null || v.length < 3)
-                            ? 'Kata sandi minimal 3 karakter.'
-                            : null,
-                      ),
-                      if (_error != null) ...[
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .errorContainer,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.error_outline,
-                                  size: 18,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onErrorContainer),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  _error!,
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onErrorContainer),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 20),
-                      FilledButton(
-                        onPressed: _busy ? null : _submit,
-                        child: _busy
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Text('Masuk'),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Backend: $_alamatBackend',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
+  InputDecoration _dekor(String label, IconData ikon, {Widget? akhir}) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(ikon, size: 20),
+      suffixIcon: akhir,
+    );
+  }
+
+  Widget _formulir() {
+    return AnimatedBuilder(
+      animation: _getar,
+      builder: (context, child) {
+        final t = _getar.value;
+        final dx = math.sin(t * math.pi * 6) * 9 * (1 - t);
+        return Transform.translate(offset: Offset(dx, 0), child: child);
+      },
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            FadeUp(
+              delay: FadeUp.urutan(1),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Eyebrow('Akses sistem'),
+                  SizedBox(height: 10),
+                  Text('Selamat datang kembali', style: Tok.h1),
+                  SizedBox(height: 4),
+                  Text(
+                    'Masukkan akun untuk memantau greenhouse Anda.',
+                    style: Tok.kecil,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            if (widget.pesanSesi != null) ...[
+              _Kabar(
+                teks: widget.pesanSesi!,
+                ikon: Icons.info_outline,
+                warna: Tok.warning,
+              ),
+              const SizedBox(height: 16),
+            ],
+            FadeUp(
+              delay: FadeUp.urutan(2),
+              child: TextFormField(
+                controller: _usernameCtrl,
+                autofillHints: const [AutofillHints.username],
+                textInputAction: TextInputAction.next,
+                decoration: _dekor('Nama pengguna', Icons.person_outline),
+                validator: (v) => (v == null || v.trim().length < 3)
+                    ? 'Nama pengguna minimal 3 karakter.'
+                    : null,
+              ),
+            ),
+            const SizedBox(height: 14),
+            FadeUp(
+              delay: FadeUp.urutan(3),
+              child: TextFormField(
+                controller: _passwordCtrl,
+                obscureText: !_lihat,
+                autofillHints: const [AutofillHints.password],
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _submit(),
+                decoration: _dekor(
+                  'Kata sandi',
+                  Icons.lock_outline,
+                  akhir: IconButton(
+                    tooltip: _lihat ? 'Sembunyikan' : 'Tampilkan',
+                    icon: Icon(
+                      _lihat
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () => setState(() => _lihat = !_lihat),
                   ),
                 ),
+                validator: (v) => (v == null || v.length < 3)
+                    ? 'Kata sandi minimal 3 karakter.'
+                    : null,
+              ),
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 260),
+              curve: Tok.ease,
+              alignment: Alignment.topCenter,
+              child: _error == null
+                  ? const SizedBox(width: double.infinity)
+                  : Padding(
+                      padding: const EdgeInsets.only(top: 14),
+                      child: _Kabar(
+                        teks: _error!,
+                        ikon: Icons.error_outline,
+                        warna: Tok.error,
+                      ),
+                    ),
+            ),
+            const SizedBox(height: 20),
+            FadeUp(
+              delay: FadeUp.urutan(4),
+              child: TombolGradasi(
+                label: 'Masuk',
+                sibuk: _busy,
+                onTap: _submit,
+              ),
+            ),
+            const SizedBox(height: 14),
+            FadeUp(
+              delay: FadeUp.urutan(5),
+              child: Text(
+                'Backend: $_alamatBackend',
+                textAlign: TextAlign.center,
+                style: Tok.kecil,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _merek({required bool lebar}) {
+    return Stack(
+      children: [
+        const Positioned.fill(child: PipeFlow()),
+        Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment.topLeft,
+                radius: 1.2,
+                colors: [Tok.moss.withValues(alpha: 0.30), Colors.transparent],
               ),
             ),
           ),
         ),
+        SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(28, lebar ? 40 : 20, 28, lebar ? 40 : 40),
+            child: Column(
+              mainAxisAlignment:
+                  lebar ? MainAxisAlignment.center : MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FadeUp(child: Monogram(size: lebar ? 64 : 48)),
+                const SizedBox(height: 16),
+                FadeUp(
+                  delay: FadeUp.urutan(1),
+                  child: Text(
+                    'GARAP',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: lebar ? 40 : 30,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 4,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                FadeUp(
+                  delay: FadeUp.urutan(2),
+                  child: Text(
+                    'Monitoring greenhouse hidroponik',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.78),
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                if (lebar) ...[
+                  const SizedBox(height: 22),
+                  FadeUp(
+                    delay: FadeUp.urutan(3),
+                    child: Container(width: 54, height: 3, color: Tok.emas),
+                  ),
+                  const SizedBox(height: 18),
+                  FadeUp(
+                    delay: FadeUp.urutan(4),
+                    child: Text(
+                      'Sensor realtime, kendali air, dan siklus tanam\n'
+                      'dalam satu tempat.',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lebar = MediaQuery.sizeOf(context).width >= 900;
+
+    if (lebar) {
+      return Scaffold(
+        backgroundColor: Tok.page,
+        body: Row(
+          children: [
+            Expanded(
+              flex: 5,
+              child: DecoratedBox(
+                decoration: const BoxDecoration(gradient: Tok.brandPanel),
+                child: _merek(lebar: true),
+              ),
+            ),
+            Expanded(
+              flex: 4,
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(32),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    child: _formulir(),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: Tok.page,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            DecoratedBox(
+              decoration: const BoxDecoration(
+                gradient: Tok.brandPanel,
+                borderRadius:
+                    BorderRadius.vertical(bottom: Radius.circular(32)),
+              ),
+              child: ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(bottom: Radius.circular(32)),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: _merek(lebar: false),
+                ),
+              ),
+            ),
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+                  child: _formulir(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Kabar extends StatelessWidget {
+  const _Kabar({required this.teks, required this.ikon, required this.warna});
+
+  final String teks;
+  final IconData ikon;
+  final Color warna;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: warna.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(Tok.r),
+        border: Border.all(color: warna.withValues(alpha: 0.30)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(ikon, size: 18, color: warna),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              teks,
+              style: const TextStyle(color: Tok.tinta, height: 1.35),
+            ),
+          ),
+        ],
       ),
     );
   }

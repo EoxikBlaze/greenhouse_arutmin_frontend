@@ -1,32 +1,91 @@
-import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-import 'config.dart';
+import 'pages/dashboard_page.dart';
 import 'pages/login_page.dart';
-import 'pages/meja_page.dart';
-import 'pages/riwayat_monitoring_page.dart';
+import 'pages/profil_page.dart';
+import 'pages/sensor_page.dart';
+import 'pages/tanam_page.dart';
+import 'pages/watercontrol_page.dart';
 import 'services/api_service.dart';
+import 'theme/tokens.dart';
 
-/// GARAP — monitoring greenhouse hidroponik (Arutmin Light).
+/// GARAP — monitoring greenhouse hidroponik (Arutmin: navy, emas, moss).
 /// Terhubung ke backend Node.js lokal: http://127.0.0.1:8000
 /// (di iOS Simulator, 127.0.0.1 = Mac host — tidak perlu konfigurasi tambahan).
-
-// ── Token tema Arutmin Light (satu sumber kebenaran) ──────────────────
-const Color forest = Color(0xFF2D452F);
-const Color olive = Color(0xFF4C6A4B);
-const Color moss = Color(0xFF6B9D4A);
-const Color mint = Color(0xFFCFE2CE);
-const Color pageBg = Color(0xFFF4F7F2);
-const Color cardBorder = Color(0xFFE2E8DD);
-const Color danger = Color(0xFFC0392B);
-const Color warning = Color(0xFFE0A42B);
 
 /// Satu klien API untuk seluruh aplikasi (token disimpan di memori di sini).
 final ApiService apiService = ApiService();
 
 void main() {
   runApp(const GarapApp());
+}
+
+ThemeData _buatTema() {
+  final skema = ColorScheme.fromSeed(
+    seedColor: Tok.forest,
+    primary: Tok.forest,
+    secondary: Tok.moss,
+    surface: Colors.white,
+    error: Tok.error,
+  );
+  OutlineInputBorder garis(Color c, [double w = 1]) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(Tok.rSm),
+        borderSide: BorderSide(color: c, width: w),
+      );
+
+  return ThemeData(
+    useMaterial3: true,
+    colorScheme: skema,
+    scaffoldBackgroundColor: Tok.page,
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Tok.navy,
+      foregroundColor: Colors.white,
+      elevation: 0,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
+    ),
+    cardTheme: CardThemeData(
+      color: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Tok.rLg),
+        side: const BorderSide(color: Tok.garis),
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
+      border: garis(Tok.garis2),
+      enabledBorder: garis(Tok.garis2),
+      disabledBorder: garis(Tok.garis),
+      focusedBorder: garis(Tok.moss, 1.8),
+      errorBorder: garis(Tok.error),
+      focusedErrorBorder: garis(Tok.error, 1.8),
+      labelStyle: const TextStyle(color: Tok.abu),
+      prefixIconColor: Tok.abu,
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: Tok.mossGelap,
+        foregroundColor: Colors.white,
+        minimumSize: const Size(0, 46),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Tok.rSm),
+        ),
+      ),
+    ),
+    dialogTheme: DialogThemeData(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(Tok.rLg + 4),
+      ),
+    ),
+    progressIndicatorTheme: const ProgressIndicatorThemeData(color: Tok.moss),
+  );
 }
 
 class GarapApp extends StatelessWidget {
@@ -37,29 +96,7 @@ class GarapApp extends StatelessWidget {
     return MaterialApp(
       title: 'GARAP',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: pageBg,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: forest,
-          primary: forest,
-          secondary: moss,
-          surface: Colors.white,
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: forest,
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        cardTheme: CardThemeData(
-          color: Colors.white,
-          surfaceTintColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-            side: const BorderSide(color: cardBorder),
-          ),
-        ),
-      ),
+      theme: _buatTema(),
       home: const _GarapRoot(),
     );
   }
@@ -91,6 +128,12 @@ class _GarapRootState extends State<_GarapRoot> {
     setState(() {});
   }
 
+  void _keluar() {
+    apiService.clearSession();
+    _pesanSesi = null;
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
     apiService.onUnauthorized = null;
@@ -99,8 +142,10 @@ class _GarapRootState extends State<_GarapRoot> {
 
   @override
   Widget build(BuildContext context) {
+    final Widget isi;
     if (!apiService.isLoggedIn) {
-      return LoginPage(
+      isi = LoginPage(
+        key: const ValueKey('login'),
         api: apiService,
         pesanSesi: _pesanSesi,
         onLoggedIn: () {
@@ -108,363 +153,239 @@ class _GarapRootState extends State<_GarapRoot> {
           if (mounted) setState(() {});
         },
       );
+    } else {
+      isi = _MainShell(key: const ValueKey('shell'), onLogout: _keluar);
     }
-    return const _MainShell();
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 420),
+      switchInCurve: Tok.ease,
+      child: isi,
+    );
   }
 }
 
-/// Shell utama: tab Sensor (live), Meja, Riwayat + aksi Keluar.
+class _Tab {
+  const _Tab(this.label, this.ikon, this.ikonAktif, this.bangun);
+
+  final String label;
+  final IconData ikon;
+  final IconData ikonAktif;
+  final Widget Function(bool aktif) bangun;
+}
+
+/// Shell utama: dock mengambang bergaya navy dengan tab menurut peran.
 class _MainShell extends StatefulWidget {
-  const _MainShell();
+  const _MainShell({super.key, required this.onLogout});
+
+  final VoidCallback onLogout;
 
   @override
   State<_MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<_MainShell> {
-  int _index = 0;
-
-  late final List<Widget> _pages = [
-    const MonitoringPage(),
-    MejaPage(api: apiService),
-    RiwayatMonitoringPage(api: apiService),
-  ];
-
-  Future<void> _keluar() async {
-    final konfirmasi = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Keluar?'),
-        content: Text(
-          apiService.user == null
-              ? 'Sesi akan dihapus dari perangkat ini.'
-              : 'Sesi ${apiService.user!['username'] ?? 'akun ini'} '
-                  '(${apiService.user!['level'] ?? '-'}) akan dihapus dari '
-                  'perangkat ini.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Keluar'),
-          ),
-        ],
-      ),
-    );
-    if (konfirmasi != true) return;
-    apiService.clearSession();
-    if (mounted) setState(() {});
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(index: _index, children: _pages),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index.clamp(0, _pages.length - 1),
-        onDestinationSelected: (i) {
-          if (i >= _pages.length) {
-            _keluar();
-            return;
-          }
-          setState(() => _index = i);
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.sensors_outlined),
-            selectedIcon: Icon(Icons.sensors),
-            label: 'Sensor',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.table_restaurant_outlined),
-            selectedIcon: Icon(Icons.table_restaurant),
-            label: 'Meja',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.monitor_heart_outlined),
-            selectedIcon: Icon(Icons.monitor_heart),
-            label: 'Riwayat',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.logout),
-            label: 'Keluar',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class MonitoringPage extends StatefulWidget {
-  const MonitoringPage({super.key});
-
-  @override
-  State<MonitoringPage> createState() => _MonitoringPageState();
-}
-
-class _MonitoringPageState extends State<MonitoringPage> {
-  Timer? _timer;
-  Map<String, dynamic>? _payload;
-  String? _error;
+class _MainShellState extends State<_MainShell>
+    with SingleTickerProviderStateMixin {
+  late final List<_Tab> _tab;
+  late final AnimationController _pudar;
+  final Set<int> _dibuka = {0};
+  int _indeks = 0;
 
   @override
   void initState() {
     super.initState();
-    _refresh();
-    _timer = Timer.periodic(const Duration(seconds: 5), (_) => _refresh());
+    final role = apiService.role;
+    final kontrol = role == 'admin' || role == 'demo';
+    _tab = [
+      _Tab('Beranda', Icons.home_outlined, Icons.home_rounded,
+          (a) => DashboardPage(api: apiService, aktif: a)),
+      _Tab('Sensor', Icons.sensors_outlined, Icons.sensors_rounded,
+          (a) => SensorPage(api: apiService, aktif: a)),
+      if (kontrol)
+        _Tab('Kontrol', Icons.water_drop_outlined, Icons.water_drop_rounded,
+            (a) => WaterControlPage(api: apiService, aktif: a)),
+      _Tab('Tanam', Icons.spa_outlined, Icons.spa_rounded,
+          (a) => TanamPage(api: apiService, aktif: a)),
+      _Tab('Akun', Icons.person_outline_rounded, Icons.person_rounded,
+          (a) => ProfilPage(
+                api: apiService,
+                aktif: a,
+                onLogout: widget.onLogout,
+              )),
+    ];
+    _pudar = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 380),
+      value: 1,
+    );
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _pudar.dispose();
     super.dispose();
   }
 
-  /// Polling 5 detik. Lewat [ApiService] supaya pesan gagal sama dengan
-  /// halaman lain (Bahasa Indonesia, menyebut alamat backend), dan balasan
-  /// yang tidak sesuai kontrak ikut terdeteksi.
-  Future<void> _refresh() async {
-    try {
-      final data = await apiService.fetchLatestSensor();
-      if (!mounted) return;
-      setState(() {
-        _payload = data;
-        _error = null;
-      });
-    } on ApiException catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e.message;
-        _payload = null;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _error = 'Terjadi kesalahan tak terduga saat mengambil data sensor.';
-        _payload = null;
-      });
-    }
+  void _pilih(int i) {
+    if (i == _indeks) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _indeks = i;
+      _dibuka.add(i);
+    });
+    _pudar.forward(from: 0);
   }
 
   @override
   Widget build(BuildContext context) {
-    final online = _payload?['is_online'] == true;
-    final sensor =
-        (_payload?['sensor'] as Map<String, dynamic>?) ?? const {};
-    final water =
-        (_payload?['water_control'] as Map<String, dynamic>?) ?? const {};
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'GARAP',
-          style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.2),
-        ),
-        actions: [
-          IconButton(
-            onPressed: _refresh,
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Segarkan',
+      extendBody: true,
+      body: Stack(
+        children: [
+          FadeTransition(
+            opacity: CurvedAnimation(parent: _pudar, curve: Tok.ease),
+            child: IndexedStack(
+              index: _indeks,
+              children: [
+                for (var i = 0; i < _tab.length; i++)
+                  _dibuka.contains(i)
+                      ? _tab[i].bangun(i == _indeks)
+                      : const SizedBox.shrink(),
+              ],
+            ),
+          ),
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 0,
+            child: SafeArea(
+              top: false,
+              minimum: const EdgeInsets.only(bottom: 12),
+              child: _Dock(tab: _tab, indeks: _indeks, onPilih: _pilih),
+            ),
           ),
         ],
       ),
-      body: RefreshIndicator(
-        color: moss,
-        onRefresh: _refresh,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _StatusCard(online: online, error: _error),
-            const SizedBox(height: 12),
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.7,
-              children: [
-                _MetricCard(
-                    label: 'pH Air',
-                    value: _fmt(sensor['ph']),
-                    icon: Icons.science_outlined),
-                _MetricCard(
-                    label: 'Suhu Air',
-                    value: '${_fmt(sensor['waterTemp'])} °C',
-                    icon: Icons.thermostat_outlined),
-                _MetricCard(
-                    label: 'TDS',
-                    value: '${_fmt(sensor['tds'])} ppm',
-                    icon: Icons.grain_outlined),
-                _MetricCard(
-                    label: 'Suhu Udara',
-                    value: '${_fmt(sensor['airTemp'])} °C',
-                    icon: Icons.air_outlined),
-                _MetricCard(
-                    label: 'Kelembapan',
-                    value: '${_fmt(sensor['humidity'])} %',
-                    icon: Icons.water_drop_outlined),
-                _MetricCard(
-                    label: 'Level Air',
-                    value: '${sensor['water_level'] ?? '-'}',
-                    icon: Icons.waves_outlined),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Kontrol Air',
-                        style: TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 16)),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        _Chip(
-                            label: 'Mode: ${water['mode'] ?? '-'}',
-                            color: olive),
-                        const SizedBox(width: 8),
-                        _Chip(
-                            label: 'Katup: ${water['valve_state'] ?? '-'}',
-                            color: (water['valve_state'] == 'ON')
-                                ? moss
-                                : forest),
-                        const SizedBox(width: 8),
-                        _Chip(
-                            label: 'Cmd: ${water['command'] ?? '-'}',
-                            color: warning),
-                      ],
-                    ),
-                  ],
-                ),
+    );
+  }
+}
+
+class _Dock extends StatelessWidget {
+  const _Dock({required this.tab, required this.indeks, required this.onPilih});
+
+  final List<_Tab> tab;
+  final int indeks;
+  final ValueChanged<int> onPilih;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Tok.navy.withValues(alpha: 0.80),
+            Tok.navy2.withValues(alpha: 0.72),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x66071527),
+            blurRadius: 30,
+            spreadRadius: -6,
+            offset: Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          for (var i = 0; i < tab.length; i++)
+            Expanded(
+              flex: i == indeks ? 3 : 2,
+              child: _ItemDock(
+                tab: tab[i],
+                aktif: i == indeks,
+                onTap: () => onPilih(i),
               ),
             ),
-            const SizedBox(height: 12),
-            const Text(
-              'Backend: $apiBase · pembaruan otomatis tiap 5 detik',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Color(0xFF6B7A69), fontSize: 12),
-            ),
-          ],
-        ),
+        ],
       ),
-    );
-  }
-
-  String _fmt(dynamic v) {
-    if (v == null) return '-';
-    final d = double.tryParse(v.toString());
-    return d == null ? v.toString() : d.toStringAsFixed(1);
-  }
-}
-
-class _StatusCard extends StatelessWidget {
-  const _StatusCard({required this.online, this.error});
-
-  final bool online;
-  final String? error;
-
-  @override
-  Widget build(BuildContext context) {
-    final Color color = error != null
-        ? danger
-        : online
-            ? moss
-            : warning;
-    final String text = error != null
-        ? 'Terputus — $error'
-        : online
-            ? 'Terhubung — perangkat aktif'
-            : 'Perangkat tidak merespons (>2 menit)';
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(text,
-                  style: const TextStyle(fontWeight: FontWeight.w500)),
-            ),
-            Icon(online ? Icons.check_circle_outline : Icons.error_outline,
-                color: color),
-          ],
         ),
       ),
     );
   }
 }
 
-class _MetricCard extends StatelessWidget {
-  const _MetricCard(
-      {required this.label, required this.value, required this.icon});
+class _ItemDock extends StatelessWidget {
+  const _ItemDock({required this.tab, required this.aktif, required this.onTap});
 
-  final String label;
-  final String value;
-  final IconData icon;
+  final _Tab tab;
+  final bool aktif;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              children: [
-                Icon(icon, size: 16, color: olive),
+    return Semantics(
+      button: true,
+      selected: aktif,
+      label: tab.label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 320),
+          curve: Tok.ease,
+          height: 46,
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          decoration: BoxDecoration(
+            gradient: aktif ? Tok.activePill : null,
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: aktif
+                ? const [
+                    BoxShadow(
+                      color: Color(0x596B9D4A),
+                      blurRadius: 16,
+                      spreadRadius: -4,
+                      offset: Offset(0, 6),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                aktif ? tab.ikonAktif : tab.ikon,
+                size: 22,
+                color: aktif ? Colors.white : Colors.white.withValues(alpha: 0.62),
+              ),
+              if (aktif) ...[
                 const SizedBox(width: 6),
-                Text(label,
+                Flexible(
+                  child: Text(
+                    tab.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.clip,
+                    softWrap: false,
                     style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF6B7A69),
-                        fontWeight: FontWeight.w500)),
+                      color: Colors.white,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
               ],
-            ),
-            const SizedBox(height: 6),
-            Text(value,
-                style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: forest)),
-          ],
+            ],
+          ),
         ),
       ),
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  const _Chip({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: mint.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
-      ),
-      child: Text(label,
-          style: TextStyle(
-              fontSize: 12, fontWeight: FontWeight.w600, color: color)),
     );
   }
 }
