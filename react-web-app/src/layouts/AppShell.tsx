@@ -3,7 +3,6 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { SiteFooter } from '../components/SiteFooter'
 import { Monogram } from '../components/Monogram'
 import { DemoBanner } from '../components/DemoBanner'
-import { StatusBadge } from '../components/StatusBadge'
 import { useAuth } from '../lib/authContext'
 import type { Role } from '../lib/authTypes'
 import { useDialog } from '../lib/useDialog'
@@ -307,44 +306,48 @@ export function AppShell() {
         <main id="vsf-main" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-none">
           {/* QW6 — header responsif: hamburger di <lg, badge/clock disederhanakan.
               Chrome navy (token --navy/--navy2) + aksen emas. */}
-          <header className="vsf-topbar flex min-h-[64px] items-center gap-3 border-b border-white/10 bg-topbar px-4 text-white shadow-[0_16px_34px_-28px_rgba(7,21,39,.95)] sm:px-6">
-            <button
-              type="button"
-              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-std-sm border border-white/25 text-white transition-colors duration-[150ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-white/10 lg:hidden"
-              aria-expanded={navOpen}
-              aria-controls="vsf-sidebar"
-              aria-label={navOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
-              onClick={() => setNavOpen((v) => !v)}
-            >
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-                {navOpen ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
-              </svg>
-            </button>
-            <div className="min-w-0">
-              <h1 className="truncate text-[20px] font-bold leading-tight text-white sm:text-[24px]">{title}</h1>
-              <div className="vsf-eyebrow vsf-eyebrow-light hidden sm:block">GARAP · greenhouse hidroponik</div>
-            </div>
-            <div className="ml-auto flex items-center gap-3">
-              {/* S6 — status IoT dari data live /dashboard (lihat useApiObject di atas). */}
-              {dash && (
-                <span className="hidden md:inline-flex">
-                  <StatusBadge
-                    tone={iotOnline ? 'online' : 'offline'}
-                    label={iotOnline ? 'Alat Terhubung' : 'Alat Terputus'}
-                  />
-                </span>
-              )}
-              <span className="hidden font-mono text-[13px] tabular-nums text-white/75 sm:block">{clock}</span>
-              {/* Avatar inisial user (bukan emoji) + nama & role. */}
-              <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/10 py-1 pl-1 pr-3">
-                <span
-                  className="grid h-7 w-7 place-items-center rounded-full bg-emas text-[12px] font-bold uppercase leading-none text-navy"
-                  aria-hidden
-                >
-                  {inisial}
-                </span>
-                <span className="text-[13px] font-semibold text-white">{namaUser || role}</span>
-                <span className="hidden text-[11px] text-white/60 lg:block">{role}</span>
+          {/* Header — bilah liquid glass melayang (gaya sama dengan landing), tint navy lebih pekat
+              karena latar aplikasi terang. */}
+          <header className="vsf-topbar sticky top-0 z-20 px-3 pt-3 sm:px-6 sm:pt-4">
+            <div className="vsf-bilah vsf-bilah-app flex min-h-[60px] items-center gap-3 py-2 pl-2 pr-2 sm:pl-5">
+              <button
+                type="button"
+                className="vsf-bilah-tautan !min-h-[44px] !min-w-[44px] justify-center !px-0 lg:!hidden"
+                aria-expanded={navOpen}
+                aria-controls="vsf-sidebar"
+                aria-label={navOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
+                onClick={() => setNavOpen((v) => !v)}
+              >
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+                  {navOpen ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+                </svg>
+              </button>
+              <div className="min-w-0">
+                <h1 className="truncate text-[19px] font-bold leading-tight text-white sm:text-[22px]">{title}</h1>
+                <div className="hidden text-[12px] text-white/70 sm:block">GARAP · greenhouse hidroponik</div>
+              </div>
+              <div className="ml-auto flex items-center gap-2 sm:gap-3">
+                {/* S6 — status IoT dari data live /dashboard (lihat useApiObject di atas). */}
+                {dash && (
+                  <span className="hidden md:inline-flex">
+                    <span className="vsf-bilah-chip" role="status">
+                      <span className={`h-2 w-2 rounded-full ${iotOnline ? 'bg-emerald-400' : 'bg-rose-400'}`} aria-hidden />
+                      {iotOnline ? 'Alat terhubung' : 'Alat terputus'}
+                    </span>
+                  </span>
+                )}
+                <span className="hidden text-[14px] font-semibold tabular-nums text-white/85 sm:block">{clock}</span>
+                {/* Avatar inisial user (bukan emoji) + nama & role. */}
+                <div className="vsf-bilah-chip !gap-2 !py-1 !pl-1">
+                  <span
+                    className="grid h-8 w-8 place-items-center rounded-full bg-emas text-[12px] font-bold uppercase leading-none text-navy [text-shadow:none]"
+                    aria-hidden
+                  >
+                    {inisial}
+                  </span>
+                  <span className="text-[14px] font-semibold text-white">{namaUser || role}</span>
+                  <span className="hidden text-[12px] text-white/65 lg:block">{role}</span>
+                </div>
               </div>
             </div>
           </header>
@@ -378,7 +381,7 @@ export function AppShell() {
               <Outlet />
             </div>
           </div>
-          <SiteFooter />
+          <SiteFooter pekat />
         </main>
       </div>
 
