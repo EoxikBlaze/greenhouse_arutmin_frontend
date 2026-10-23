@@ -47,6 +47,7 @@ const API_PATHS = [
   '/ambang',
   '/watercontrol',
   '/laporan',
+  '/cctv',
   // ── Riwayat audit (khusus admin) — GET /audit-logs ──
   '/audit-logs',
   // ── Konfigurasi V2 (modul Dosing) — rute JSON tanpa halaman web ──

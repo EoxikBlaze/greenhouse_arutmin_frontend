@@ -1,112 +1,372 @@
-/** Ilustrasi: kamera CCTV + pancaran sinyal (SVG murni, bukan emoji). */
-function IlustrasiCctv() {
+import { useEffect, useState, type FormEvent } from 'react'
+import clsx from 'clsx'
+import { api } from '../lib/api'
+import { useAuth } from '../lib/authContext'
+import { fieldError, useApiError, useApiList } from '../lib/crudApi'
+
+/**
+ * CCTV greenhouse — papan kamera nyata.
+ *   GET /cctv (semua role) · POST/PUT/DELETE /cctv (admin; demo hanya baca)
+ * Browser menarik gambar LANGSUNG dari URL kamera:
+ *   - 'mjpeg'    → <img> aliran MJPEG (ESP32-CAM: http://IP:81/stream)
+ *   - 'snapshot' → <img> JPEG yang dimuat ulang tiap N detik (http://IP/capture)
+ * Catatan: bila aplikasi dibuka lewat HTTPS, URL kamera juga harus HTTPS
+ * (browser memblokir gambar http dari halaman https).
+ */
+
+type Kamera = {
+  id: number | string
+  nama: string
+  lokasi: string | null
+  tipe: 'mjpeg' | 'snapshot'
+  url: string
+  interval_detik: number
+  aktif: boolean
+}
+
+type Form = { nama: string; lokasi: string; tipe: 'mjpeg' | 'snapshot'; url: string; interval_detik: string; aktif: boolean }
+
+const KOSONG: Form = { nama: '', lokasi: '', tipe: 'snapshot', url: '', interval_detik: '5', aktif: true }
+
+function sambung(url: string, t: number) {
+  return `${url}${url.includes('?') ? '&' : '?'}_t=${t}`
+}
+
+/** Satu ubin kamera: status memuat / tayang / terputus. */
+function Ubin({ k, onPerbesar }: { k: Kamera; onPerbesar: (k: Kamera) => void }) {
+  const [tik, setTik] = useState(() => Date.now())
+  const [galat, setGalat] = useState(false)
+  const [muat, setMuat] = useState(true)
+  const [coba, setCoba] = useState(0)
+
+  // Snapshot: muat ulang berkala. MJPEG: satu sambungan, coba lagi manual.
+  useEffect(() => {
+    if (!k.aktif || k.tipe !== 'snapshot') return
+    const id = window.setInterval(() => setTik(Date.now()), Math.max(1, k.interval_detik) * 1000)
+    return () => window.clearInterval(id)
+  }, [k.aktif, k.tipe, k.interval_detik])
+
+  const src = k.tipe === 'snapshot' ? sambung(k.url, tik) : sambung(k.url, coba)
+  const status = !k.aktif ? 'nonaktif' : galat ? 'terputus' : muat ? 'memuat' : 'tayang'
+
   return (
-    <svg viewBox="0 0 180 118" className="mx-auto h-[104px] w-[168px]" aria-hidden="true" focusable="false">
-      <ellipse cx="90" cy="108" rx="60" ry="7" fill="#E2E8DD" />
-      {/* tiang + dudukan */}
-      <path d="M86 74h8v30h-8z" fill="#4C6A4B" />
-      <rect x="72" y="98" width="36" height="8" rx="4" fill="#CFE2CE" stroke="#6B9D4A" strokeWidth="2" />
-      {/* badan kamera */}
-      <g transform="rotate(-12 90 52)">
-        <rect x="52" y="38" width="66" height="30" rx="10" fill="#fff" stroke="#6B9D4A" strokeWidth="2" />
-        <rect x="114" y="44" width="14" height="18" rx="5" fill="#CFE2CE" stroke="#6B9D4A" strokeWidth="2" />
-        <circle cx="64" cy="53" r="7" fill="#2D452F" />
-        <circle cx="64" cy="53" r="3" fill="#CFE2CE" />
-        <path d="M78 46h30M78 60h22" stroke="#E2E8DD" strokeWidth="4" strokeLinecap="round" />
-      </g>
-      {/* pancaran sinyal */}
-      <path d="M132 34a16 16 0 0 1 0 22" fill="none" stroke="#6B9D4A" strokeWidth="2.4" strokeLinecap="round" />
-      <path d="M140 26a26 26 0 0 1 0 38" fill="none" stroke="#6B9D4A" strokeWidth="2.4" strokeLinecap="round" opacity=".65" />
-      <path d="M148 18a36 36 0 0 1 0 54" fill="none" stroke="#6B9D4A" strokeWidth="2.4" strokeLinecap="round" opacity=".35" />
-      {/* status merekam */}
-      <circle cx="40" cy="26" r="6" fill="#F59E0B" opacity=".85" />
-      <path d="M56 22h20M56 30h14" stroke="#E2E8DD" strokeWidth="4" strokeLinecap="round" />
-    </svg>
+    <article className="vsf-card overflow-hidden">
+      <div className="relative aspect-video w-full bg-navy">
+        {k.aktif ? (
+          <img
+            key={k.tipe === 'mjpeg' ? coba : 'snap'}
+            src={src}
+            alt={`Tayangan kamera ${k.nama}`}
+            className={clsx('h-full w-full object-cover', (galat || muat) && 'opacity-0')}
+            onLoad={() => {
+              setGalat(false)
+              setMuat(false)
+            }}
+            onError={() => {
+              setGalat(true)
+              setMuat(false)
+            }}
+          />
+        ) : null}
+        {status !== 'tayang' && (
+          <div className="absolute inset-0 grid place-items-center px-4 text-center text-[12.5px] text-white/75">
+            {status === 'memuat' && <span className="vsf-spinner" aria-label="Memuat tayangan" />}
+            {status === 'terputus' && (
+              <div>
+                <div className="font-bold text-white">Feed terputus</div>
+                <div className="mt-1">Periksa kamera dan URL-nya.</div>
+                <button
+                  type="button"
+                  className="vsf-btn-secondary mt-3 !min-h-[34px] !text-[12px]"
+                  onClick={() => {
+                    setGalat(false)
+                    setMuat(true)
+                    setCoba((n) => n + 1)
+                    setTik(Date.now())
+                  }}
+                >
+                  Coba lagi
+                </button>
+              </div>
+            )}
+            {status === 'nonaktif' && <div className="font-semibold">Kamera dinonaktifkan</div>}
+          </div>
+        )}
+        <span
+          className={clsx(
+            'absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold',
+            status === 'tayang' ? 'bg-black/55 text-white' : 'bg-black/45 text-white/80',
+          )}
+        >
+          <span
+            className={clsx(
+              'h-2 w-2 rounded-full',
+              status === 'tayang' ? 'bg-red-500' : status === 'terputus' ? 'bg-amber-400' : 'bg-slate-400',
+            )}
+            aria-hidden
+          />
+          {status === 'tayang' ? 'LIVE' : status === 'terputus' ? 'TERPUTUS' : status === 'memuat' ? 'MEMUAT' : 'MATI'}
+        </span>
+      </div>
+      <div className="flex items-center gap-2 p-3">
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[14px] font-bold text-tinta">{k.nama}</div>
+          <div className="truncate text-[12px] text-slate-500">
+            {k.lokasi || 'Tanpa lokasi'} · {k.tipe === 'mjpeg' ? 'Aliran MJPEG' : `Snapshot tiap ${k.interval_detik} dtk`}
+          </div>
+        </div>
+        <button
+          type="button"
+          className="vsf-btn-secondary !min-h-[36px] !text-[12px]"
+          disabled={!k.aktif}
+          onClick={() => onPerbesar(k)}
+        >
+          Perbesar
+        </button>
+      </div>
+    </article>
   )
 }
 
-/** Rencana rilis — ditandai jujur sebagai rencana, bukan fitur berjalan. */
-const RENCANA = [
-  {
-    judul: 'Papan kamera per lokasi',
-    teks: 'Daftar kamera greenhouse, nursery, tandon, dan pintu lengkap dengan status feed.',
-  },
-  {
-    judul: 'Pemutar & rekaman',
-    teks: 'Tonton aliran langsung, ambil snapshot, dan putar rekaman dari satu pemutar.',
-  },
-  {
-    judul: 'Peristiwa & notifikasi',
-    teks: 'Deteksi gerak dan feed terputus dikirim sebagai notifikasi.',
-  },
-]
-
 export default function CctvPage() {
+  const { role, demo } = useAuth()
+  const admin = role === 'admin' && !demo
+  const handleApiError = useApiError()
+  const { rows, loading, error, reload } = useApiList<Kamera>('/cctv')
+
+  const [besar, setBesar] = useState<Kamera | null>(null)
+  const [form, setForm] = useState<Form | null>(null)
+  const [editId, setEditId] = useState<number | string | null>(null)
+  const [fe, setFe] = useState<Record<string, string[]>>({})
+  const [simpan, setSimpan] = useState(false)
+  const [pesan, setPesan] = useState<{ ok: boolean; teks: string } | null>(null)
+
+  // Tutup tampilan besar dengan Esc.
+  useEffect(() => {
+    if (!besar) return
+    const h = (e: KeyboardEvent) => e.key === 'Escape' && setBesar(null)
+    window.addEventListener('keydown', h)
+    return () => window.removeEventListener('keydown', h)
+  }, [besar])
+
+  useEffect(() => {
+    if (!pesan) return
+    const id = window.setTimeout(() => setPesan(null), 5000)
+    return () => window.clearTimeout(id)
+  }, [pesan])
+
+  function buka(k?: Kamera) {
+    setFe({})
+    if (k) {
+      setEditId(k.id)
+      setForm({
+        nama: k.nama,
+        lokasi: k.lokasi ?? '',
+        tipe: k.tipe,
+        url: k.url,
+        interval_detik: String(k.interval_detik),
+        aktif: k.aktif,
+      })
+    } else {
+      setEditId(null)
+      setForm({ ...KOSONG })
+    }
+  }
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault()
+    if (!form || simpan) return
+    setSimpan(true)
+    setFe({})
+    const body = {
+      nama: form.nama,
+      lokasi: form.lokasi,
+      tipe: form.tipe,
+      url: form.url,
+      interval_detik: Number(form.interval_detik),
+      aktif: form.aktif,
+    }
+    try {
+      if (editId === null) await api.post('/cctv', body)
+      else await api.put(`/cctv/${editId}`, body)
+      setPesan({ ok: true, teks: editId === null ? 'Kamera ditambahkan.' : 'Kamera diperbarui.' })
+      setForm(null)
+      reload()
+    } catch (err) {
+      const f = handleApiError(err)
+      setFe(f.fieldErrors)
+      if (!Object.keys(f.fieldErrors).length) setPesan({ ok: false, teks: f.message })
+    } finally {
+      setSimpan(false)
+    }
+  }
+
+  async function hapus(k: Kamera) {
+    if (!window.confirm(`Hapus kamera “${k.nama}”?`)) return
+    try {
+      await api.delete(`/cctv/${k.id}`)
+      setPesan({ ok: true, teks: 'Kamera dihapus.' })
+      reload()
+    } catch (err) {
+      setPesan({ ok: false, teks: handleApiError(err).message })
+    }
+  }
+
+  const aktifN = rows.filter((k) => k.aktif).length
+
   return (
     <div className="mx-auto w-full max-w-[1180px] grid grid-cols-[minmax(0,1fr)] gap-4 vsf-stagger">
-      {/* Ringkas modul */}
       <section className="vsf-card w-full min-w-0 p-4">
-        <div className="flex flex-wrap items-start gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="min-w-0">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">CCTV greenhouse</div>
+            <div className="text-[11px] font-bold uppercase tracking-[.14em] text-slate-500">CCTV greenhouse</div>
             <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
-              Pantau kondisi greenhouse, nursery, dan area tandon lewat kamera — termasuk rekaman
-              dan pemberitahuan bila ada gerakan atau feed yang terputus.
+              Pantau greenhouse, nursery, dan area tandon. Tayangan ditarik langsung dari kamera di jaringan Anda.
             </p>
           </div>
           <span className="flex-1" />
-          <span className="vsf-pill border-arutmin-border bg-white text-slate-600">
-            <span className="vsf-dot mr-1 h-[7px] w-[7px] rounded-full bg-slate-400" aria-hidden="true" />
-            Segera hadir
+          <span className="vsf-pill border-arutmin-moss/50 bg-arutmin-mint/40 text-arutmin-forest">
+            {aktifN}/{rows.length} kamera aktif
           </span>
+          {admin && (
+            <button type="button" className="vsf-btn-primary" onClick={() => buka()}>
+              Tambah kamera
+            </button>
+          )}
         </div>
-      </section>
-
-      {/* Kartu Segera Hadir — rapi & jujur */}
-      <section className="vsf-card w-full min-w-0 p-6">
-        <div className="rounded-card border border-dashed border-arutmin-border px-4 py-8 text-center">
-          <IlustrasiCctv />
-          <div className="mx-auto mt-4 max-w-[560px]">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Status modul</div>
-            <h2 className="mt-1.5 text-[17px] font-bold text-slate-900">CCTV Segera Hadir</h2>
-            <p className="mt-2 text-[13px] leading-relaxed text-slate-600">
-              Modul ini belum berjalan: backend belum menyediakan rute untuk daftar kamera, aliran video,
-              maupun rekaman, dan belum ada perangkat yang terhubung. Karena itu papan kamera, tombol
-              rekam/snapshot, dan log peristiwa sengaja tidak ditampilkan — tidak ada yang terlihat aktif
-              padahal belum ada.
-            </p>
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-              <span className="vsf-pill border-slate-400/60 bg-slate-100 text-slate-700">Status: segera hadir</span>
-              <span className="vsf-pill border-arutmin-moss/50 bg-arutmin-mint/25 text-arutmin-forest">
-                Nanti tersedia untuk semua peran
-              </span>
-            </div>
+        {pesan && (
+          <div
+            role={pesan.ok ? 'status' : 'alert'}
+            className={clsx(
+              'vsf-banner mt-3 rounded-input border px-3 py-2 text-[13px]',
+              pesan.ok ? 'border-arutmin-moss/50 bg-arutmin-mint/40 text-arutmin-forest' : 'border-red-600/50 bg-red-50 text-red-700',
+            )}
+          >
+            {pesan.teks}
           </div>
-        </div>
+        )}
       </section>
 
-      {/* Rencana rilis */}
-      <section className="vsf-card w-full min-w-0 p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Rencana rilis</div>
-        <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 vsf-stagger">
-          {RENCANA.map((r) => (
-            <article key={r.judul} className="rounded-card border border-arutmin-border bg-white p-4">
-              <div className="flex items-center gap-2">
-                <svg viewBox="0 0 20 20" className="h-4 w-4 shrink-0" aria-hidden="true" focusable="false">
-                  <circle cx="10" cy="10" r="8" fill="#CFE2CE" stroke="#6B9D4A" strokeWidth="1.6" />
-                  <path d="M6.5 10.2l2.4 2.4 4.6-5" fill="none" stroke="#2D452F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span className="text-[13px] font-bold text-slate-900">{r.judul}</span>
-              </div>
-              <p className="mt-2 text-[12.5px] leading-relaxed text-slate-600">{r.teks}</p>
-            </article>
+      {form && admin && (
+        <section className="vsf-card w-full min-w-0 p-4" aria-labelledby="vsf-cctv-form">
+          <div id="vsf-cctv-form" className="text-[14px] font-bold text-tinta">
+            {editId === null ? 'Tambah kamera' : 'Ubah kamera'}
+          </div>
+          <form onSubmit={onSubmit} className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1 text-[12.5px] font-semibold text-slate-700">
+              Nama
+              <input className="vsf-input" value={form.nama} maxLength={100} required
+                aria-invalid={!!fieldError(fe, 'nama')}
+                onChange={(e) => setForm({ ...form, nama: e.target.value })} />
+              <span className="text-[12px] font-normal text-red-700">{fieldError(fe, 'nama')}</span>
+            </label>
+            <label className="grid gap-1 text-[12.5px] font-semibold text-slate-700">
+              Lokasi
+              <input className="vsf-input" value={form.lokasi} maxLength={100} placeholder="mis. Greenhouse A"
+                onChange={(e) => setForm({ ...form, lokasi: e.target.value })} />
+              <span className="text-[12px] font-normal text-red-700">{fieldError(fe, 'lokasi')}</span>
+            </label>
+            <label className="grid gap-1 text-[12.5px] font-semibold text-slate-700 sm:col-span-2">
+              URL kamera
+              <input className="vsf-input" value={form.url} required placeholder="http://192.168.1.50/capture"
+                aria-invalid={!!fieldError(fe, 'url')}
+                onChange={(e) => setForm({ ...form, url: e.target.value })} />
+              <span className="text-[12px] font-normal text-red-700">{fieldError(fe, 'url')}</span>
+            </label>
+            <label className="grid gap-1 text-[12.5px] font-semibold text-slate-700">
+              Jenis tayangan
+              <select className="vsf-input" value={form.tipe}
+                onChange={(e) => setForm({ ...form, tipe: e.target.value as Form['tipe'] })}>
+                <option value="snapshot">Snapshot (JPEG dimuat ulang)</option>
+                <option value="mjpeg">Aliran MJPEG</option>
+              </select>
+            </label>
+            <label className="grid gap-1 text-[12.5px] font-semibold text-slate-700">
+              Interval snapshot (detik)
+              <input className="vsf-input" type="number" min={1} max={60} value={form.interval_detik}
+                disabled={form.tipe !== 'snapshot'}
+                aria-invalid={!!fieldError(fe, 'interval_detik')}
+                onChange={(e) => setForm({ ...form, interval_detik: e.target.value })} />
+              <span className="text-[12px] font-normal text-red-700">{fieldError(fe, 'interval_detik')}</span>
+            </label>
+            <label className="flex items-center gap-2 text-[13px] font-semibold text-slate-700">
+              <input type="checkbox" checked={form.aktif} onChange={(e) => setForm({ ...form, aktif: e.target.checked })} />
+              Kamera aktif
+            </label>
+            <div className="flex justify-end gap-2 sm:col-span-2">
+              <button type="button" className="vsf-btn-secondary" onClick={() => setForm(null)}>Batal</button>
+              <button type="submit" className="vsf-btn-primary" disabled={simpan}>{simpan ? 'Menyimpan…' : 'Simpan'}</button>
+            </div>
+          </form>
+        </section>
+      )}
+
+      {loading ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="status" aria-label="Memuat daftar kamera">
+          {[0, 1, 2].map((i) => <div key={i} className="vsf-skeleton h-[220px] rounded-card" />)}
+        </div>
+      ) : error ? (
+        <div role="alert" className="vsf-card p-4 text-[13px] text-red-700">{error}</div>
+      ) : rows.length === 0 ? (
+        <section className="vsf-card w-full min-w-0 p-6">
+          <div className="rounded-card border border-dashed border-arutmin-border px-4 py-8 text-center">
+            <div className="text-[15px] font-bold text-tinta">Belum ada kamera</div>
+            <p className="mx-auto mt-1 max-w-[460px] text-[13px] text-slate-600">
+              {admin
+                ? 'Tambahkan kamera pertama dengan URL snapshot atau aliran MJPEG dari ESP32-CAM / IP camera.'
+                : 'Admin belum menambahkan kamera.'}
+            </p>
+          </div>
+        </section>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 vsf-stagger">
+          {rows.map((k) => (
+            <div key={k.id} className="min-w-0">
+              <Ubin k={k} onPerbesar={setBesar} />
+              {admin && (
+                <div className="mt-2 flex justify-end gap-2">
+                  <button type="button" className="vsf-btn-secondary !min-h-[34px] !text-[12px]" onClick={() => buka(k)}>Ubah</button>
+                  <button type="button" className="vsf-btn-danger !min-h-[34px] !text-[12px]" onClick={() => void hapus(k)}>Hapus</button>
+                </div>
+              )}
+            </div>
           ))}
         </div>
-        <div className="mt-2 text-[12px] text-slate-500">
-          Di atas adalah rencana rilis, bukan fitur yang sedang berjalan — tidak ada data yang dikirim ke server
-          dari halaman ini.
+      )}
+
+      {besar && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Tayangan besar ${besar.nama}`}
+          onMouseDown={(e) => e.target === e.currentTarget && setBesar(null)}
+        >
+          <div className="w-full max-w-[1000px]">
+            <div className="mb-2 flex items-center gap-2 text-white">
+              <div className="min-w-0 flex-1 truncate text-[15px] font-bold">{besar.nama}</div>
+              <button type="button" className="vsf-btn-secondary" onClick={() => setBesar(null)}>Tutup</button>
+            </div>
+            <BesarGambar k={besar} />
+          </div>
         </div>
-      </section>
+      )}
     </div>
+  )
+}
+
+function BesarGambar({ k }: { k: Kamera }) {
+  const [tik, setTik] = useState(() => Date.now())
+  useEffect(() => {
+    if (k.tipe !== 'snapshot') return
+    const id = window.setInterval(() => setTik(Date.now()), Math.max(1, k.interval_detik) * 1000)
+    return () => window.clearInterval(id)
+  }, [k.tipe, k.interval_detik])
+  return (
+    <img
+      src={sambung(k.url, k.tipe === 'snapshot' ? tik : 0)}
+      alt={`Tayangan kamera ${k.nama}`}
+      className="max-h-[80dvh] w-full rounded-card bg-navy object-contain"
+    />
   )
 }
