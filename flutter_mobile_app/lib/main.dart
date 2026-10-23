@@ -11,6 +11,7 @@ import 'pages/tanam_page.dart';
 import 'pages/watercontrol_page.dart';
 import 'services/api_service.dart';
 import 'theme/tokens.dart';
+import 'widgets/kaca.dart';
 
 /// GARAP — monitoring greenhouse hidroponik (Arutmin: navy, emas, moss).
 /// Terhubung ke backend Node.js lokal: http://127.0.0.1:8000
@@ -32,9 +33,9 @@ ThemeData _buatTema() {
     error: Tok.error,
   );
   OutlineInputBorder garis(Color c, [double w = 1]) => OutlineInputBorder(
-        borderRadius: BorderRadius.circular(Tok.rSm),
-        borderSide: BorderSide(color: c, width: w),
-      );
+    borderRadius: BorderRadius.circular(Tok.rSm),
+    borderSide: BorderSide(color: c, width: w),
+  );
 
   return ThemeData(
     useMaterial3: true,
@@ -196,21 +197,37 @@ class _MainShellState extends State<_MainShell>
     final role = apiService.role;
     final kontrol = role == 'admin' || role == 'demo';
     _tab = [
-      _Tab('Beranda', Icons.home_outlined, Icons.home_rounded,
-          (a) => DashboardPage(api: apiService, aktif: a)),
-      _Tab('Sensor', Icons.sensors_outlined, Icons.sensors_rounded,
-          (a) => SensorPage(api: apiService, aktif: a)),
+      _Tab(
+        'Beranda',
+        Icons.home_outlined,
+        Icons.home_rounded,
+        (a) => DashboardPage(api: apiService, aktif: a),
+      ),
+      _Tab(
+        'Sensor',
+        Icons.sensors_outlined,
+        Icons.sensors_rounded,
+        (a) => SensorPage(api: apiService, aktif: a),
+      ),
       if (kontrol)
-        _Tab('Kontrol', Icons.water_drop_outlined, Icons.water_drop_rounded,
-            (a) => WaterControlPage(api: apiService, aktif: a)),
-      _Tab('Tanam', Icons.spa_outlined, Icons.spa_rounded,
-          (a) => TanamPage(api: apiService, aktif: a)),
-      _Tab('Akun', Icons.person_outline_rounded, Icons.person_rounded,
-          (a) => ProfilPage(
-                api: apiService,
-                aktif: a,
-                onLogout: widget.onLogout,
-              )),
+        _Tab(
+          'Kontrol',
+          Icons.water_drop_outlined,
+          Icons.water_drop_rounded,
+          (a) => WaterControlPage(api: apiService, aktif: a),
+        ),
+      _Tab(
+        'Tanam',
+        Icons.spa_outlined,
+        Icons.spa_rounded,
+        (a) => TanamPage(api: apiService, aktif: a),
+      ),
+      _Tab(
+        'Akun',
+        Icons.person_outline_rounded,
+        Icons.person_rounded,
+        (a) => ProfilPage(api: apiService, aktif: a, onLogout: widget.onLogout),
+      ),
     ];
     _pudar = AnimationController(
       vsync: this,
@@ -241,6 +258,8 @@ class _MainShellState extends State<_MainShell>
       extendBody: true,
       body: Stack(
         children: [
+          // satu latar cair untuk semua tab — panel kaca di tiap halaman tampil di atasnya
+          const Positioned.fill(child: LatarCair()),
           FadeTransition(
             opacity: CurvedAnimation(parent: _pudar, curve: Tok.ease),
             child: IndexedStack(
@@ -283,40 +302,40 @@ class _Dock extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: Container(
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Tok.navy.withValues(alpha: 0.80),
-            Tok.navy2.withValues(alpha: 0.72),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x66071527),
-            blurRadius: 30,
-            spreadRadius: -6,
-            offset: Offset(0, 14),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          for (var i = 0; i < tab.length; i++)
-            Expanded(
-              flex: i == indeks ? 3 : 2,
-              child: _ItemDock(
-                tab: tab[i],
-                aktif: i == indeks,
-                onTap: () => onPilih(i),
-              ),
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Tok.navy.withValues(alpha: 0.80),
+                Tok.navy2.withValues(alpha: 0.72),
+              ],
             ),
-        ],
-      ),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x66071527),
+                blurRadius: 30,
+                spreadRadius: -6,
+                offset: Offset(0, 14),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              for (var i = 0; i < tab.length; i++)
+                Expanded(
+                  flex: i == indeks ? 3 : 2,
+                  child: _ItemDock(
+                    tab: tab[i],
+                    aktif: i == indeks,
+                    onTap: () => onPilih(i),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -324,7 +343,11 @@ class _Dock extends StatelessWidget {
 }
 
 class _ItemDock extends StatelessWidget {
-  const _ItemDock({required this.tab, required this.aktif, required this.onTap});
+  const _ItemDock({
+    required this.tab,
+    required this.aktif,
+    required this.onTap,
+  });
 
   final _Tab tab;
   final bool aktif;
@@ -364,7 +387,9 @@ class _ItemDock extends StatelessWidget {
               Icon(
                 aktif ? tab.ikonAktif : tab.ikon,
                 size: 22,
-                color: aktif ? Colors.white : Colors.white.withValues(alpha: 0.62),
+                color: aktif
+                    ? Colors.white
+                    : Colors.white.withValues(alpha: 0.62),
               ),
               if (aktif) ...[
                 const SizedBox(width: 6),

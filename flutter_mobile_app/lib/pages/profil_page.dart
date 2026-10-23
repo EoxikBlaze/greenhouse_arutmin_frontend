@@ -9,8 +9,9 @@ import 'asisten_page.dart';
 import 'cctv_page.dart';
 import 'meja_page.dart';
 import 'riwayat_monitoring_page.dart';
+import 'tentang_page.dart';
 
-/// Akun — profil, ganti kata sandi, pintasan Meja / Riwayat, dan keluar.
+/// Akun — profil, ganti kata sandi, pintasan Meja / Riwayat, pengaturan (Tentang Kami), dan keluar.
 class ProfilPage extends StatefulWidget {
   const ProfilPage({
     super.key,
@@ -133,8 +134,8 @@ class _ProfilPageState extends State<ProfilPage> {
             teks: role == 'admin'
                 ? 'Administrator'
                 : demo
-                    ? 'Akun demo'
-                    : 'Petani',
+                ? 'Akun demo'
+                : 'Petani',
           ),
         ),
         Padding(
@@ -198,7 +199,10 @@ class _ProfilPageState extends State<ProfilPage> {
                 ),
               ),
               const SizedBox(height: 22),
-              FadeUp(delay: FadeUp.urutan(2), child: const Eyebrow('Data profil')),
+              FadeUp(
+                delay: FadeUp.urutan(2),
+                child: const Eyebrow('Data profil'),
+              ),
               const SizedBox(height: 10),
               FadeUp(
                 delay: FadeUp.urutan(3),
@@ -243,7 +247,10 @@ class _ProfilPageState extends State<ProfilPage> {
                 ),
               ),
               const SizedBox(height: 22),
-              FadeUp(delay: FadeUp.urutan(4), child: const Eyebrow('Kata sandi')),
+              FadeUp(
+                delay: FadeUp.urutan(4),
+                child: const Eyebrow('Kata sandi'),
+              ),
               const SizedBox(height: 10),
               FadeUp(
                 delay: FadeUp.urutan(5),
@@ -283,10 +290,14 @@ class _ProfilPageState extends State<ProfilPage> {
                           enabled: !demo,
                           decoration: const InputDecoration(
                             labelText: 'Ulangi kata sandi baru',
-                            prefixIcon: Icon(Icons.verified_user_outlined, size: 20),
+                            prefixIcon: Icon(
+                              Icons.verified_user_outlined,
+                              size: 20,
+                            ),
                           ),
-                          validator: (v) =>
-                              v != _baru.text ? 'Tidak sama dengan kata sandi baru.' : null,
+                          validator: (v) => v != _baru.text
+                              ? 'Tidak sama dengan kata sandi baru.'
+                              : null,
                         ),
                         const SizedBox(height: 16),
                         TombolGradasi(
@@ -309,6 +320,27 @@ class _ProfilPageState extends State<ProfilPage> {
               const SizedBox(height: 22),
               FadeUp(
                 delay: FadeUp.urutan(6),
+                child: const Eyebrow('Pengaturan'),
+              ),
+              const SizedBox(height: 10),
+              FadeUp(
+                delay: FadeUp.urutan(7),
+                child: Panel(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: _Pintas(
+                    ikon: Icons.info_outline_rounded,
+                    label: 'Tentang Kami',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const TentangPage(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 22),
+              FadeUp(
+                delay: FadeUp.urutan(8),
                 child: SizedBox(
                   width: double.infinity,
                   height: 50,

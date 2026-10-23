@@ -4,7 +4,6 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/brand.dart';
-import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
 import 'asisten_page.dart';
 import 'cctv_page.dart';
@@ -56,7 +55,9 @@ class _DashboardPageState extends State<DashboardPage> {
       if (!mounted) return;
       setState(() {
         _data = d is Map<String, dynamic> ? d : null;
-        _galat = _data == null ? 'Respons dashboard tidak sesuai kontrak.' : null;
+        _galat = _data == null
+            ? 'Respons dashboard tidak sesuai kontrak.'
+            : null;
         _memuat = false;
       });
     } on ApiException catch (e) {
@@ -77,34 +78,33 @@ class _DashboardPageState extends State<DashboardPage> {
 
     return Stack(
       children: [
-        const Positioned.fill(child: LatarCair()),
         RefreshIndicator(
-      color: Tok.moss,
-      onRefresh: () => _muat(senyap: true),
-      child: ListView(
-        padding: EdgeInsets.zero,
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: [
-          HeroHeader(
-            judul: '${sapaanWaktu()}, $nama',
-            subjudul: 'Ringkasan greenhouse hari ini',
-            bawah: _data == null
-                ? null
-                : StatusPill(
-                    terang: true,
-                    berdenyut: online,
-                    warna: online ? Tok.moss : Tok.warning,
-                    teks: online
-                        ? 'Perangkat IoT online'
-                        : 'IoT offline · ${iot is Map ? (iot['diff_text'] ?? '-') : '-'}',
-                  ),
+          color: Tok.moss,
+          onRefresh: () => _muat(senyap: true),
+          child: ListView(
+            padding: EdgeInsets.zero,
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              HeroHeader(
+                judul: '${sapaanWaktu()}, $nama',
+                subjudul: 'Ringkasan greenhouse hari ini',
+                bawah: _data == null
+                    ? null
+                    : StatusPill(
+                        terang: true,
+                        berdenyut: online,
+                        warna: online ? Tok.moss : Tok.warning,
+                        teks: online
+                            ? 'Perangkat IoT online'
+                            : 'IoT offline · ${iot is Map ? (iot['diff_text'] ?? '-') : '-'}',
+                      ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 18, 16, 120),
+                child: _isi(),
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 18, 16, 120),
-            child: _isi(),
-          ),
-        ],
-      ),
         ),
       ],
     );
@@ -128,8 +128,12 @@ class _DashboardPageState extends State<DashboardPage> {
     final d = _data!;
     final sensor = d['latest_sensor'];
     final wc = d['water_control'];
-    final alerts = d['recent_alerts'] is List ? d['recent_alerts'] as List : const [];
-    final panen = d['recent_panen'] is List ? d['recent_panen'] as List : const [];
+    final alerts = d['recent_alerts'] is List
+        ? d['recent_alerts'] as List
+        : const [];
+    final panen = d['recent_panen'] is List
+        ? d['recent_panen'] as List
+        : const [];
 
     int n(String k) => (keDouble(d[k]) ?? 0).round();
 
@@ -137,8 +141,12 @@ class _DashboardPageState extends State<DashboardPage> {
       _Stat('Tanaman', n('total_tanaman'), Icons.eco_outlined, Tok.moss),
       _Stat('Meja', n('total_meja'), Icons.grid_view_rounded, Tok.navy3),
       _Stat('Siklus', n('total_siklus'), Icons.autorenew_rounded, Tok.olive),
-      _Stat('Total panen', n('total_panen_qty'), Icons.shopping_basket_outlined,
-          Tok.warning),
+      _Stat(
+        'Total panen',
+        n('total_panen_qty'),
+        Icons.shopping_basket_outlined,
+        Tok.warning,
+      ),
     ];
 
     var i = 0;
@@ -183,10 +191,7 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ),
         const SizedBox(height: 22),
-        FadeUp(
-          delay: FadeUp.urutan(4),
-          child: const Eyebrow('Siklus tanam'),
-        ),
+        FadeUp(delay: FadeUp.urutan(4), child: const Eyebrow('Siklus tanam')),
         const SizedBox(height: 10),
         FadeUp(
           delay: FadeUp.urutan(5),
@@ -194,27 +199,46 @@ class _DashboardPageState extends State<DashboardPage> {
             child: Row(
               children: [
                 _Tahap('Semai', n('semai_aktif'), n('total_semai')),
-                _Tahap('Peremajaan', n('peremajaan_aktif'), n('total_peremajaan')),
-                _Tahap('Pendewasaan', n('pendewasaan_aktif'),
-                    n('total_pendewasaan')),
+                _Tahap(
+                  'Peremajaan',
+                  n('peremajaan_aktif'),
+                  n('total_peremajaan'),
+                ),
+                _Tahap(
+                  'Pendewasaan',
+                  n('pendewasaan_aktif'),
+                  n('total_pendewasaan'),
+                ),
               ],
             ),
           ),
         ),
         if (sensor is Map) ...[
           const SizedBox(height: 22),
-          FadeUp(delay: FadeUp.urutan(6), child: const Eyebrow('Sensor terakhir')),
+          FadeUp(
+            delay: FadeUp.urutan(6),
+            child: const Eyebrow('Sensor terakhir'),
+          ),
           const SizedBox(height: 10),
-          FadeUp(delay: FadeUp.urutan(7), child: _RingkasSensor(sensor: sensor)),
+          FadeUp(
+            delay: FadeUp.urutan(7),
+            child: _RingkasSensor(sensor: sensor),
+          ),
         ],
         if (wc is Map) ...[
           const SizedBox(height: 22),
           FadeUp(delay: FadeUp.urutan(8), child: const Eyebrow('Kontrol air')),
           const SizedBox(height: 10),
-          FadeUp(delay: FadeUp.urutan(9), child: _RingkasAir(wc: wc)),
+          FadeUp(
+            delay: FadeUp.urutan(9),
+            child: _RingkasAir(wc: wc),
+          ),
         ],
         const SizedBox(height: 22),
-        FadeUp(delay: FadeUp.urutan(10), child: const Eyebrow('Peringatan terbaru')),
+        FadeUp(
+          delay: FadeUp.urutan(10),
+          child: const Eyebrow('Peringatan terbaru'),
+        ),
         const SizedBox(height: 10),
         FadeUp(
           delay: FadeUp.urutan(11),
@@ -275,9 +299,9 @@ class _Cepat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Panel(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => tujuan),
-      ),
+      onTap: () =>
+          Navigator.of(context)
+              .push(MaterialPageRoute<void>(builder: (_) => tujuan)),
       child: Row(
         children: [
           Icon(ikon, color: Tok.mossGelap),
@@ -311,7 +335,6 @@ class _KartuStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Panel(
-      kaca: true,
       padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -436,7 +459,10 @@ class _RingkasSensor extends StatelessWidget {
               for (final it in item)
                 Container(
                   width: 96,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: Tok.page,
                     borderRadius: BorderRadius.circular(Tok.r),

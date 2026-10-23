@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../models/monitoring_entry.dart';
 import '../services/api_service.dart';
+import '../widgets/brand.dart';
+import '../widgets/kaca.dart';
 
 /// Riwayat monitoring — GET /monitoring/chart-data (butuh token).
 class RiwayatMonitoringPage extends StatefulWidget {
@@ -70,25 +72,9 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
     if (_loading && _items == null && _error == null) {
       body = const Center(child: CircularProgressIndicator());
     } else if (_error != null) {
-      body = Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.cloud_off_outlined,
-                  size: 40, color: Color(0xFFC0392B)),
-              const SizedBox(height: 12),
-              Text(_error!, textAlign: TextAlign.center),
-              const SizedBox(height: 16),
-              FilledButton.icon(
-                onPressed: _load,
-                icon: const Icon(Icons.refresh, size: 18),
-                label: const Text('Coba lagi'),
-              ),
-            ],
-          ),
-        ),
+      body = ListView(
+        padding: const EdgeInsets.all(16),
+        children: [ErrorPanel(pesan: _error!, onCoba: _load)],
       );
     } else if (_items == null || _items!.isEmpty) {
       body = const Center(child: Text('Belum ada data monitoring.'));
@@ -103,31 +89,39 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
             if (i == 0) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: Text('${_items!.length} catatan sensor terbaru',
-                    style: Theme.of(context).textTheme.bodySmall),
+                child: Text(
+                  '${_items!.length} catatan sensor terbaru',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               );
             }
             final e = _items![i - 1];
-            return Card(
-              margin: const EdgeInsets.only(bottom: 10),
-              child: Padding(
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Panel(
                 padding: const EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.monitor_heart_outlined,
-                            size: 16, color: scheme.primary),
+                        Icon(
+                          Icons.monitor_heart_outlined,
+                          size: 16,
+                          color: scheme.primary,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(_waktu(e.createdAt),
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w600)),
+                          child: Text(
+                            _waktu(e.createdAt),
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
                         ),
                         if (e.idMeja != null)
-                          Text('Meja ${e.idMeja}',
-                              style: Theme.of(context).textTheme.bodySmall),
+                          Text(
+                            'Meja ${e.idMeja}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -153,20 +147,22 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
 
     return Scaffold(
       appBar: AppBar(title: const Text('Riwayat Monitoring')),
-      body: body,
+      body: LatarHalaman(child: body),
     );
   }
 
   Widget _kv(String label, String nilai) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(label,
-              style:
-                  const TextStyle(fontSize: 11, color: Color(0xFF6B7A69))),
-          Text(nilai,
-              style:
-                  const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(fontSize: 11, color: Color(0xFF6B7A69)),
+      ),
+      Text(
+        nilai,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      ),
+    ],
+  );
 }

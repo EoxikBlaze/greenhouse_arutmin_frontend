@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../widgets/brand.dart';
+import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
 
 /// Chat dengan asisten AI — POST /api/ai/chat (admin & petani; demo ditolak).
@@ -86,10 +87,9 @@ _HasilMd _ekstrakMarkdown(String teks) {
       var j = i + 2;
       while (j < baris.length && baris[j].contains('|')) {
         final c = sel(baris[j]);
-        isi.add(List<String>.generate(
-          kolom.length,
-          (k) => k < c.length ? c[k] : '-',
-        ));
+        isi.add(
+          List<String>.generate(kolom.length, (k) => k < c.length ? c[k] : '-'),
+        );
         j++;
       }
       if (kolom.length >= 2 && isi.isNotEmpty) {
@@ -118,10 +118,12 @@ List<_Tabel> _uraiTabel(dynamic v) {
     if (t['baris'] is List) {
       for (final b in t['baris'] as List) {
         if (b is! List) continue;
-        baris.add(List<String>.generate(
-          kolom.length,
-          (i) => i < b.length ? '${b[i]}' : '-',
-        ));
+        baris.add(
+          List<String>.generate(
+            kolom.length,
+            (i) => i < b.length ? '${b[i]}' : '-',
+          ),
+        );
       }
     }
     out.add(_Tabel('${t['judul'] ?? 'Tabel'}', kolom, baris));
@@ -191,11 +193,10 @@ class _AsistenPageState extends State<AsistenPage> {
 
     try {
       // Ollama bisa butuh hingga ±30 dtk → batas tunggu lebih longgar.
-      final d = await widget.api.postJson(
-        '/api/ai/chat',
-        {'pesan': t, 'riwayat': riwayat},
-        const Duration(seconds: 45),
-      );
+      final d = await widget.api.postJson('/api/ai/chat', {
+        'pesan': t,
+        'riwayat': riwayat,
+      }, const Duration(seconds: 45));
       if (!mounted) return;
       final map = d is Map ? d : const {};
       setState(() {
@@ -209,13 +210,15 @@ class _AsistenPageState extends State<AsistenPage> {
             teksJawab = e.teks.isEmpty ? 'Berikut tabelnya.' : e.teks;
           }
         }
-        _pesan.add(_Pesan(
-          teksJawab,
-          dariUser: false,
-          sumber: map['sumber'] is String ? map['sumber'] as String : null,
-          status: map['status'] is String ? map['status'] as String : null,
-          tabel: tabelJawab,
-        ));
+        _pesan.add(
+          _Pesan(
+            teksJawab,
+            dariUser: false,
+            sumber: map['sumber'] is String ? map['sumber'] as String : null,
+            status: map['status'] is String ? map['status'] as String : null,
+            tabel: tabelJawab,
+          ),
+        );
         _memuat = false;
       });
     } on ApiException catch (e) {
@@ -231,7 +234,6 @@ class _AsistenPageState extends State<AsistenPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Tok.page,
       appBar: AppBar(
         title: const Text('Asisten AI'),
         actions: [
@@ -243,88 +245,95 @@ class _AsistenPageState extends State<AsistenPage> {
             ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: _pesan.isEmpty
-                ? _Kosong(onSaran: _kirim, saran: _saran)
-                : ListView.builder(
-                    controller: _gulir,
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    itemCount: _pesan.length + (_memuat ? 1 : 0),
-                    itemBuilder: (context, i) {
-                      if (i == _pesan.length) return const _Mengetik();
-                      return _Gelembung(_pesan[i]);
-                    },
-                  ),
-          ),
-          SizedBox(
-            height: 40,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              children: [
-                for (final x in _pintasan)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ActionChip(
-                      label: Text(x.label, style: const TextStyle(fontSize: 12)),
-                      backgroundColor: Colors.white,
-                      side: const BorderSide(color: Tok.garis),
-                      onPressed: _memuat ? null : () => _kirim(x.pesan),
+      body: LatarHalaman(
+        child: Column(
+          children: [
+            Expanded(
+              child: _pesan.isEmpty
+                  ? _Kosong(onSaran: _kirim, saran: _saran)
+                  : ListView.builder(
+                      controller: _gulir,
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      itemCount: _pesan.length + (_memuat ? 1 : 0),
+                      itemBuilder: (context, i) {
+                        if (i == _pesan.length) return const _Mengetik();
+                        return _Gelembung(_pesan[i]);
+                      },
                     ),
-                  ),
-              ],
             ),
-          ),
-          SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+            SizedBox(
+              height: 40,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _ctrl,
-                      minLines: 1,
-                      maxLines: 4,
-                      maxLength: _batas,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: _kirim,
-                      decoration: const InputDecoration(
-                        hintText: 'Tulis pertanyaan…',
-                        counterText: '',
+                  for (final x in _pintasan)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ActionChip(
+                        label: Text(
+                          x.label,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        backgroundColor: Colors.white,
+                        side: const BorderSide(color: Tok.garis),
+                        onPressed: _memuat ? null : () => _kirim(x.pesan),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 50,
-                    height: 50,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          gradient: Tok.primary,
-                          borderRadius: BorderRadius.circular(Tok.rSm),
+                ],
+              ),
+            ),
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _ctrl,
+                        minLines: 1,
+                        maxLines: 4,
+                        maxLength: _batas,
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: _kirim,
+                        decoration: const InputDecoration(
+                          hintText: 'Tulis pertanyaan…',
+                          counterText: '',
                         ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(Tok.rSm),
-                          onTap: _memuat ? null : () => _kirim(_ctrl.text),
-                          child: Icon(
-                            Icons.send_rounded,
-                            color: Colors.white.withValues(alpha: _memuat ? 0.5 : 1),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 50,
+                      height: 50,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            gradient: Tok.primary,
+                            borderRadius: BorderRadius.circular(Tok.rSm),
+                          ),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(Tok.rSm),
+                            onTap: _memuat ? null : () => _kirim(_ctrl.text),
+                            child: Icon(
+                              Icons.send_rounded,
+                              color: Colors.white.withValues(
+                                alpha: _memuat ? 0.5 : 1,
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -388,13 +397,13 @@ class _Gelembung extends StatelessWidget {
     final Color latar = user
         ? Tok.forest
         : p.galat
-            ? Tok.error.withValues(alpha: 0.08)
-            : Colors.white;
+        ? Tok.error.withValues(alpha: 0.08)
+        : Colors.white;
     final Color teks = user
         ? Colors.white
         : p.galat
-            ? Tok.error
-            : Tok.tinta;
+        ? Tok.error
+        : Tok.tinta;
     return FadeUp(
       dy: 10,
       duration: const Duration(milliseconds: 360),
@@ -404,7 +413,8 @@ class _Gelembung extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           constraints: BoxConstraints(
-            maxWidth: MediaQuery.sizeOf(context).width *
+            maxWidth:
+                MediaQuery.sizeOf(context).width *
                 (p.tabel.isNotEmpty ? 0.94 : 0.82),
           ),
           decoration: BoxDecoration(
@@ -418,7 +428,9 @@ class _Gelembung extends StatelessWidget {
             border: user
                 ? null
                 : Border.all(
-                    color: p.galat ? Tok.error.withValues(alpha: 0.3) : Tok.garis,
+                    color: p.galat
+                        ? Tok.error.withValues(alpha: 0.3)
+                        : Tok.garis,
                   ),
           ),
           child: Column(
@@ -479,8 +491,8 @@ class _LencanaStatus extends StatelessWidget {
     final Color warna = status == 'KRITIS'
         ? Tok.error
         : status == 'PERHATIAN'
-            ? Tok.warning
-            : Tok.mossGelap;
+        ? Tok.warning
+        : Tok.mossGelap;
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Container(

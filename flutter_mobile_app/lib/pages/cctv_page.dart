@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../widgets/brand.dart';
+import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
 
 /// CCTV — daftar kamera dari GET /cctv. Snapshot/MJPEG ditarik langsung dari
@@ -61,15 +62,16 @@ class _CctvPageState extends State<CctvPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Tok.page,
       appBar: AppBar(title: const Text('CCTV greenhouse')),
-      body: RefreshIndicator(
-        color: Tok.moss,
-        onRefresh: () => _muat(senyap: true),
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          children: _isi(),
+      body: LatarHalaman(
+        child: RefreshIndicator(
+          color: Tok.moss,
+          onRefresh: () => _muat(senyap: true),
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            children: _isi(),
+          ),
         ),
       ),
     );
@@ -324,12 +326,26 @@ class _SnapshotViewState extends State<_SnapshotView> {
           _sambung(widget.url, _tik),
           fit: BoxFit.cover,
           gaplessPlayback: true,
+          // label LIVE hanya setelah frame pertama benar-benar tampil (dulu muncul di atas kotak kosong)
+          frameBuilder: (context, child, frame, sinkron) {
+            if (frame == null) {
+              return const Center(
+                child: CircularProgressIndicator(color: Colors.white70),
+              );
+            }
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                child,
+                const Positioned(left: 10, top: 10, child: _Live()),
+              ],
+            );
+          },
           errorBuilder: (context, error, stack) => _Terputus(
             onCoba: () =>
                 setState(() => _tik = DateTime.now().millisecondsSinceEpoch),
           ),
         ),
-        const Positioned(left: 10, top: 10, child: _Live()),
       ],
     );
   }

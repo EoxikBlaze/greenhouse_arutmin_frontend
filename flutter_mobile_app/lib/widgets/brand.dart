@@ -100,12 +100,10 @@ class _PipeFlowState extends State<PipeFlow>
 
   @override
   Widget build(BuildContext context) {
-    final Animation<double> anim = _c ?? const AlwaysStoppedAnimation<double>(0);
+    final Animation<double> anim =
+        _c ?? const AlwaysStoppedAnimation<double>(0);
     return IgnorePointer(
-      child: CustomPaint(
-        painter: _PipePainter(anim),
-        size: Size.infinite,
-      ),
+      child: CustomPaint(painter: _PipePainter(anim), size: Size.infinite),
     );
   }
 }
@@ -187,7 +185,9 @@ class HeroHeader extends StatelessWidget {
         borderRadius: radius,
         child: Stack(
           children: [
-            const Positioned.fill(child: Opacity(opacity: 0.9, child: PipeFlow())),
+            const Positioned.fill(
+              child: Opacity(opacity: 0.9, child: PipeFlow()),
+            ),
             Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(
@@ -265,10 +265,7 @@ class HeroHeader extends StatelessWidget {
                         ],
                       ],
                     ),
-                    if (bawah != null) ...[
-                      const SizedBox(height: 18),
-                      bawah!,
-                    ],
+                    if (bawah != null) ...[const SizedBox(height: 18), bawah!],
                   ],
                 ),
               ),
@@ -280,8 +277,9 @@ class HeroHeader extends StatelessWidget {
   }
 }
 
-/// Permukaan kartu standar web (`vsf-card`): putih, border hijau tipis,
-/// bayangan lembut. Bila [onTap] diisi, kartu ikut efek tekan.
+/// Permukaan kartu standar. Bawaan: Liquid Glass ([KacaCair]) di atas [LatarCair].
+/// Panel dengan [warnaTepi] (peringatan) tetap solid agar menonjol.
+/// Bila [onTap] diisi, kartu ikut efek tekan.
 class Panel extends StatelessWidget {
   const Panel({
     super.key,
@@ -289,7 +287,7 @@ class Panel extends StatelessWidget {
     this.padding = const EdgeInsets.all(16),
     this.onTap,
     this.warnaTepi,
-    this.kaca = false,
+    this.kaca = true,
   });
 
   final Widget child;
@@ -297,12 +295,12 @@ class Panel extends StatelessWidget {
   final VoidCallback? onTap;
   final Color? warnaTepi;
 
-  /// true = permukaan Liquid Glass (taruh di atas [LatarCair]).
+  /// true (bawaan) = permukaan Liquid Glass; false = kartu putih solid.
   final bool kaca;
 
   @override
   Widget build(BuildContext context) {
-    if (kaca) {
+    if (kaca && warnaTepi == null) {
       return KacaCair(padding: padding, onTap: onTap, child: child);
     }
     final kotak = AnimatedContainer(
@@ -388,7 +386,10 @@ class StatusPill extends StatelessWidget {
               : Container(
                   width: 8,
                   height: 8,
-                  decoration: BoxDecoration(color: warna, shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                    color: warna,
+                    shape: BoxShape.circle,
+                  ),
                 ),
           const SizedBox(width: 7),
           Flexible(
@@ -523,7 +524,9 @@ void tampilkanPesan(BuildContext context, String pesan, {bool galat = false}) {
         behavior: SnackBarBehavior.floating,
         backgroundColor: galat ? Tok.error : Tok.navy,
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 96),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Tok.r)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Tok.r),
+        ),
         content: Text(pesan, style: const TextStyle(color: Colors.white)),
       ),
     );

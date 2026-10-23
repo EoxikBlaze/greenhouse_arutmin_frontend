@@ -8,7 +8,10 @@ import 'package:flutter/material.dart';
 /// jadi ini versi buatan sendiri dengan prinsip yang sama:
 ///  * satu bentuk konsisten per kelompok (radius seragam),
 ///  * efek interaktif (menekan) HANYA bila [onTap] diisi,
-///  * ada cadangan tanpa blur saat pengguna meminta kontras tinggi.
+///  * ada cadangan tanpa blur saat pengguna meminta kontras tinggi,
+///  * blur sungguhan ([blur]) hanya untuk lapisan mengambang (dock, bilah):
+///    puluhan BackdropFilter di daftar membuat HP kelas bawah tersendat, dan di
+///    atas [LatarCair] yang lembut kaca tanpa blur tampak hampir sama.
 class KacaCair extends StatefulWidget {
   const KacaCair({
     super.key,
@@ -16,6 +19,7 @@ class KacaCair extends StatefulWidget {
     this.padding = const EdgeInsets.all(16),
     this.radius = 22,
     this.gelap = false,
+    this.blur = false,
     this.onTap,
   });
 
@@ -25,6 +29,9 @@ class KacaCair extends StatefulWidget {
 
   /// true = kaca navy (untuk dock/bilah), false = kaca terang.
   final bool gelap;
+
+  /// true = BackdropFilter sungguhan (mahal); false = kaca buram tanpa blur.
+  final bool blur;
 
   /// Bila diisi, kaca ikut efek tekan seperti pegas.
   final VoidCallback? onTap;
@@ -62,53 +69,58 @@ class _KacaCairState extends State<KacaCair> {
         child: isi,
       );
     } else {
+      // tanpa blur, tint dipertebal agar teks tetap terbaca di atas latar berwarna
+      final tebal = widget.blur ? 0.0 : 0.16;
       final warnaA = gelap
-          ? const Color(0xFF0A1F38).withValues(alpha: 0.66)
-          : Colors.white.withValues(alpha: 0.66);
+          ? const Color(0xFF0A1F38).withValues(alpha: 0.66 + tebal)
+          : Colors.white.withValues(alpha: 0.66 + tebal);
       final warnaB = gelap
-          ? const Color(0xFF0A1F38).withValues(alpha: 0.40)
-          : Colors.white.withValues(alpha: 0.36);
-      kaca = ClipRRect(
-        borderRadius: r,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [warnaA, warnaB],
-              ),
-              borderRadius: r,
-              border: Border.all(
-                color: Colors.white.withValues(alpha: gelap ? 0.28 : 0.75),
-                width: 1.2,
-              ),
-            ),
-            child: Stack(
-              children: [
-                // kilau spekular di sudut kiri atas
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: RadialGradient(
-                          center: const Alignment(-0.85, -1.0),
-                          radius: 1.3,
-                          colors: [
-                            Colors.white.withValues(alpha: gelap ? 0.20 : 0.55),
-                            Colors.white.withValues(alpha: 0),
-                          ],
-                        ),
-                      ),
+          ? const Color(0xFF0A1F38).withValues(alpha: 0.40 + tebal)
+          : Colors.white.withValues(alpha: 0.36 + tebal);
+      final permukaan = DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [warnaA, warnaB],
+          ),
+          borderRadius: r,
+          border: Border.all(
+            color: Colors.white.withValues(alpha: gelap ? 0.28 : 0.75),
+            width: 1.2,
+          ),
+        ),
+        child: Stack(
+          children: [
+            // kilau spekular di sudut kiri atas
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: const Alignment(-0.85, -1.0),
+                      radius: 1.3,
+                      colors: [
+                        Colors.white.withValues(alpha: gelap ? 0.20 : 0.55),
+                        Colors.white.withValues(alpha: 0),
+                      ],
                     ),
                   ),
                 ),
-                isi,
-              ],
+              ),
             ),
-          ),
+            isi,
+          ],
         ),
+      );
+      kaca = ClipRRect(
+        borderRadius: r,
+        child: widget.blur
+            ? BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                child: permukaan,
+              )
+            : permukaan,
       );
     }
 
@@ -184,6 +196,24 @@ class LatarCair extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Latar cair di belakang [child] — untuk halaman yang dibuka di atas shell
+/// (CCTV, Asisten AI, Meja, Riwayat, Tentang Kami) supaya kacanya seragam.
+class LatarHalaman extends StatelessWidget {
+  const LatarHalaman({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        const Positioned.fill(child: LatarCair()),
+        Positioned.fill(child: child),
+      ],
     );
   }
 }

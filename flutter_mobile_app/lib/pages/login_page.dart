@@ -6,6 +6,7 @@ import '../config.dart';
 import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../widgets/brand.dart';
+import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
 
 /// Halaman masuk — POST /login ke backend Node.js.
@@ -39,6 +40,10 @@ class _LoginPageState extends State<LoginPage>
   late final AnimationController _getar;
   bool _busy = false;
   bool _lihat = false;
+
+  /// Setelah percobaan masuk pertama, validasi berjalan tiap kali isian berubah —
+  /// pesan "minimal 3 karakter" langsung hilang begitu isian sudah benar.
+  bool _sudahKirim = false;
   String? _error;
 
   @override
@@ -68,6 +73,7 @@ class _LoginPageState extends State<LoginPage>
   }
 
   Future<void> _submit() async {
+    if (!_sudahKirim) setState(() => _sudahKirim = true);
     if (!(_formKey.currentState?.validate() ?? false)) {
       _getar.forward(from: 0);
       return;
@@ -112,6 +118,9 @@ class _LoginPageState extends State<LoginPage>
       },
       child: Form(
         key: _formKey,
+        autovalidateMode: _sudahKirim
+            ? AutovalidateMode.onUserInteraction
+            : AutovalidateMode.disabled,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -238,10 +247,16 @@ class _LoginPageState extends State<LoginPage>
         SafeArea(
           bottom: false,
           child: Padding(
-            padding: EdgeInsets.fromLTRB(28, lebar ? 40 : 20, 28, lebar ? 40 : 40),
+            padding: EdgeInsets.fromLTRB(
+              28,
+              lebar ? 40 : 20,
+              28,
+              lebar ? 40 : 40,
+            ),
             child: Column(
-              mainAxisAlignment:
-                  lebar ? MainAxisAlignment.center : MainAxisAlignment.start,
+              mainAxisAlignment: lebar
+                  ? MainAxisAlignment.center
+                  : MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -331,35 +346,42 @@ class _LoginPageState extends State<LoginPage>
     }
 
     return Scaffold(
-      backgroundColor: Tok.page,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            DecoratedBox(
-              decoration: const BoxDecoration(
-                gradient: Tok.brandPanel,
-                borderRadius:
-                    BorderRadius.vertical(bottom: Radius.circular(32)),
-              ),
-              child: ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(bottom: Radius.circular(32)),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: _merek(lebar: false),
+      body: LatarHalaman(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              DecoratedBox(
+                decoration: const BoxDecoration(
+                  gradient: Tok.brandPanel,
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(32),
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(32),
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: _merek(lebar: false),
+                  ),
                 ),
               ),
-            ),
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 440),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-                  child: _formulir(),
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 440),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+                    // form di atas panel kaca, sama dengan kartu di dalam aplikasi
+                    child: KacaCair(
+                      padding: const EdgeInsets.all(20),
+                      child: _formulir(),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
