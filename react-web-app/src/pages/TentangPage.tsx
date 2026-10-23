@@ -104,7 +104,7 @@ const PERAN: Peran[] = [
 
 /** Angka sistem dari dokumen Perancangan Sistem IoT Hidroponik (FINAL). */
 const MITRA = [
-  { nama: 'KKN ANTECH 2026', peran: 'Program KKN Industri', src: '/logo/kkn.png', teks: 'Program Kuliah Kerja Nyata Industri mahasiswa Politeknik Negeri Tanah Laut di PT Arutmin Indonesia tahun 2026. Vertonik Smart Farm adalah salah satu hasil kerjanya.', href: 'https://instagram.com/kkn.arutminidn2026' },
+  { nama: 'KKN Arutmin Asik 2026', peran: 'Program KKN Industri', src: '/logo/kkn.png', teks: 'Program Kuliah Kerja Nyata Industri mahasiswa Politeknik Negeri Tanah Laut di PT Arutmin Indonesia tahun 2026. Vertonik Smart Farm adalah salah satu hasil kerjanya.', href: 'https://instagram.com/kkn.arutminidn2026' },
   { nama: 'PT Arutmin Indonesia', peran: 'Mitra industri', src: '/logo/arutmin.png', teks: 'Perusahaan pertambangan batubara tempat program KKN dijalankan dan mitra penyedia lokasi greenhouse.', href: 'https://www.arutmin.com' },
   { nama: 'Politeknik Negeri Tanah Laut', peran: 'Perguruan tinggi', src: '/logo/polytala.png', teks: 'Perguruan tinggi asal para mahasiswa KKN yang merancang dan membangun sistem ini.', href: 'https://polytala.ac.id' },
   { nama: 'TRKJ', peran: 'Program studi', src: '/logo/trkj.png', teks: 'Program studi Teknologi Rekayasa Komputer dan Jaringan — bidang keilmuan di balik perangkat IoT, jaringan, dan aplikasi proyek ini.' } as { nama: string; peran: string; src: string; teks: string; href?: string },
@@ -294,7 +294,7 @@ export function TentangPage() {
         <section className="flex min-h-[calc(100dvh-150px)] flex-col items-center justify-center py-8 text-center" aria-labelledby="vsf-hero-title">
             <div className="flex flex-col items-center text-center">
               {/* pil logo */}
-              <div {...info("Vertonik Smart Farm (GARAP)", "Sistem IoT hidroponik hasil KKN Industri ANTECH 2026 di PT Arutmin Indonesia. GARAP adalah nama aplikasinya.")} className="vsf-pop vsf-kaca vsf-kaca-lensa inline-flex max-w-full items-center gap-3 rounded-full px-5 py-2.5">
+              <div {...info("Vertonik Smart Farm (GARAP)", "Sistem IoT hidroponik hasil KKN Industri Arutmin Asik 2026 di PT Arutmin Indonesia. GARAP adalah nama aplikasinya.")} className="vsf-pop vsf-kaca vsf-kaca-lensa inline-flex max-w-full items-center gap-3 rounded-full px-5 py-2.5">
                 <Monogram className="h-10 w-16 shrink-0" />
                 <span className="text-[12.5px] font-extrabold uppercase tracking-[.08em] text-navy">PT Arutmin Indonesia</span>
                 <span className="hidden h-5 w-px bg-slate-300 sm:block" aria-hidden />
@@ -445,7 +445,7 @@ export function TentangPage() {
         {/* Mitra & institusi — logo resmi */}
         <section id="mitra" className="mt-16 scroll-mt-24" aria-labelledby="vsf-mitra-title">
           <h2 id="vsf-mitra-title" className="vsf-judul-latar text-center font-display text-[22px] font-bold sm:text-[26px]">
-            Kolaborasi KKN ANTECH 2026
+            Kolaborasi KKN Arutmin Asik 2026
           </h2>
           <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
             {MITRA.map((m, i) => (
