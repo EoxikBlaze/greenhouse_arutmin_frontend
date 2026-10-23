@@ -32,7 +32,6 @@ Map<String, dynamic> _barisMonitoring() => {
       'tds': 1200,
       'airTemp': 31,
       'humidity': 66,
-      'water_level': 'Sedang',
       'ec_ms_cm': 1.4,
       'created_at': '2026-10-14T22:43:58.000Z',
       'updated_at': '2026-10-14T22:43:58.000Z',
@@ -243,7 +242,6 @@ void main() {
       expect(e.tds, 1200);
       expect(e.airTemp, 31);
       expect(e.humidity, 66);
-      expect(e.waterLevel, 'Sedang');
       expect(e.createdAt, '2026-10-14T22:43:58.000Z');
     });
   });

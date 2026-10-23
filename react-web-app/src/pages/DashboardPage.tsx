@@ -14,7 +14,6 @@ type SensorTerkini = {
   tds?: number | null
   airTemp?: number | null
   humidity?: number | null
-  water_level?: string | null
   created_at?: string | null
 }
 
@@ -109,7 +108,7 @@ function IkonMetrik({ kind }: { kind: string }) {
         <path d="M11.6 7.4s1.8 2.1 1.8 3.3a1.8 1.8 0 1 1-3.6 0c0-1.2 1.8-3.3 1.8-3.3z" />
       </>
     ),
-    // tandon (level air)
+    // katup air
     level: (
       <>
         <rect x="3" y="3.2" width="10" height="9.6" rx="1.6" />
@@ -154,9 +153,9 @@ export default function DashboardPage() {
     { k: 'humidity', label: 'Kelembapan', nilai: `${angka(s?.humidity)} %`, target: 'target 60–80' },
     {
       k: 'level',
-      label: 'Level Tandon',
-      nilai: s?.water_level ? String(s.water_level) : '—',
-      target: `Katup: ${wc?.valve_state ?? '—'} • Mode ${wc?.mode ?? '—'}`,
+      label: 'Katup Air',
+      nilai: wc?.valve_state ? String(wc.valve_state) : '—',
+      target: `Mode ${wc?.mode ?? '—'}`,
     },
   ]
 

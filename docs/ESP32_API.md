@@ -82,7 +82,7 @@ Sukses **200**:
   "anomalies": [{"sensor":"tds","value":1200,"min":50,"max":1000}],
   "sensor": {
     "id": "100012", "waterTemp": 26.9, "ph": 6.5, "tds": 1200,
-    "airTemp": 31, "humidity": 66, "water_level": "Sedang",
+    "airTemp": 31, "humidity": 66,
     "created_at": "2026-10-14T22:43:58.000Z",
     "updated_at": "2026-10-14T22:43:58.000Z",
     "id_meja": null, "ec_ms_cm": null
@@ -126,7 +126,7 @@ Gagal:
 curl -s -X POST http://127.0.0.1:8000/api/save-sensor \
   -H "Content-Type: application/json" \
   -H "X-API-KEY: $KEY" \
-  -d '{"waterTemp":26.9,"ph":6.5,"tds":1200,"airTemp":31,"humidity":66,"water_level":"Sedang"}'
+  -d '{"waterTemp":26.9,"ph":6.5,"tds":1200,"airTemp":31,"humidity":66}'
 ```
 
 **Field payload** (semua OPSIONAL kecuali minimal 1 field — body `{}` = 400):
@@ -138,7 +138,7 @@ curl -s -X POST http://127.0.0.1:8000/api/save-sensor \
 | `tds` | number | `1200` | TDS ppm |
 | `airTemp` | number | `31` | suhu udara °C |
 | `humidity` | number | `66` | kelembapan % (`0` VALID, jangan dianggap kosong) |
-| `water_level` | string bebas | `"Sedang"` | level tandon; `''` diperlakukan null |
+| `water_level` | — | — | **DIHAPUS** (rancangan FINAL hanya memakai float switch). Bila masih dikirim, diabaikan server |
 | `solenoid_state` | string (`"ON"`/`"OFF"`) | `"ON"` | gerakkan katup saat mode MANUAL |
 
 - Field angka boleh `null` / `""` / tidak dikirim (diabaikan). String numerik
@@ -189,7 +189,7 @@ curl -s -X POST http://127.0.0.1:8000/api/notif-hardware \
 
 Sukses: `200` `{"status":true,"type":"solenoid","value":"ON"}`
 Cooldown (alert sama berulang): `200` `{"status":"cooldown"}` — `solenoid` 60 dtk,
-`water_level` 300 dtk, tipe lain 600 dtk.
+tipe lain 600 dtk.
 Gagal: **403** tanpa/salah key; **400** `{"status":false,"msg":"type dan value wajib"}`
 atau `{"status":false,"msg":"type maksimal 50 karakter."}`.
 

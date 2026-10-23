@@ -8,7 +8,6 @@ class MonitoringEntry {
     this.tds,
     this.airTemp,
     this.humidity,
-    this.waterLevel,
     this.ecMsCm,
     this.createdAt,
     this.updatedAt,
@@ -21,7 +20,6 @@ class MonitoringEntry {
   final num? tds;
   final num? airTemp;
   final num? humidity;
-  final String? waterLevel;
   final num? ecMsCm;
   final String? createdAt;
   final String? updatedAt;
@@ -42,7 +40,6 @@ class MonitoringEntry {
         tds: _asNum(map['tds']),
         airTemp: _asNum(map['airTemp']),
         humidity: _asNum(map['humidity']),
-        waterLevel: _asString(map['water_level']),
         ecMsCm: _asNum(map['ec_ms_cm']),
         createdAt: _asString(map['created_at']),
         updatedAt: _asString(map['updated_at']),

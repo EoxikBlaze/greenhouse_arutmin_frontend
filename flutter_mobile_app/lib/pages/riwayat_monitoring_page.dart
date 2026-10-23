@@ -140,7 +140,6 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
                         _kv('TDS', '${_fmt(e.tds, desimal: 0)} ppm'),
                         _kv('Suhu udara', '${_fmt(e.airTemp)} °C'),
                         _kv('Kelembapan', '${_fmt(e.humidity, desimal: 0)} %'),
-                        _kv('Level air', e.waterLevel ?? '-'),
                       ],
                     ),
                   ],

@@ -5,7 +5,7 @@ import { useApiError, useApiList } from '../lib/crudApi'
 import { useAuth } from '../lib/authContext'
 import { StatusBadge } from '../components/StatusBadge'
 
-type Param = 'pH' | 'Suhu Air' | 'TDS' | 'Suhu Udara' | 'Kelembapan' | 'Level Air'
+type Param = 'pH' | 'Suhu Air' | 'TDS' | 'Suhu Udara' | 'Kelembapan'
 type Range = '6 Jam' | '24 Jam' | '7 Hari'
 
 /** Satu titik GET /monitoring/chart-data (kolom tabel `monitorings`). */
@@ -19,7 +19,6 @@ type TitikData = {
   tds?: number | null
   airTemp?: number | null
   humidity?: number | null
-  water_level?: string | null
 }
 
 const PARAM_DEFS: Record<Param, { field: keyof TitikData; unit: string; kategorikal?: boolean }> = {
@@ -28,7 +27,6 @@ const PARAM_DEFS: Record<Param, { field: keyof TitikData; unit: string; kategori
   TDS: { field: 'tds', unit: 'ppm' },
   'Suhu Udara': { field: 'airTemp', unit: '°C' },
   Kelembapan: { field: 'humidity', unit: '%' },
-  'Level Air': { field: 'water_level', unit: '', kategorikal: true },
 }
 
 const RANGE_MS: Record<Range, number> = {
@@ -281,9 +279,9 @@ export default function SensorRealtimePage() {
   }
 
   function unduhCsv() {
-    const header = ['waktu', 'ph', 'suhu_air', 'tds', 'suhu_udara', 'kelembapan', 'level_air']
+    const header = ['waktu', 'ph', 'suhu_air', 'tds', 'suhu_udara', 'kelembapan']
     const baris = terlihat.map((r) =>
-      [waktu(r) ?? '', r.ph ?? '', r.waterTemp ?? '', r.tds ?? '', r.airTemp ?? '', r.humidity ?? '', r.water_level ?? ''].join(
+      [waktu(r) ?? '', r.ph ?? '', r.waterTemp ?? '', r.tds ?? '', r.airTemp ?? '', r.humidity ?? ''].join(
         ',',
       ),
     )
@@ -479,7 +477,6 @@ export default function SensorRealtimePage() {
                     { h: 'TDS', right: true },
                     { h: 'Suhu Udara', right: true },
                     { h: 'Kelembapan', right: true },
-                    { h: 'Level', right: true },
                   ].map((c) => (
                     <th
                       key={c.h}
@@ -496,7 +493,7 @@ export default function SensorRealtimePage() {
               <tbody>
                 {tarikRows.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-3 py-8 text-center text-slate-500">
+                    <td colSpan={6} className="px-3 py-8 text-center text-slate-500">
                       {tarikPernah
                         ? 'Tidak ada bacaan pada rentang tanggal itu — coba rentang lain.'
                         : 'Belum ada hasil — pilih rentang tanggal lalu tekan Tarik.'}
@@ -514,7 +511,6 @@ export default function SensorRealtimePage() {
                       <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{r.tds ?? '—'}</td>
                       <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{r.airTemp ?? '—'}</td>
                       <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{r.humidity ?? '—'}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{r.water_level ?? '—'}</td>
                     </tr>
                   ))
                 )}
