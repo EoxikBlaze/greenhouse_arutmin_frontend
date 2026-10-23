@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import clsx from 'clsx'
 import { api } from '../lib/api'
 import { useAuth } from '../lib/authContext'
@@ -7,24 +7,32 @@ import { fieldError, useApiError, useApiList } from '../lib/crudApi'
 /**
  * CCTV greenhouse — papan kamera nyata.
  *   GET /cctv (semua role) · POST/PUT/DELETE /cctv (admin; demo hanya baca)
- * Browser menarik gambar LANGSUNG dari URL kamera:
- *   - 'mjpeg'    → <img> aliran MJPEG (ESP32-CAM: http://IP:81/stream)
- *   - 'snapshot' → <img> JPEG yang dimuat ulang tiap N detik (http://IP/capture)
- * Catatan: bila aplikasi dibuka lewat HTTPS, URL kamera juga harus HTTPS
- * (browser memblokir gambar http dari halaman https).
+ *   - 'mjpeg'    → <img> aliran MJPEG langsung dari kamera (ESP32-CAM: http://IP:81/stream)
+ *   - 'snapshot' → <img> JPEG langsung dari kamera, dimuat ulang tiap N detik (http://IP/capture)
+ *   - 'rtsp'     → kamera RTSP (EZVIZ H8C, kamera IP): server mengambil frame lewat ffmpeg,
+ *                  browser memuat GET /cctv/:id/gambar (membawa login) tiap N detik. URL berisi
+ *                  sandi kamera tidak pernah sampai ke browser; HP tak perlu satu jaringan dengan kamera.
  */
 
 type Kamera = {
   id: number | string
   nama: string
   lokasi: string | null
-  tipe: 'mjpeg' | 'snapshot'
-  url: string
+  tipe: Tipe
+  /** null untuk 'rtsp' bila bukan admin; admin menerima URL dengan sandi `***` */
+  url: string | null
   interval_detik: number
   aktif: boolean
 }
 
-type Form = { nama: string; lokasi: string; tipe: 'mjpeg' | 'snapshot'; url: string; interval_detik: string; aktif: boolean }
+type Tipe = 'mjpeg' | 'snapshot' | 'rtsp'
+type Form = { nama: string; lokasi: string; tipe: Tipe; url: string; interval_detik: string; aktif: boolean }
+
+const CONTOH_URL: Record<Tipe, string> = {
+  snapshot: 'http://192.168.1.50/capture',
+  mjpeg: 'http://192.168.1.50:81/stream',
+  rtsp: 'rtsp://admin:KODEVERIFIKASI@192.168.1.60:554/ch1/main',
+}
 
 const KOSONG: Form = { nama: '', lokasi: '', tipe: 'snapshot', url: '', interval_detik: '5', aktif: true }
 
@@ -32,27 +40,60 @@ function sambung(url: string, t: number) {
   return `${url}${url.includes('?') ? '&' : '?'}_t=${t}`
 }
 
-/** Satu ubin kamera: status memuat / tayang / terputus. */
-function Ubin({ k, onPerbesar }: { k: Kamera; onPerbesar: (k: Kamera) => void }) {
+/**
+ * Sumber gambar satu kamera. http(s): URL langsung (+ penanda waktu untuk snapshot).
+ * rtsp: unduh JPEG dari server lewat `api` (token login ikut) → object URL, diperbarui tiap interval.
+ */
+function useSumber(k: Kamera, coba: number): { src: string | null; gagal: boolean } {
   const [tik, setTik] = useState(() => Date.now())
-  const [galat, setGalat] = useState(false)
-  const [muat, setMuat] = useState(true)
-  const [coba, setCoba] = useState(0)
+  const [blob, setBlob] = useState<string | null>(null)
+  const [gagal, setGagal] = useState(false)
+  const blobRef = useRef<string | null>(null)
 
-  // Snapshot: muat ulang berkala. MJPEG: satu sambungan, coba lagi manual.
   useEffect(() => {
-    if (!k.aktif || k.tipe !== 'snapshot') return
+    if (!k.aktif || k.tipe === 'mjpeg') return
     const id = window.setInterval(() => setTik(Date.now()), Math.max(1, k.interval_detik) * 1000)
     return () => window.clearInterval(id)
   }, [k.aktif, k.tipe, k.interval_detik])
 
-  const src = k.tipe === 'snapshot' ? sambung(k.url, tik) : sambung(k.url, coba)
+  useEffect(() => {
+    if (!k.aktif || k.tipe !== 'rtsp') return
+    let batal = false
+    api
+      .get<Blob>(`/cctv/${k.id}/gambar`, { responseType: 'blob' })
+      .then((r) => {
+        if (batal) return
+        const u = URL.createObjectURL(r.data)
+        if (blobRef.current) URL.revokeObjectURL(blobRef.current)
+        blobRef.current = u
+        setBlob(u)
+        setGagal(false)
+      })
+      .catch(() => { if (!batal) setGagal(true) })
+    return () => { batal = true }
+  }, [k.id, k.aktif, k.tipe, tik, coba])
+
+  // lepas object URL terakhir saat ubin hilang
+  useEffect(() => () => { if (blobRef.current) URL.revokeObjectURL(blobRef.current) }, [])
+
+  if (k.tipe === 'rtsp') return { src: blob, gagal: gagal && !blob }
+  return { src: sambung(k.url ?? '', k.tipe === 'snapshot' ? tik : coba), gagal: false }
+}
+
+/** Satu ubin kamera: status memuat / tayang / terputus. */
+function Ubin({ k, onPerbesar }: { k: Kamera; onPerbesar: (k: Kamera) => void }) {
+  const [galatImg, setGalat] = useState(false)
+  const [muat, setMuat] = useState(true)
+  const [coba, setCoba] = useState(0)
+  // Snapshot/RTSP: muat ulang berkala. MJPEG: satu sambungan, coba lagi manual.
+  const { src, gagal } = useSumber(k, coba)
+  const galat = galatImg || gagal
   const status = !k.aktif ? 'nonaktif' : galat ? 'terputus' : muat ? 'memuat' : 'tayang'
 
   return (
     <article className="vsf-card overflow-hidden">
       <div className="relative aspect-video w-full bg-navy">
-        {k.aktif ? (
+        {k.aktif && src ? (
           <img
             key={k.tipe === 'mjpeg' ? coba : 'snap'}
             src={src}
@@ -74,7 +115,7 @@ function Ubin({ k, onPerbesar }: { k: Kamera; onPerbesar: (k: Kamera) => void })
             {status === 'terputus' && (
               <div>
                 <div className="font-bold text-white">Feed terputus</div>
-                <div className="mt-1">Periksa kamera dan URL-nya.</div>
+                <div className="mt-1">{k.tipe === 'rtsp' ? 'Kamera tidak merespons ke server. Periksa kamera menyala dan URL RTSP-nya.' : 'Periksa kamera dan URL-nya.'}</div>
                 <button
                   type="button"
                   className="vsf-btn-secondary mt-3 !min-h-[34px] !text-[12px]"
@@ -82,7 +123,6 @@ function Ubin({ k, onPerbesar }: { k: Kamera; onPerbesar: (k: Kamera) => void })
                     setGalat(false)
                     setMuat(true)
                     setCoba((n) => n + 1)
-                    setTik(Date.now())
                   }}
                 >
                   Coba lagi
@@ -112,7 +152,7 @@ function Ubin({ k, onPerbesar }: { k: Kamera; onPerbesar: (k: Kamera) => void })
         <div className="min-w-0 flex-1">
           <div className="truncate text-[14px] font-bold text-tinta">{k.nama}</div>
           <div className="truncate text-[12px] text-slate-500">
-            {k.lokasi || 'Tanpa lokasi'} · {k.tipe === 'mjpeg' ? 'Aliran MJPEG' : `Snapshot tiap ${k.interval_detik} dtk`}
+            {k.lokasi || 'Tanpa lokasi'} · {k.tipe === 'mjpeg' ? 'Aliran MJPEG' : k.tipe === 'rtsp' ? `RTSP lewat server · tiap ${k.interval_detik} dtk` : `Snapshot tiap ${k.interval_detik} dtk`}
           </div>
         </div>
         <button
@@ -163,7 +203,7 @@ export default function CctvPage() {
         nama: k.nama,
         lokasi: k.lokasi ?? '',
         tipe: k.tipe,
-        url: k.url,
+        url: k.url ?? '',
         interval_detik: String(k.interval_detik),
         aktif: k.aktif,
       })
@@ -221,7 +261,8 @@ export default function CctvPage() {
           <div className="min-w-0">
             <div className="text-[11px] font-bold uppercase tracking-[.14em] text-slate-500">CCTV greenhouse</div>
             <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
-              Pantau greenhouse, nursery, dan area tandon. Tayangan ditarik langsung dari kamera di jaringan Anda.
+              Pantau greenhouse, nursery, dan area tandon. Kamera RTSP (EZVIZ) diambil lewat server; snapshot dan MJPEG
+              ditarik langsung dari kamera di jaringan Anda.
             </p>
           </div>
           <span className="flex-1" />
@@ -268,23 +309,31 @@ export default function CctvPage() {
             </label>
             <label className="grid gap-1 text-[12.5px] font-semibold text-slate-700 sm:col-span-2">
               URL kamera
-              <input className="vsf-input" value={form.url} required placeholder="http://192.168.1.50/capture"
+              <input className="vsf-input" value={form.url} required placeholder={CONTOH_URL[form.tipe]}
+                autoComplete="off" spellCheck={false}
                 aria-invalid={!!fieldError(fe, 'url')}
                 onChange={(e) => setForm({ ...form, url: e.target.value })} />
+              {form.tipe === 'rtsp' && (
+                <span className="text-[12px] font-normal leading-relaxed text-slate-600">
+                  EZVIZ: sandi = kode verifikasi 6 huruf di stiker kamera. Sandi disimpan di server dan tampil sebagai *** —
+                  biarkan *** saat mengubah bila sandinya tetap.
+                </span>
+              )}
               <span className="text-[12px] font-normal text-red-700">{fieldError(fe, 'url')}</span>
             </label>
             <label className="grid gap-1 text-[12.5px] font-semibold text-slate-700">
               Jenis tayangan
               <select className="vsf-input" value={form.tipe}
                 onChange={(e) => setForm({ ...form, tipe: e.target.value as Form['tipe'] })}>
+                <option value="rtsp">RTSP lewat server (EZVIZ / kamera IP)</option>
                 <option value="snapshot">Snapshot (JPEG dimuat ulang)</option>
                 <option value="mjpeg">Aliran MJPEG</option>
               </select>
             </label>
             <label className="grid gap-1 text-[12.5px] font-semibold text-slate-700">
-              Interval snapshot (detik)
+              Interval muat ulang (detik)
               <input className="vsf-input" type="number" min={1} max={60} value={form.interval_detik}
-                disabled={form.tipe !== 'snapshot'}
+                disabled={form.tipe === 'mjpeg'}
                 aria-invalid={!!fieldError(fe, 'interval_detik')}
                 onChange={(e) => setForm({ ...form, interval_detik: e.target.value })} />
               <span className="text-[12px] font-normal text-red-700">{fieldError(fe, 'interval_detik')}</span>
@@ -313,7 +362,7 @@ export default function CctvPage() {
             <div className="text-[15px] font-bold text-tinta">Belum ada kamera</div>
             <p className="mx-auto mt-1 max-w-[460px] text-[13px] text-slate-600">
               {admin
-                ? 'Tambahkan kamera pertama dengan URL snapshot atau aliran MJPEG dari ESP32-CAM / IP camera.'
+                ? 'Tambahkan kamera pertama: RTSP untuk EZVIZ / kamera IP, atau snapshot / MJPEG dari ESP32-CAM.'
                 : 'Admin belum menambahkan kamera.'}
             </p>
           </div>
@@ -356,15 +405,17 @@ export default function CctvPage() {
 }
 
 function BesarGambar({ k }: { k: Kamera }) {
-  const [tik, setTik] = useState(() => Date.now())
-  useEffect(() => {
-    if (k.tipe !== 'snapshot') return
-    const id = window.setInterval(() => setTik(Date.now()), Math.max(1, k.interval_detik) * 1000)
-    return () => window.clearInterval(id)
-  }, [k.tipe, k.interval_detik])
+  const { src, gagal } = useSumber(k, 0)
+  if (!src) {
+    return (
+      <div className="grid aspect-video w-full place-items-center rounded-card bg-navy text-[13px] text-white/80">
+        {gagal ? 'Kamera tidak merespons.' : <span className="vsf-spinner" aria-label="Memuat tayangan" />}
+      </div>
+    )
+  }
   return (
     <img
-      src={sambung(k.url, k.tipe === 'snapshot' ? tik : 0)}
+      src={src}
       alt={`Tayangan kamera ${k.nama}`}
       className="max-h-[80dvh] w-full rounded-card bg-navy object-contain"
     />

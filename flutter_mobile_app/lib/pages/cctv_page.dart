@@ -9,8 +9,8 @@ import '../theme/tokens.dart';
 import '../widgets/brand.dart';
 import '../widgets/motion.dart';
 
-/// CCTV — daftar kamera dari GET /cctv; tayangan ditarik langsung dari URL
-/// kamera (snapshot JPEG yang dimuat ulang, atau aliran MJPEG).
+/// CCTV — daftar kamera dari GET /cctv. Snapshot/MJPEG ditarik langsung dari
+/// URL kamera; kamera RTSP (EZVIZ dkk.) lewat server: GET /cctv/:id/gambar.
 class CctvPage extends StatefulWidget {
   const CctvPage({super.key, required this.api});
 
@@ -117,7 +117,7 @@ class _CctvPageState extends State<CctvPage> {
           child: FadeUp(
             key: ValueKey('cam-${k['id']}'),
             delay: FadeUp.urutan(i++),
-            child: _KartuKamera(data: k),
+            child: _KartuKamera(data: k, api: widget.api),
           ),
         ),
     ];
@@ -125,9 +125,10 @@ class _CctvPageState extends State<CctvPage> {
 }
 
 class _KartuKamera extends StatelessWidget {
-  const _KartuKamera({required this.data});
+  const _KartuKamera({required this.data, required this.api});
 
   final Map<String, dynamic> data;
+  final ApiService api;
 
   @override
   Widget build(BuildContext context) {
@@ -140,10 +141,10 @@ class _KartuKamera extends StatelessWidget {
       padding: EdgeInsets.zero,
       onTap: aktif
           ? () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => _TayanganBesar(data: data),
-                ),
-              )
+              MaterialPageRoute<void>(
+                builder: (_) => _TayanganBesar(data: data, api: api),
+              ),
+            )
           : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +156,7 @@ class _KartuKamera extends StatelessWidget {
             child: AspectRatio(
               aspectRatio: 16 / 9,
               child: aktif
-                  ? Feed(data: data)
+                  ? Feed(data: data, api: api)
                   : const ColoredBox(
                       color: Tok.navy,
                       child: Center(
@@ -184,14 +185,17 @@ class _KartuKamera extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         '${data['lokasi'] ?? 'Tanpa lokasi'} · '
-                        '${tipe == 'mjpeg' ? 'Aliran MJPEG' : 'Snapshot tiap $detik dtk'}',
+                        '${tipe == 'mjpeg'
+                            ? 'Aliran MJPEG'
+                            : tipe == 'rtsp'
+                            ? 'RTSP lewat server · $detik dtk'
+                            : 'Snapshot tiap $detik dtk'}',
                         style: Tok.kecil,
                       ),
                     ],
                   ),
                 ),
-                if (aktif)
-                  const Icon(Icons.fullscreen_rounded, color: Tok.abu),
+                if (aktif) const Icon(Icons.fullscreen_rounded, color: Tok.abu),
               ],
             ),
           ),
@@ -202,9 +206,10 @@ class _KartuKamera extends StatelessWidget {
 }
 
 class _TayanganBesar extends StatelessWidget {
-  const _TayanganBesar({required this.data});
+  const _TayanganBesar({required this.data, required this.api});
 
   final Map<String, dynamic> data;
+  final ApiService api;
 
   @override
   Widget build(BuildContext context) {
@@ -214,21 +219,31 @@ class _TayanganBesar extends StatelessWidget {
       body: Center(
         child: InteractiveViewer(
           maxScale: 4,
-          child: AspectRatio(aspectRatio: 16 / 9, child: Feed(data: data)),
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Feed(data: data, api: api),
+          ),
         ),
       ),
     );
   }
 }
 
-/// Tayangan satu kamera: snapshot berkala atau aliran MJPEG.
+/// Tayangan satu kamera: snapshot berkala, aliran MJPEG, atau RTSP lewat server.
 class Feed extends StatelessWidget {
-  const Feed({super.key, required this.data});
+  const Feed({super.key, required this.data, required this.api});
 
   final Map<String, dynamic> data;
+  final ApiService api;
 
   @override
   Widget build(BuildContext context) {
+    if (data['tipe'] == 'rtsp') {
+      final detik = (data['interval_detik'] is num)
+          ? (data['interval_detik'] as num).toInt().clamp(1, 60)
+          : 5;
+      return _RtspView(api: api, id: '${data['id']}', detik: detik);
+    }
     final url = '${data['url']}';
     final uri = Uri.tryParse(url);
     final sah = uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
@@ -259,10 +274,7 @@ class _Terputus extends StatelessWidget {
             const SizedBox(height: 6),
             Text(pesan, style: const TextStyle(color: Colors.white70)),
             if (onCoba != null)
-              TextButton(
-                onPressed: onCoba,
-                child: const Text('Coba lagi'),
-              ),
+              TextButton(onPressed: onCoba, child: const Text('Coba lagi')),
           ],
         ),
       ),
@@ -317,6 +329,80 @@ class _SnapshotViewState extends State<_SnapshotView> {
                 setState(() => _tik = DateTime.now().millisecondsSinceEpoch),
           ),
         ),
+        const Positioned(left: 10, top: 10, child: _Live()),
+      ],
+    );
+  }
+}
+
+/// Kamera RTSP: server mengambil frame (ffmpeg) → JPEG lewat API berkunci token,
+/// dimuat ulang tiap [detik]. Tidak pernah dua unduhan sekaligus.
+class _RtspView extends StatefulWidget {
+  const _RtspView({required this.api, required this.id, required this.detik});
+
+  final ApiService api;
+  final String id;
+  final int detik;
+
+  @override
+  State<_RtspView> createState() => _RtspViewState();
+}
+
+class _RtspViewState extends State<_RtspView> {
+  late final PollTimer _poll;
+  Uint8List? _frame;
+  bool _gagal = false;
+  bool _sibuk = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ambil();
+    _poll = PollTimer(Duration(seconds: widget.detik), _ambil);
+    _poll.atur(true);
+  }
+
+  Future<void> _ambil() async {
+    if (_sibuk) return;
+    _sibuk = true;
+    try {
+      final f = await widget.api.getBytes('/cctv/${widget.id}/gambar');
+      if (!mounted) return;
+      setState(() {
+        _frame = f;
+        _gagal = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _gagal = true);
+    } finally {
+      _sibuk = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _poll.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final f = _frame;
+    if (f == null) {
+      return _gagal
+          ? _Terputus(pesan: 'Kamera tidak merespons', onCoba: _ambil)
+          : const ColoredBox(
+              color: Tok.navy,
+              child: Center(
+                child: CircularProgressIndicator(color: Colors.white70),
+              ),
+            );
+    }
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const ColoredBox(color: Tok.navy),
+        Image.memory(f, fit: BoxFit.cover, gaplessPlayback: true),
         const Positioned(left: 10, top: 10, child: _Live()),
       ],
     );

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -31,8 +32,8 @@ class ApiService {
     http.Client? client,
     String? baseUrl,
     this.timeout = const Duration(seconds: apiTimeoutSeconds),
-  })  : _client = client ?? buatKlienHttp(),
-        baseUrl = baseUrl ?? apiBase;
+  }) : _client = client ?? buatKlienHttp(),
+       baseUrl = baseUrl ?? apiBase;
 
   final http.Client _client;
   final String baseUrl;
@@ -69,8 +70,7 @@ class ApiService {
     };
   }
 
-  Future<dynamic> _request(String path,
-      {Object? body, Duration? batas}) async {
+  Future<dynamic> _request(String path, {Object? body, Duration? batas}) async {
     final uri = Uri.parse('$baseUrl$path');
     try {
       final http.Response res;
@@ -94,9 +94,10 @@ class ApiService {
       // Timeout / koneksi ditolak / DNS gagal — semuanya dibawa ke pesan
       // yang menyebut alamat backend agar pengguna tahu harus menyalakan apa.
       throw ApiException(
-          null,
-          'Backend tidak terjangkau ($baseUrl). Pastikan server sedang '
-          'berjalan dan perangkat terhubung ke jaringan yang sama.');
+        null,
+        'Backend tidak terjangkau ($baseUrl). Pastikan server sedang '
+        'berjalan dan perangkat terhubung ke jaringan yang sama.',
+      );
     }
   }
 
@@ -116,32 +117,42 @@ class ApiService {
       _user = null;
       onUnauthorized?.call();
       throw const ApiException(
-          401, 'Anda belum masuk atau sesi sudah berakhir. Silakan login ulang.');
+        401,
+        'Anda belum masuk atau sesi sudah berakhir. Silakan login ulang.',
+      );
     }
     if (res.statusCode == 403) {
       final msg = map?['message']?.toString() ?? '';
       throw ApiException(
-          403,
-          msg.isEmpty
-              ? 'Akses ditolak. Akun Anda tidak punya izin untuk data ini.'
-              : 'Akses ditolak. $msg');
+        403,
+        msg.isEmpty
+            ? 'Akses ditolak. Akun Anda tidak punya izin untuk data ini.'
+            : 'Akses ditolak. $msg',
+      );
     }
     if (res.statusCode == 422) {
       throw ApiException(422, _pesan422(map));
     }
     if (res.statusCode == 429) {
       throw const ApiException(
-          429, 'Terlalu banyak percobaan. Coba lagi dalam satu menit.');
+        429,
+        'Terlalu banyak percobaan. Coba lagi dalam satu menit.',
+      );
     }
     if (res.statusCode == 404) {
       throw const ApiException(404, 'Data tidak ditemukan di server (404).');
     }
     if (res.statusCode >= 500) {
       throw ApiException(
-          res.statusCode, 'Server sedang bermasalah (HTTP ${res.statusCode}). Coba lagi nanti.');
+        res.statusCode,
+        'Server sedang bermasalah (HTTP ${res.statusCode}). Coba lagi nanti.',
+      );
     }
-    throw ApiException(res.statusCode,
-        map?['message']?.toString() ?? 'Permintaan gagal (HTTP ${res.statusCode}).');
+    throw ApiException(
+      res.statusCode,
+      map?['message']?.toString() ??
+          'Permintaan gagal (HTTP ${res.statusCode}).',
+    );
   }
 
   /// Gabungkan `message` + detail `errors` dari balasan 422 backend
@@ -172,10 +183,35 @@ class ApiService {
   /// GET JSON mentah (butuh token bila endpoint-nya dilindungi).
   Future<dynamic> getJson(String path) => _request(path);
 
+  /// GET biner dengan token (mis. JPEG kamera RTSP dari `GET /cctv/:id/gambar`).
+  /// Server butuh ±2–3 dtk untuk frame pertama, jadi batas tunggunya lebih longgar.
+  Future<Uint8List> getBytes(String path, {Duration? batas}) async {
+    final http.Response res;
+    try {
+      res = await _client
+          .get(
+            Uri.parse('$baseUrl$path'),
+            headers: {if (_token != null) 'Authorization': 'Bearer $_token'},
+          )
+          .timeout(batas ?? const Duration(seconds: 20));
+    } catch (_) {
+      throw ApiException(null, 'Backend tidak terjangkau ($baseUrl).');
+    }
+    if (res.statusCode != 200) {
+      throw ApiException(
+        res.statusCode,
+        'Gambar gagal dimuat (${res.statusCode}).',
+      );
+    }
+    return res.bodyBytes;
+  }
+
   /// POST JSON; badan kosong dikirim sebagai `{}` agar tetap berupa POST.
-  Future<dynamic> postJson(String path,
-          [Map<String, dynamic>? body, Duration? batas]) =>
-      _request(path, body: body ?? const <String, dynamic>{}, batas: batas);
+  Future<dynamic> postJson(
+    String path, [
+    Map<String, dynamic>? body,
+    Duration? batas,
+  ]) => _request(path, body: body ?? const <String, dynamic>{}, batas: batas);
 
   /// Peran efektif — meniru `roleFromLevel` di web:
   /// demo (is_demo / level demo), admin, selain itu petani.
@@ -195,14 +231,18 @@ class ApiService {
     required String username,
     required String password,
   }) async {
-    final data = await _request('/login', body: {
-      'username': username,
-      'password': password,
-    });
-    final token = data is Map<String, dynamic> ? data['token']?.toString() : null;
+    final data = await _request(
+      '/login',
+      body: {'username': username, 'password': password},
+    );
+    final token = data is Map<String, dynamic>
+        ? data['token']?.toString()
+        : null;
     if (token == null || token.isEmpty) {
       throw const ApiException(
-          200, 'Login berhasil tetapi token tidak diterima server.');
+        200,
+        'Login berhasil tetapi token tidak diterima server.',
+      );
     }
     _token = token;
     // `user` opsional dalam kontrak, tetapi selalu ada pada backend ini.
@@ -216,7 +256,10 @@ class ApiService {
   Future<List<Meja>> fetchMeja() async {
     final data = await _request('/meja');
     if (data is! List) {
-      throw const ApiException(200, 'Respons daftar meja tidak sesuai kontrak.');
+      throw const ApiException(
+        200,
+        'Respons daftar meja tidak sesuai kontrak.',
+      );
     }
     return data
         .whereType<Map<String, dynamic>>()
@@ -229,7 +272,9 @@ class ApiService {
     final data = await _request('/monitoring/chart-data');
     if (data is! List) {
       throw const ApiException(
-          200, 'Respons daftar monitoring tidak sesuai kontrak.');
+        200,
+        'Respons daftar monitoring tidak sesuai kontrak.',
+      );
     }
     return data
         .whereType<Map<String, dynamic>>()
@@ -242,7 +287,9 @@ class ApiService {
     final data = await _request('/api/latest-sensor');
     if (data is! Map<String, dynamic>) {
       throw const ApiException(
-          200, 'Respons sensor terbaru tidak sesuai kontrak.');
+        200,
+        'Respons sensor terbaru tidak sesuai kontrak.',
+      );
     }
     return data;
   }
