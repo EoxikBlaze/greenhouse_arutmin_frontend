@@ -30,3 +30,13 @@ skills-lock.json
 
 # Paket deploy berisi .env & kredensial — jangan pernah ikut git
 vertonik-pi-*/
+
+# rahasia lokal Pi
+deploy-pi/*.lokal
+
+# Arsip & cadangan sementara (jangan masuk git)
+*.tgz
+_backup_*/
+_tmp_dist/
+.playwright-cli/
+*.bak-*
