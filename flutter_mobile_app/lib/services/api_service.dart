@@ -8,6 +8,7 @@ import '../config.dart';
 import '../models/meja.dart';
 import '../models/monitoring_entry.dart';
 import 'client_factory.dart';
+import 'sesi_store.dart';
 
 /// Kegagalan API dengan pesan ramah berbahasa Indonesia.
 ///
@@ -25,15 +26,19 @@ class ApiException implements Exception {
 /// Klien API GARAP.
 ///
 /// Mengikuti arsitektur yang sudah ada: paket `http` murni (tanpa dio),
-/// token disimpan di memori (tanpa dependensi penyimpanan baru).
+/// token disimpan di memori; bila [penyimpan] diisi, sesi juga disimpan agar tetap
+/// masuk setelah aplikasi ditutup (sampai token kedaluwarsa).
 /// [client] bisa disuntikkan agar unit test dapat memakai mock tanpa server.
 class ApiService {
   ApiService({
     http.Client? client,
     String? baseUrl,
     this.timeout = const Duration(seconds: apiTimeoutSeconds),
+    this.penyimpan,
   }) : _client = client ?? buatKlienHttp(),
        baseUrl = baseUrl ?? apiBase;
+
+  final PenyimpanSesi? penyimpan;
 
   final http.Client _client;
   final String baseUrl;
@@ -60,6 +65,49 @@ class ApiService {
   void clearSession() {
     _token = null;
     _user = null;
+    _simpanSesi();
+  }
+
+  /// Tulis sesi aktif ke [penyimpan] (null = hapus). Galat penyimpanan tidak menggagalkan login.
+  void _simpanSesi() {
+    final p = penyimpan;
+    if (p == null) return;
+    final isi = _token == null
+        ? null
+        : jsonEncode({'token': _token, 'user': _user});
+    p.tulis(isi).catchError((Object _) {});
+  }
+
+  /// Pulihkan sesi tersimpan bila tokennya belum kedaluwarsa (klaim `exp` JWT).
+  Future<bool> pulihkanSesi() async {
+    final p = penyimpan;
+    if (p == null) return false;
+    try {
+      final isi = await p.baca();
+      if (isi == null) return false;
+      final d = jsonDecode(isi);
+      final token = d is Map ? d['token']?.toString() : null;
+      final bagian = token?.split('.') ?? const [];
+      if (bagian.length != 3) return false;
+      final klaim = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(bagian[1]))),
+      );
+      final exp = klaim is Map && klaim['exp'] is num
+          ? (klaim['exp'] as num).toInt()
+          : 0;
+      // sisakan 5 menit agar tidak masuk dengan token yang sebentar lagi ditolak
+      if (DateTime.now().millisecondsSinceEpoch ~/ 1000 > exp - 300) {
+        await p.tulis(null);
+        return false;
+      }
+      _token = token;
+      _user = d['user'] is Map
+          ? Map<String, dynamic>.from(d['user'] as Map)
+          : null;
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<Map<String, String>> _headers({bool withContentType = false}) async {
@@ -115,6 +163,7 @@ class ApiService {
     if (res.statusCode == 401) {
       _token = null;
       _user = null;
+      _simpanSesi();
       onUnauthorized?.call();
       throw const ApiException(
         401,
@@ -249,6 +298,7 @@ class ApiService {
     _user = data is Map<String, dynamic> && data['user'] is Map<String, dynamic>
         ? Map<String, dynamic>.from(data['user'] as Map)
         : null;
+    _simpanSesi();
     return token;
   }
 

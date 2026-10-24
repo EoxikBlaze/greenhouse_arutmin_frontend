@@ -178,6 +178,8 @@ class TentangPage extends StatelessWidget {
               crossAxisCount: kolomMitra,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
+              // tanpa ini GridView menambah padding safe-area (±60 pt kosong di atas kartu)
+              padding: EdgeInsets.zero,
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
               childAspectRatio: 0.92,

@@ -186,9 +186,10 @@ Cache 2 detik. `is_online = true` bila data terakhir ≤ 120 detik.
 | GET | `/monitoring/tarik` | semua | `?dari&sampai&per_page=10` |
 | GET | `/monitoring/tarik/csv` | semua | `text/csv` |
 | GET | `/monitoring/getReport6Jam` | **publik** | rata-rata 6 jam + alert |
-| GET | `/tanam` | semua | `{page, list:[{id,tipe,status,mulai,varietas,meja,...}]}` |
-| POST | `/tanam/mulai` | semua + demoGuard | body: `id_tanaman, id_siklus, id_meja, jumlah_benih, tgl_awal_semai?, keterangan?` |
-| POST | `/tanam/:tipe/:id/selesai` | semua + demoGuard | `tipe` ∈ `semai\|peremajaan\|pendewasaan\|panen` |
+| GET | `/tanam` | semua | `{page, list:[{id,tipe,status,mulai,varietas,meja,id_meja,jumlah,durasi_hari,hari_ke,siap,tahap_berikut,...}]}` — hanya batch `status='proses'`; `durasi_hari` dari `sikluses` (NULL bila belum diisi), `siap` = `hari_ke ≥ durasi_hari` |
+| GET | `/tanam/pilihan` | semua | `{tanaman:[{id,nama,id_meja,semai,peremajaan,pendewasaan}], meja:[{id,nama}]}` — untuk form Mulai tanam (petani tak punya akses `/tanaman` & `/meja`) |
+| POST | `/tanam/mulai` | semua + demoGuard | body: `id_tanaman, id_meja, jumlah_benih, id_siklus?, tgl_awal_semai?, keterangan?` — `id_siklus` diisi otomatis dari siklus "Semai" tanaman |
+| POST | `/tanam/:tipe/:id/selesai` | semua + demoGuard | `tipe` ∈ `semai\|peremajaan\|pendewasaan` (lainnya 422). Body `{berhasil, keterangan?}`: gagal = jumlah − berhasil, tahap ditutup hari ini, tahap berikutnya dibuat otomatis berisi yang berhasil (pendewasaan → baris `panens`); berhasil 0 → status `gagal`; sudah ditutup → 409; berhasil > jumlah → 422. Tanpa body: hanya ditandai selesai (perilaku lama web) |
 | POST | `/tanam/:id/hapus` | semua + cek demo di handler | hapus batch semai |
 
 Contoh `GET /dashboard` (dipotong):

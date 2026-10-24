@@ -10,6 +10,7 @@ import 'pages/sensor_page.dart';
 import 'pages/tanam_page.dart';
 import 'pages/watercontrol_page.dart';
 import 'services/api_service.dart';
+import 'services/sesi_store.dart';
 import 'theme/tokens.dart';
 import 'widgets/kaca.dart';
 
@@ -17,10 +18,13 @@ import 'widgets/kaca.dart';
 /// Terhubung ke backend Node.js lokal: http://127.0.0.1:8000
 /// (di iOS Simulator, 127.0.0.1 = Mac host — tidak perlu konfigurasi tambahan).
 
-/// Satu klien API untuk seluruh aplikasi (token disimpan di memori di sini).
-final ApiService apiService = ApiService();
+/// Satu klien API untuk seluruh aplikasi. Sesi disimpan di Keychain/Keystore
+/// sehingga petani tetap masuk setelah aplikasi ditutup (sampai token kedaluwarsa).
+final ApiService apiService = ApiService(penyimpan: const PenyimpanSesiAman());
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await apiService.pulihkanSesi();
   runApp(const GarapApp());
 }
 
