@@ -299,6 +299,24 @@ Contoh respons (server hidup):
 { "message": "Data tidak ditemukan.", "errors": {} }
 ```
 
+### Preset dosing & target penampung (24 Okt 2026)
+
+Preset = baris `target_nutrisi` (tanaman | semua tanaman × tahap × rentang umur → rentang EC ppm & pH).
+Penampung bermode `otomatis` mengambil target = titik tengah rentang preset aktif yang cocok dengan batch
+berjalan di mejanya (preset tanaman didahulukan, lalu rentang umur tersempit); mode `manual` diisi admin.
+Sinkron otomatis: saat server menyala, tiap 10 menit, setelah `/tanam/mulai` & `/tanam/:tipe/:id/selesai`,
+dan setelah preset/mode berubah. Petani → 403; demo baca saja.
+
+| Metode | Path | Peran | Keterangan |
+|---|---|---|---|
+| GET | `/dosing/preset` | admin+demo | daftar preset + `nama_tanaman` |
+| POST | `/dosing/preset` | **admin** | `{id_tanaman?, tahap: Semai\|Peremajaan\|Pendewasaan, umur_min_hari?, umur_max_hari?, ec_min_ppm?, ec_max_ppm?, ph_min?, ph_max?, status?: aktif\|menunggu_konfirmasi\|kadaluarsa, keterangan?}` → 201. EC 50–2500, pH 3–9, min ≤ max; preset aktif wajib punya rentang EC atau pH (422). Duplikat tanaman+tahap+umur awal → 409 |
+| PUT | `/dosing/preset/:id` | **admin** | kolom yang sama (parsial, dicek silang dengan nilai lama) |
+| DELETE | `/dosing/preset/:id` | **admin** | penampung yang memakainya dihitung ulang (target kosong bila tak ada preset lain) |
+| GET | `/dosing/target` | admin+demo | per meja: `{id_meja, meja, target_mode, target_ec_ppm, target_ph, target_preset_id, status_lock, batch:{tahap,nama_tanaman,umur_hari,…}\|null, preset_cocok\|null, catatan}` |
+| PUT | `/dosing/target/:id_meja` | **admin** | `{mode:'otomatis'}` atau `{mode:'manual', target_ec_ppm?, target_ph?}` (manual wajib salah satu; EC 50–2500, pH 3–9) |
+| POST | `/dosing/sinkron` | **admin** | hitung ulang semua penampung otomatis → `{berubah}` |
+
 ### User · Profil
 | Method | Path | Guard |
 |---|---|---|

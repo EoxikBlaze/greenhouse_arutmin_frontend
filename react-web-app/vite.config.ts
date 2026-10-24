@@ -55,6 +55,8 @@ const API_PATHS = [
   '/timing-operasi',
   '/aturan-fail-safe',
   '/jadwal-perawatan',
+  // ── Preset dosing & target penampung — /dosing juga rute SPA (navigasi dilayani index.html) ──
+  '/dosing',
 ]
 
 export default defineConfig({

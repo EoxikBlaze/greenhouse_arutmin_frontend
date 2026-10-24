@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
 import { fieldError, useApiError, useApiList } from '../lib/crudApi'
 import { useApiObject } from '../lib/useApiObject'
+import { PresetNutrisi, TargetPenampung } from '../components/PresetDosing'
 
 /**
  * Dosing otomatis — terhubung ke endpoint KONFIGURASI V2 riil (routes/konfigurasi.js):
@@ -11,6 +12,7 @@ import { useApiObject } from '../lib/useApiObject'
  *   GET  /timing-operasi      → timing operasi   (16 baris)    PUT /timing-operasi/:param     (admin)
  *   GET  /aturan-fail-safe    → aturan fail-safe (20 baris, baca saja)
  *   GET  /jadwal-perawatan    → jadwal perawatan (5 baris, baca saja)
+ *   /dosing/preset & /dosing/target → preset nutrisi (template) + target tiap penampung (routes/preset.js)
  * Semua nilai di layar berasal dari server — tidak ada angka simulasi.
  * Ringkasan katup tetap dari GET /watercontrol/status (perangkat berbagi).
  */
@@ -320,6 +322,9 @@ export default function DosingPage() {
   const jadwal = useApiList<JadwalRow>('/jadwal-perawatan')
   const { data, loading, error, reload } = useApiObject<Status>('/watercontrol/status')
   const aksesDitolak = !!error && /menu ini untuk pengelola|akses ditolak/i.test(error)
+  // naik setiap preset/target diubah → tabel target memuat ulang
+  const [versiTarget, setVersiTarget] = useState(0)
+  const ubahTarget = () => setVersiTarget((v) => v + 1)
 
   return (
     <div className="mx-auto w-full max-w-[1180px] grid grid-cols-[minmax(0,1fr)] gap-4 vsf-stagger">
@@ -329,9 +334,10 @@ export default function DosingPage() {
           <div className="min-w-0">
             <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Dosing otomatis</div>
             <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
-              Injeksi nutrisi yang diatur sendiri: pompa dosing menambah larutan sesuai ambang TDS,
-              dengan jeda dan batas harian agar botol nutrisi tidak habis mendadak. Parameter, timing,
-              aturan fail-safe, dan jadwal perawatan di bawah diambil langsung dari modul Konfigurasi V2.
+              Injeksi nutrisi yang diatur sendiri: target EC/pH tiap penampung diambil otomatis dari
+              <b> preset nutrisi</b> sesuai tanaman, tahap, dan umur batch di meja itu, lalu pompa dosing
+              mengejarnya dengan jeda dan batas harian. Parameter, timing, aturan fail-safe, dan jadwal
+              perawatan di bawah diambil langsung dari modul Konfigurasi V2.
             </p>
           </div>
           <span className="flex-1" />
@@ -341,6 +347,9 @@ export default function DosingPage() {
           </span>
         </div>
       </section>
+
+      <TargetPenampung versi={versiTarget} onUbah={ubahTarget} />
+      <PresetNutrisi onUbah={ubahTarget} />
 
       <TabelParameter
         judul="Parameter dosing"
