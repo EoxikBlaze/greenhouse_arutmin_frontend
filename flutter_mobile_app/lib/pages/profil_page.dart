@@ -279,8 +279,8 @@ class _ProfilPageState extends State<ProfilPage> {
                             labelText: 'Kata sandi baru',
                             prefixIcon: Icon(Icons.lock_reset, size: 20),
                           ),
-                          validator: (v) => (v == null || v.length < 6)
-                              ? 'Minimal 6 karakter.'
+                          validator: (v) => (v == null || v.length < 8)
+                              ? 'Minimal 8 karakter.'
                               : null,
                         ),
                         const SizedBox(height: 14),

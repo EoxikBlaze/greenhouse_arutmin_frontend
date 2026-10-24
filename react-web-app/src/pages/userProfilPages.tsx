@@ -48,7 +48,7 @@ function validateUser(form: FormState, editing: boolean): Record<string, string[
   const errs: Record<string, string[]> = {}
   const username = (form.username ?? '').trim()
   if (username.length < 3) errs.username = ['Nama pengguna min 3 karakter.']
-  if (!editing && (form.password ?? '').length < 6) errs.password = ['Password min 6 karakter.']
+  if (!editing && (form.password ?? '').length < 8) errs.password = ['Password min 8 karakter.']
   if (form.level && !LEVELS.includes(form.level)) errs.level = ['Level harus admin/user/petani.']
   return errs
 }
@@ -239,7 +239,7 @@ export function ManajemenUserPage() {
               <input
                 className="vsf-input w-full"
                 type="password"
-                placeholder="min 6 karakter"
+                placeholder="min 8 karakter"
                 value={form.password ?? ''}
                 onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
               />
@@ -334,7 +334,7 @@ export function ProfilPage() {
     if (savingSandi) return
     setSandiError(null)
     const errs: Record<string, string[]> = {}
-    if (sandi.password.length < 6) errs.password = ['Password baru min 6 karakter.']
+    if (sandi.password.length < 8) errs.password = ['Password baru min 8 karakter.']
     if (sandi.password !== sandi.password_confirmation)
       errs.password_confirmation = ['Konfirmasi password tidak cocok.']
     setSandiErr(errs)
