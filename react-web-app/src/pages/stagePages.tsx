@@ -75,7 +75,112 @@ function PillStatus({ nilai }: { nilai: string }) {
 type DetailBaris = { judul: string; isi: Array<[string, string]> }
 
 /** Identitas tahap untuk tombol "Tandai Selesai" — host yang memanggil endpoint tulis. */
-type AksiSelesai = { tipe: string; id: string; label: string; sudahSelesai: boolean }
+type AksiSelesai = { tipe: string; id: string; label: string; sudahSelesai: boolean; jumlah: number | null }
+
+/** Tahap berikutnya yang dibuat server setelah tahap ini ditutup (POST /tanam/:tipe/:id/selesai). */
+const LANJUT: Record<string, string> = { semai: 'peremajaan', peremajaan: 'pendewasaan', pendewasaan: 'panen' }
+
+/** Angka bulat ≥ 0 dari isian; null bila kosong/bukan angka. */
+const angkaBulat = (v: unknown): number | null => {
+  const t = String(v ?? '').trim()
+  return /^\d+$/.test(t) ? Number(t) : null
+}
+
+/**
+ * Isian penutupan tahap: cukup JUMLAH BERHASIL (bawaan = semua). Server menghitung gagal,
+ * menutup tahap hari ini, lalu membuat tahap berikutnya (pendewasaan → catatan panen).
+ * Dulu tombol hanya menandai selesai → berhasil/gagal 0 dan tahap berikutnya tidak pernah dibuat.
+ */
+function IsianBerhasil({
+  label,
+  tipe,
+  jumlah,
+  busy,
+  error,
+  onBatal,
+  onSimpan,
+}: {
+  label: string
+  tipe: string
+  jumlah: number | null
+  busy?: boolean
+  error?: string | null
+  onBatal: () => void
+  onSimpan: (berhasil: number) => void
+}) {
+  const [isi, setIsi] = useState(jumlah != null ? String(jumlah) : '')
+  const [salah, setSalah] = useState<string | null>(null)
+  const berhasil = angkaBulat(isi)
+  const gagal = jumlah != null && berhasil != null && berhasil <= jumlah ? jumlah - berhasil : null
+  const lanjut = LANJUT[tipe]
+  const simpan = () => {
+    if (berhasil == null) return setSalah('Isi jumlah yang berhasil (bilangan bulat ≥ 0).')
+    if (jumlah != null && berhasil > jumlah) return setSalah(`Tidak boleh lebih dari ${jumlah}.`)
+    setSalah(null)
+    onSimpan(berhasil)
+  }
+  return (
+    <form
+      className="mt-4 border-t border-garis pt-3"
+      onSubmit={(e) => {
+        e.preventDefault()
+        simpan()
+      }}
+    >
+      <label className="block text-[13px] text-slate-700" htmlFor="vsf-isian-berhasil">
+        Selesaikan <b>{label}</b>.{' '}
+        {jumlah != null ? <>Dari <b>{jumlah}</b> tanaman, berapa yang berhasil?</> : 'Berapa tanaman yang berhasil?'}
+      </label>
+      <div className="mt-2 flex items-center gap-2">
+        <input
+          id="vsf-isian-berhasil"
+          className="vsf-input w-32"
+          type="number"
+          inputMode="numeric"
+          min={0}
+          max={jumlah ?? undefined}
+          step={1}
+          value={isi}
+          disabled={busy}
+          autoFocus
+          onChange={(e) => {
+            setIsi(e.target.value)
+            setSalah(null)
+          }}
+        />
+        {jumlah != null && (
+          <button type="button" className="vsf-btn-secondary" disabled={busy} onClick={() => setIsi(String(jumlah))}>
+            Semua berhasil
+          </button>
+        )}
+      </div>
+      <div className="mt-2 text-[12.5px] text-slate-600">
+        {gagal != null && <>Gagal: <b>{gagal}</b> (dihitung otomatis). </>}
+        {berhasil === 0
+          ? 'Semua gagal — batch ditutup tanpa tahap berikutnya.'
+          : lanjut === 'panen'
+            ? 'Hasil dicatat sebagai panen.'
+            : lanjut
+              ? `Yang berhasil otomatis pindah ke ${lanjut}.`
+              : null}
+      </div>
+      {(salah || error) && (
+        <div role="alert" className="vsf-banner mt-2 rounded-std border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700">
+          {salah || error}
+        </div>
+      )}
+      <div className="mt-3 flex justify-end gap-2">
+        <button type="button" className="vsf-btn-secondary" disabled={busy} onClick={onBatal}>
+          Batal
+        </button>
+        <button type="submit" className="vsf-btn-primary" disabled={busy}>
+          {busy && <span className="vsf-spinner" aria-hidden />}
+          {busy ? 'Menyimpan…' : lanjut === 'panen' ? 'Simpan & catat panen' : 'Simpan & pindah tahap'}
+        </button>
+      </div>
+    </form>
+  )
+}
 
 function ModalDetailBaris({
   data,
@@ -87,7 +192,7 @@ function ModalDetailBaris({
 }: {
   data: DetailBaris | null
   aksi?: AksiSelesai | null
-  onSelesai?: () => void
+  onSelesai?: (berhasil: number) => void
   selesaiBusy?: boolean
   selesaiError?: string | null
   onClose: () => void
@@ -141,42 +246,15 @@ function ModalDetailBaris({
         </dl>
 
         {tanya && bisaSelesai && aksi ? (
-          <div className="mt-4 border-t border-garis pt-3">
-            <div className="text-[13px] text-slate-700">
-              Tandai <b>{aksi.label}</b> sebagai <b>selesai</b>? Tanggal akhir tahap akan
-              diisi hari ini.
-            </div>
-            {selesaiError && (
-              <div
-                role="alert"
-                className="vsf-banner mt-2 rounded-std border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700"
-              >
-                {selesaiError}
-              </div>
-            )}
-            <div className="mt-3 flex justify-end gap-2">
-              <button
-                type="button"
-                className="vsf-btn-secondary"
-                disabled={selesaiBusy}
-                onClick={() => setTanya(false)}
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                className="vsf-btn-primary"
-                disabled={selesaiBusy}
-                onClick={() => {
-                  setTanya(false)
-                  onSelesai?.()
-                }}
-              >
-                {selesaiBusy && <span className="vsf-spinner" aria-hidden />}
-                {selesaiBusy ? 'Menyimpan…' : 'Ya, tandai selesai'}
-              </button>
-            </div>
-          </div>
+          <IsianBerhasil
+            label={aksi.label}
+            tipe={aksi.tipe}
+            jumlah={aksi.jumlah}
+            busy={selesaiBusy}
+            error={selesaiError}
+            onBatal={() => setTanya(false)}
+            onSimpan={(b) => onSelesai?.(b)}
+          />
         ) : (
           <div className="mt-4 flex justify-end gap-2">
             {bisaSelesai && (
@@ -293,13 +371,13 @@ export function SemaiPage() {
     setSelesaiError(null)
   }
 
-  /** Konfirmasi 1 langkah → POST /tanam/semai/:id/selesai → flash + segarkan detail & daftar. */
-  async function tandaiSelesai() {
+  /** Isi jumlah berhasil → POST /tanam/semai/:id/selesai {berhasil} → server membuat peremajaan. */
+  async function tandaiSelesai(berhasil: number) {
     if (!detailId || selesaiBusy) return
     setSelesaiBusy(true)
     setSelesaiError(null)
     try {
-      const res = await api.post(`/tanam/semai/${detailId}/selesai`)
+      const res = await api.post(`/tanam/semai/${detailId}/selesai`, { berhasil })
       const pesan = (res.data as { message?: string } | null)?.message
       setFlash(pesan ?? 'Tahap semai diselesaikan.')
       setTanyaSelesai(false)
@@ -463,43 +541,19 @@ export function SemaiPage() {
             )}
 
             {detail && !detailLoading && !detailError && tanyaSelesai && (
-              <div className="mt-4 border-t border-garis pt-3">
-                <div className="text-[13px] text-slate-700">
-                  Tandai semai <b>#{detailId}</b> sebagai <b>selesai</b>? Tanggal akhir
-                  tahap akan diisi hari ini.
-                </div>
-                {selesaiError && (
-                  <div
-                    role="alert"
-                    className="vsf-banner mt-2 rounded-std border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700"
-                  >
-                    {selesaiError}
-                  </div>
-                )}
-                <div className="mt-3 flex justify-end gap-2">
-                  <button
-                    type="button"
-                    className="vsf-btn-secondary"
-                    disabled={selesaiBusy}
-                    onClick={() => setTanyaSelesai(false)}
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="button"
-                    className="vsf-btn-primary"
-                    disabled={selesaiBusy}
-                    onClick={() => void tandaiSelesai()}
-                  >
-                    {selesaiBusy && <span className="vsf-spinner" aria-hidden />}
-                    {selesaiBusy ? 'Menyimpan…' : 'Ya, tandai selesai'}
-                  </button>
-                </div>
-              </div>
+              <IsianBerhasil
+                label={`semai #${detailId}`}
+                tipe="semai"
+                jumlah={angkaBulat(d?.jumlah_benih)}
+                busy={selesaiBusy}
+                error={selesaiError}
+                onBatal={() => setTanyaSelesai(false)}
+                onSimpan={(b) => void tandaiSelesai(b)}
+              />
             )}
 
             <div className="mt-4 flex justify-end gap-2">
-              {detail && !detailLoading && !detailError && !tanyaSelesai && typeof d?.status === 'string' && d.status !== 'selesai' && (
+              {detail && !detailLoading && !detailError && !tanyaSelesai && d?.status === 'proses' && (
                 <button
                   type="button"
                   className="vsf-btn-primary"
@@ -523,13 +577,10 @@ export function SemaiPage() {
    Endpoint tulis ADA (routes/tahap.js → crudRouter): GET/POST/PUT/DELETE
    /peremajaan · /pendewasaan · /panen. Tombol Simpan kini benar-benar
    menyimpan (POST), baris tabel = GET riil, Hapus = DELETE riil.
-   CATATAN backend (diuji langsung): POST /tanam/:tipe/:id/selesai HANYA
-   berfungsi untuk tipe semai — tabel peremajaans/pendewasaans/panens tidak
-   punya kolom status (balasan 500). Karena itu penutupan tahap di layar ini:
-     · semai        → POST /tanam/semai/:id/selesai  (lihat SemaiPage)
-     · peremajaan   → PUT /peremajaan/:id {tgl_akhir_peremajaan: hari ini}
-     · pendewasaan  → PUT /pendewasaan/:id {tgl_akhir_pendewasaan: hari ini}
-     · panen        → tanpa tombol (tgl_panen = data hasil, bukan status). */
+   Penutupan tahap (semai · peremajaan · pendewasaan) = POST /tanam/:tipe/:id/selesai
+   {berhasil}: server mengisi berhasil/gagal + status, lalu membuat tahap berikutnya
+   (pendewasaan → baris panens). Status baris dibaca dari kolom `status` server.
+   Panen tanpa tombol tutup (tgl_panen = data hasil, bukan status). */
 type PeremajaanRow = Record<string, unknown> & {
   id_peremajaan: string | number
   id_semai: string | number | null
@@ -540,6 +591,7 @@ type PeremajaanRow = Record<string, unknown> & {
   tgl_awal_peremajaan: string | null
   tgl_akhir_peremajaan: string | null
   keterangan: string | null
+  status?: string | null
 }
 type PendewasaanRow = Record<string, unknown> & {
   id_pendewasaan: string | number
@@ -551,6 +603,7 @@ type PendewasaanRow = Record<string, unknown> & {
   tgl_awal_pendewasaan: string | null
   tgl_akhir_pendewasaan: string | null
   keterangan: string | null
+  status?: string | null
 }
 type PanenRow = Record<string, unknown> & {
   id_panen: string | number
@@ -574,21 +627,16 @@ function tanggalOffset(hari: number): string {
   d.setDate(d.getDate() + hari)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
-const hariIni = () => tanggalOffset(0)
 
-/**
- * Status tahap dari tanggal akhir: sudah lewat / hari ini → 'selesai',
- * masih di masa depan (atau kosong) → 'aktif'. Tabel tahap ini tidak punya
- * kolom status (backend), jadi jendela tanggal = satu-satunya penanda.
- */
-function statusTahap(akhir: unknown): string {
-  if (akhir === undefined || akhir === null || String(akhir).trim() === '') return 'aktif'
-  const d = new Date(String(akhir))
-  if (Number.isNaN(d.getTime())) return 'aktif'
-  const n = new Date()
-  const batas = new Date(n.getFullYear(), n.getMonth(), n.getDate(), 23, 59, 59)
-  return d.getTime() <= batas.getTime() ? 'selesai' : 'aktif'
+/** Status tahap dari kolom `status` di server ('proses' | 'selesai' | 'gagal'). Dulu ditebak dari
+ * tanggal akhir → bertentangan dengan Tanam Saya (batch 'proses' tampil 'selesai'). */
+const statusTahap = (status: unknown): string => {
+  const v = String(status ?? '').trim()
+  return v === 'proses' ? 'berjalan' : v || '—'
 }
+
+/** Tanggal akhir hanya bermakna setelah tahap ditutup (saat berjalan server menyimpan penanda = tanggal mulai). */
+const tglAkhir = (status: unknown, akhir: unknown): string => (status === 'proses' ? '—' : tgl(akhir))
 
 type Opsi = { id: string; label: string }
 type FieldTahap = {
@@ -610,9 +658,8 @@ type PropsTahap<T> = {
   formTitle: string
   path: string
   tipe: 'peremajaan' | 'pendewasaan' | 'panen'
-  /** Penutupan tahap: 'post' = POST /tanam/:tipe/:id/selesai · 'put' = tutup lewat tanggal akhir. */
-  selesaiVia: 'post' | 'put'
-  selesaiField?: string
+  /** Jumlah tanaman yang masuk tahap ini — bawaan isian "berhasil" saat menutup tahap. */
+  jumlah?: (r: T) => number | null
   columns: Column<T>[]
   rowKey: (r: T) => string
   fields: FieldTahap[]
@@ -632,8 +679,7 @@ function TahapCrudPage<T>({
   formTitle,
   path,
   tipe,
-  selesaiVia,
-  selesaiField,
+  jumlah,
   columns,
   rowKey,
   fields,
@@ -749,20 +795,16 @@ function TahapCrudPage<T>({
     }
   }
 
-  /** Konfirmasi dari modal detail → tutup tahap (POST semai / PUT tanggal akhir) → flash + segarkan. */
-  async function tandaiSelesai(r: T) {
+  /** Isi jumlah berhasil → POST /tanam/:tipe/:id/selesai {berhasil}: server menghitung gagal,
+   *  menutup tahap, dan membuat tahap berikutnya (dulu PUT tanggal akhir saja → tahap putus). */
+  async function tandaiSelesai(r: T, berhasil: number) {
     if (selesaiBusy) return
     setSelesaiBusy(true)
     setSelesaiError(null)
     try {
-      if (selesaiVia === 'post') {
-        const res = await api.post(`/tanam/${tipe}/${rowKey(r)}/selesai`)
-        const pesan = (res.data as { message?: string } | null)?.message
-        setFlash(pesan ?? `Tahap ${tipe} diselesaikan.`)
-      } else {
-        await api.put(`${path}/${rowKey(r)}`, { [selesaiField ?? '']: hariIni() })
-        setFlash(`${title} ditandai selesai.`)
-      }
+      const res = await api.post(`/tanam/${tipe}/${rowKey(r)}/selesai`, { berhasil })
+      const pesan = (res.data as { message?: string } | null)?.message
+      setFlash(pesan ?? `Tahap ${tipe} diselesaikan.`)
       setLihat(null)
       reload()
     } catch (err) {
@@ -870,10 +912,10 @@ function TahapCrudPage<T>({
         data={lihat ? detail(lihat) : null}
         aksi={
           lihat
-            ? { tipe, id: rowKey(lihat), label: labelBaris(lihat), sudahSelesai: sudahSelesai(lihat) }
+            ? { tipe, id: rowKey(lihat), label: labelBaris(lihat), sudahSelesai: sudahSelesai(lihat), jumlah: jumlah ? jumlah(lihat) : null }
             : null
         }
-        onSelesai={lihat ? () => void tandaiSelesai(lihat) : undefined}
+        onSelesai={lihat ? (b) => void tandaiSelesai(lihat, b) : undefined}
         selesaiBusy={selesaiBusy}
         selesaiError={selesaiError}
         onClose={() => setLihat(null)}
@@ -910,8 +952,7 @@ export function PeremajaanPage() {
       formTitle="Tambah Peremajaan"
       path="/peremajaan"
       tipe="peremajaan"
-      selesaiVia="put"
-      selesaiField="tgl_akhir_peremajaan"
+      jumlah={(r) => angkaBulat(r.jumlah_masuk)}
       columns={[
         { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id_peremajaan)}</span> },
         { key: 'varietas', header: 'Varietas', render: (r) => <b className="text-slate-900">{varietasDariSiklus(r.id_semai)}</b> },
@@ -919,8 +960,8 @@ export function PeremajaanPage() {
         { key: 'masuk', header: 'Jumlah pindah', render: (r) => cell(r.jumlah_masuk) },
         { key: 'hasil', header: 'Berhasil / Gagal', render: (r) => `${cell(r.benih_berhasil)} / ${cell(r.benih_gagal)}` },
         { key: 'mulai', header: 'Mulai', render: (r) => tgl(r.tgl_awal_peremajaan) },
-        { key: 'akhir', header: 'Selesai', render: (r) => tgl(r.tgl_akhir_peremajaan) },
-        { key: 'status', header: 'Status', render: (r) => <PillStatus nilai={statusTahap(r.tgl_akhir_peremajaan)} /> },
+        { key: 'akhir', header: 'Selesai', render: (r) => tglAkhir(r.status, r.tgl_akhir_peremajaan) },
+        { key: 'status', header: 'Status', render: (r) => <PillStatus nilai={statusTahap(r.status)} /> },
       ]}
       rowKey={(r) => String(r.id_peremajaan)}
       fields={[
@@ -937,7 +978,7 @@ export function PeremajaanPage() {
         'Live: GET/POST/DELETE /peremajaan — tombol Simpan benar-benar menyimpan (POST), Hapus benar-benar menghapus.',
         'Pilihan Batch semai & Meja diambil dari server (tak perlu hafal ID); kolom wajib mengikuti kolom NOT NULL backend.',
         'Baris yang masih dirujuk pendewasaan tidak bisa dihapus (409 "Tidak bisa menghapus…" dari backend).',
-        'Status dihitung dari Tanggal akhir: lewat hari ini = selesai; tutup lebih awal lewat Tandai Selesai di detail baris.',
+        'Status dari server: berjalan / selesai / gagal. Tandai Selesai di detail baris meminta jumlah berhasil, lalu server membuat tahap berikutnya otomatis.',
       ]}
       detail={(r) => ({
         judul: `Detail peremajaan #${r.id_peremajaan}`,
@@ -947,12 +988,12 @@ export function PeremajaanPage() {
           ['Jumlah pindah', cell(r.jumlah_masuk)],
           ['Berhasil / gagal', `${cell(r.benih_berhasil)} / ${cell(r.benih_gagal)}`],
           ['Mulai', tgl(r.tgl_awal_peremajaan)],
-          ['Selesai', tgl(r.tgl_akhir_peremajaan)],
-          ['Status', statusTahap(r.tgl_akhir_peremajaan)],
+          ['Selesai', tglAkhir(r.status, r.tgl_akhir_peremajaan)],
+          ['Status', statusTahap(r.status)],
           ['Keterangan', cell(r.keterangan)],
         ],
       })}
-      sudahSelesai={(r) => statusTahap(r.tgl_akhir_peremajaan) === 'selesai'}
+      sudahSelesai={(r) => r.status !== 'proses'}
       labelBaris={(r) => `peremajaan #${r.id_peremajaan}`}
     />
   )
@@ -989,8 +1030,7 @@ export function PendewasaanPage() {
       formTitle="Tambah Pendewasaan"
       path="/pendewasaan"
       tipe="pendewasaan"
-      selesaiVia="put"
-      selesaiField="tgl_akhir_pendewasaan"
+      jumlah={(r) => angkaBulat(r.jumlah_masuk)}
       columns={[
         { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id_pendewasaan)}</span> },
         { key: 'varietas', header: 'Varietas', render: (r) => <b className="text-slate-900">{varietasDariPeremajaan(r.id_peremajaan)}</b> },
@@ -998,8 +1038,8 @@ export function PendewasaanPage() {
         { key: 'masuk', header: 'Jumlah masuk', render: (r) => cell(r.jumlah_masuk) },
         { key: 'hasil', header: 'Berhasil / Gagal', render: (r) => `${cell(r.tanaman_berhasil)} / ${cell(r.tanaman_gagal)}` },
         { key: 'mulai', header: 'Mulai', render: (r) => tgl(r.tgl_awal_pendewasaan) },
-        { key: 'akhir', header: 'Selesai', render: (r) => tgl(r.tgl_akhir_pendewasaan) },
-        { key: 'status', header: 'Status', render: (r) => <PillStatus nilai={statusTahap(r.tgl_akhir_pendewasaan)} /> },
+        { key: 'akhir', header: 'Selesai', render: (r) => tglAkhir(r.status, r.tgl_akhir_pendewasaan) },
+        { key: 'status', header: 'Status', render: (r) => <PillStatus nilai={statusTahap(r.status)} /> },
       ]}
       rowKey={(r) => String(r.id_pendewasaan)}
       fields={[
@@ -1016,7 +1056,7 @@ export function PendewasaanPage() {
         'Live: GET/POST/DELETE /pendewasaan — tombol Simpan benar-benar menyimpan (POST), Hapus benar-benar menghapus.',
         'Pilihan Batch peremajaan & Meja diambil dari server (tak perlu hafal ID); kolom wajib mengikuti kolom NOT NULL backend.',
         'Baris yang masih dirujuk panen tidak bisa dihapus (409 dari backend).',
-        'Status dihitung dari Tanggal akhir: lewat hari ini = selesai; tutup lebih awal lewat Tandai Selesai di detail baris.',
+        'Status dari server: berjalan / selesai / gagal. Tandai Selesai di detail baris meminta jumlah berhasil, lalu server membuat tahap berikutnya otomatis.',
       ]}
       detail={(r) => ({
         judul: `Detail pendewasaan #${r.id_pendewasaan}`,
@@ -1026,12 +1066,12 @@ export function PendewasaanPage() {
           ['Jumlah masuk', cell(r.jumlah_masuk)],
           ['Berhasil / gagal', `${cell(r.tanaman_berhasil)} / ${cell(r.tanaman_gagal)}`],
           ['Mulai', tgl(r.tgl_awal_pendewasaan)],
-          ['Selesai', tgl(r.tgl_akhir_pendewasaan)],
-          ['Status', statusTahap(r.tgl_akhir_pendewasaan)],
+          ['Selesai', tglAkhir(r.status, r.tgl_akhir_pendewasaan)],
+          ['Status', statusTahap(r.status)],
           ['Keterangan', cell(r.keterangan)],
         ],
       })}
-      sudahSelesai={(r) => statusTahap(r.tgl_akhir_pendewasaan) === 'selesai'}
+      sudahSelesai={(r) => r.status !== 'proses'}
       labelBaris={(r) => `pendewasaan #${r.id_pendewasaan}`}
     />
   )
@@ -1071,37 +1111,36 @@ export function PanenPage() {
       formTitle="Tambah Panen"
       path="/panen"
       tipe="panen"
-      selesaiVia="post"
-      catatan="Panen dihitung selesai pada Tanggal panen yang dicatat, jadi tombol Tandai Selesai tidak dipasang di tahap ini — tabel panen memang tidak menyimpan status tahap."
+      catatan="Panen tercatat otomatis saat pendewasaan ditandai selesai (jumlah tanaman berhasil & gagal). Tahap panen sendiri tidak perlu ditutup."
 
       columns={[
         { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id_panen)}</span> },
         { key: 'varietas', header: 'Varietas', render: (r) => <b className="text-slate-900">{varietasDariPendewasaan(r.id_pendewasaan)}</b> },
         { key: 'meja', header: 'Meja', render: (r) => namaMeja(ambil(pendewasaanById, r.id_pendewasaan)?.id_meja) },
-        { key: 'hasil', header: 'Berhasil', render: (r) => `${cell(r.panen_berhasil)} kg` },
-        { key: 'gagal', header: 'Gagal', render: (r) => `${cell(r.panen_gagal)} kg` },
+        { key: 'hasil', header: 'Berhasil', render: (r) => `${cell(r.panen_berhasil)} tanaman` },
+        { key: 'gagal', header: 'Gagal', render: (r) => `${cell(r.panen_gagal)} tanaman` },
         { key: 'tgl', header: 'Tanggal panen', render: (r) => tgl(r.tgl_panen) },
       ]}
       rowKey={(r) => String(r.id_panen)}
       fields={[
         { key: 'id_pendewasaan', label: 'Batch pendewasaan', kind: 'select', wajib: true, opsi: pendewasaanRows.map((r) => ({ id: String(r.id_pendewasaan), label: `Pendewasaan #${r.id_pendewasaan} — ${varietasDariPendewasaan(r.id_pendewasaan)}` })) },
-        { key: 'panen_berhasil', label: 'Panen berhasil (kg)', kind: 'number', wajib: true, placeholder: '12' },
-        { key: 'panen_gagal', label: 'Panen gagal (kg)', kind: 'number', wajib: true, placeholder: '0' },
+        { key: 'panen_berhasil', label: 'Panen berhasil (tanaman)', kind: 'number', wajib: true, placeholder: '12' },
+        { key: 'panen_gagal', label: 'Panen gagal (tanaman)', kind: 'number', wajib: true, placeholder: '0' },
         { key: 'tgl_panen', label: 'Tanggal panen', kind: 'date', wajib: true },
         { key: 'keterangan', label: 'Keterangan', kind: 'text', placeholder: 'Opsional' },
       ]}
       notes={[
         'Live: GET/POST/DELETE /panen — tombol Simpan benar-benar menyimpan (POST), Hapus benar-benar menghapus.',
         'Pilihan Batch pendewasaan diambil dari GET /pendewasaan (tak perlu hafal ID).',
-        'Catatan jujur: tabel panens tidak punya kolom status — POST /tanam/panen/:id/selesai berakhir 500, jadi tombol Tandai Selesai TIDAK dipasang di sini (tonggak panen = Tanggal panen yang diisi).',
+        'Baris panen dibuat otomatis saat pendewasaan diselesaikan; tombol Tambah Panen untuk catatan manual.',
         'Baris yang masih dirujuk tidak bisa dihapus (409 dari backend).',
       ]}
       detail={(r) => ({
         judul: `Detail panen #${r.id_panen}`,
         isi: [
           ['Batch pendewasaan', r.id_pendewasaan ? `#${r.id_pendewasaan} (${varietasDariPendewasaan(r.id_pendewasaan)})` : '—'],
-          ['Panen berhasil', `${cell(r.panen_berhasil)} kg`],
-          ['Panen gagal', `${cell(r.panen_gagal)} kg`],
+          ['Panen berhasil', `${cell(r.panen_berhasil)} tanaman`],
+          ['Panen gagal', `${cell(r.panen_gagal)} tanaman`],
           ['Tanggal panen', tgl(r.tgl_panen)],
           ['Keterangan', cell(r.keterangan)],
         ],

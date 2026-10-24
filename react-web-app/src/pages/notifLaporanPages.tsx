@@ -18,7 +18,7 @@ type Matriks = {
   rata_ph?: number | null
 }
 
-const KOLOM = ['Periode', 'Semai', 'Remaja', 'Dewasa', 'Panen (kg)', 'Rata-rata pH']
+const KOLOM = ['Periode', 'Semai', 'Remaja', 'Dewasa', 'Panen (tanaman)', 'Rata-rata pH']
 
 function angka(v?: number | null): string {
   return typeof v === 'number' ? String(v) : '—'

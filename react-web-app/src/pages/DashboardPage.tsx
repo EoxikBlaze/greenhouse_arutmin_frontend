@@ -43,6 +43,8 @@ type DashboardData = {
   pendewasaan_aktif?: number | null
   total_panen?: number | null
   total_panen_qty?: number | null
+  /** Batas aman per sensor dari tabel sensor_thresholds (halaman Ambang Sensor). */
+  ambang?: Record<string, { min: number | string | null; max: number | string | null }> | null
 }
 
 const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
@@ -145,12 +147,19 @@ export default function DashboardPage() {
   const online = !!iot?.online
   const statusKata = online ? 'perangkat online' : 'perangkat offline'
 
+  // batas aman dari halaman Ambang Sensor (server) — dulu angka target ditulis tetap di kode
+  const batas = (k: string) => {
+    const a = data?.ambang?.[k]
+    if (!a || a.min == null || a.max == null) return 'batas aman belum diatur'
+    const f = (v: number | string) => String(Number(v)).replace('.', ',')
+    return `batas aman ${f(a.min)}–${f(a.max)}`
+  }
   const metrik = [
-    { k: 'ph', label: 'pH (Asam-Basa)', nilai: angka(s?.ph, 2), target: 'target 5.5–6.5' },
-    { k: 'waterTemp', label: 'Suhu Air Tandon', nilai: `${angka(s?.waterTemp, 1)} °C`, target: 'target 24–28' },
-    { k: 'tds', label: 'TDS Nutrisi', nilai: `${angka(s?.tds)} ppm`, target: 'target 900–1400' },
-    { k: 'airTemp', label: 'Suhu Udara', nilai: `${angka(s?.airTemp, 1)} °C`, target: 'target 25–33' },
-    { k: 'humidity', label: 'Kelembapan', nilai: `${angka(s?.humidity)} %`, target: 'target 60–80' },
+    { k: 'ph', label: 'pH (Asam-Basa)', nilai: angka(s?.ph, 2), target: batas('ph') },
+    { k: 'waterTemp', label: 'Suhu Air Tandon', nilai: `${angka(s?.waterTemp, 1)} °C`, target: batas('waterTemp') },
+    { k: 'tds', label: 'TDS Nutrisi', nilai: `${angka(s?.tds)} ppm`, target: batas('tds') },
+    { k: 'airTemp', label: 'Suhu Udara', nilai: `${angka(s?.airTemp, 1)} °C`, target: batas('airTemp') },
+    { k: 'humidity', label: 'Kelembapan', nilai: `${angka(s?.humidity)} %`, target: batas('humidity') },
     {
       k: 'level',
       label: 'Katup Air',
@@ -177,7 +186,7 @@ export default function DashboardPage() {
       to: '/pendewasaan',
       ket: 'berjalan',
     },
-    { k: 'panen', label: 'Panen', total: data?.total_panen, jalan: data?.total_panen_qty, to: '/panen', ket: 'hasil (kg)' },
+    { k: 'panen', label: 'Panen', total: data?.total_panen, jalan: data?.total_panen_qty, to: '/panen', ket: 'tanaman dipanen' },
   ]
 
   return (
