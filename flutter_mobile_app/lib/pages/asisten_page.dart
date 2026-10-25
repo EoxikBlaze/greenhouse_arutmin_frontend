@@ -53,8 +53,31 @@ const _labelSumber = <String, String>{
   'heuristik': 'Jawaban aturan (AI lokal tidak tersedia)',
   'diagnosa': 'Diagnosa otomatis dari database',
   'data': 'Data langsung dari database',
+  'sapaan': 'Asisten GARAP',
+  'ollama': 'Dijawab AI lokal — cek ulang sebelum bertindak',
   'tolak': 'Permintaan ditolak oleh pengaman',
 };
+
+/// Riwayat untuk server: pasangan tanya-jawab yang ditolak/galat dibuang UTUH.
+/// Dulu hanya jawabannya yang dibuang → pertanyaan luar topik ikut terkirim dan
+/// membuat pertanyaan sah berikutnya ikut ditolak.
+@visibleForTesting
+List<Map<String, String>> riwayatUntukServer(
+  Iterable<({bool dariUser, String teks, bool dibuang})> pesan,
+) {
+  final out = <({bool dariUser, String teks})>[];
+  for (final p in pesan) {
+    if (!p.dariUser && p.dibuang) {
+      if (out.isNotEmpty && out.last.dariUser) out.removeLast();
+      continue;
+    }
+    out.add((dariUser: p.dariUser, teks: p.teks));
+  }
+  return out
+      .skip(out.length > 8 ? out.length - 8 : 0)
+      .map((p) => {'peran': p.dariUser ? 'user' : 'ai', 'teks': p.teks})
+      .toList();
+}
 
 class _HasilMd {
   const _HasilMd(this.teks, this.tabel);
@@ -174,15 +197,15 @@ class _AsistenPageState extends State<AsistenPage> {
     final t = teks.trim();
     if (t.isEmpty || t.length > _batas || _memuat) return;
 
-    final riwayat = _pesan
-        .where((p) => !p.galat && p.sumber != 'tolak')
-        .toList()
-        .reversed
-        .take(8)
-        .toList()
-        .reversed
-        .map((p) => {'peran': p.dariUser ? 'user' : 'ai', 'teks': p.teks})
-        .toList();
+    final riwayat = riwayatUntukServer(
+      _pesan.map(
+        (p) => (
+          dariUser: p.dariUser,
+          teks: p.teks,
+          dibuang: p.galat || p.sumber == 'tolak',
+        ),
+      ),
+    );
 
     setState(() {
       _pesan.add(_Pesan(t, dariUser: true));
@@ -221,10 +244,20 @@ class _AsistenPageState extends State<AsistenPage> {
         );
         _memuat = false;
       });
-    } on ApiException catch (e) {
+    } catch (e) {
+      // selain ApiException (mis. bentuk balasan tak terduga) — jangan biarkan
+      // indikator "mengetik" berputar terus dan tombol kirim terkunci
       if (!mounted) return;
       setState(() {
-        _pesan.add(_Pesan(e.message, dariUser: false, galat: true));
+        _pesan.add(
+          _Pesan(
+            e is ApiException
+                ? e.message
+                : 'Jawaban asisten tidak dapat dibaca. Coba lagi.',
+            dariUser: false,
+            galat: true,
+          ),
+        );
         _memuat = false;
       });
     }
@@ -437,7 +470,8 @@ class _Gelembung extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (p.status != null) _LencanaStatus(p.status!),
-              Text(
+              // jawaban bisa disalin (mis. langkah SOP untuk dikirim ke rekan)
+              SelectableText(
                 p.teks,
                 style: TextStyle(color: teks, height: 1.4, fontSize: 14.5),
               ),

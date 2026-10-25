@@ -183,9 +183,11 @@ class ApiService {
       throw ApiException(422, _pesan422(map));
     }
     if (res.statusCode == 429) {
-      throw const ApiException(
+      // pesan server lebih tepat: sisa detik, jeda asisten AI 5 menit, antrean aktuator
+      final msg = map?['message']?.toString() ?? '';
+      throw ApiException(
         429,
-        'Terlalu banyak percobaan. Coba lagi dalam satu menit.',
+        msg.isEmpty ? 'Terlalu banyak percobaan. Coba lagi dalam satu menit.' : msg,
       );
     }
     if (res.statusCode == 404) {

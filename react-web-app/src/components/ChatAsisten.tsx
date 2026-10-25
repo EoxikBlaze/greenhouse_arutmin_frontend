@@ -41,6 +41,7 @@ const SUMBER: Record<string, string> = {
   sapaan: 'Asisten GARAP',
   diagnosa: 'Diagnosa otomatis dari database',
   data: 'Data langsung dari database',
+  ollama: 'Dijawab AI lokal — cek ulang sebelum bertindak',
   tolak: 'Permintaan ditolak oleh pengaman',
 }
 
@@ -88,6 +89,23 @@ function TabelAi({ t }: { t: Tabel }) {
 
 const BATAS = 600
 
+/**
+ * Riwayat untuk server: pasangan tanya-jawab yang ditolak/galat dibuang UTUH.
+ * Dulu hanya jawabannya yang dibuang → pertanyaan luar topik ikut terkirim dan
+ * membuat pertanyaan sah berikutnya ditolak juga.
+ */
+function riwayatUntukServer(pesan: Pesan[]) {
+  const out: Pesan[] = []
+  for (const p of pesan) {
+    if (p.peran === 'ai' && (p.galat || p.sumber === 'tolak')) {
+      if (out.length && out[out.length - 1].peran === 'user') out.pop()
+      continue
+    }
+    out.push(p)
+  }
+  return out.slice(-8).map((p) => ({ peran: p.peran, teks: p.teks }))
+}
+
 export function ChatAsisten() {
   const handleApiError = useApiError()
   const [pesan, setPesan] = useState<Pesan[]>([])
@@ -95,6 +113,8 @@ export function ChatAsisten() {
   const [memuat, setMemuat] = useState(false)
   const gulirRef = useRef<HTMLDivElement>(null)
   const idRef = useRef(0)
+  // naik setiap "Hapus percakapan" → jawaban yang datang terlambat dari percakapan lama dibuang
+  const sesiRef = useRef(0)
 
   // Gulir HANYA kotak chat (bukan halaman) ke pesan terbaru.
   useEffect(() => {
@@ -105,10 +125,8 @@ export function ChatAsisten() {
   async function kirim(teks: string) {
     const t = teks.trim()
     if (!t || memuat || t.length > BATAS) return
-    const riwayat = pesan
-      .filter((p) => !p.galat && p.sumber !== 'tolak')
-      .slice(-8)
-      .map((p) => ({ peran: p.peran, teks: p.teks }))
+    const riwayat = riwayatUntukServer(pesan)
+    const sesi = sesiRef.current
     const user: Pesan = { id: ++idRef.current, peran: 'user', teks: t }
     setPesan((l) => [...l, user])
     setIsi('')
@@ -121,18 +139,26 @@ export function ChatAsisten() {
         status?: 'OK' | 'PERHATIAN' | 'KRITIS'
         tabel?: Tabel[]
       }
+      if (sesi !== sesiRef.current) return
       setPesan((l) => [
         ...l,
         { id: ++idRef.current, peran: 'ai', teks: d.jawaban, sumber: d.sumber, status: d.status, tabel: d.tabel ?? [] },
       ])
     } catch (err) {
+      if (sesi !== sesiRef.current) return
       setPesan((l) => [
         ...l,
         { id: ++idRef.current, peran: 'ai', teks: handleApiError(err).message, galat: true },
       ])
     } finally {
-      setMemuat(false)
+      if (sesi === sesiRef.current) setMemuat(false)
     }
+  }
+
+  function hapus() {
+    sesiRef.current += 1
+    setPesan([])
+    setMemuat(false)
   }
 
   function onSubmit(e: FormEvent) {
@@ -155,7 +181,7 @@ export function ChatAsisten() {
         </div>
         <span className="flex-1" />
         {pesan.length > 0 && (
-          <button type="button" className="vsf-btn-secondary !min-h-[36px] !text-[12px]" onClick={() => setPesan([])}>
+          <button type="button" className="vsf-btn-secondary !min-h-[36px] !text-[12px]" onClick={hapus}>
             Hapus percakapan
           </button>
         )}
@@ -191,7 +217,7 @@ export function ChatAsisten() {
           </div>
         )}
 
-        <ul className="grid gap-2.5">
+        <ul className="grid grid-cols-[minmax(0,1fr)] gap-2.5">
           {pesan.map((p) => (
             <li key={p.id} className={clsx('flex', p.peran === 'user' ? 'justify-end' : 'justify-start')}>
               <div
