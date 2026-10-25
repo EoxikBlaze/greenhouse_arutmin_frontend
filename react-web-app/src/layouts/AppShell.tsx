@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { SiteFooter } from '../components/SiteFooter'
 import { Monogram } from '../components/Monogram'
@@ -49,102 +49,168 @@ type NavItem = {
   to: string
   label: string
   allow?: RoleSet
-  indent?: boolean
-  /** Label kecil di atas item pertama dalam grup (mis. "Data Tahap"). */
-  subheader?: string
+  /** Nama ikon di IKON (garis 24×24, stroke currentColor). */
+  ikon: keyof typeof IKON
+  /** Nomor urut tahap (Semai 1 … Panen 4) — ganti ikon dengan bulatan bernomor. */
+  langkah?: number
 }
 type NavGroup = { label: string; items: NavItem[] }
+
+/** Ikon garis minimalis — satu gaya dengan ikon halaman Tentang. */
+const IKON = {
+  dashboard: 'M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-3H4zM14 7h6V4h-6z',
+  ai: 'M12 3l1.8 4.8 4.8 1.8-4.8 1.8L12 16.2l-1.8-4.8L5.4 9.6l4.8-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z',
+  sensor: 'M12 3c3 4 5 6.6 5 9.5a5 5 0 0 1-10 0C7 9.6 9 7 12 3z',
+  air: 'M4 15h16M7 15V9a5 5 0 0 1 10 0v6M12 4v2M9 19h6',
+  dosing: 'M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 18l-5-9V3M7.5 15h9',
+  tanam: 'M12 21v-9M12 12c0-4-3-7-8-7 0 4 3 7 8 7zM12 12c0-4 3-7 8-7 0 4-3 7-8 7z',
+  cctv: 'M3 8l12-3 2 5-12 3zM17 10l4 1v4l-4-1M8 17l-1 4',
+  siklus: 'M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4',
+  daun: 'M5 19c0-8 5-13 14-14-1 9-6 14-14 14zM5 19l8-8',
+  meja: 'M3 9h18M5 9v10M19 9v10M3 5h18v4H3z',
+  ambang: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4',
+  laporan: 'M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h4',
+  profil: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c1-4 4-6 8-6s7 2 8 6',
+  user: 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.3a3.5 3.5 0 0 1 0 6.4M18 14.6c2 .6 3.3 2.4 3.6 5.4',
+  audit: 'M12 8v4l3 2M3.5 12a8.5 8.5 0 1 0 2.5-6M3 3v4h4',
+  info: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 8h.01',
+} as const
+
+function Ikon({ nama, className = 'h-[18px] w-[18px]' }: { nama: keyof typeof IKON; className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={`${className} shrink-0`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d={IKON[nama]} />
+    </svg>
+  )
+}
 
 const NAV: NavGroup[] = [
   {
     label: 'Ikhtisar',
     items: [
-      { to: '/dashboard', label: 'Dashboard' },
-      { to: '/asisten-ai', label: 'Asisten AI' },
+      { to: '/dashboard', label: 'Dashboard', ikon: 'dashboard' },
+      { to: '/asisten-ai', label: 'Asisten AI', ikon: 'ai' },
     ],
   },
   {
     label: 'Kebun & Sensor',
     items: [
-      { to: '/sensor-realtime', label: 'Sensor Real-Time' },
-      { to: '/watercontrol', label: 'Water Control', allow: ADMIN_DEMO },
-      { to: '/dosing', label: 'Dosing Otomatis', allow: ADMIN_DEMO },
-      { to: '/tanam', label: 'Tanam Saya' },
-      { to: '/cctv', label: 'CCTV' },
+      { to: '/sensor-realtime', label: 'Sensor Real-Time', ikon: 'sensor' },
+      { to: '/tanam', label: 'Tanam Saya', ikon: 'tanam' },
+      { to: '/watercontrol', label: 'Water Control', ikon: 'air', allow: ADMIN_DEMO },
+      { to: '/dosing', label: 'Dosing Otomatis', ikon: 'dosing', allow: ADMIN_DEMO },
+      { to: '/cctv', label: 'CCTV', ikon: 'cctv' },
     ],
   },
   {
     label: 'Siklus Tanam',
     items: [
-      { to: '/semai', label: '› Semai', allow: ADMIN_DEMO, indent: true, subheader: 'Data Tahap' },
-      { to: '/peremajaan', label: '› Peremajaan', allow: ADMIN_DEMO, indent: true },
-      { to: '/pendewasaan', label: '› Pendewasaan', allow: ADMIN_DEMO, indent: true },
-      { to: '/panen', label: '› Panen', allow: ADMIN_DEMO, indent: true },
-      { to: '/siklus', label: 'Durasi Siklus', allow: ADMIN_DEMO },
+      { to: '/semai', label: 'Semai', ikon: 'tanam', langkah: 1, allow: ADMIN_DEMO },
+      { to: '/peremajaan', label: 'Peremajaan', ikon: 'tanam', langkah: 2, allow: ADMIN_DEMO },
+      { to: '/pendewasaan', label: 'Pendewasaan', ikon: 'tanam', langkah: 3, allow: ADMIN_DEMO },
+      { to: '/panen', label: 'Panen', ikon: 'tanam', langkah: 4, allow: ADMIN_DEMO },
+      { to: '/siklus', label: 'Durasi Siklus', ikon: 'siklus', allow: ADMIN_DEMO },
     ],
   },
   {
     label: 'Master Data',
     items: [
-      { to: '/tanaman', label: 'Jenis Tanaman', allow: ADMIN_DEMO },
-      { to: '/meja', label: 'Meja Tanaman', allow: ADMIN_DEMO },
-      { to: '/ambang', label: 'Ambang Sensor', allow: ADMIN_DEMO },
+      { to: '/tanaman', label: 'Jenis Tanaman', ikon: 'daun', allow: ADMIN_DEMO },
+      { to: '/meja', label: 'Meja Tanaman', ikon: 'meja', allow: ADMIN_DEMO },
+      { to: '/ambang', label: 'Ambang Sensor', ikon: 'ambang', allow: ADMIN_DEMO },
     ],
   },
   {
-    label: 'Laporan',
+    label: 'Laporan & Sistem',
     items: [
-      { to: '/laporan', label: 'Laporan', allow: ADMIN_DEMO },
-    ],
-  },
-  {
-    label: 'Sistem',
-    items: [
-      { to: '/profil', label: 'Profil' },
-      { to: '/user', label: 'Manajemen User', allow: ADMIN_DEMO },
+      { to: '/laporan', label: 'Laporan', ikon: 'laporan', allow: ADMIN_DEMO },
+      { to: '/user', label: 'Manajemen User', ikon: 'user', allow: ADMIN_DEMO },
       // Riwayat Audit — baca saja; guard setara backend (requireRole admin).
-      { to: '/audit', label: 'Riwayat Audit', allow: ADMIN_DEMO },
-      // Halaman publik (/tentang) — tautan agar bisa diakses dari sidebar;
-      // rutenya di luar RequireAuth sehingga tetap terbuka tanpa login.
-      { to: '/', label: 'Tentang Kami' },
+      { to: '/audit', label: 'Riwayat Audit', ikon: 'audit', allow: ADMIN_DEMO },
+      { to: '/profil', label: 'Profil', ikon: 'profil' },
+      // Halaman publik (/tentang) — rutenya di luar RequireAuth.
+      { to: '/', label: 'Tentang Kami', ikon: 'info' },
     ],
   },
 ]
+
+/** Preferensi tampilan sidebar per peramban (aman bila storage diblokir). */
+const SIMPAN_KEY = 'vsf-sidebar'
+type Pref = { ciut?: boolean; tutup?: string[] }
+function bacaPref(): Pref {
+  try {
+    return JSON.parse(localStorage.getItem(SIMPAN_KEY) || '{}') as Pref
+  } catch {
+    return {}
+  }
+}
+function tulisPref(p: Pref) {
+  try {
+    localStorage.setItem(SIMPAN_KEY, JSON.stringify(p))
+  } catch {
+    /* storage diblokir → preferensi tidak diingat, sidebar tetap jalan */
+  }
+}
 
 /** Menu yang berhak dilihat role ini (petani → hanya rute ALL, tanpa 19 menu). */
 function visibleItems(group: NavGroup, role: Role): NavItem[] {
   return group.items.filter((i) => !i.allow || i.allow.includes(role))
 }
 
-function SideItem({ to, children, indent }: { to: string; children: ReactNode; indent?: boolean }) {
+function SideItem({ item, ciut }: { item: NavItem; ciut: boolean }) {
   return (
     <NavLink
-      to={to}
-      end={to === "/"}
+      to={item.to}
+      end={item.to === '/'}
+      title={ciut ? item.label : undefined}
+      aria-label={ciut ? item.label : undefined}
       className={({ isActive }) =>
         [
-          // QW2 — target sentuh ≥44px. P7 — easing/durasi seragam dgn token (--tr 150ms).
-          'flex min-h-[44px] items-center rounded-std-sm px-3 py-2 text-[14px] transition-all duration-[150ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
-          indent ? 'pl-6 text-[13px]' : '',
-          // QW4 (dipertahankan) — teks putih solid, kontras ≥7:1 di atas navy.
-          // Aksen "aktif" = batang moss (token --moss) di tepi kiri + pill terang.
+          // QW2 — target sentuh ≥44px di layar sentuh; desktop sedikit lebih rapat (40px).
+          'group/item flex min-h-[44px] items-center gap-3 rounded-std-sm px-3 py-2 text-[14px] transition-all duration-[150ms] ease-[cubic-bezier(0.22,1,0.36,1)] lg:min-h-[40px]',
+          ciut ? 'lg:justify-center lg:px-0' : '',
+          // QW4 (dipertahankan) — teks putih solid, kontras ≥7:1 di atas navy; aktif = batang moss + pill terang.
           isActive
             ? 'bg-white/[.12] font-semibold text-white shadow-[inset_3px_0_0_0_var(--moss)] ring-1 ring-white/15'
-            : 'text-white/80 hover:bg-white/[.08] hover:text-white hover:translate-x-1',
+            : 'text-white/75 hover:bg-white/[.08] hover:text-white',
         ].join(' ')
       }
     >
-      {children}
+      {({ isActive }) => (
+        <>
+          {item.langkah ? (
+            <span
+              aria-hidden
+              className={`grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full border text-[10px] font-bold ${isActive ? 'border-emas bg-emas text-navy' : 'border-white/45 text-white/80'}`}
+            >
+              {item.langkah}
+            </span>
+          ) : (
+            <Ikon nama={item.ikon} className={`h-[18px] w-[18px] ${isActive ? 'text-emas' : ''}`} />
+          )}
+          <span className={ciut ? 'lg:sr-only' : 'truncate'}>{item.label}</span>
+        </>
+      )}
     </NavLink>
   )
 }
 
-function GroupLabel({ children }: { children: ReactNode }) {
+/** Judul grup yang bisa dilipat (desktop & mobile); saat sidebar diciutkan diganti garis pemisah. */
+function GroupLabel({ label, buka, onToggle, ciut }: { label: string; buka: boolean; onToggle: () => void; ciut: boolean }) {
+  if (ciut) return <div aria-hidden className="mx-auto mb-1 mt-4 hidden h-px w-6 bg-white/20 lg:block" />
   return (
-    <div className="vsf-eyebrow vsf-eyebrow-light mt-5 mb-1 flex items-center gap-2">
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={buka}
+      className="vsf-eyebrow vsf-eyebrow-light mt-4 mb-1 flex w-full items-center gap-2 rounded px-1 py-1 text-left hover:text-white"
+    >
       <span aria-hidden className="h-px w-3 bg-emas/70" />
-      {children}
-    </div>
+      <span className="flex-1">{label}</span>
+      <svg viewBox="0 0 24 24" className={`h-3.5 w-3.5 transition-transform duration-[150ms] ${buka ? '' : '-rotate-90'}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M6 9l6 6 6-6" />
+      </svg>
+    </button>
   )
 }
 
@@ -166,6 +232,22 @@ export function AppShell() {
   const [confirmKeluar, setConfirmKeluar] = useState(false)
   // QW6 — sidebar off-canvas di layar kecil (hamburger + backdrop).
   const [navOpen, setNavOpen] = useState(false)
+  // Sidebar desktop bisa diciutkan jadi deretan ikon; grup bisa dilipat. Diingat per peramban.
+  const [pref, setPref] = useState<Pref>(() => bacaPref())
+  const ciut = !!pref.ciut && !navOpen
+  function ubahPref(p: Pref) {
+    setPref(p)
+    tulisPref(p)
+  }
+  const grupAktif = NAV.find((gr) => gr.items.some((it) => (it.to === '/' ? location.pathname === '/' : location.pathname.startsWith(it.to))))?.label
+  // grup halaman yang sedang dibuka selalu terbuka, walau pernah dilipat
+  const grupBuka = (label: string) => label === grupAktif || !(pref.tutup ?? []).includes(label)
+  function toggleGrup(label: string) {
+    const tutup = new Set(pref.tutup ?? [])
+    if (grupBuka(label)) tutup.add(label)
+    else tutup.delete(label)
+    ubahPref({ ...pref, tutup: [...tutup] })
+  }
 
   // S6 — indikator IoT topbar DARI data live (bukan hard-code selalu hijau).
   // Satu GET /dashboard per sesi AppShell + senyap tiap 60s; bila belum ada
@@ -244,53 +326,77 @@ export function AppShell() {
         <aside
           id="vsf-sidebar"
           className={[
-            '-translate-x-full fixed inset-y-0 left-0 z-40 w-[260px] shrink-0 overflow-y-auto bg-sidebar px-4 py-4 text-white vsf-stagger max-h-dvh transition-transform duration-[150ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
-            'overscroll-contain lg:sticky lg:top-0 lg:z-auto lg:h-dvh lg:translate-x-0',
+            '-translate-x-full fixed inset-y-0 left-0 z-40 flex w-[260px] shrink-0 flex-col bg-sidebar text-white vsf-stagger max-h-dvh transition-[transform,width] duration-[150ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
+            'lg:sticky lg:top-0 lg:z-auto lg:h-dvh lg:translate-x-0',
+            ciut ? 'lg:w-[76px]' : '',
             navOpen ? 'translate-x-0' : '',
           ].join(' ')}
         >
-          {/* Kepala sidebar — brand Vertonik/Arutmin: monogram SVG + teks (R3). */}
-          <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[.06] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]">
-            <Monogram className="h-10 w-14 shrink-0" />
-            <div className="min-w-0">
-              <div className="truncate font-display text-[16px] font-bold leading-tight text-white">Vertonik</div>
-              <div className="vsf-eyebrow vsf-eyebrow-emas mt-0.5 truncate">Smart Farm</div>
-              <div className="truncate text-[11px] text-white/55">PT Arutmin Indonesia</div>
-            </div>
-          </div>
-
-          {/* QW5 — grup & item terfilter per role (petani: dashboard, asisten,
-              sensor, tanam, cctv, profil saja). */}
-          {NAV.map((group) => {
-            const items = visibleItems(group, role)
-            if (items.length === 0) return null
-            return (
-              <div key={group.label}>
-                <GroupLabel>{group.label}</GroupLabel>
-                <div className="mt-2 grid gap-1">
-                  {items.map((item) => (
-                    <div key={item.to}>
-                      {item.subheader && (
-                        <div className="px-3 pt-1 text-[12px] font-bold text-white/70">{item.subheader}</div>
-                      )}
-                      <SideItem to={item.to} indent={item.indent}>
-                        {item.label}
-                      </SideItem>
-                    </div>
-                  ))}
-                </div>
+          {/* Kepala sidebar — brand + tombol ciutkan (desktop). */}
+          <div className={`flex items-center gap-3 px-4 pt-4 ${ciut ? 'lg:flex-col lg:px-2' : ''}`}>
+            <div className={`flex min-w-0 flex-1 items-center gap-3 rounded-lg border border-white/10 bg-white/[.06] p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,.08)] ${ciut ? 'lg:flex-none lg:p-1.5' : ''}`}>
+              <Monogram className={`shrink-0 ${ciut ? 'h-9 w-11' : 'h-10 w-14'}`} />
+              <div className={`min-w-0 ${ciut ? 'lg:hidden' : ''}`}>
+                <div className="truncate font-display text-[16px] font-bold leading-tight text-white">Vertonik</div>
+                <div className="vsf-eyebrow vsf-eyebrow-emas mt-0.5 truncate">Smart Farm</div>
               </div>
-            )
-          })}
-
-          <div className="mt-4 grid gap-1">
+            </div>
             <button
               type="button"
-              onClick={() => setConfirmKeluar(true)}
-              className="flex min-h-[44px] w-full items-center rounded-[12px] px-3 py-2 text-left text-[14px] text-white/85 transition-all duration-[150ms] ease-[cubic-bezier(0.22,1,0.36,1)] hover:translate-x-1 hover:bg-white/10"
+              onClick={() => ubahPref({ ...pref, ciut: !pref.ciut })}
+              aria-label={ciut ? 'Lebarkan sidebar' : 'Ciutkan sidebar'}
+              title={ciut ? 'Lebarkan sidebar' : 'Ciutkan sidebar'}
+              className="hidden h-9 w-9 shrink-0 place-items-center rounded-full text-white/70 hover:bg-white/10 hover:text-white lg:grid"
             >
-              Keluar
+              <svg viewBox="0 0 24 24" className={`h-4 w-4 ${ciut ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M15 6l-6 6 6 6" />
+              </svg>
             </button>
+          </div>
+
+          {/* QW5 — grup & item terfilter per role (petani: dashboard, asisten, sensor, tanam, cctv, profil). */}
+          <nav aria-label="Menu utama" className={`min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-3 ${ciut ? 'lg:px-3' : ''}`}>
+            {NAV.map((group) => {
+              const items = visibleItems(group, role)
+              if (items.length === 0) return null
+              const buka = ciut || grupBuka(group.label)
+              return (
+                <div key={group.label}>
+                  <GroupLabel label={group.label} buka={buka} ciut={ciut} onToggle={() => toggleGrup(group.label)} />
+                  {buka && (
+                    <div className="grid gap-0.5">
+                      {items.map((item) => (
+                        <SideItem key={item.to} item={item} ciut={ciut} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </nav>
+
+          {/* Kartu pengguna + Keluar — selalu terlihat di dasar sidebar. */}
+          <div className={`border-t border-white/10 p-3 ${ciut ? 'lg:px-2' : ''}`}>
+            <div className={`flex items-center gap-2.5 rounded-lg bg-white/[.06] p-2 ${ciut ? 'lg:flex-col lg:bg-transparent lg:p-0' : ''}`}>
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emas text-[12px] font-bold uppercase text-navy" aria-hidden>
+                {inisial}
+              </span>
+              <div className={`min-w-0 flex-1 ${ciut ? 'lg:hidden' : ''}`}>
+                <div className="truncate text-[13.5px] font-semibold text-white">{namaUser || role}</div>
+                <div className="truncate text-[11.5px] capitalize text-white/60">{role}</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setConfirmKeluar(true)}
+                aria-label="Keluar"
+                title="Keluar"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-white/75 hover:bg-white/10 hover:text-white"
+              >
+                <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4" />
+                </svg>
+              </button>
+            </div>
           </div>
         </aside>
 
