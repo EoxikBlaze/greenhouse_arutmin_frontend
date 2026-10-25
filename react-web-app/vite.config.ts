@@ -55,6 +55,8 @@ const API_PATHS = [
   '/timing-operasi',
   '/aturan-fail-safe',
   '/jadwal-perawatan',
+  // ── Status LOCK penampung (kartu Status penampung di halaman Kontrol air) ──
+  '/penampung-states',
   // ── Preset dosing & target penampung — /dosing juga rute SPA (navigasi dilayani index.html) ──
   '/dosing',
 ]

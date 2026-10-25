@@ -5,6 +5,7 @@ import { useApiError } from '../lib/crudApi'
 import { useAuth } from '../lib/authContext'
 import { useApiObject, useFlashOnChange } from '../lib/useApiObject'
 import { StatusBadge } from '../components/StatusBadge'
+import { StatusPenampung } from '../components/StatusPenampung'
 
 type Mode = 'AUTO' | 'MANUAL'
 
@@ -220,6 +221,8 @@ export default function WaterControlPage() {
           </div>
         </div>
       </section>
+
+      <StatusPenampung onPesan={(teks, ok) => setPesan({ teks, ok })} />
 
       {/* Pengaturan mode */}
       <section className="vsf-card p-4">

@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../widgets/brand.dart';
 import '../widgets/motion.dart';
+import '../widgets/status_penampung.dart';
 
 /// Kontrol air — GET /watercontrol/status, POST fill / stop / setMode.
 class WaterControlPage extends StatefulWidget {
@@ -22,6 +23,7 @@ class _WaterControlPageState extends State<WaterControlPage> {
   bool _memuat = true;
   bool _kerja = false;
   late final PollTimer _poll;
+  final _penampung = GlobalKey<StatusPenampungPanelState>();
 
   @override
   void initState() {
@@ -48,6 +50,7 @@ class _WaterControlPageState extends State<WaterControlPage> {
 
   Future<void> _muat({bool senyap = false}) async {
     if (!senyap) setState(() => _memuat = true);
+    _penampung.currentState?.muat();
     try {
       final d = await widget.api.getJson('/watercontrol/status');
       if (!mounted) return;
@@ -167,6 +170,20 @@ class _WaterControlPageState extends State<WaterControlPage> {
                 Text('Mode $mode', style: Tok.kecil),
               ],
             ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        FadeUp(
+          delay: FadeUp.urutan(1),
+          child: const Eyebrow('Status penampung'),
+        ),
+        const SizedBox(height: 10),
+        FadeUp(
+          delay: FadeUp.urutan(1),
+          child: StatusPenampungPanel(
+            key: _penampung,
+            api: widget.api,
+            bolehBuka: widget.api.role == 'admin',
           ),
         ),
         const SizedBox(height: 18),
