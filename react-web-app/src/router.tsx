@@ -9,6 +9,7 @@ import TanamSayaPage from './pages/TanamSayaPage'
 import CctvPage from './pages/CctvPage'
 import AsistenAiPage from './pages/AsistenAiPage'
 import DosingPage from './pages/DosingPage'
+import KalibrasiPage from './pages/KalibrasiPage'
 import {
   SemaiPage,
   PeremajaanPage,
@@ -56,6 +57,7 @@ export const router = createBrowserRouter([
           { path: '/asisten-ai', element: <RequireAuth allow={ALL} element={<AsistenAiPage />} /> },
           { path: '/profil', element: <RequireAuth allow={ALL} element={<ProfilPage />} /> },
           { path: '/dosing', element: <RequireAuth allow={ADMIN_DEMO} element={<DosingPage />} /> },
+          { path: '/kalibrasi', element: <RequireAuth allow={ADMIN_DEMO} element={<KalibrasiPage />} /> },
 
           // 02 · Kebun & Sensor — admin (demo read-only)
           { path: '/watercontrol', element: <RequireAuth allow={ADMIN_DEMO} element={<WaterControlPage />} /> },

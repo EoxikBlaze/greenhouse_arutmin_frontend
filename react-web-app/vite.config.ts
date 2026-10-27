@@ -59,6 +59,8 @@ const API_PATHS = [
   '/penampung-states',
   // ── Preset dosing & target penampung — /dosing juga rute SPA (navigasi dilayani index.html) ──
   '/dosing',
+  // ── Kalibrasi alat IoT — juga rute SPA /kalibrasi ──
+  '/kalibrasi',
 ]
 
 export default defineConfig({

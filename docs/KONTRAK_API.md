@@ -317,6 +317,23 @@ dan setelah preset/mode berubah. Petani → 403; demo baca saja.
 | PUT | `/dosing/target/:id_meja` | **admin** | `{mode:'otomatis'}` atau `{mode:'manual', target_ec_ppm?, target_ph?}` (manual wajib salah satu; EC 50–2500, pH 3–9) |
 | POST | `/dosing/sinkron` | **admin** | hitung ulang semua penampung otomatis → `{berubah}` |
 
+Preset awal Melon, Selada, Daun Bawang, Bayam beserta sumbernya: `docs/PRESET_NUTRISI.md`.
+
+### Kalibrasi alat IoT (25 Okt 2026)
+
+Jadwal, riwayat, dan konstanta firmware (`PH_V7`, `PH_V4`, `TDS_FAKTOR_KOREKSI` di `firmware/sensor/sensor.ino`).
+`status` jadwal: `terlambat` (lewat `periode_hari_max`), `segera` (lewat `periode_hari_min`), `aman`, `belum`,
+`tanpa_jadwal`. Petani → 403; demo baca saja.
+
+| Metode | Path | Peran | Keterangan |
+|---|---|---|---|
+| GET | `/kalibrasi` | admin+demo | per alat: `{sensor, label, metode, larutan_ref, nilai_ref, satuan, periode_hari_min/max, toleransi, konstanta, terakhir_dikalibrasi, perangkat_kode, perangkat_online, log_terakhir, status, jatuh_tempo}` |
+| GET | `/kalibrasi/:sensor/riwayat` | admin+demo | 100 log terbaru |
+| POST | `/kalibrasi/ph` | **admin** | `{buffer1?=6.86, baca1, buffer2?=4.0, baca2, catatan?}` → hitung & simpan `PH_V7`/`PH_V4` baru (bacaan = pH yang tampil di sistem saat probe di buffer). 422 bila bacaan kosong / selisih < 0,3 / buffer selisih < 1 |
+| POST | `/kalibrasi/ec` | **admin** | `{ref_us_cm?=1413, baca_ppm, catatan?}` → `TDS_FAKTOR_KOREKSI` baru = lama × (ref×0,5)/baca; faktor di luar 0,3–3 → 422 |
+| POST | `/kalibrasi/:sensor` (lainnya) | **admin** | `{nilai_ref?, bacaan_sebelum?, bacaan_sesudah?, lulus?, catatan?}`; `lulus` otomatis bila selisih ≤ `toleransi` |
+| PUT | `/kalibrasi/:sensor` | **admin** | `{periode_hari_min?, periode_hari_max?, toleransi?, nilai_ref?, larutan_ref?, konstanta?: {NAMA: angka}}` |
+
 ### User · Profil
 | Method | Path | Guard |
 |---|---|---|

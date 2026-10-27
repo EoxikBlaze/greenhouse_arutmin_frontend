@@ -34,6 +34,7 @@ const TITLES: Record<string, string> = {
   '/cctv': 'CCTV — Ruang Greenhouse',
   '/asisten-ai': 'Asisten AI — Chat',
   '/dosing': 'Dosing Otomatis',
+  '/kalibrasi': 'Kalibrasi Alat',
   '/audit': 'Riwayat Audit',
 }
 
@@ -74,6 +75,7 @@ const IKON = {
   user: 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.3a3.5 3.5 0 0 1 0 6.4M18 14.6c2 .6 3.3 2.4 3.6 5.4',
   audit: 'M12 8v4l3 2M3.5 12a8.5 8.5 0 1 0 2.5-6M3 3v4h4',
   info: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 8h.01',
+  kalibrasi: 'M5 19a9 9 0 1 1 14 0M12 13l4-5M12 13h.01M8 19h8',
 } as const
 
 function Ikon({ nama, className = 'h-[18px] w-[18px]' }: { nama: keyof typeof IKON; className?: string }) {
@@ -99,6 +101,7 @@ const NAV: NavGroup[] = [
       { to: '/tanam', label: 'Tanam Saya', ikon: 'tanam' },
       { to: '/watercontrol', label: 'Water Control', ikon: 'air', allow: ADMIN_DEMO },
       { to: '/dosing', label: 'Dosing Otomatis', ikon: 'dosing', allow: ADMIN_DEMO },
+      { to: '/kalibrasi', label: 'Kalibrasi Alat', ikon: 'kalibrasi', allow: ADMIN_DEMO },
       { to: '/cctv', label: 'CCTV', ikon: 'cctv' },
     ],
   },
