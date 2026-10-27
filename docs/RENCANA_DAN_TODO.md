@@ -1,6 +1,6 @@
 # GARAP — Rencana & Todo List
 
-> Diperbarui **27 Okt 2026** setelah semua pekerjaan di-commit (tidak ada yang di-push).
+> Diperbarui **27 Okt 2026** setelah semua pekerjaan di-commit (sudah di-push ke branch `dev`).
 > Pemeriksaan terakhir: backend 234 tes lulus, web build OK, Flutter analyze bersih + 30 tes lulus.
 > Legenda: ✅ selesai & terverifikasi · 🟡 selesai di kode, belum di-commit / belum diuji di perangkat · ⬜ belum dikerjakan · ❓ butuh keputusan/data dari tim.
 > Butir lama (audit 19–21 Okt) status-nya mengikuti `BACKLOG_GARAP.md` dan **belum diverifikasi ulang** hari ini.
@@ -37,7 +37,6 @@
 | 15 | **Uji di Raspberry Pi sungguhan** | `pasang-server.sh` dan `pasang-mqtt.sh` belum pernah dijalankan di Pi; Mosquitto, jembatan, dan firmware belum diuji di perangkat |
 | 16 | **Firmware ESP32 v0.2** | Dikompilasi tanpa error, belum pernah dijalankan di board; kalibrasi `ML_PER_DETIK` pompa masih tempat-pegang; konstanta pH/TDS hasil halaman Kalibrasi harus ditempel manual |
 | 17 | **Infografis proker** | Menunggu data proker dari tim |
-| 17a | **Push ke GitHub** | Semua commit baru masih lokal (branch `dev`, backend ±22 dan induk ±30 commit di depan remote); belum di-push — menunggu perintahmu |
 | 18 | **Batas wajar TDS otomasi (2500 ppm)** | Tertanam di `otomasi.js`; di atas itu dosing diam. Aman untuk melon (target 2400) tapi perlu keputusan bila target dinaikkan |
 | 19 | **Backlog audit lama** | K2 (state `monitorings`), K3 (query `/laporan`), S4–S7 (scope demo, eksposur publik, pagination, indeks) — lihat `BACKLOG_GARAP.md` |
 | 20 | **openapi.yaml** | Belum mencakup `/kalibrasi`, `/dosing/naik-harian`, dan `/dosing/target` versi baru |
@@ -67,11 +66,11 @@
 - [x] Commit naik harian (backend `a20b5d5`, induk `906d647`)
 - [x] Commit audit DevTools (`e547709`), login baru (`7aca517`), foto tim (`7189da8`), infografis sumber (`44d1d73`)
 - [x] `KONTRAK_API.md` memuat kalibrasi, naik harian, dan topik MQTT
+- [x] Push kedua repo ke GitHub, branch `dev` (backend → `a20b5d5`, induk → `f2606b6`, 27 Okt)
 
 ### ⬜ Belum dikerjakan
 
 **Repo & GitHub**
-- [ ] **Push** kedua repo (`backend-nodejs` dan induk) ke GitHub — menunggu perintahmu; sebelumnya aturannya "jangan push"
 - [ ] **Backup/masukkan `deploy-pi/` ke repo** — di-gitignore, jadi firmware v0.2, ACL Mosquitto, `pasang-mqtt.sh`, dan panduan hanya ada di Mac ini (di folder ini juga ada kredensial lokal, jadi pilih file yang aman saja)
 - [ ] Putuskan nasib `docs/infografis/hasil/` (101 MB PNG/PDF): simpan di luar git / Git LFS / rilis GitHub
 
