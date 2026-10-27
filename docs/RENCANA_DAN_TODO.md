@@ -74,6 +74,13 @@
 - [ ] **Backup/masukkan `deploy-pi/` ke repo** — di-gitignore, jadi firmware v0.2, ACL Mosquitto, `pasang-mqtt.sh`, dan panduan hanya ada di Mac ini (di folder ini juga ada kredensial lokal, jadi pilih file yang aman saja)
 - [ ] **Tandai — `docs/infografis/hasil/` (101 MB PNG/PDF, 2 spanduk 3×1 m + infografis):** keputusan 27 Okt = **disimpan lokal saja, belum di GitHub**. Sudah di-`.gitignore`, file tetap utuh di Mac ini. Kalau nanti mau dibagikan: GitHub Releases atau Git LFS. Backup salinannya ke Drive/flashdisk sebelum Mac dipakai ulang
 
+**Keamanan — repo sudah PUBLIC (27 Okt)**
+- [ ] **K-SEC1 (kamu): ganti sandi role database lokal** (ada di riwayat backend, commit `e8e47a9` & `4825561`, dan masih sama dengan yang dipakai) lalu perbarui `backend-nodejs/.env` dan hidupkan ulang backend
+- [ ] **K-SEC2 (kamu): pastikan sandi akun `admin`/`petani`/`demo`** di Pi dan DB dev berbeda dari hash lama di `seed.sql`/`vertonik.sql` (ganti lewat `scripts/atur-kata-sandi.js` bila ragu)
+- [ ] Opsional: bersihkan riwayat dari sandi DB, 3 hash bcrypt, dan email `admin@politala.ac.id` (`git filter-repo` + force-push, butuh izinmu; tidak membatalkan paparan yang sudah terjadi)
+- [ ] Rapikan `.gitignore` backend (tambah `.env.*`, `*.pem`, `*.key`) dan lepas `deploy-pi/PANDUAN.md` + `WIFI_POKJAR_PERMATA.md` dari pelacakan
+- [ ] Periksa gambar/PDF di `docs/` dan `mockups/` dari data pribadi
+
 **Hardware & Pi (urutan disarankan)**
 - [ ] Pasang Pi, jalankan `pasang-server.sh`, cek `vertonik-api` hidup
 - [ ] Jalankan `pasang-mqtt.sh`; uji broker menolak anonim; lihat detak `garap/server/status`
