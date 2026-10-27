@@ -292,7 +292,7 @@ export function ChatAsisten() {
           Kirim
         </button>
       </form>
-      <div className="mt-1 text-right text-[11px] text-slate-400">{isi.length}/{BATAS}</div>
+      <div className="mt-1 text-right text-[11px] text-slate-500">{isi.length}/{BATAS}</div>
     </section>
   )
 }
