@@ -25,7 +25,7 @@
 | 10 | **Halaman Kalibrasi alat IoT** | Jadwal, riwayat, hitung konstanta pH 2 titik & faktor TDS, tes | ✅ commit backend `fec3311`, induk `28f65b0` |
 | 11 | **Target nutrisi naik harian** | Per tanaman: ppm awal → target akhir dalam N hari sejak pindah netpot, lalu ditahan (backend + web + HP + tes) | ✅ commit backend `a20b5d5`, induk `906d647`; 🟡 HP baru lewat widget test, belum di simulator |
 | 12 | **Audit Chrome DevTools web** | 30 rute diperiksa; Lighthouse Dashboard/Dosing/Asisten AI skor 100; `robots.txt`, meta description, aria-label | ✅ commit induk `e547709` |
-| 13 | **Foto tim (rompi) + infografis** | Web, HP, 2 spanduk 3×1 m; spanduk proker memuat sponsor & media partner | ✅ commit induk `7189da8`, `44d1d73` (hasil render 101 MB tidak di-commit, dibuat ulang dengan `render.js`) |
+| 13 | **Foto tim (rompi) + infografis** | Web, HP, 2 spanduk 3×1 m; spanduk proker memuat sponsor & media partner | ✅ commit induk `7189da8`, `44d1d73` (hasil render 101 MB tidak di-commit: disimpan lokal, di-`.gitignore`; bisa dibuat ulang dengan `render.js`) |
 | 13a | **Tampilan login baru** | Latar lanskap, tautan beranda, kartu masuk | ✅ commit induk `7aca517` |
 | 13b | **Dokumentasi kontrak** | `KONTRAK_API.md` memuat kalibrasi, naik harian, topik MQTT | ✅ commit induk `906d647` (`openapi.yaml` belum) |
 | 14 | **Ambang TDS** | Batas atas dinaikkan 1000 → 1300 → **2600 ppm** (agar melon 2400 tidak memicu alert) | ✅ di DB dev |
@@ -72,7 +72,7 @@
 
 **Repo & GitHub**
 - [ ] **Backup/masukkan `deploy-pi/` ke repo** — di-gitignore, jadi firmware v0.2, ACL Mosquitto, `pasang-mqtt.sh`, dan panduan hanya ada di Mac ini (di folder ini juga ada kredensial lokal, jadi pilih file yang aman saja)
-- [ ] Putuskan nasib `docs/infografis/hasil/` (101 MB PNG/PDF): simpan di luar git / Git LFS / rilis GitHub
+- [ ] **Tandai — `docs/infografis/hasil/` (101 MB PNG/PDF, 2 spanduk 3×1 m + infografis):** keputusan 27 Okt = **disimpan lokal saja, belum di GitHub**. Sudah di-`.gitignore`, file tetap utuh di Mac ini. Kalau nanti mau dibagikan: GitHub Releases atau Git LFS. Backup salinannya ke Drive/flashdisk sebelum Mac dipakai ulang
 
 **Hardware & Pi (urutan disarankan)**
 - [ ] Pasang Pi, jalankan `pasang-server.sh`, cek `vertonik-api` hidup

@@ -43,3 +43,6 @@ _tmp_dist/
 
 # Hasil kerja skill desain (screenshot & laporan inspector)
 .taste-skill/
+
+# hasil render infografis/spanduk (±100 MB) — disimpan lokal, belum di GitHub; lihat docs/RENCANA_DAN_TODO.md
+docs/infografis/hasil/

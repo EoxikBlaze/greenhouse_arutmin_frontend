@@ -13,7 +13,7 @@ Satu template, banyak poster. Isi tiap poster ada di `data/<nama>.js`. Dua gaya 
 | `data/spanduk-proker.js` | Spanduk 2 (3 × 1 m, gaya Tentang) — proker yang dijalankan, anggota, QR |
 | `data/sistem.js` | Infografis 3 (gaya **ceria**) — sensor & aktuator, cara kerja website, proker, QR |
 | `data/anggota.js` | Daftar anggota (nama, jabatan, foto di `react-web-app/public/tim/`) — dipakai semua poster |
-| `hasil/` | PNG (2×) dan PDF hasil render |
+| `hasil/` | PNG (2×) dan PDF hasil render — **hanya lokal** (±100 MB, di-`.gitignore`, tidak ada di GitHub); buat ulang dengan `render.js` |
 
 ## Mengubah isi
 - Teks boleh memakai `**tebal**`.
