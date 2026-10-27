@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/authContext'
 import { Monogram } from '../layouts/AppShell'
 
@@ -29,61 +29,18 @@ function IconEye({ off }: { off?: boolean }) {
   )
 }
 
-/** Baris pipa hidroponik — motif brand di sisi kanan panel hero (hanya ≥xl,
- *  di mana panel cukup lega: teks tak pernah tersentuh; fade ke kiri lewat mask). */
-function PipeMotif() {
-  const rows = [46, 128, 210, 292]
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-y-0 right-0 hidden w-[30%] overflow-hidden xl:block"
-      style={{
-        maskImage: 'linear-gradient(to right, transparent 0%, #000 38%)',
-        WebkitMaskImage: 'linear-gradient(to right, transparent 0%, #000 38%)',
-      }}
-    >
-      <svg
-        className="absolute -right-6 bottom-0 h-[86%] w-[130%] max-w-none"
-        viewBox="0 0 560 340"
-        fill="none"
-        preserveAspectRatio="xMaxYMax slice"
-      >
-        {rows.map((y, i) => (
-          <g key={y}>
-            {/* pipa */}
-            <path d={`M0 ${y} H560`} stroke="rgba(233,205,83,0.10)" strokeWidth="11" strokeLinecap="round" />
-            <path d={`M0 ${y} H560`} stroke="rgba(233,205,83,0.09)" strokeWidth="1.5" />
-            {/* aliran nutrisi — bergerak halus, arah selang-seling */}
-            <path
-              d={`M0 ${y} H560`}
-              stroke="rgba(207,226,206,0.26)"
-              strokeWidth="2"
-              strokeDasharray="8 16"
-              className={i % 2 === 0 ? 'vsf-flow' : 'vsf-flow vsf-flow-rev'}
-            />
-            {/* net pot */}
-            {[70, 200, 330, 460].map((x) => (
-              <circle
-                key={x}
-                cx={x}
-                cy={y}
-                r="7.5"
-                fill="rgba(7,21,39,0.72)"
-                stroke="rgba(107,157,74,0.4)"
-                strokeWidth="1.5"
-              />
-            ))}
-          </g>
-        ))}
-      </svg>
-    </div>
-  )
-}
-
 const KEUNGGULAN = [
-  { label: 'Sensor real-time', detail: 'pH, TDS, dan suhu air dalam satu tampilan' },
-  { label: 'Kendali katup & dosing', detail: 'Atur tandon dan pompa dari satu layar' },
-  { label: 'Laporan siklus', detail: 'Rekap siklus tanam per bulan, bisa diunduh CSV' },
+  { label: 'Sensor real-time', detail: 'pH, TDS, dan suhu air tiap meja' },
+  { label: 'Dosing otomatis', detail: 'Nutrisi ditakar sistem, aman berlapis' },
+  { label: 'Siklus tanam', detail: 'Semai sampai panen, cukup isi hasilnya' },
+]
+
+/** Judul poster — sama dengan hero halaman Tentang (TentangPage.tsx FONT_POSTER). */
+const FONT_POSTER = "'Oswald','Anton',Impact,'Arial Narrow',sans-serif"
+const LOGO_MITRA = [
+  { src: '/logo/arutmin.png', alt: 'PT Arutmin Indonesia' },
+  { src: '/logo/polytala.png', alt: 'Politeknik Negeri Tanah Laut' },
+  { src: '/logo/trkj.png', alt: 'TRKJ' },
 ]
 
 export default function LoginPage() {
@@ -129,69 +86,67 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen w-full items-center bg-arutmin-page px-4 py-7 sm:px-6 sm:py-10">
-      <div className="vsf-stagger mx-auto grid w-full max-w-[1180px] grid-cols-1 gap-5 lg:min-h-[600px] lg:grid-cols-[1.35fr_430px] lg:gap-6">
-        {/* ── Panel brand: identitas produk + janji nilai (R6: panel penuh di 390px) ── */}
-        <aside className="relative flex min-h-[300px] flex-col justify-between overflow-hidden rounded-card bg-brandPanel p-6 text-white shadow-deep sm:p-8 lg:min-h-full">
-          <PipeMotif />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full border border-emas/25"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_85%_at_0%_0%,rgba(107,157,74,.28),transparent_58%)]"
-          />
+    <div className="relative isolate flex min-h-dvh w-full flex-col text-tinta">
+      {/* latar lukisan gunung yang sama dengan halaman Tentang + gelap di kiri agar teks terbaca */}
+      <div className="vsf-latar" aria-hidden />
+      <div className="vsf-kabut" aria-hidden />
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-[1] bg-[linear-gradient(180deg,rgba(7,21,39,.55)_0%,rgba(7,21,39,.15)_55%,rgba(7,21,39,.45)_100%)] lg:bg-[linear-gradient(90deg,rgba(7,21,39,.72)_0%,rgba(7,21,39,.35)_48%,rgba(7,21,39,.05)_72%)]"
+      />
 
-          {/* Baris identitas */}
-          <header className="relative flex items-center gap-3">
-            <Monogram className="h-12 w-[4.5rem] shrink-0" />
-            <div className="min-w-0">
-              <div className="truncate font-display text-[16px] font-bold leading-tight tracking-[0.02em]">
-                GARAP
-              </div>
-              <div className="vsf-eyebrow vsf-eyebrow-emas mt-0.5">PT Arutmin Indonesia</div>
-            </div>
-          </header>
+      <header className="mx-auto flex w-full max-w-[1180px] items-center gap-3 px-4 pt-4 sm:px-6 sm:pt-6">
+        <Link to="/" className="flex min-w-0 items-center gap-3">
+          <Monogram className="h-10 w-14 shrink-0" />
+          <span className="min-w-0">
+            <span className="block truncate font-display text-[17px] font-bold leading-tight text-white">Vertonik</span>
+            <span className="block truncate text-[12px] font-semibold text-[var(--emas)]">Smart Farm</span>
+            <span className="sr-only">, ke beranda</span>
+          </span>
+        </Link>
+        <span className="flex-1" />
+        <Link to="/" className="vsf-bilah-tombol-kaca inline-flex min-h-[40px] items-center gap-1.5 rounded-full px-4 text-[13px] font-semibold text-white">
+          <span aria-hidden>←</span> Beranda
+        </Link>
+      </header>
 
-          {/* Hero / judul produk */}
-          <div className="vsf-stagger relative mt-9 lg:mt-12">
-            <p className="vsf-eyebrow vsf-eyebrow-light">Greenhouse hidroponik · IoT</p>
-            <h1 className="mt-3 font-display text-[27px] font-bold leading-[1.06] tracking-[-0.02em] text-white sm:text-[34px] lg:text-[40px]">
-              Vertonik Smart Farm
-            </h1>
-            <p className="mt-5 max-w-[46ch] text-[16px] leading-relaxed text-white/85 sm:text-[17px]">
-              Satu layar untuk seluruh siklus tanam hidroponik — dari semai sampai panen.
-            </p>
-            <p className="mt-3 hidden max-w-[52ch] text-[13.5px] leading-relaxed text-white/65 sm:block">
-              pH, TDS, suhu air, dan katup tandon terpantau real-time, lengkap dengan laporan siklus.
-            </p>
-
-            <ul className="mt-7 grid gap-4 sm:max-w-[54ch]">
-              {KEUNGGULAN.map((k) => (
-                <li key={k.label} className="flex items-start gap-3">
-                  <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/10 text-emas ring-1 ring-inset ring-white/15">
-                    <IconCheck className="h-3 w-3" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-[13.5px] font-semibold leading-snug text-white">
-                      {k.label}
-                    </span>
-                    <span className="mt-0.5 block text-[12.5px] leading-snug text-white/60">
-                      {k.detail}
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
+      <main className="mx-auto grid w-full max-w-[1180px] flex-1 grid-cols-1 items-center gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_440px] lg:gap-12 lg:py-10">
+        {/* ── Brand: ringkas di HP (form tetap terlihat tanpa gulir), lengkap di layar lebar ── */}
+        <section className="vsf-stagger min-w-0 text-white" aria-labelledby="login-hero">
+          <div className="vsf-kaca inline-flex max-w-full items-center gap-3 rounded-full px-4 py-2">
+            {LOGO_MITRA.map((l) => (
+              <img key={l.src} src={l.src} alt={l.alt} className="h-7 w-auto sm:h-8" draggable={false} />
+            ))}
+            <span className="hidden h-5 w-px bg-slate-300 sm:block" aria-hidden />
+            <span className="hidden text-[12px] font-extrabold uppercase tracking-[.08em] text-navy sm:inline">KKN Arutmin Asik 2026</span>
           </div>
 
-          <div className="vsf-eyebrow vsf-eyebrow-light relative mt-9 text-white/70">GARAP · greenhouse hidroponik</div>
-        </aside>
+          <h1 id="login-hero" className="mt-5 [text-shadow:0_4px_22px_rgba(7,21,39,.55)]" style={{ fontFamily: FONT_POSTER }}>
+            <span className="block -skew-x-6 text-[34px] font-bold uppercase leading-none text-white sm:text-[52px] lg:text-[64px]">Vertonik Smart Farm</span>
+            <span className="mt-2 block -skew-x-6 text-[19px] font-bold uppercase italic leading-tight text-[var(--emas)] sm:text-[26px] lg:text-[30px]">
+              Greenhouse hidroponik · PT Arutmin Indonesia
+            </span>
+          </h1>
+          <p className="mt-4 hidden max-w-[52ch] text-[16px] leading-relaxed text-white/90 [text-shadow:0_2px_12px_rgba(7,21,39,.6)] sm:block">
+            Merawat nutrisi tanaman tanpa petani harus menakar sendiri — pantau sensor, dosing, dan siklus tanam dari satu tempat.
+          </p>
 
-        {/* ── Kartu login: hierarki jelas + state loading & error yang jernih ── */}
+          <ul className="mt-6 hidden gap-3 lg:grid lg:max-w-[560px] lg:grid-cols-3">
+            {KEUNGGULAN.map((k) => (
+              <li key={k.label} className="vsf-kaca vsf-kaca-gelap rounded-[18px] p-4">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[var(--emas)] text-navy">
+                  <IconCheck className="h-3.5 w-3.5" />
+                </span>
+                <span className="mt-3 block text-[14px] font-bold leading-snug text-white">{k.label}</span>
+                <span className="mt-1 block text-[12.5px] leading-snug text-white/75">{k.detail}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* ── Kartu login kaca: hierarki jelas + state loading & error yang jernih ── */}
         <form
-          className="relative flex flex-col justify-center overflow-hidden rounded-card border border-garis bg-white shadow-soft"
+          className="vsf-kaca vsf-pop relative w-full overflow-hidden rounded-[28px] p-6 sm:p-8"
           onSubmit={onSubmit}
           noValidate
           aria-busy={submitting}
@@ -203,114 +158,108 @@ export default function LoginPage() {
             </div>
           )}
 
-          <div className="px-5 pt-6 sm:px-7 sm:pt-7">
-            <h2 className="font-display text-[22px] font-bold leading-tight tracking-[-0.01em] sm:text-[24px]">
-              Selamat datang kembali
-            </h2>
-            <p className="mt-2 text-[13.5px] leading-relaxed text-abu">
-              Masuk dengan nama pengguna dan kata sandi yang terdaftar untuk membuka dashboard.
-            </p>
-          </div>
+          <div className="vsf-eyebrow">Akses sistem</div>
+          <h2 className="mt-2 font-display text-[24px] font-bold leading-tight tracking-[-0.01em] text-navy sm:text-[27px]">
+            Selamat datang kembali
+          </h2>
+          <p className="mt-2 text-[13.5px] leading-relaxed text-slate-600">
+            Masuk dengan akun GARAP Anda untuk membuka dashboard greenhouse.
+          </p>
 
-          <div className="px-5 pb-6 sm:px-7 sm:pb-7">
-            {/* S8 — error server diumumkan ke screen reader */}
-            {serverError && (
-              <div
-                key={serverError}
-                role="alert"
-                aria-live="assertive"
-                className="vsf-banner-danger mt-5 flex items-start gap-2 rounded-std border border-red-600/50 bg-red-50 px-3 py-2.5 text-[13px] font-medium text-red-700"
-              >
-                <IconAlert />
-                <span>{serverError}</span>
-              </div>
-            )}
-
-            <div className={serverError ? 'mt-5' : 'mt-6'}>
-              <label className="block text-[13px] font-semibold text-tinta" htmlFor="login-username">
-                Nama Pengguna / Username
-              </label>
-              <input
-                id="login-username"
-                className="vsf-input mt-2.5 w-full"
-                value={username}
-                placeholder="cth. admin"
-                autoComplete="username"
-                // S8 — fokus ke field pertama begitu halaman terbuka
-                // eslint-disable-next-line jsx-a11y/no-autofocus
-                autoFocus
-                disabled={submitting}
-                onChange={(e) => setUsername(e.target.value)}
-                aria-invalid={!!errors.username}
-                aria-describedby={errors.username ? 'login-username-error' : undefined}
-              />
-              {errors.username && (
-                <div
-                  key={errors.username}
-                  id="login-username-error"
-                  role="alert"
-                  className="vsf-banner mt-1.5 flex items-center gap-1.5 text-[12px] font-medium text-red-700"
-                >
-                  <IconAlert className="h-3.5 w-3.5 shrink-0" />
-                  {errors.username}
-                </div>
-              )}
-
-              <label className="mt-6 block text-[13px] font-semibold text-tinta" htmlFor="login-password">
-                Kata Sandi / Password
-              </label>
-              <div className="mt-2.5 flex gap-3">
-                <input
-                  id="login-password"
-                  className="vsf-input w-full"
-                  type={showPass ? 'text' : 'password'}
-                  value={password}
-                  placeholder="Masukkan kata sandi"
-                  autoComplete="current-password"
-                  disabled={submitting}
-                  onChange={(e) => setPassword(e.target.value)}
-                  aria-invalid={!!errors.password}
-                  aria-describedby={errors.password ? 'login-password-error' : undefined}
-                />
-                <button
-                  type="button"
-                  className="vsf-input inline-flex w-[44px] shrink-0 items-center justify-center px-0 text-slate-600 hover:border-arutmin-moss hover:text-arutmin-forest disabled:cursor-not-allowed disabled:opacity-50"
-                  onClick={() => setShowPass((v) => !v)}
-                  disabled={submitting}
-                  aria-label={showPass ? 'Sembunyikan password' : 'Tampilkan password'}
-                >
-                  <IconEye off={!showPass} />
-                </button>
-              </div>
-              {errors.password && (
-                <div
-                  key={errors.password}
-                  id="login-password-error"
-                  role="alert"
-                  className="vsf-banner mt-1.5 flex items-center gap-1.5 text-[12px] font-medium text-red-700"
-                >
-                  <IconAlert className="h-3.5 w-3.5 shrink-0" />
-                  {errors.password}
-                </div>
-              )}
-
-              <button type="submit" className="vsf-btn-primary mt-7 w-full" disabled={submitting}>
-                {submitting && <span className="vsf-spinner" aria-hidden />}
-                {submitting ? 'Memproses…' : 'Masuk ke Dashboard'}
-              </button>
-
-              <p className="mt-3 min-h-[18px] text-center text-[12px] text-abu" aria-live="polite">
-                {submitting ? 'Memverifikasi kredensial ke server…' : ' '}
-              </p>
-
-              <div className="mt-3 flex items-center justify-center gap-2 border-t border-garis pt-4 text-[12px] text-abu">
-                <Monogram className="h-5 w-7" />
-                © 2026 PT Arutmin Indonesia · Vertonik Smart Farm
-              </div>
+          {/* S8 — error server diumumkan ke screen reader */}
+          {serverError && (
+            <div
+              key={serverError}
+              role="alert"
+              aria-live="assertive"
+              className="vsf-banner-danger mt-5 flex items-start gap-2 rounded-std border border-red-600/50 bg-red-50 px-3 py-2.5 text-[13px] font-medium text-red-700"
+            >
+              <IconAlert />
+              <span>{serverError}</span>
             </div>
+          )}
+
+          <label className="mt-6 block text-[13px] font-semibold text-tinta" htmlFor="login-username">
+            Nama pengguna
+          </label>
+          <input
+            id="login-username"
+            className="vsf-input mt-2 w-full bg-white"
+            value={username}
+            placeholder="cth. admin"
+            autoComplete="username"
+            // S8 — fokus ke field pertama begitu halaman terbuka
+            // eslint-disable-next-line jsx-a11y/no-autofocus
+            autoFocus
+            disabled={submitting}
+            onChange={(e) => setUsername(e.target.value)}
+            aria-invalid={!!errors.username}
+            aria-describedby={errors.username ? 'login-username-error' : undefined}
+          />
+          {errors.username && (
+            <div
+              key={errors.username}
+              id="login-username-error"
+              role="alert"
+              className="vsf-banner mt-1.5 flex items-center gap-1.5 text-[12px] font-medium text-red-700"
+            >
+              <IconAlert className="h-3.5 w-3.5 shrink-0" />
+              {errors.username}
+            </div>
+          )}
+
+          <label className="mt-5 block text-[13px] font-semibold text-tinta" htmlFor="login-password">
+            Kata sandi
+          </label>
+          <div className="relative mt-2">
+            <input
+              id="login-password"
+              className="vsf-input w-full bg-white pr-12"
+              type={showPass ? 'text' : 'password'}
+              value={password}
+              placeholder="Masukkan kata sandi"
+              autoComplete="current-password"
+              disabled={submitting}
+              onChange={(e) => setPassword(e.target.value)}
+              aria-invalid={!!errors.password}
+              aria-describedby={errors.password ? 'login-password-error' : undefined}
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-1 my-auto inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 hover:bg-arutmin-mint/40 hover:text-arutmin-forest disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => setShowPass((v) => !v)}
+              disabled={submitting}
+              aria-label={showPass ? 'Sembunyikan password' : 'Tampilkan password'}
+            >
+              <IconEye off={!showPass} />
+            </button>
           </div>
+          {errors.password && (
+            <div
+              key={errors.password}
+              id="login-password-error"
+              role="alert"
+              className="vsf-banner mt-1.5 flex items-center gap-1.5 text-[12px] font-medium text-red-700"
+            >
+              <IconAlert className="h-3.5 w-3.5 shrink-0" />
+              {errors.password}
+            </div>
+          )}
+
+          <button type="submit" className="vsf-btn-primary mt-7 w-full" disabled={submitting}>
+            {submitting && <span className="vsf-spinner" aria-hidden />}
+            {submitting ? 'Memproses…' : 'Masuk ke Dashboard'}
+          </button>
+
+          <p className="mt-3 min-h-[18px] text-center text-[12px] text-slate-500" aria-live="polite">
+            {submitting ? 'Memverifikasi kredensial ke server…' : 'Lupa kata sandi? Hubungi admin greenhouse.'}
+          </p>
         </form>
-      </div>
+      </main>
+
+      <footer className="mx-auto w-full max-w-[1180px] px-4 pb-5 text-center text-[12px] text-white/80 [text-shadow:0_1px_8px_rgba(7,21,39,.7)] sm:px-6 lg:text-left">
+        © 2026 PT Arutmin Indonesia · Vertonik Smart Farm · Instagram & TikTok @kkn.arutminidn2026
+      </footer>
     </div>
   )
 }
