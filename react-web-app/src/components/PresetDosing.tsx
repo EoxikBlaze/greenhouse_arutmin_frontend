@@ -40,6 +40,7 @@ type TargetMeja = {
   mode_pemeliharaan: boolean
   batch: { tahap: string; id: number | string; nama_tanaman: string | null; umur_hari: number; jumlah: number | null; jumlah_batch: number } | null
   preset_cocok: { id: number | string } | null
+  naik_harian: { hari: number; hari_capai: number; per_hari: number; target_hari_ini: number; ppm_target: number; tercapai: boolean } | null
   catatan: string | null
 }
 
@@ -216,7 +217,7 @@ export function TargetPenampung({ versi, onUbah }: { versi: number; onUbah: () =
                     {r.batch ? (
                       <>
                         <b className="text-slate-900">{r.batch.nama_tanaman ?? 'Tanaman'}</b> · {r.batch.tahap}
-                        <div className="text-[12px] text-slate-500">umur {r.batch.umur_hari} hari{r.batch.jumlah_batch > 1 ? ` · ${r.batch.jumlah_batch} batch di meja ini` : ''}</div>
+                        <div className="text-[12px] text-slate-600">umur {r.batch.umur_hari} hari{r.batch.jumlah_batch > 1 ? ` · ${r.batch.jumlah_batch} batch di meja ini` : ''}</div>
                       </>
                     ) : '—'}
                   </td>
@@ -230,7 +231,11 @@ export function TargetPenampung({ versi, onUbah }: { versi: number; onUbah: () =
                   <td className="px-4 py-2.5 tabular-nums font-semibold text-slate-900">{r.target_ec_ppm == null ? '—' : `${n(r.target_ec_ppm)} ppm`}</td>
                   <td className="px-4 py-2.5 tabular-nums font-semibold text-slate-900">{n(r.target_ph)}</td>
                   <td className="min-w-[220px] px-4 py-2.5 text-[12.5px] text-slate-600">
-                    {r.catatan ?? (r.target_preset_id ? `Dari preset #${r.target_preset_id}.` : '—')}
+                    {r.target_mode === 'otomatis' && r.naik_harian
+                      ? (r.naik_harian.tercapai
+                        ? `Naik harian: target akhir ${n(r.naik_harian.ppm_target)} ppm tercapai, ditahan sampai panen.`
+                        : `Naik harian: hari ke-${r.naik_harian.hari} dari ${r.naik_harian.hari_capai} (+${n(r.naik_harian.per_hari)} ppm/hari) menuju ${n(r.naik_harian.ppm_target)} ppm.`)
+                      : r.catatan ?? (r.target_preset_id ? `Dari preset #${r.target_preset_id}.` : '—')}
                   </td>
                   {bolehTulis && (
                     <td className="px-4 py-2.5">

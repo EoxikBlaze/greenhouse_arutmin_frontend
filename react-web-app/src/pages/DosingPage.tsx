@@ -5,6 +5,7 @@ import { api } from '../lib/api'
 import { fieldError, useApiError, useApiList } from '../lib/crudApi'
 import { useApiObject } from '../lib/useApiObject'
 import { PresetNutrisi, TargetPenampung } from '../components/PresetDosing'
+import { NaikHarian } from '../components/NaikHarian'
 
 /**
  * Dosing otomatis — terhubung ke endpoint KONFIGURASI V2 riil (routes/konfigurasi.js):
@@ -186,9 +187,9 @@ function TabelParameter({
         <div className="min-w-0">
           <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">{judul}</div>
           <div className="mt-1 text-[12px] text-slate-500">
-            <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">GET {path}</code>
+            <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET {path}</code>
             {' · '}
-            <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">PUT {path}/:param</code>
+            <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">PUT {path}/:param</code>
             {' — '}
             {sumber}
           </div>
@@ -308,7 +309,7 @@ function TabelParameter({
         </table>
       </div>
       <div className="mt-2 text-[12px] text-slate-500">
-        Perubahan nilai disimpan lewat <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">PUT {path}/:param</code>{' '}
+        Perubahan nilai disimpan lewat <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">PUT {path}/:param</code>{' '}
         (hanya kolom <b>nilai</b> yang dikirim — satuan, keterangan, dan stempel waktu tidak ikut diubah).
       </div>
     </section>
@@ -349,6 +350,7 @@ export default function DosingPage() {
       </section>
 
       <TargetPenampung versi={versiTarget} onUbah={ubahTarget} />
+      <NaikHarian />
       <PresetNutrisi onUbah={ubahTarget} />
 
       <TabelParameter
@@ -377,7 +379,7 @@ export default function DosingPage() {
           <div className="min-w-0">
             <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Aturan fail-safe</div>
             <div className="mt-1 text-[12px] text-slate-500">
-              <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">GET /aturan-fail-safe</code>
+              <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET /aturan-fail-safe</code>
               {' — perlindungan darurat (E-STOP, ambang EC, jatah kejadian dosing). Baca saja.'}
             </div>
           </div>
@@ -451,7 +453,7 @@ export default function DosingPage() {
           <div className="min-w-0">
             <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Jadwal perawatan</div>
             <div className="mt-1 text-[12px] text-slate-500">
-              <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">GET /jadwal-perawatan</code>
+              <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET /jadwal-perawatan</code>
               {' — kegiatan kalibrasi & pembersihan berkala. Baca saja.'}
             </div>
           </div>
@@ -593,10 +595,10 @@ export default function DosingPage() {
       <section className="vsf-card w-full min-w-0 p-4">
         <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Sumber data layar ini</div>
         <ul className="mt-2 grid gap-1.5 text-[13px] leading-relaxed text-slate-700">
-          <li><code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">GET/PUT /konfigurasi-dosis</code> — parameter dosing (bisa diubah admin).</li>
-          <li><code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">GET/PUT /timing-operasi</code> — timing operasi (bisa diubah admin).</li>
-          <li><code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">GET /aturan-fail-safe</code> dan <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">GET /jadwal-perawatan</code> — baca saja.</li>
-          <li><code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px]">GET /watercontrol/status</code> — ringkasan katup &amp; pompa.</li>
+          <li><code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET/PUT /konfigurasi-dosis</code> — parameter dosing (bisa diubah admin).</li>
+          <li><code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET/PUT /timing-operasi</code> — timing operasi (bisa diubah admin).</li>
+          <li><code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET /aturan-fail-safe</code> dan <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET /jadwal-perawatan</code> — baca saja.</li>
+          <li><code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET /watercontrol/status</code> — ringkasan katup &amp; pompa.</li>
         </ul>
       </section>
     </div>

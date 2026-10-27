@@ -118,7 +118,12 @@ class ApiService {
     };
   }
 
-  Future<dynamic> _request(String path, {Object? body, Duration? batas}) async {
+  Future<dynamic> _request(
+    String path, {
+    Object? body,
+    Duration? batas,
+    bool put = false,
+  }) async {
     final uri = Uri.parse('$baseUrl$path');
     try {
       final http.Response res;
@@ -127,13 +132,12 @@ class ApiService {
             .get(uri, headers: await _headers())
             .timeout(batas ?? timeout);
       } else {
-        res = await _client
-            .post(
-              uri,
-              headers: await _headers(withContentType: true),
-              body: jsonEncode(body),
-            )
-            .timeout(batas ?? timeout);
+        final kirim = put ? _client.put : _client.post;
+        res = await kirim(
+          uri,
+          headers: await _headers(withContentType: true),
+          body: jsonEncode(body),
+        ).timeout(batas ?? timeout);
       }
       return _handle(res);
     } on ApiException {
@@ -187,7 +191,9 @@ class ApiService {
       final msg = map?['message']?.toString() ?? '';
       throw ApiException(
         429,
-        msg.isEmpty ? 'Terlalu banyak percobaan. Coba lagi dalam satu menit.' : msg,
+        msg.isEmpty
+            ? 'Terlalu banyak percobaan. Coba lagi dalam satu menit.'
+            : msg,
       );
     }
     if (res.statusCode == 404) {
@@ -263,6 +269,10 @@ class ApiService {
     Map<String, dynamic>? body,
     Duration? batas,
   ]) => _request(path, body: body ?? const <String, dynamic>{}, batas: batas);
+
+  /// PUT JSON (ubah data), mis. target nutrisi naik harian.
+  Future<dynamic> putJson(String path, Map<String, dynamic> body) =>
+      _request(path, body: body, put: true);
 
   /// Peran efektif — meniru `roleFromLevel` di web:
   /// demo (is_demo / level demo), admin, selain itu petani.

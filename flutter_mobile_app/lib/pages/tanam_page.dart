@@ -6,6 +6,7 @@ import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/brand.dart';
 import '../widgets/motion.dart';
+import 'naik_harian_page.dart';
 
 /// Tanam saya — GET /tanam (semai, peremajaan, pendewasaan yang berjalan).
 ///
@@ -165,8 +166,19 @@ class _TanamPageState extends State<TanamPage> {
                     ikon: Icons.add_rounded,
                     onTap: _mulai,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                 ],
+                // target ppm naik harian per tanaman — petani cukup isi target akhir
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.trending_up_rounded),
+                  label: const Text('Target nutrisi naik harian'),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => NaikHarianPage(api: widget.api),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 _isi(tampil, bisaUbah),
               ],
             ),

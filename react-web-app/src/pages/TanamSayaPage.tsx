@@ -7,6 +7,7 @@ import { useAuth } from '../lib/authContext'
 import { Field, FieldError } from '../components/CrudScreen'
 import { useDialog } from '../lib/useDialog'
 import { ModalBackdrop } from '../components/ModalBackdrop'
+import { NaikHarian } from '../components/NaikHarian'
 
 /** Satu baris `list` dari GET /tanam (routes/tanam.js — UNION semai/peremajaan/pendewasaan). */
 type TanamRow = {
@@ -457,6 +458,9 @@ export default function TanamSayaPage() {
           }}
         />
       )}
+
+      {/* target ppm naik harian per tanaman — petani cukup isi target akhir */}
+      <NaikHarian />
     </div>
   )
 }

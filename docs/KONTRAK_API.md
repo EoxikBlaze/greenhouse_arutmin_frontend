@@ -390,3 +390,29 @@ bash backend-nodejs/scripts/smoke-test.sh        # 20 pemeriksaan, semua LULUS
 ```
 Impor `docs/openapi.yaml` ke Postman → **Import → File → pilih file** → semua endpoint
 langsung tersedia dengan contoh body.
+
+### Target nutrisi naik harian (27 Okt 2026)
+
+Per jenis tanaman: `ppm_awal` → `ppm_target` dalam `hari_capai` hari sejak mulai **Peremajaan** (pindah netpot),
+lalu ditahan sampai panen. Menggantikan EC preset pada Peremajaan & Pendewasaan; Semai dan pH tetap dari preset.
+Kosong = tetap preset per tahap. `target hari ini = round(awal + (target − awal) × hari / hari_capai)`.
+
+| Metode | Path | Peran | Keterangan |
+|---|---|---|---|
+| GET | `/dosing/naik-harian` | semua login | `{data:[{id_tanaman, nama_tanaman, ppm_awal, ppm_target, hari_capai, per_hari}], ambang_tds:{min,max}, batas:[50,2500]}` |
+| PUT | `/dosing/naik-harian/:id_tanaman` | **admin, petani** (demo 403) | `{ppm_awal, ppm_target, hari_capai}`; semua `null` = matikan. 422: awal > target, hari bukan 1–365, di luar 50–2500, isian setengah. Menyinkronkan target penampung seketika; tercatat di audit |
+| GET | `/dosing/target` | admin+demo | ditambah `naik_harian: {hari, hari_capai, per_hari, target_hari_ini, ppm_target, tercapai} \| null` |
+
+### MQTT untuk ESP32 (26 Okt 2026)
+
+Aktif bila `MQTT_URL` diisi di env backend; rute HTTP `/api/device/v1/*` tetap ada. Login broker: user = kode perangkat,
+sandi = API key perangkat. Topik, ACL, dan cara pasang: `deploy-pi/PANDUAN_MQTT.md` (folder ini lokal, tidak di repo).
+
+| Topik | Arah | Isi |
+|---|---|---|
+| `garap/<kode>/data` | sensor → server | payload sama dengan `POST /api/device/v1/sensor` |
+| `garap/<kode>/status` | perangkat → server | `{online, firmware, rssi, uptime, estop}` retained; LWT `{"online":false}` |
+| `garap/<kode>/perintah` | server → aktuator | `{id, tipe, parameter}` (hanya bila aktuator online) |
+| `garap/<kode>/hasil` · `/ack` | aktuator ↔ server | `{id, status, hasil}` diulang sampai `{id}` di-ack |
+| `garap/server/status` | server → semua | `{online, estop, t}` tiap 5 dtk; fail-safe aktuator 30 dtk |
+
