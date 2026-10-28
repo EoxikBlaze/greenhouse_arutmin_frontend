@@ -22,7 +22,7 @@ export default {
         emas: '#E9CD53',
         moss: '#6B9D4A',
         tinta: '#0B1A2B',
-        abu: '#64748B',
+        abu: '#4F6075',
         garis: '#E2E8DD',
         kartu: '#FFFFFF',
       },

@@ -96,10 +96,10 @@ class _KacaCairState extends State<KacaCair> {
       // kaca terang: putih tembus pandang di atas latar berwarna; teks tetap gelap
       final warnaA = gelap
           ? Tok.navy.withValues(alpha: 0.66)
-          : Colors.white.withValues(alpha: chrome ? 0.70 : 0.74);
+          : Colors.white.withValues(alpha: chrome ? 0.56 : 0.50);
       final warnaB = gelap
           ? Tok.navy.withValues(alpha: 0.40)
-          : Colors.white.withValues(alpha: chrome ? 0.44 : 0.46);
+          : Colors.white.withValues(alpha: chrome ? 0.24 : 0.18);
       final permukaan = DecoratedBox(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -109,7 +109,7 @@ class _KacaCairState extends State<KacaCair> {
           ),
           borderRadius: r,
           border: Border.all(
-            color: Colors.white.withValues(alpha: gelap ? 0.28 : 0.9),
+            color: Colors.white.withValues(alpha: gelap ? 0.28 : 0.7),
             width: 1.2,
           ),
         ),
@@ -124,7 +124,7 @@ class _KacaCairState extends State<KacaCair> {
                       center: const Alignment(-0.85, -1.0),
                       radius: 1.3,
                       colors: [
-                        Colors.white.withValues(alpha: gelap ? 0.20 : 0.55),
+                        Colors.white.withValues(alpha: gelap ? 0.20 : 0.62),
                         Colors.white.withValues(alpha: 0),
                       ],
                     ),
@@ -141,8 +141,8 @@ class _KacaCairState extends State<KacaCair> {
         child: chrome || (widget.buram && !gelap)
             ? BackdropFilter(
                 filter: chrome
-                    ? ImageFilter.blur(sigmaX: 24, sigmaY: 24)
-                    : ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                    ? ImageFilter.blur(sigmaX: 30, sigmaY: 30)
+                    : ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                 child: permukaan,
               )
             : permukaan,
@@ -216,15 +216,18 @@ class LatarCair extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFFE6F0FB), Color(0xFFECF4EE), Color(0xFFFAF4DE)],
+              colors: [Color(0xFFE2EEFC), Color(0xFFE8F3EC), Color(0xFFFBF2D6)],
             ),
           ),
           child: Stack(
             children: [
-              _bola(const Alignment(-1.1, -0.85), 440, const Color(0xFF70A8EC), 0.55),
-              _bola(const Alignment(1.25, -0.4), 380, const Color(0xFFA89AEE), 0.40),
-              _bola(const Alignment(-1.2, 0.95), 420, Tok.moss, 0.40),
-              _bola(const Alignment(1.2, 1.0), 400, Tok.emas, 0.42),
+              _bola(const Alignment(-1.1, -0.85), 460, const Color(0xFF60A0F0), 0.62),
+              _bola(const Alignment(1.25, -0.4), 400, const Color(0xFFA08EF2), 0.50),
+              _bola(const Alignment(-1.2, 0.95), 440, Tok.moss, 0.50),
+              _bola(const Alignment(1.2, 1.0), 420, Tok.emas, 0.55),
+              _bola(const Alignment(0.3, -0.15), 340, const Color(0xFF60A0F0), 0.36),
+              _bola(const Alignment(-0.6, 0.45), 320, Tok.moss, 0.34),
+              _bola(const Alignment(0.7, 0.55), 300, Tok.emas, 0.34),
             ],
           ),
         ),
