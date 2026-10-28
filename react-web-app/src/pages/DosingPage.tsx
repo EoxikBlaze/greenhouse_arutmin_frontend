@@ -220,7 +220,7 @@ function TabelParameter({
       ) : null}
 
       <div className="mt-3 w-full min-w-0 overflow-x-auto rounded-card border border-arutmin-border bg-white vsf-table">
-        <table className="w-full text-[13px]">
+        <table aria-label="Parameter dosing" className="w-full text-[13px]">
           <thead>
             <tr className="bg-navy/[.055]">
               <Head>Parameter</Head>
@@ -394,7 +394,7 @@ export default function DosingPage() {
           </div>
         ) : (
           <div className="mt-3 w-full min-w-0 overflow-x-auto rounded-card border border-arutmin-border bg-white vsf-table">
-            <table className="w-full text-[13px]">
+            <table aria-label="Aturan fail-safe" className="w-full text-[13px]">
               <thead>
                 <tr className="bg-navy/[.055]">
                   <Head>Kode</Head>
@@ -468,7 +468,7 @@ export default function DosingPage() {
           </div>
         ) : (
           <div className="mt-3 w-full min-w-0 overflow-x-auto rounded-card border border-arutmin-border bg-white vsf-table">
-            <table className="w-full text-[13px]">
+            <table aria-label="Jadwal perawatan" className="w-full text-[13px]">
               <thead>
                 <tr className="bg-navy/[.055]">
                   <Head>Periode</Head>

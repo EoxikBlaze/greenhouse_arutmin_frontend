@@ -265,7 +265,7 @@ function Riwayat({ alat, onTutup }: { alat: Alat; onTutup: () => void }) {
     <Modal judul={`Riwayat kalibrasi · ${alat.label ?? alat.sensor}`} onTutup={onTutup} lebar="max-w-[760px]">
       {error && <div className="mt-3 text-[13px] text-red-700">{error}</div>}
       <div className="mt-3 overflow-x-auto rounded-card border border-arutmin-border">
-        <table className="w-full text-[13px]">
+        <table aria-label="Riwayat kalibrasi" className="w-full text-[13px]">
           <thead><tr className="bg-navy/[.055] text-left text-[11px] uppercase tracking-[.12em] text-navy">
             <th className="px-3 py-2">Tanggal</th><th className="px-3 py-2">Ref</th><th className="px-3 py-2">Bacaan</th>
             <th className="px-3 py-2">Konstanta baru</th><th className="px-3 py-2">Hasil</th><th className="px-3 py-2">Oleh · catatan</th>

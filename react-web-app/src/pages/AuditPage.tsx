@@ -313,7 +313,7 @@ export function AuditPage() {
         </div>
 
         <div className="mt-4 min-w-0 overflow-auto rounded-std border border-garis bg-white vsf-table">
-          <table className="w-full text-[13px]">
+          <table aria-label="Riwayat audit" className="w-full text-[13px]">
             <thead>
               <tr className="bg-navy/[.055]">
                 {['Waktu', 'Aktor', 'Aksi', 'Tabel', 'Ringkasan perubahan'].map((h) => (

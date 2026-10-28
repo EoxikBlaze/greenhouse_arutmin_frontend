@@ -457,7 +457,7 @@ export default function SensorRealtimePage() {
           )}
 
           <div className="mt-3 overflow-auto rounded-card border border-arutmin-border bg-white vsf-table">
-            <table className="w-full text-[13px]">
+            <table aria-label="Riwayat data sensor" className="w-full text-[13px]">
               <thead>
                 <tr className="bg-navy/[.055]">
                   {[

@@ -291,7 +291,7 @@ export default function WaterControlPage() {
       <section className="vsf-card p-4">
         <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Riwayat perintah</div>
         <div className="mt-3 overflow-auto rounded-card border border-arutmin-border bg-white vsf-table">
-          <table className="w-full text-[13px]">
+          <table aria-label="Riwayat perintah" className="w-full text-[13px]">
             <thead>
               <tr className="bg-navy/[.055]">
                 {['Waktu', 'Perintah', 'Sumber', 'Hasil'].map((h) => (

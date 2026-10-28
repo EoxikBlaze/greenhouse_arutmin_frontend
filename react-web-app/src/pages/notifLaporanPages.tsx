@@ -185,7 +185,7 @@ export function LaporanPage() {
           </div>
         ) : (
           <div className="mt-3 overflow-auto rounded-card border border-arutmin-border bg-white vsf-table">
-            <table className="w-full text-[13px]">
+            <table aria-label="Rekap tanam per bulan" className="w-full text-[13px]">
               <thead>
                 <tr className="bg-arutmin-mint/25">
                   {KOLOM.map((h) => (

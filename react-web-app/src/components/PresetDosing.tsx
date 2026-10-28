@@ -189,7 +189,7 @@ export function TargetPenampung({ versi, onUbah }: { versi: number; onUbah: () =
       {error && !loading && <Banner jenis="galat">{error}</Banner>}
 
       <div className="mt-3 w-full min-w-0 overflow-x-auto rounded-card border border-arutmin-border bg-white vsf-table">
-        <table className="w-full text-[13px]">
+        <table aria-label="Target tiap penampung" className="w-full text-[13px]">
           <thead>
             <tr className="bg-navy/[.055]">
               <Head>Meja</Head>
@@ -413,7 +413,7 @@ export function PresetNutrisi({ onUbah }: { onUbah: () => void }) {
       {error && !loading && <Banner jenis="galat">{error}</Banner>}
 
       <div className="mt-3 w-full min-w-0 overflow-x-auto rounded-card border border-arutmin-border bg-white vsf-table">
-        <table className="w-full text-[13px]">
+        <table aria-label="Preset nutrisi per tanaman dan tahap" className="w-full text-[13px]">
           <thead>
             <tr className="bg-navy/[.055]">
               <Head>Tanaman</Head>

@@ -210,7 +210,7 @@ export function CrudScreen<T>({
         {/* QW1 — state daftar HIDUP DI tbody (satu state per layar): loading →
             error → empty → data. Error tak lagi jadi banner terpisah di atas. */}
         <div className="mt-4 min-w-0 overflow-auto rounded-std border border-garis bg-white vsf-table">
-          <table className="w-full text-[13px]">
+          <table aria-label={title} className="w-full text-[13px]">
             <thead>
               <tr className="bg-navy/[.055]">
                 {columns.map((c) => (
