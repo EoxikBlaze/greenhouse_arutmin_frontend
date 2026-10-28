@@ -443,7 +443,7 @@ export function AppShell() {
                 {dash && (
                   <span className="hidden md:inline-flex">
                     <span className="vsf-bilah-chip" role="status">
-                      <span className={`h-2 w-2 rounded-full ${iotOnline ? 'bg-emerald-400' : 'bg-rose-400'}`} aria-hidden />
+                      <span className={`h-2 w-2 rounded-full ${iotOnline ? 'bg-moss' : 'bg-arutmin-error'}`} aria-hidden />
                       {iotOnline ? 'Alat terhubung' : 'Alat terputus'}
                     </span>
                   </span>

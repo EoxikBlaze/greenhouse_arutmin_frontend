@@ -421,7 +421,7 @@ export default function KalibrasiPage() {
                   <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[12px] text-slate-500">
                     {a.perangkat_kode ? (
                       <span className="inline-flex items-center gap-1.5">
-                        <span className={clsx('h-2 w-2 rounded-full', a.perangkat_online ? 'bg-emerald-500' : 'bg-slate-400')} aria-hidden />
+                        <span className={clsx('h-2 w-2 rounded-full', a.perangkat_online ? 'bg-moss' : 'bg-slate-400')} aria-hidden />
                         {a.perangkat_nama ?? a.perangkat_kode}
                       </span>
                     ) : 'Tanpa perangkat (diukur manual)'}

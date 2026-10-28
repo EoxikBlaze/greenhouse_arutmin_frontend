@@ -155,7 +155,7 @@
     background-color: #FEF5F4;
   }
   .vsf-input[aria-invalid='true']:focus {
-    border-color: #C0392B;
+    border-color: theme('colors.arutmin.error');
     box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.16);
   }
   .vsf-input:disabled { @apply bg-slate-50 text-slate-500 cursor-not-allowed; }
@@ -199,7 +199,7 @@
   /* (3) Tombol bahaya — kelas resmi (dulu diduplikasi inline merah 3×). */
   .vsf-btn-danger {
     @apply min-h-[44px] inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold text-white;
-    background-color: #C0392B;
+    background-color: theme('colors.arutmin.error');
     transition: transform var(--tr) var(--ar-ease), box-shadow var(--tr) ease, filter var(--tr) ease, opacity var(--tr) ease;
   }
   .vsf-btn-danger:hover:not(:disabled) {

@@ -45,7 +45,7 @@ export function DataLangsung() {
           {...info('Status perangkat', 'Hijau berarti ESP32 mengirim data dalam 2 menit terakhir. Merah berarti perangkat belum mengirim data baru.')}
           className="vsf-kaca vsf-kaca-gelap inline-flex items-center gap-2 rounded-full px-4 py-2 text-[12.5px] font-bold"
         >
-          <span className={`h-2.5 w-2.5 rounded-full ${galat ? 'bg-slate-400' : data?.iot.online ? 'animate-pulse bg-emerald-400' : 'bg-rose-400'}`} aria-hidden />
+          <span className={`h-2.5 w-2.5 rounded-full ${galat ? 'bg-slate-400' : data?.iot.online ? 'animate-pulse bg-moss' : 'bg-arutmin-error'}`} aria-hidden />
           {galat ? 'Server tidak terjangkau' : memuat ? 'Memuat…' : data?.iot.online ? 'Perangkat online' : 'Perangkat offline'}
         </span>
       </div>
