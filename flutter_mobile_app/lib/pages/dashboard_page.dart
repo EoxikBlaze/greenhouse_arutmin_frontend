@@ -465,43 +465,45 @@ class _RingkasSensor extends StatelessWidget {
       ('Suhu udara', fmtAngka(sensor['airTemp']), '°C'),
       ('Kelembapan', fmtAngka(sensor['humidity'], desimal: 0), '%'),
     ];
+    Widget kotak((String, String, String) it) => Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Tok.page,
+          borderRadius: BorderRadius.circular(Tok.r),
+          border: Border.all(color: Tok.garis),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(it.$1, style: Tok.kecil.copyWith(fontSize: 11)),
+            const SizedBox(height: 4),
+            Text(
+              '${it.$2}${it.$3.isEmpty ? '' : ' ${it.$3}'}',
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    // Dua baris selebar kartu: 3 kotak + 2 kotak, tiap baris dibagi rata.
+    Widget baris(List<(String, String, String)> isi) => Row(
+      children: [
+        for (var i = 0; i < isi.length; i++) ...[
+          if (i > 0) const SizedBox(width: 10),
+          kotak(isi[i]),
+        ],
+      ],
+    );
+
     return Panel(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              for (final it in item)
-                Container(
-                  width: 96,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Tok.page,
-                    borderRadius: BorderRadius.circular(Tok.r),
-                    border: Border.all(color: Tok.garis),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(it.$1, style: Tok.kecil.copyWith(fontSize: 11)),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${it.$2}${it.$3.isEmpty ? '' : ' ${it.$3}'}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
+          baris(item.sublist(0, 3)),
+          const SizedBox(height: 10),
+          baris(item.sublist(3)),
           const SizedBox(height: Tok.sp3),
           Text(
             'Diperbarui ${waktuRelatif(sensor['created_at']?.toString())}',
