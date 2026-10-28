@@ -221,7 +221,7 @@ export default function DashboardPage() {
               <div className="mt-4 flex flex-wrap gap-2">
                 <Link
                   to="/sensor-realtime"
-                  className="rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-arutmin-forest transition hover:bg-arutmin-mint"
+                  className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-arutmin-forest transition hover:bg-arutmin-mint sm:flex-none"
                 >
                   Lihat Grafik Sensor
                 </Link>
@@ -230,13 +230,13 @@ export default function DashboardPage() {
                     <Link
                       to="/tanam"
                       state={{ mulaiBaru: true }}
-                      className="rounded-full border border-white/40 px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-white/10"
+                      className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/40 px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-white/10 sm:flex-none"
                     >
                       Mulai Semai Baru
                     </Link>
                     <Link
                       to="/watercontrol"
-                      className="rounded-full border border-white/40 px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-white/10"
+                      className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/40 px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-white/10 sm:flex-none"
                     >
                       Water Control
                     </Link>
@@ -244,7 +244,7 @@ export default function DashboardPage() {
                 ) : (
                   <Link
                     to="/tanam"
-                    className="rounded-full border border-white/40 px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-white/10"
+                    className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/40 px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-white/10 sm:flex-none"
                   >
                     Tanam Saya
                   </Link>
