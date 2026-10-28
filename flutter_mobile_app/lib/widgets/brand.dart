@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
 import '../util/format.dart';
+import 'ikon.dart';
 import 'kaca.dart';
 import 'motion.dart';
 
@@ -420,13 +421,13 @@ class ErrorPanel extends StatelessWidget {
     return Panel(
       child: Column(
         children: [
-          const Icon(Icons.cloud_off_outlined, size: 38, color: Tok.error),
+          const Icon(Ikon.awanMati, size: 38, color: Tok.error),
           const SizedBox(height: 10),
           Text(pesan, textAlign: TextAlign.center, style: Tok.body),
           const SizedBox(height: 14),
           FilledButton.icon(
             onPressed: onCoba,
-            icon: const Icon(Icons.refresh, size: 18),
+            icon: const Icon(Ikon.siklus, size: 18),
             label: const Text('Coba lagi'),
           ),
         ],
@@ -454,7 +455,7 @@ class BannerBasi extends StatelessWidget {
         warnaTepi: Tok.warning,
         child: Row(
           children: [
-            const Icon(Icons.cloud_off_outlined, color: Tok.warning),
+            const Icon(Ikon.awanMati, color: Tok.warning),
             const SizedBox(width: 10),
             Expanded(child: Text(teks, style: Tok.body)),
           ],

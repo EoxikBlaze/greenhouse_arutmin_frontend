@@ -58,4 +58,9 @@ class Ikon {
   static const IconData surel = LucideIcons.mail;
   static const IconData kunciKunci = LucideIcons.keyRound;
   static const IconData terverifikasi = LucideIcons.shieldCheck;
+  static const IconData cctvMati = LucideIcons.videoOff;
+  static const IconData layarPenuh = LucideIcons.maximize;
+  static const IconData kirim = LucideIcons.send;
+  static const IconData musik = LucideIcons.music;
+  static const IconData awanMati = LucideIcons.cloudOff;
 }

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../theme/tokens.dart';
 import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
+import '../widgets/ikon.dart';
 import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
 
@@ -116,16 +117,16 @@ class TentangPage extends StatelessWidget {
               Center(
                 child: Image.asset('assets/tentang/logo/${m.logo}', height: 72),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: Tok.sp3),
               Text(m.nama, style: Tok.h3),
               Text(m.peran, style: Tok.kecil),
-              const SizedBox(height: 10),
+              const SizedBox(height: Tok.sp3),
               Text(m.teks, style: Tok.body),
               if (m.tautan != null) ...[
-                const SizedBox(height: 14),
+                const SizedBox(height: Tok.sp3),
                 OutlinedButton.icon(
                   onPressed: () => _salin(ctx, m.tautan!, 'Tautan'),
-                  icon: const Icon(Icons.copy_rounded, size: 18),
+                  icon: const Icon(Ikon.salin, size: 18),
                   label: Text(m.tautan!, overflow: TextOverflow.ellipsis),
                 ),
               ],
@@ -154,7 +155,7 @@ class TentangPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Image.asset('assets/tentang/logo/kkn.png', height: 76),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: Tok.sp3),
                     const Text(
                       'Merawat nutrisi tanaman, tanpa petani harus menakar sendiri.',
                       style: Tok.h2,
@@ -169,12 +170,12 @@ class TentangPage extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 22),
+            const SizedBox(height: Tok.sp6),
             FadeUp(
               delay: FadeUp.urutan(1),
               child: const Eyebrow('Kolaborasi KKN Arutmin Asik 2026'),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: Tok.sp3),
             GridView.count(
               crossAxisCount: kolomMitra,
               shrinkWrap: true,
@@ -200,7 +201,7 @@ class TentangPage extends StatelessWidget {
                               fit: BoxFit.contain,
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: Tok.sp3),
                           Text(
                             _mitra[i].nama,
                             textAlign: TextAlign.center,
@@ -222,35 +223,28 @@ class TentangPage extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 22),
+            const SizedBox(height: Tok.sp6),
             const Eyebrow('Tim'),
-            const SizedBox(height: 10),
+            const SizedBox(height: Tok.sp3),
             for (final a in _tim) ...[
               FadeUp(child: _KartuAnggota(a)),
               const SizedBox(height: 12),
             ],
-            const SizedBox(height: 10),
+            const SizedBox(height: Tok.sp3),
             const Eyebrow('Ikuti kami'),
-            const SizedBox(height: 10),
+            const SizedBox(height: Tok.sp3),
             Panel(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Column(
                 children: [
                   ListTile(
-                    leading: const Icon(
-                      Icons.camera_alt_outlined,
-                      color: Tok.mossGelap,
-                    ),
+                    leading: const Icon(Ikon.kamera, color: Tok.mossGelap),
                     title: const Text(
                       'Instagram',
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     subtitle: const Text(_akun),
-                    trailing: const Icon(
-                      Icons.copy_rounded,
-                      size: 18,
-                      color: Tok.abu,
-                    ),
+                    trailing: const Icon(Ikon.salin, size: 18, color: Tok.abu),
                     onTap: () => _salin(
                       context,
                       'https://instagram.com/kkn.arutminidn2026',
@@ -258,20 +252,13 @@ class TentangPage extends StatelessWidget {
                     ),
                   ),
                   ListTile(
-                    leading: const Icon(
-                      Icons.music_note_outlined,
-                      color: Tok.mossGelap,
-                    ),
+                    leading: const Icon(Ikon.musik, color: Tok.mossGelap),
                     title: const Text(
                       'TikTok',
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     subtitle: const Text(_akun),
-                    trailing: const Icon(
-                      Icons.copy_rounded,
-                      size: 18,
-                      color: Tok.abu,
-                    ),
+                    trailing: const Icon(Ikon.salin, size: 18, color: Tok.abu),
                     onTap: () => _salin(
                       context,
                       'https://www.tiktok.com/@kkn.arutminidn2026',
@@ -281,7 +268,7 @@ class TentangPage extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: Tok.sp6),
             const Center(
               child: Text(
                 '© 2026 PT Arutmin Indonesia · Vertonik Smart Farm',

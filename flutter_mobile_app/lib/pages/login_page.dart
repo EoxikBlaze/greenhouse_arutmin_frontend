@@ -6,6 +6,7 @@ import '../config.dart';
 import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../widgets/brand.dart';
+import '../widgets/ikon.dart';
 import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
 
@@ -145,7 +146,7 @@ class _LoginPageState extends State<LoginPage>
             if (widget.pesanSesi != null) ...[
               _Kabar(
                 teks: widget.pesanSesi!,
-                ikon: Icons.info_outline,
+                ikon: Ikon.info,
                 warna: Tok.warning,
               ),
               const SizedBox(height: 16),
@@ -156,7 +157,7 @@ class _LoginPageState extends State<LoginPage>
                 controller: _usernameCtrl,
                 autofillHints: const [AutofillHints.username],
                 textInputAction: TextInputAction.next,
-                decoration: _dekor('Nama pengguna', Icons.person_outline),
+                decoration: _dekor('Nama pengguna', Ikon.profil),
                 validator: (v) => (v == null || v.trim().length < 3)
                     ? 'Nama pengguna minimal 3 karakter.'
                     : null,
@@ -173,15 +174,10 @@ class _LoginPageState extends State<LoginPage>
                 onFieldSubmitted: (_) => _submit(),
                 decoration: _dekor(
                   'Kata sandi',
-                  Icons.lock_outline,
+                  Ikon.kunci,
                   akhir: IconButton(
                     tooltip: _lihat ? 'Sembunyikan' : 'Tampilkan',
-                    icon: Icon(
-                      _lihat
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      size: 20,
-                    ),
+                    icon: Icon(_lihat ? Ikon.mataCoret : Ikon.mata, size: 20),
                     onPressed: () => setState(() => _lihat = !_lihat),
                   ),
                 ),
@@ -200,7 +196,7 @@ class _LoginPageState extends State<LoginPage>
                       padding: const EdgeInsets.only(top: 14),
                       child: _Kabar(
                         teks: _error!,
-                        ikon: Icons.error_outline,
+                        ikon: Ikon.salah,
                         warna: Tok.error,
                       ),
                     ),

@@ -8,6 +8,7 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
+import '../widgets/ikon.dart';
 import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
 
@@ -82,7 +83,7 @@ class _CctvPageState extends State<CctvPage> {
     if (_memuat && _list.isEmpty) {
       return const [
         SkeletonBox(height: 220, radius: 14),
-        SizedBox(height: 14),
+        SizedBox(height: Tok.sp3),
         SkeletonBox(height: 220, radius: 14),
       ];
     }
@@ -97,7 +98,7 @@ class _CctvPageState extends State<CctvPage> {
             child: Center(
               child: Column(
                 children: [
-                  Icon(Icons.videocam_off_outlined, size: 40, color: Tok.abu),
+                  Icon(Ikon.cctvMati, size: 40, color: Tok.abu),
                   SizedBox(height: 8),
                   Text('Belum ada kamera', style: Tok.h3),
                   SizedBox(height: 4),
@@ -198,7 +199,7 @@ class _KartuKamera extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (aktif) const Icon(Icons.fullscreen_rounded, color: Tok.abu),
+                if (aktif) const Icon(Ikon.layarPenuh, color: Tok.abu),
               ],
             ),
           ),
@@ -273,7 +274,7 @@ class _Terputus extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.videocam_off_outlined, color: Colors.white70),
+            const Icon(Ikon.cctvMati, color: Colors.white70),
             const SizedBox(height: 6),
             Text(pesan, style: const TextStyle(color: Colors.white70)),
             if (onCoba != null)

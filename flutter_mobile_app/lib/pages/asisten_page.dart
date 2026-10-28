@@ -354,7 +354,7 @@ class _AsistenPageState extends State<AsistenPage> {
                             borderRadius: BorderRadius.circular(Tok.rSm),
                             onTap: _memuat ? null : () => _kirim(_ctrl.text),
                             child: Icon(
-                              Icons.send_rounded,
+                              Ikon.kirim,
                               color: Colors.white.withValues(
                                 alpha: _memuat ? 0.5 : 1,
                               ),
