@@ -37,7 +37,6 @@ const TITLES: Record<string, string> = {
   '/dosing': 'Dosing Otomatis',
   '/kalibrasi': 'Kalibrasi Alat',
   '/audit': 'Riwayat Audit',
-  '/galeri': 'Galeri Desain',
 }
 
 /* ── QW5 · Sidebar per role ───────────────────────────────────────────
@@ -362,7 +361,7 @@ export function AppShell() {
               </span>
               <div className={`min-w-0 flex-1 ${ciut ? 'lg:hidden' : ''}`}>
                 <div className="truncate text-[13.5px] font-semibold text-white">{namaUser || role}</div>
-                <div className="truncate text-[12px] capitalize text-white/60">{role}</div>
+                <div className="truncate text-[12px] capitalize text-white/75">{role}</div>
               </div>
               <button
                 type="button"
@@ -427,7 +426,7 @@ export function AppShell() {
                     {inisial}
                   </span>
                   <span className="text-[14px] font-semibold text-white">{namaUser || role}</span>
-                  <span className="hidden text-[12px] text-white/65 lg:block">{role}</span>
+                  <span className="hidden text-[12px] text-white/75 lg:block">{role}</span>
                 </div>
               </div>
             </div>

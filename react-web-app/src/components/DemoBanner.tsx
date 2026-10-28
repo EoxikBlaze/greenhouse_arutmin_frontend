@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Ikon } from './Ikon'
 
 /**
  * Banner mode demo (State Gallery .pen):
@@ -24,9 +25,7 @@ export function DemoBanner({ demo }: { demo: boolean }) {
       aria-live="polite"
     >
       <span className="vsf-eyebrow vsf-eyebrow-emas inline-flex items-center gap-1.5 rounded-full bg-navy px-2.5 py-0.5">
-        <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
-          <path d="M12 3 1.8 20.5h20.4z" />
-        </svg>
+        <Ikon nama="peringatan" className="h-3 w-3" />
         Demo
       </span>
       <span>

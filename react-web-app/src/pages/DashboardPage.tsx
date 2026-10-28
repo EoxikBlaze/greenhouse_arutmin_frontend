@@ -277,7 +277,7 @@ export default function DashboardPage() {
                   {kelola && (
                     <Link
                       to={p.to}
-                      className="mt-1 inline-block text-[12px] font-semibold text-arutmin-forest underline underline-offset-2 transition group-hover:text-arutmin-moss"
+                      className="mt-1 inline-flex min-h-[44px] items-center text-[12px] sm:min-h-0 font-semibold text-arutmin-forest underline underline-offset-2 transition group-hover:text-arutmin-moss"
                     >
                       Buka {p.label} →
                     </Link>
