@@ -95,6 +95,18 @@ class _PipeFlowState extends State<PipeFlow>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final c = _c;
+    if (c == null) return;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      c.stop();
+    } else if (!c.isAnimating) {
+      c.repeat();
+    }
+  }
+
+  @override
   void dispose() {
     _c?.dispose();
     super.dispose();

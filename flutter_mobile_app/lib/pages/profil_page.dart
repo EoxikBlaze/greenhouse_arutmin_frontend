@@ -7,6 +7,7 @@ import '../widgets/brand.dart';
 import '../widgets/ikon.dart';
 import '../widgets/dock.dart';
 import '../widgets/motion.dart';
+import '../widgets/rute.dart';
 import 'asisten_page.dart';
 import 'cctv_page.dart';
 import 'meja_page.dart';
@@ -162,7 +163,7 @@ class _ProfilPageState extends State<ProfilPage> {
                           ikon: Ikon.ai,
                           label: 'Asisten AI',
                           onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
+                            RuteHalus<void>(
                               builder: (_) => AsistenPage(api: widget.api),
                             ),
                           ),
@@ -171,7 +172,7 @@ class _ProfilPageState extends State<ProfilPage> {
                         ikon: Ikon.cctv,
                         label: 'CCTV greenhouse',
                         onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
+                          RuteHalus<void>(
                             builder: (_) => CctvPage(api: widget.api),
                           ),
                         ),
@@ -181,7 +182,7 @@ class _ProfilPageState extends State<ProfilPage> {
                           ikon: Ikon.meja,
                           label: 'Daftar meja',
                           onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
+                            RuteHalus<void>(
                               builder: (_) => MejaPage(api: widget.api),
                             ),
                           ),
@@ -190,7 +191,7 @@ class _ProfilPageState extends State<ProfilPage> {
                         ikon: Ikon.audit,
                         label: 'Riwayat monitoring',
                         onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
+                          RuteHalus<void>(
                             builder: (_) =>
                                 RiwayatMonitoringPage(api: widget.api),
                           ),
@@ -330,9 +331,7 @@ class _ProfilPageState extends State<ProfilPage> {
                     ikon: Ikon.info,
                     label: 'Tentang Kami',
                     onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const TentangPage(),
-                      ),
+                      RuteHalus<void>(builder: (_) => const TentangPage()),
                     ),
                   ),
                 ),

@@ -260,10 +260,14 @@ class _MainShellState extends State<_MainShell>
             child: IndexedStack(
               index: _indeks,
               children: [
+                // Tab tersembunyi: ticker dijeda (PipeFlow, PulseDot, skeleton) agar hemat baterai.
                 for (var i = 0; i < _tab.length; i++)
-                  _dibuka.contains(i)
-                      ? _tab[i].bangun(i == _indeks)
-                      : const SizedBox.shrink(),
+                  TickerMode(
+                    enabled: i == _indeks,
+                    child: _dibuka.contains(i)
+                        ? _tab[i].bangun(i == _indeks)
+                        : const SizedBox.shrink(),
+                  ),
               ],
             ),
           ),

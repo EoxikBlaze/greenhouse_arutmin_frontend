@@ -70,7 +70,7 @@
    ANIMATIONS — single source of truth
    ============================================================ */
 @keyframes vsf-fade-up {
-  from { opacity: 0; transform: translateY(14px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes vsf-fade {
@@ -228,20 +228,20 @@
   .vsf-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
   /* Page transition (dipakai AppShell, key = pathname) */
-  .vsf-page { animation: vsf-fade-up 0.3s var(--ar-ease) both; }
+  .vsf-page { animation: vsf-fade-up var(--dur-normal) var(--ease-v2) both; }
 
   /* Stagger: anak-anak kartu/section naik berurutan.
      P1 — fill-mode `backwards` (bukan `both`): setelah animasi selesai, fill
      dilepas sehingga `transform` hover (.vsf-card:hover → translateY(-2px))
      TIDAK lagi ditimpa keyframes. P6 — durasi 0.25s, delay maks 0.15s. */
   .vsf-stagger > * {
-    animation: vsf-fade-up 0.25s var(--ar-ease) backwards;
+    animation: vsf-fade-up var(--dur-normal) var(--ease-v2) backwards;
   }
   .vsf-stagger > *:nth-child(1) { animation-delay: 0s; }
-  .vsf-stagger > *:nth-child(2) { animation-delay: 0.05s; }
-  .vsf-stagger > *:nth-child(3) { animation-delay: 0.1s; }
-  .vsf-stagger > *:nth-child(4) { animation-delay: 0.15s; }
-  .vsf-stagger > *:nth-child(n+5) { animation-delay: 0.15s; }
+  .vsf-stagger > *:nth-child(2) { animation-delay: 0.04s; }
+  .vsf-stagger > *:nth-child(3) { animation-delay: 0.08s; }
+  .vsf-stagger > *:nth-child(4) { animation-delay: 0.12s; }
+  .vsf-stagger > *:nth-child(n+5) { animation-delay: 0.12s; }
 
   /* Tabel: baris fade-in berurutan + transisi hover.
      QW6 — min-width:0 agar pembungkus overflow-auto jadi scroll INTERNAL
@@ -263,7 +263,7 @@
   }
   .vsf-table table { min-width: 0; }
   .vsf-table tbody tr {
-    animation: vsf-fade-up 0.25s var(--ar-ease) backwards;
+    animation: vsf-fade-up var(--dur-normal) var(--ease-v2) backwards;
     transition: background-color 0.15s ease;
   }
   .vsf-table tbody tr:nth-child(1) { animation-delay: 0.05s; }

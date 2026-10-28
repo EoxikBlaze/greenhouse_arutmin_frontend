@@ -11,6 +11,7 @@ import '../widgets/brand.dart';
 import '../widgets/ikon.dart';
 import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
+import '../widgets/rute.dart';
 
 /// CCTV — daftar kamera dari GET /cctv. Snapshot/MJPEG ditarik langsung dari
 /// URL kamera; kamera RTSP (EZVIZ dkk.) lewat server: GET /cctv/:id/gambar.
@@ -145,7 +146,7 @@ class _KartuKamera extends StatelessWidget {
       padding: EdgeInsets.zero,
       onTap: aktif
           ? () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
+              RuteHalus<void>(
                 builder: (_) => _TayanganBesar(data: data, api: api),
               ),
             )

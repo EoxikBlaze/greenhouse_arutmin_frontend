@@ -7,6 +7,7 @@ import '../widgets/brand.dart';
 import '../widgets/ikon.dart';
 import '../widgets/dock.dart';
 import '../widgets/motion.dart';
+import '../widgets/rute.dart';
 import 'asisten_page.dart';
 import 'cctv_page.dart';
 
@@ -317,8 +318,7 @@ class _Cepat extends StatelessWidget {
     return Panel(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       onTap: () =>
-          Navigator.of(context)
-              .push(MaterialPageRoute<void>(builder: (_) => tujuan)),
+          Navigator.of(context).push(RuteHalus<void>(builder: (_) => tujuan)),
       child: Row(
         children: [
           Icon(ikon, color: Tok.mossGelap),

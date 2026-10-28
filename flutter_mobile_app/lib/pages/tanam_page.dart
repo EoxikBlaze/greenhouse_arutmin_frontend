@@ -8,6 +8,7 @@ import '../widgets/brand.dart';
 import '../widgets/ikon.dart';
 import '../widgets/dock.dart';
 import '../widgets/motion.dart';
+import '../widgets/rute.dart';
 import 'naik_harian_page.dart';
 
 /// Tanam saya — GET /tanam (semai, peremajaan, pendewasaan yang berjalan).
@@ -175,7 +176,7 @@ class _TanamPageState extends State<TanamPage> {
                   icon: const Icon(Ikon.naik),
                   label: const Text('Target nutrisi naik harian'),
                   onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
+                    RuteHalus<void>(
                       builder: (_) => NaikHarianPage(api: widget.api),
                     ),
                   ),

@@ -3,6 +3,7 @@ import { useAuth } from '../lib/authContext'
 import { useApiObject, useFlashOnChange } from '../lib/useApiObject'
 import { waktuBasi } from '../lib/waktu'
 import { Ikon, type NamaIkon } from '../components/Ikon'
+import { AngkaHidup } from '../components/AngkaHidup'
 
 /**
  * Dashboard live — GET /dashboard (semua role).
@@ -58,6 +59,10 @@ function tgl(iso?: string | null): string {
 }
 
 /** Angka → teks tampil; null/kosong → "—", bukan angka bohong. */
+function adaAngka(v: unknown): boolean {
+  return v !== null && v !== undefined && String(v).trim() !== '' && Number.isFinite(Number(v))
+}
+
 function angka(v: unknown, digit = 0): string {
   if (v === null || v === undefined || String(v).trim() === '') return '—'
   const n = Number(v)
@@ -99,11 +104,11 @@ export default function DashboardPage() {
     return `batas aman ${f(a.min)}–${f(a.max)}`
   }
   const metrik = [
-    { k: 'ph', label: 'pH (Asam-Basa)', nilai: angka(s?.ph, 2), target: batas('ph') },
-    { k: 'waterTemp', label: 'Suhu Air Tandon', nilai: `${angka(s?.waterTemp, 1)} °C`, target: batas('waterTemp') },
-    { k: 'tds', label: 'TDS Nutrisi', nilai: `${angka(s?.tds)} ppm`, target: batas('tds') },
-    { k: 'airTemp', label: 'Suhu Udara', nilai: `${angka(s?.airTemp, 1)} °C`, target: batas('airTemp') },
-    { k: 'humidity', label: 'Kelembapan', nilai: `${angka(s?.humidity)} %`, target: batas('humidity') },
+    { k: 'ph', label: 'pH (Asam-Basa)', nilai: angka(s?.ph, 2), num: s?.ph, digit: 2, akhiran: '', target: batas('ph') },
+    { k: 'waterTemp', label: 'Suhu Air Tandon', nilai: `${angka(s?.waterTemp, 1)} °C`, num: s?.waterTemp, digit: 1, akhiran: ' °C', target: batas('waterTemp') },
+    { k: 'tds', label: 'TDS Nutrisi', nilai: `${angka(s?.tds)} ppm`, num: s?.tds, digit: 0, akhiran: ' ppm', target: batas('tds') },
+    { k: 'airTemp', label: 'Suhu Udara', nilai: `${angka(s?.airTemp, 1)} °C`, num: s?.airTemp, digit: 1, akhiran: ' °C', target: batas('airTemp') },
+    { k: 'humidity', label: 'Kelembapan', nilai: `${angka(s?.humidity)} %`, num: s?.humidity, digit: 0, akhiran: ' %', target: batas('humidity') },
     {
       k: 'level',
       label: 'Katup Air',
@@ -230,7 +235,7 @@ export default function DashboardPage() {
                       <IkonMetrik kind={m.k} />
                     </span>
                   </div>
-                  <div className={`mt-1 text-[26px] leading-tight font-extrabold text-arutmin-forest tabular-nums ${sensorFlash}`}>{m.nilai}</div>
+                  <div className={`mt-1 text-[26px] leading-tight font-extrabold text-arutmin-forest tabular-nums ${sensorFlash}`}>{adaAngka(m.num) ? <AngkaHidup nilai={Number(m.num)} digit={m.digit} akhiran={m.akhiran} /> : m.nilai}</div>
                   <div className="text-[12px] text-slate-600">
                     {m.target} • {statusKata}
                   </div>
@@ -265,7 +270,7 @@ export default function DashboardPage() {
                       {i + 1}
                     </span>
                   </div>
-                  <div className="mt-1 text-[26px] leading-tight font-extrabold text-arutmin-forest tabular-nums">{angka(p.total)}</div>
+                  <div className="mt-1 text-[26px] leading-tight font-extrabold text-arutmin-forest tabular-nums"><AngkaHidup nilai={Number(p.total ?? 0)} /></div>
                   <div className="text-[12px] text-slate-600">
                     {angka(p.jalan)} {p.ket}
                   </div>

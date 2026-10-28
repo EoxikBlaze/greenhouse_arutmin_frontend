@@ -22,8 +22,8 @@ class FadeUp extends StatefulWidget {
     super.key,
     required this.child,
     this.delay = Duration.zero,
-    this.duration = const Duration(milliseconds: 560),
-    this.dy = 16,
+    this.duration = Tok.dLambat,
+    this.dy = 10,
   });
 
   final Widget child;
@@ -31,9 +31,9 @@ class FadeUp extends StatefulWidget {
   final Duration duration;
   final double dy;
 
-  /// Jeda bertahap untuk daftar (stagger): 70 ms per urutan, maksimal 600 ms.
+  /// Jeda bertahap untuk daftar (stagger): 50 ms per urutan, maksimal 300 ms.
   static Duration urutan(int i) =>
-      Duration(milliseconds: (i * 70).clamp(0, 600).toInt());
+      Duration(milliseconds: (i * 50).clamp(0, 300).toInt());
 
   @override
   State<FadeUp> createState() => _FadeUpState();
@@ -64,6 +64,8 @@ class _FadeUpState extends State<FadeUp> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    // Pengguna mengurangi gerakan: tampil langsung.
+    if (MediaQuery.disableAnimationsOf(context)) return widget.child;
     return AnimatedBuilder(
       animation: _a,
       child: widget.child,
@@ -90,7 +92,7 @@ class CountUp extends StatelessWidget {
     this.style,
     this.awalan = '',
     this.akhiran = '',
-    this.durasi = const Duration(milliseconds: 900),
+    this.durasi = const Duration(milliseconds: 600),
   });
 
   final double nilai;
@@ -104,7 +106,9 @@ class CountUp extends StatelessWidget {
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: nilai),
-      duration: durasi,
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : durasi,
       curve: Tok.ease,
       builder: (context, v, _) =>
           Text('$awalan${v.toStringAsFixed(desimal)}$akhiran', style: style),
@@ -135,6 +139,18 @@ class _PulseDotState extends State<PulseDot>
         vsync: this,
         duration: const Duration(milliseconds: 1400),
       )..repeat(reverse: true);
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final c = _c;
+    if (c == null) return;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      c.stop();
+    } else if (!c.isAnimating) {
+      c.repeat(reverse: true);
     }
   }
 
@@ -266,6 +282,18 @@ class _SkeletonBoxState extends State<SkeletonBox>
         vsync: this,
         duration: const Duration(milliseconds: 1100),
       )..repeat(reverse: true);
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final c = _c;
+    if (c == null) return;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      c.stop();
+    } else if (!c.isAnimating) {
+      c.repeat(reverse: true);
     }
   }
 
