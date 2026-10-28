@@ -946,7 +946,7 @@ img { -webkit-user-drag: none; }
 
   /* Chrome: topbar, sidebar, dock, dropdown. Satu-satunya yang memakai blur. */
   .glass-chrome {
-    background: rgba(10, 31, 56, 0.6);
+    background: rgba(10, 31, 56, 0.78);
     -webkit-backdrop-filter: blur(20px) saturate(1.5);
     backdrop-filter: blur(20px) saturate(1.5);
     border: 1px solid rgba(255, 255, 255, 0.16);
