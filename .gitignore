@@ -15,7 +15,19 @@ ios/Pods/
 # Backend (repo terpisah: greenhouse_arutmin_backend)
 backend-nodejs/
 # Repo induk (repo terpisah: greenhouse_arutmin)
-deploy-pi/
+# deploy-pi/ tetap diabaikan, KECUALI 4 sumber firmware yang disetujui pemilik (Fase 3B.3).
+# Git tidak bisa mengecualikan isi folder yang diabaikan utuh → pola "folder/*" + pengecualian per file.
+deploy-pi/*
+!deploy-pi/firmware/
+deploy-pi/firmware/*
+!deploy-pi/firmware/aktuator/
+!deploy-pi/firmware/sensor/
+deploy-pi/firmware/aktuator/*
+deploy-pi/firmware/sensor/*
+!deploy-pi/firmware/aktuator/aktuator.ino
+!deploy-pi/firmware/aktuator/rahasia.h.contoh
+!deploy-pi/firmware/sensor/sensor.ino
+!deploy-pi/firmware/sensor/rahasia.h.contoh
 scripts/
 
 # Sampah
