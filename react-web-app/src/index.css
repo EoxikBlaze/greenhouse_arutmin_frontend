@@ -147,8 +147,8 @@
 @layer components {
   /* Permukaan standar: radius token + shadow halus (150ms transisi) */
   /* Desain v2: glass ringan (transparan di atas .app-latar, TANPA blur). */
+  /* Background + transisi .vsf-card ada di blok "Kilau spekular" (akhir berkas). */
   .vsf-card {
-    background: linear-gradient(155deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
     backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
     border: 1px solid rgba(255, 255, 255, 0.6);
@@ -159,7 +159,6 @@
       inset 0 -1px 0 rgba(255, 255, 255, 0.25),
       inset 0 0 28px rgba(255, 255, 255, 0.16),
       0 12px 36px -14px rgba(40, 80, 130, 0.3);
-    transition: border-color var(--dur-normal) ease, box-shadow var(--dur-normal) ease;
   }
   .vsf-card:hover {
     border-color: rgba(107, 157, 74, 0.45);
@@ -167,7 +166,6 @@
   }
   /* Desain v3: kartu terangkat sedikit saat hover (perangkat pointer saja, hormati reduced-motion). */
   @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-    .vsf-card { transition: transform var(--dur-normal) var(--ease-v2), border-color var(--dur-normal) ease, box-shadow var(--dur-normal) ease; }
     .vsf-card:hover { transform: translateY(-2px); }
   }
   .vsf-input {
@@ -1069,7 +1067,6 @@
 .vsf-kpi:hover { transform: translateY(-3px); }
 .vsf-kpi-kaca {
   color: var(--tinta);
-  background: linear-gradient(155deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
   backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
 }
@@ -1124,13 +1121,13 @@
 @property --sheen { syntax: '<number>'; inherits: false; initial-value: 0; }
 .vsf-card {
   background:
-    radial-gradient(260px circle at var(--mx) var(--my), rgba(255, 255, 255, calc(var(--sheen) * 1)), transparent 70%),
+    radial-gradient(260px circle at var(--mx) var(--my), rgba(255, 255, 255, var(--sheen)), transparent 70%),
     linear-gradient(155deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
   transition: transform var(--dur-normal) var(--ease-v2), border-color var(--dur-normal) ease, box-shadow var(--dur-normal) ease, --sheen 0.35s ease;
 }
 .vsf-kpi-kaca {
   background:
-    radial-gradient(240px circle at var(--mx) var(--my), rgba(255, 255, 255, calc(var(--sheen) * 1)), transparent 70%),
+    radial-gradient(240px circle at var(--mx) var(--my), rgba(255, 255, 255, var(--sheen)), transparent 70%),
     linear-gradient(155deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
   transition: transform var(--dur-normal) var(--ease-v2), box-shadow var(--dur-normal) var(--ease-v2), --sheen 0.35s ease;
 }
@@ -1141,4 +1138,8 @@
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
   .vsf-card,
   .vsf-kpi-kaca { background: #fff; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vsf-card,
+  .vsf-kpi-kaca { transition: none; }
 }

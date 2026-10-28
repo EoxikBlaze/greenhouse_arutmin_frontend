@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { SiteFooter } from '../components/SiteFooter'
 import { Monogram } from '../components/Monogram'
@@ -263,13 +263,24 @@ export function AppShell() {
   } = useDialog({ open: confirmKeluar, onClose: () => setConfirmKeluar(false) })
 
   // Kilau spekular: titik terang di kaca mengikuti kursor (hanya perangkat pointer halus).
+  // Satu pembaruan per frame: event pointermove bisa datang jauh lebih sering dari 60/detik.
+  const kursor = useRef<{ el: HTMLElement; x: number; y: number } | null>(null)
+  const kursorFrame = useRef(0)
+  useEffect(() => () => cancelAnimationFrame(kursorFrame.current), [])
   function ikutiKursor(e: React.PointerEvent<HTMLElement>) {
     if (e.pointerType !== 'mouse') return
     const el = (e.target as HTMLElement).closest<HTMLElement>('.vsf-card, .vsf-kpi-kaca, .vsf-kpi')
     if (!el) return
-    const r = el.getBoundingClientRect()
-    el.style.setProperty('--mx', `${(((e.clientX - r.left) / r.width) * 100).toFixed(1)}%`)
-    el.style.setProperty('--my', `${(((e.clientY - r.top) / r.height) * 100).toFixed(1)}%`)
+    kursor.current = { el, x: e.clientX, y: e.clientY }
+    if (kursorFrame.current) return
+    kursorFrame.current = requestAnimationFrame(() => {
+      kursorFrame.current = 0
+      const k = kursor.current
+      if (!k) return
+      const r = k.el.getBoundingClientRect()
+      k.el.style.setProperty('--mx', `${(((k.x - r.left) / r.width) * 100).toFixed(1)}%`)
+      k.el.style.setProperty('--my', `${(((k.y - r.top) / r.height) * 100).toFixed(1)}%`)
+    })
   }
 
   return (
