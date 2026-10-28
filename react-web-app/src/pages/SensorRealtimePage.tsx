@@ -4,6 +4,7 @@ import { api } from '../lib/api'
 import { useApiError, useApiList } from '../lib/crudApi'
 import { useAuth } from '../lib/authContext'
 import { StatusBadge } from '../components/StatusBadge'
+import { relatif, waktuBasi } from '../lib/waktu'
 
 type Param = 'pH' | 'Suhu Air' | 'TDS' | 'Suhu Udara' | 'Kelembapan'
 type Range = '6 Jam' | '24 Jam' | '7 Hari'
@@ -51,17 +52,6 @@ function tgl(iso?: string | null): string {
 
 function waktu(t: TitikData): string | null {
   return t.waktu ?? t.created_at ?? null
-}
-
-/** "3 menit lalu" / "2 hari lalu" — untuk menandai bacaan yang basi. */
-function relatif(ms: number): string {
-  const dtk = Math.max(0, Math.round(ms / 1000))
-  if (dtk < 60) return `${dtk} detik lalu`
-  const mnt = Math.round(dtk / 60)
-  if (mnt < 60) return `${mnt} menit lalu`
-  const jamLalu = Math.round(mnt / 60)
-  if (jamLalu < 48) return `${jamLalu} jam lalu`
-  return `${Math.round(jamLalu / 24)} hari lalu`
 }
 
 function Pill({ active, children, onClick }: { active?: boolean; children: string; onClick?: () => void }) {
@@ -345,7 +335,7 @@ export default function SensorRealtimePage() {
           >
             <IkonPeringatan className="mt-[2px] shrink-0" />
             <span>
-              Bacaan terakhir {relatif(kini - waktuTerbaru!)} — grafik menampilkan riwayat terakhir yang tersedia di server.
+              Bacaan terakhir {waktuBasi(kini - waktuTerbaru!, new Date(waktuTerbaru!).toISOString())} — grafik menampilkan riwayat terakhir yang tersedia di server.
             </span>
           </div>
         )}

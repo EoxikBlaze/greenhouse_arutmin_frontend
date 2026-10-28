@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { StatusBadge } from '../components/StatusBadge'
 import { useAuth } from '../lib/authContext'
 import { useApiObject, useFlashOnChange } from '../lib/useApiObject'
+import { waktuBasi } from '../lib/waktu'
 
 /**
  * Dashboard live — GET /dashboard (semua role).
@@ -254,21 +254,12 @@ export default function DashboardPage() {
 
             {/* Panel status IoT (mengganti kotak placeholder) */}
             <div className="w-full sm:w-[240px] rounded-card border border-white/60 bg-white p-4">
-              <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Status IoT</div>
-              <div className="mt-2">
+              <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Bacaan IoT</div>
+              <div className="mt-2 text-[12px] text-slate-600">
                 {loading && !data ? (
                   <div className="vsf-skeleton h-[24px] w-[130px]" />
-                ) : (
-                  <StatusBadge tone={online ? 'online' : 'offline'} label={online ? 'Alat Terhubung' : 'Alat Terputus'} />
-                )}
-              </div>
-              <div className="mt-2 text-[12px] text-slate-600">
-                {iot?.last_seen ? (
-                  <>
-                    Bacaan terakhir: {tgl(iot.last_seen)}
-                    <br />
-                    {iot.diff_text ?? ''}
-                  </>
+                ) : iot?.last_seen ? (
+                  <>Bacaan terakhir: {iot.seconds_ago != null ? waktuBasi(iot.seconds_ago * 1000, iot.last_seen) : tgl(iot.last_seen)}</>
                 ) : (
                   'Belum ada bacaan sensor.'
                 )}
