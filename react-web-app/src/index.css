@@ -40,6 +40,9 @@
     --glass-blur-chrome: 20px;                 /* blur chrome (sidebar, topbar) */
     --glass-light: inset 0 1px 0 rgba(255, 255, 255, 0.95);
     --glass-lift: 0 1px 2px rgba(10, 31, 56, 0.05), 0 18px 36px -24px rgba(10, 31, 56, 0.5);
+    --glass-blur-kaca: 22px;                   /* blur .vsf-kaca (kartu kaca tebal) */
+    --glass-blur-bilah: 22px;                  /* blur .vsf-bilah (header/footer landing) */
+    --glass-blur-hover: 14px;                  /* blur kartu saat hover (perangkat pointer) */
   }
   html,
   body { height: 100%; }
@@ -462,8 +465,8 @@
   .vsf-kaca {
   isolation: isolate;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.46));
-  -webkit-backdrop-filter: blur(22px) saturate(1.8) brightness(1.06);
-  backdrop-filter: blur(22px) saturate(1.8) brightness(1.06);
+  -webkit-backdrop-filter: blur(var(--glass-blur-kaca)) saturate(1.8) brightness(1.06);
+  backdrop-filter: blur(var(--glass-blur-kaca)) saturate(1.8) brightness(1.06);
   border: 1px solid rgba(255, 255, 255, 0.5);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.8),
@@ -734,8 +737,8 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .vsf-satu .vsf-card:hover {
-    -webkit-backdrop-filter: blur(14px) saturate(1.8) !important;
-    backdrop-filter: blur(14px) saturate(1.8) !important;
+    -webkit-backdrop-filter: blur(var(--glass-blur-hover)) saturate(1.8) !important;
+    backdrop-filter: blur(var(--glass-blur-hover)) saturate(1.8) !important;
   }}
   /* foto tim: tanpa animasi melayang terus-menerus (lapisan komposit tetap = berat); efek hover tetap ada */
   .vsf-keluar { animation: none !important; will-change: auto !important; }
@@ -748,8 +751,8 @@
   border-radius: 22px;
   color: #fff;
   background: rgba(10, 31, 56, 0.42);
-  -webkit-backdrop-filter: blur(22px) saturate(1.9) brightness(0.96);
-  backdrop-filter: blur(22px) saturate(1.9) brightness(0.96);
+  -webkit-backdrop-filter: blur(var(--glass-blur-bilah)) saturate(1.9) brightness(0.96);
+  backdrop-filter: blur(var(--glass-blur-bilah)) saturate(1.9) brightness(0.96);
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.55),
