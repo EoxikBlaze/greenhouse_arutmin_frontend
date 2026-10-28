@@ -21,6 +21,9 @@ class Tok {
   static const Color garis2 = Color(0xFFD7E0D2);
   static const Color tinta = Color(0xFF0B1A2B);
   static const Color abu = Color(0xFF64748B);
+
+  /// Abu untuk TEKS kecil (≥4,5:1 di atas `page`); [abu] untuk ikon/dekorasi.
+  static const Color abuTeks = Color(0xFF556277);
   static const Color error = Color(0xFFC0392B);
   static const Color warning = Color(0xFFE0A42B);
 
@@ -60,11 +63,7 @@ class Tok {
 
   // ── Bayangan ─────────────────────────────────────────────────────────
   static const List<BoxShadow> soft = [
-    BoxShadow(
-      color: Color(0x0D0A1F38),
-      blurRadius: 2,
-      offset: Offset(0, 1),
-    ),
+    BoxShadow(color: Color(0x0D0A1F38), blurRadius: 2, offset: Offset(0, 1)),
     BoxShadow(
       color: Color(0x730A1F38),
       blurRadius: 30,
@@ -115,13 +114,13 @@ class Tok {
   static const TextStyle kecil = TextStyle(
     fontSize: 12,
     height: 1.35,
-    color: abu,
+    color: abuTeks,
   );
 
   static const TextStyle eyebrow = TextStyle(
     fontSize: 11,
     fontWeight: FontWeight.w700,
     letterSpacing: 1.3,
-    color: abu,
+    color: abuTeks,
   );
 }

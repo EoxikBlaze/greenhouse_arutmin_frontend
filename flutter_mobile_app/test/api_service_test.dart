@@ -9,39 +9,39 @@ import 'package:flutter_mobile_app/services/api_service.dart';
 
 /// Payload contoh /meja — 13 kolom persis seperti kontrak backend.
 Map<String, dynamic> _barisMeja() => {
-      'id_meja': '1',
-      'meja': 'Meja A1',
-      'jumlah_lubang': 20,
-      'jenis_talang': 'NFT',
-      'kapasitas_penampung_l': 100,
-      'jumlah_talang': 4,
-      'lubang_per_talang': 5,
-      'panjang_talang_m': 6.5,
-      'laju_per_talang_lpm': 1.25,
-      'kenaikan_air_cm': 40,
-      'created_at': '2026-10-01T00:00:00.000Z',
-      'updated_at': '2026-10-02T00:00:00.000Z',
-      'expires_at': null,
-    };
+  'id_meja': '1',
+  'meja': 'Meja A1',
+  'jumlah_lubang': 20,
+  'jenis_talang': 'NFT',
+  'kapasitas_penampung_l': 100,
+  'jumlah_talang': 4,
+  'lubang_per_talang': 5,
+  'panjang_talang_m': 6.5,
+  'laju_per_talang_lpm': 1.25,
+  'kenaikan_air_cm': 40,
+  'created_at': '2026-10-01T00:00:00.000Z',
+  'updated_at': '2026-10-02T00:00:00.000Z',
+  'expires_at': null,
+};
 
 Map<String, dynamic> _barisMonitoring() => {
-      'id': '100012',
-      'id_meja': '1',
-      'waterTemp': 26.9,
-      'ph': 6.5,
-      'tds': 1200,
-      'airTemp': 31,
-      'humidity': 66,
-      'ec_ms_cm': 1.4,
-      'created_at': '2026-10-14T22:43:58.000Z',
-      'updated_at': '2026-10-14T22:43:58.000Z',
-    };
+  'id': '100012',
+  'id_meja': '1',
+  'waterTemp': 26.9,
+  'ph': 6.5,
+  'tds': 1200,
+  'airTemp': 31,
+  'humidity': 66,
+  'ec_ms_cm': 1.4,
+  'created_at': '2026-10-14T22:43:58.000Z',
+  'updated_at': '2026-10-14T22:43:58.000Z',
+};
 
 http.Response _json(Object body, int status) => http.Response(
-      jsonEncode(body),
-      status,
-      headers: {'content-type': 'application/json'},
-    );
+  jsonEncode(body),
+  status,
+  headers: {'content-type': 'application/json'},
+);
 
 void main() {
   group('ApiService.login', () {
@@ -67,47 +67,61 @@ void main() {
       expect(seen.method, 'POST');
       expect(seen.url.path, '/login');
       expect(seen.headers['content-type'], contains('application/json'));
-      expect(jsonDecode(seen.body),
-          {'username': 'admin', 'password': 'rahasia'});
+      expect(jsonDecode(seen.body), {
+        'username': 'admin',
+        'password': 'rahasia',
+      });
     });
 
     test('422 salah password: pesan ramah dari backend', () async {
       final api = ApiService(
-        client: MockClient((_) async => _json({
-              'message': 'Username / Password salah.',
-              'errors': {
-                'username': ['Username / Password salah.']
-              },
-              'input': {'username': 'admin'},
-            }, 422)),
+        client: MockClient(
+          (_) async => _json({
+            'message': 'Username / Password salah.',
+            'errors': {
+              'username': ['Username / Password salah.'],
+            },
+            'input': {'username': 'admin'},
+          }, 422),
+        ),
       );
 
       await expectLater(
         api.login(username: 'admin', password: 'salah'),
-        throwsA(isA<ApiException>()
-            .having((e) => e.statusCode, 'statusCode', 422)
-            .having((e) => e.message, 'message',
-                contains('Username / Password salah.'))),
+        throwsA(
+          isA<ApiException>()
+              .having((e) => e.statusCode, 'statusCode', 422)
+              .having(
+                (e) => e.message,
+                'message',
+                contains('Username / Password salah.'),
+              ),
+        ),
       );
       expect(api.isLoggedIn, isFalse);
     });
 
     test('422 validasi field: pesan Indonesia dari kontrak backend', () async {
       final api = ApiService(
-        client: MockClient((_) async => _json({
-              'message': 'Data tidak valid.',
-              'errors': {
-                'username': ['Nama pengguna wajib diisi (min 3 karakter).']
-              },
-            }, 422)),
+        client: MockClient(
+          (_) async => _json({
+            'message': 'Data tidak valid.',
+            'errors': {
+              'username': ['Nama pengguna wajib diisi (min 3 karakter).'],
+            },
+          }, 422),
+        ),
       );
 
       await expectLater(
         api.login(username: 'x', password: 'y'),
-        throwsA(isA<ApiException>().having(
+        throwsA(
+          isA<ApiException>().having(
             (e) => e.message,
             'message',
-            contains('Nama pengguna wajib diisi (min 3 karakter).'))),
+            contains('Nama pengguna wajib diisi (min 3 karakter).'),
+          ),
+        ),
       );
     });
   });
@@ -149,69 +163,93 @@ void main() {
       expect(m.expiresAt, isNull);
     });
 
-    test('401: pesan ramah, token dibersihkan, onUnauthorized terpanggil',
-        () async {
-      var dipanggil = false;
-      final api = ApiService(
-        client: MockClient(
-            (_) async => _json({'message': 'Tidak terautentikasi.'}, 401)),
-      );
-      api.onUnauthorized = () => dipanggil = true;
+    test(
+      '401: pesan ramah, token dibersihkan, onUnauthorized terpanggil',
+      () async {
+        var dipanggil = false;
+        final api = ApiService(
+          client: MockClient(
+            (_) async => _json({'message': 'Tidak terautentikasi.'}, 401),
+          ),
+        );
+        api.onUnauthorized = () => dipanggil = true;
 
-      await expectLater(
-        api.fetchMeja(),
-        throwsA(isA<ApiException>()
-            .having((e) => e.statusCode, 'statusCode', 401)
-            .having((e) => e.message, 'message', contains('login ulang'))),
-      );
-      expect(dipanggil, isTrue);
-      expect(api.isLoggedIn, isFalse);
-    });
+        await expectLater(
+          api.fetchMeja(),
+          throwsA(
+            isA<ApiException>()
+                .having((e) => e.statusCode, 'statusCode', 401)
+                .having((e) => e.message, 'message', contains('login ulang')),
+          ),
+        );
+        expect(dipanggil, isTrue);
+        expect(api.isLoggedIn, isFalse);
+      },
+    );
 
     test('403: pesan akses ditolak yang ramah', () async {
       final api = ApiService(
         client: MockClient(
-            (_) async => _json({'message': 'Akses ditolak.'}, 403)),
+          (_) async => _json({'message': 'Akses ditolak.'}, 403),
+        ),
       );
 
       await expectLater(
         api.fetchMeja(),
-        throwsA(isA<ApiException>()
-            .having((e) => e.statusCode, 'statusCode', 403)
-            .having((e) => e.message, 'message', contains('Akses ditolak'))),
+        throwsA(
+          isA<ApiException>()
+              .having((e) => e.statusCode, 'statusCode', 403)
+              .having((e) => e.message, 'message', contains('Akses ditolak')),
+        ),
       );
     });
 
     test('422: pesan validasi backend yang ramah', () async {
       final api = ApiService(
-        client: MockClient((_) async => _json({
-              'message': 'Data tidak valid.',
-              'errors': {
-                'id_meja': ['id_meja tidak terdaftar.']
-              },
-            }, 422)),
+        client: MockClient(
+          (_) async => _json({
+            'message': 'Data tidak valid.',
+            'errors': {
+              'id_meja': ['id_meja tidak terdaftar.'],
+            },
+          }, 422),
+        ),
       );
 
       await expectLater(
         api.fetchMeja(),
-        throwsA(isA<ApiException>()
-            .having((e) => e.statusCode, 'statusCode', 422)
-            .having((e) => e.message, 'message',
-                contains('id_meja tidak terdaftar.'))),
+        throwsA(
+          isA<ApiException>()
+              .having((e) => e.statusCode, 'statusCode', 422)
+              .having(
+                (e) => e.message,
+                'message',
+                contains('id_meja tidak terdaftar.'),
+              ),
+        ),
       );
     });
 
     test('server merespons bukan JSON/list: tetap error yang jelas', () async {
       final api = ApiService(
-        client: MockClient((_) async =>
-            http.Response('<html></html>', 200,
-                headers: {'content-type': 'text/html'})),
+        client: MockClient(
+          (_) async => http.Response(
+            '<html></html>',
+            200,
+            headers: {'content-type': 'text/html'},
+          ),
+        ),
       );
 
       await expectLater(
         api.fetchMeja(),
-        throwsA(isA<ApiException>().having(
-            (e) => e.message, 'message', contains('tidak sesuai kontrak'))),
+        throwsA(
+          isA<ApiException>().having(
+            (e) => e.message,
+            'message',
+            contains('tidak sesuai kontrak'),
+          ),
+        ),
       );
     });
   });
@@ -249,34 +287,52 @@ void main() {
   group('ApiService kondisi jaringan', () {
     test('server mati: pesan "Backend tidak terjangkau"', () async {
       final api = ApiService(
-        client: MockClient((_) =>
-            throw http.ClientException('Connection refused')),
+        client: MockClient(
+          (_) => throw http.ClientException('Connection refused'),
+        ),
       );
 
       await expectLater(
         api.fetchMeja(),
-        throwsA(isA<ApiException>()
-            .having((e) => e.statusCode, 'statusCode', isNull)
-            .having(
-                (e) => e.message, 'message', contains('Backend tidak terjangkau'))),
+        throwsA(
+          isA<ApiException>()
+              .having((e) => e.statusCode, 'statusCode', isNull)
+              .having(
+                (e) => e.message,
+                'message',
+                contains('Backend tidak terjangkau'),
+              ),
+        ),
       );
     });
 
-    test('timeout: pesan "Backend tidak terjangkau", statusCode null', () async {
-      final api = ApiService(
-        timeout: const Duration(milliseconds: 50),
-        client: MockClient((_) async => await Future.delayed(
-            const Duration(seconds: 2), () => _json({'ok': true}, 200))),
-      );
+    test(
+      'timeout: pesan "Backend tidak terjangkau", statusCode null',
+      () async {
+        final api = ApiService(
+          timeout: const Duration(milliseconds: 50),
+          client: MockClient(
+            (_) async => await Future.delayed(
+              const Duration(seconds: 2),
+              () => _json({'ok': true}, 200),
+            ),
+          ),
+        );
 
-      await expectLater(
-        api.fetchLatestSensor(),
-        throwsA(isA<ApiException>()
-            .having((e) => e.statusCode, 'statusCode', isNull)
-            .having(
-                (e) => e.message, 'message', contains('Backend tidak terjangkau'))),
-      );
-    });
+        await expectLater(
+          api.fetchLatestSensor(),
+          throwsA(
+            isA<ApiException>()
+                .having((e) => e.statusCode, 'statusCode', isNull)
+                .having(
+                  (e) => e.message,
+                  'message',
+                  contains('Backend tidak terjangkau'),
+                ),
+          ),
+        );
+      },
+    );
   });
 
   group('ApiService.fetchLatestSensor (publik)', () {
@@ -305,9 +361,15 @@ void main() {
 
       await expectLater(
         api.fetchLatestSensor(),
-        throwsA(isA<ApiException>()
-            .having((e) => e.statusCode, 'statusCode', 500)
-            .having((e) => e.message, 'message', contains('Server sedang bermasalah'))),
+        throwsA(
+          isA<ApiException>()
+              .having((e) => e.statusCode, 'statusCode', 500)
+              .having(
+                (e) => e.message,
+                'message',
+                contains('Server sedang bermasalah'),
+              ),
+        ),
       );
     });
   });

@@ -1,7 +1,8 @@
 import 'package:http/http.dart' as http;
 
 import 'client_factory_stub.dart'
-    if (dart.library.io) 'client_factory_io.dart' as pabrik;
+    if (dart.library.io) 'client_factory_io.dart'
+    as pabrik;
 
 /// Klien HTTP bawaan aplikasi.
 ///

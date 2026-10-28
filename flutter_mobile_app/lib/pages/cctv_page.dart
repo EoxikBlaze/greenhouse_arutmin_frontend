@@ -190,8 +190,8 @@ class _KartuKamera extends StatelessWidget {
                         '${tipe == 'mjpeg'
                             ? 'Aliran MJPEG'
                             : tipe == 'rtsp'
-                            ? 'RTSP lewat server · $detik dtk'
-                            : 'Snapshot tiap $detik dtk'}',
+                            ? 'RTSP lewat server · $detik detik'
+                            : 'Snapshot tiap $detik detik'}',
                         style: Tok.kecil,
                       ),
                     ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/meja.dart';
 import '../services/api_service.dart';
+import '../theme/tokens.dart';
 import '../widgets/brand.dart';
 import '../util/format.dart';
 import '../widgets/kaca.dart';
@@ -168,10 +169,7 @@ class _MejaPageState extends State<MejaPage>
     crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisSize: MainAxisSize.min,
     children: [
-      Text(
-        label,
-        style: const TextStyle(fontSize: 11, color: Color(0xFF6B7A69)),
-      ),
+      Text(label, style: const TextStyle(fontSize: 11, color: Tok.abuTeks)),
       Text(
         nilai,
         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),

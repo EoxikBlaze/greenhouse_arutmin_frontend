@@ -589,7 +589,9 @@ class _SheetHasilState extends State<_SheetHasil> {
                   : panen
                   ? ''
                   : ' · $b pindah ke tahap berikutnya'}',
-              style: Tok.kecil.copyWith(color: b == 0 ? Tok.error : Tok.abu),
+              style: Tok.kecil.copyWith(
+                color: b == 0 ? Tok.error : Tok.abuTeks,
+              ),
             ),
           if (_galat != null) ...[
             const SizedBox(height: 6),

@@ -480,7 +480,7 @@ class _Gelembung extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   _labelSumber[p.sumber]!,
-                  style: const TextStyle(fontSize: 11, color: Tok.abu),
+                  style: const TextStyle(fontSize: 11, color: Tok.abuTeks),
                 ),
               ],
             ],
@@ -566,7 +566,7 @@ class _TabelAi extends StatelessWidget {
             style: const TextStyle(
               fontSize: 10.5,
               fontWeight: FontWeight.w700,
-              color: Tok.abu,
+              color: Tok.abuTeks,
               letterSpacing: 0.8,
             ),
           ),

@@ -9,10 +9,10 @@ import 'package:flutter_mobile_app/pages/login_page.dart';
 import 'package:flutter_mobile_app/services/api_service.dart';
 
 http.Response _json(Object body, int status) => http.Response(
-      jsonEncode(body),
-      status,
-      headers: {'content-type': 'application/json'},
-    );
+  jsonEncode(body),
+  status,
+  headers: {'content-type': 'application/json'},
+);
 
 Future<void> _isiForm(WidgetTester tester) async {
   await tester.enterText(find.byType(TextFormField).at(0), 'admin');
@@ -22,14 +22,17 @@ Future<void> _isiForm(WidgetTester tester) async {
 void main() {
   testWidgets('Login berhasil memanggil onLoggedIn', (tester) async {
     final api = ApiService(
-      client: MockClient((_) async =>
-          _json({'status': true, 'token': 'tok-abc'}, 200)),
+      client: MockClient(
+        (_) async => _json({'status': true, 'token': 'tok-abc'}, 200),
+      ),
     );
     var masuk = false;
 
-    await tester.pumpWidget(MaterialApp(
-      home: LoginPage(api: api, onLoggedIn: () => masuk = true),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LoginPage(api: api, onLoggedIn: () => masuk = true),
+      ),
+    );
 
     await _isiForm(tester);
     await tester.tap(find.text('Masuk'));
@@ -39,21 +42,26 @@ void main() {
     expect(api.isLoggedIn, isTrue);
   });
 
-  testWidgets('Login gagal 422 menampilkan pesan ramah Indonesia',
-      (tester) async {
+  testWidgets('Login gagal 422 menampilkan pesan ramah Indonesia', (
+    tester,
+  ) async {
     final api = ApiService(
-      client: MockClient((_) async => _json({
-            'message': 'Username / Password salah.',
-            'errors': {
-              'username': ['Username / Password salah.']
-            },
-          }, 422)),
+      client: MockClient(
+        (_) async => _json({
+          'message': 'Username / Password salah.',
+          'errors': {
+            'username': ['Username / Password salah.'],
+          },
+        }, 422),
+      ),
     );
     var masuk = false;
 
-    await tester.pumpWidget(MaterialApp(
-      home: LoginPage(api: api, onLoggedIn: () => masuk = true),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LoginPage(api: api, onLoggedIn: () => masuk = true),
+      ),
+    );
 
     await _isiForm(tester);
     await tester.tap(find.text('Masuk'));
@@ -64,16 +72,19 @@ void main() {
     expect(api.isLoggedIn, isFalse);
   });
 
-  testWidgets('Login saat backend mati menampilkan pesan terjangkau',
-      (tester) async {
+  testWidgets('Login saat backend mati menampilkan pesan terjangkau', (
+    tester,
+  ) async {
     final api = ApiService(
       client: MockClient((_) => throw http.ClientException('refused')),
     );
     var masuk = false;
 
-    await tester.pumpWidget(MaterialApp(
-      home: LoginPage(api: api, onLoggedIn: () => masuk = true),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LoginPage(api: api, onLoggedIn: () => masuk = true),
+      ),
+    );
 
     await _isiForm(tester);
     await tester.tap(find.text('Masuk'));
@@ -87,9 +98,11 @@ void main() {
     final api = ApiService(client: MockClient((_) async => _json({}, 500)));
     var dipanggil = false;
 
-    await tester.pumpWidget(MaterialApp(
-      home: LoginPage(api: api, onLoggedIn: () => dipanggil = true),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LoginPage(api: api, onLoggedIn: () => dipanggil = true),
+      ),
+    );
 
     await tester.enterText(find.byType(TextFormField).at(0), 'a');
     await tester.tap(find.text('Masuk'));

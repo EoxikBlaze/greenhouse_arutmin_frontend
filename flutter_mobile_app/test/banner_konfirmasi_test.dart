@@ -3,8 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_mobile_app/widgets/brand.dart';
 
 void main() {
-  testWidgets('BannerBasi menyebut koneksi terputus dan umur data',
-      (tester) async {
+  testWidgets('BannerBasi menyebut koneksi terputus dan umur data', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(

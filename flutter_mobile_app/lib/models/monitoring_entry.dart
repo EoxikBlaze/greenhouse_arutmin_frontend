@@ -33,15 +33,15 @@ class MonitoringEntry {
   static String? _asString(dynamic v) => v?.toString();
 
   factory MonitoringEntry.fromMap(Map<String, dynamic> map) => MonitoringEntry(
-        id: _asString(map['id']),
-        idMeja: _asString(map['id_meja']),
-        waterTemp: _asNum(map['waterTemp']),
-        ph: _asNum(map['ph']),
-        tds: _asNum(map['tds']),
-        airTemp: _asNum(map['airTemp']),
-        humidity: _asNum(map['humidity']),
-        ecMsCm: _asNum(map['ec_ms_cm']),
-        createdAt: _asString(map['created_at']),
-        updatedAt: _asString(map['updated_at']),
-      );
+    id: _asString(map['id']),
+    idMeja: _asString(map['id_meja']),
+    waterTemp: _asNum(map['waterTemp']),
+    ph: _asNum(map['ph']),
+    tds: _asNum(map['tds']),
+    airTemp: _asNum(map['airTemp']),
+    humidity: _asNum(map['humidity']),
+    ecMsCm: _asNum(map['ec_ms_cm']),
+    createdAt: _asString(map['created_at']),
+    updatedAt: _asString(map['updated_at']),
+  );
 }

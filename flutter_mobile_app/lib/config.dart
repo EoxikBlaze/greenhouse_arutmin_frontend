@@ -13,8 +13,10 @@
 library;
 
 /// Alamat backend. Nilai default dipakai bila `API_BASE` tidak diberikan.
-const String apiBase =
-    String.fromEnvironment('API_BASE', defaultValue: 'http://127.0.0.1:8000');
+const String apiBase = String.fromEnvironment(
+  'API_BASE',
+  defaultValue: 'http://127.0.0.1:8000',
+);
 
 /// Batas waktu tunggu tiap request API (detik).
 const int apiTimeoutSeconds = 10;

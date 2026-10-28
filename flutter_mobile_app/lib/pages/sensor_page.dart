@@ -8,7 +8,7 @@ import '../widgets/brand.dart';
 import '../widgets/charts.dart';
 import '../widgets/motion.dart';
 
-/// Sensor realtime — polling /api/latest-sensor (5 dtk) dan riwayat grafik.
+/// Sensor realtime — polling /api/latest-sensor (5 detik) dan riwayat grafik.
 class SensorPage extends StatefulWidget {
   const SensorPage({super.key, required this.api, this.aktif = true});
 
@@ -148,9 +148,9 @@ class _SensorPageState extends State<SensorPage> {
                     terang: true,
                     berdenyut: online,
                     warna: online ? Tok.moss : Tok.warning,
-                    teks: online
-                        ? 'Online${ago == null ? '' : ' · ${ago.round()} dtk lalu'}'
-                        : 'Offline${ago == null ? '' : ' · ${_durasi(ago)}'}',
+                    teks:
+                        '${online ? 'Online' : 'Offline'}'
+                        '${ago == null ? '' : ' · ${_lalu(ago)}'}',
                   ),
           ),
           Padding(
@@ -162,12 +162,10 @@ class _SensorPageState extends State<SensorPage> {
     );
   }
 
-  String _durasi(double s) {
-    if (s < 60) return '${s.round()} dtk';
-    if (s < 3600) return '${(s / 60).round()} mnt';
-    if (s < 86400) return '${(s / 3600).round()} jam';
-    return '${(s / 86400).round()} hari';
-  }
+  /// '5 detik lalu' dari selisih detik yang dilaporkan server.
+  String _lalu(double detik) => waktuRelatifDari(
+    DateTime.now().subtract(Duration(seconds: detik.round())),
+  );
 
   Widget _isi() {
     if (_memuat && _terbaru == null) {

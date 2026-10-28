@@ -67,18 +67,18 @@ class Meja {
   static String? _asString(dynamic v) => v?.toString();
 
   factory Meja.fromMap(Map<String, dynamic> map) => Meja(
-        idMeja: (map['id_meja'] ?? '').toString(),
-        meja: (map['meja'] ?? '').toString(),
-        jumlahLubang: _asInt(map['jumlah_lubang']),
-        jenisTalang: _asString(map['jenis_talang']),
-        kapasitasPenampungL: _asNum(map['kapasitas_penampung_l']),
-        jumlahTalang: _asInt(map['jumlah_talang']),
-        lubangPerTalang: _asInt(map['lubang_per_talang']),
-        panjangTalangM: _asNum(map['panjang_talang_m']),
-        lajuPerTalangLpm: _asNum(map['laju_per_talang_lpm']),
-        kenaikanAirCm: _asInt(map['kenaikan_air_cm']),
-        createdAt: _asString(map['created_at']),
-        updatedAt: _asString(map['updated_at']),
-        expiresAt: _asString(map['expires_at']),
-      );
+    idMeja: (map['id_meja'] ?? '').toString(),
+    meja: (map['meja'] ?? '').toString(),
+    jumlahLubang: _asInt(map['jumlah_lubang']),
+    jenisTalang: _asString(map['jenis_talang']),
+    kapasitasPenampungL: _asNum(map['kapasitas_penampung_l']),
+    jumlahTalang: _asInt(map['jumlah_talang']),
+    lubangPerTalang: _asInt(map['lubang_per_talang']),
+    panjangTalangM: _asNum(map['panjang_talang_m']),
+    lajuPerTalangLpm: _asNum(map['laju_per_talang_lpm']),
+    kenaikanAirCm: _asInt(map['kenaikan_air_cm']),
+    createdAt: _asString(map['created_at']),
+    updatedAt: _asString(map['updated_at']),
+    expiresAt: _asString(map['expires_at']),
+  );
 }

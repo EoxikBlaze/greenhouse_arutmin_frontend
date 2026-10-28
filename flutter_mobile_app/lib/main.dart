@@ -69,17 +69,15 @@ ThemeData _buatTema() {
       focusedBorder: garis(Tok.moss, 1.8),
       errorBorder: garis(Tok.error),
       focusedErrorBorder: garis(Tok.error, 1.8),
-      labelStyle: const TextStyle(color: Tok.abu),
+      labelStyle: const TextStyle(color: Tok.abuTeks),
       prefixIconColor: Tok.abu,
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         backgroundColor: Tok.mossGelap,
         foregroundColor: Colors.white,
-        minimumSize: const Size(0, 46),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(Tok.rSm),
-        ),
+        minimumSize: const Size(0, 48),
+        shape: const StadiumBorder(),
       ),
     ),
     dialogTheme: DialogThemeData(
@@ -102,6 +100,12 @@ class GarapApp extends StatelessWidget {
       title: 'GARAP',
       debugShowCheckedModeBanner: false,
       theme: _buatTema(),
+      // Ikuti ukuran teks sistem, tapi batasi agar dock dan kartu tidak meluber.
+      builder: (context, child) => MediaQuery.withClampedTextScaling(
+        minScaleFactor: 1.0,
+        maxScaleFactor: 1.3,
+        child: child!,
+      ),
       home: const _GarapRoot(),
     );
   }
@@ -369,7 +373,8 @@ class _ItemDock extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 320),
           curve: Tok.ease,
-          height: 46,
+          constraints: const BoxConstraints(minHeight: 48),
+          alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: 6),
           decoration: BoxDecoration(
             gradient: aktif ? Tok.activePill : null,
@@ -401,7 +406,7 @@ class _ItemDock extends StatelessWidget {
                   child: Text(
                     tab.label,
                     maxLines: 1,
-                    overflow: TextOverflow.clip,
+                    overflow: TextOverflow.ellipsis,
                     softWrap: false,
                     style: const TextStyle(
                       color: Colors.white,
