@@ -92,7 +92,7 @@ export default function LoginPage() {
       <div className="vsf-kabut" aria-hidden />
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 -z-[1] bg-[linear-gradient(180deg,rgba(7,21,39,.55)_0%,rgba(7,21,39,.15)_55%,rgba(7,21,39,.45)_100%)] lg:bg-[linear-gradient(90deg,rgba(7,21,39,.72)_0%,rgba(7,21,39,.35)_48%,rgba(7,21,39,.05)_72%)]"
+        className="pointer-events-none fixed inset-0 -z-[1] bg-[linear-gradient(180deg,rgba(7,21,39,.55)_0%,rgba(7,21,39,.35)_55%,rgba(7,21,39,.45)_100%)] lg:bg-[linear-gradient(90deg,rgba(7,21,39,.72)_0%,rgba(7,21,39,.35)_48%,rgba(7,21,39,.05)_72%)]"
       />
 
       <header className="mx-auto flex w-full max-w-[1180px] items-center gap-3 px-4 pt-4 sm:px-6 sm:pt-6">
