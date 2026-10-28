@@ -91,10 +91,10 @@ class _KacaCairState extends State<KacaCair> {
       // tanpa blur, tint dipertebal agar teks tetap terbaca di atas latar berwarna
       final tebal = chrome ? 0.0 : 0.16;
       final warnaA = gelap
-          ? Tok.navy.withValues(alpha: 0.66 + tebal)
+          ? Tok.navy.withValues(alpha: chrome ? 0.84 : 0.66 + tebal)
           : Colors.white.withValues(alpha: 0.66 + tebal);
       final warnaB = gelap
-          ? Tok.navy.withValues(alpha: 0.40 + tebal)
+          ? Tok.navy.withValues(alpha: chrome ? 0.72 : 0.40 + tebal)
           : Colors.white.withValues(alpha: 0.36 + tebal);
       final permukaan = DecoratedBox(
         decoration: BoxDecoration(

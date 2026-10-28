@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/brand.dart';
+import '../widgets/dock.dart';
 import '../widgets/motion.dart';
 import 'asisten_page.dart';
 import 'cctv_page.dart';
@@ -139,7 +140,7 @@ class _ProfilPageState extends State<ProfilPage> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 18, 16, 120),
+          padding: EdgeInsets.fromLTRB(16, 18, 16, DockNav.ruang(context)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

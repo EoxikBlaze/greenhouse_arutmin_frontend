@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/brand.dart';
+import '../widgets/dock.dart';
 import '../widgets/motion.dart';
 import 'asisten_page.dart';
 import 'cctv_page.dart';
@@ -109,7 +110,12 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 18, 16, 120),
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  18,
+                  16,
+                  DockNav.ruang(context),
+                ),
                 child: _isi(),
               ),
             ],

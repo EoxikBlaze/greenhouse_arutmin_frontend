@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/brand.dart';
+import '../widgets/dock.dart';
 import '../widgets/charts.dart';
 import '../widgets/motion.dart';
 
@@ -154,7 +155,7 @@ class _SensorPageState extends State<SensorPage> {
                   ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 18, 16, 120),
+            padding: EdgeInsets.fromLTRB(16, 18, 16, DockNav.ruang(context)),
             child: _isi(),
           ),
         ],

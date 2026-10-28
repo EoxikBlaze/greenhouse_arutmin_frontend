@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -12,6 +10,8 @@ import 'pages/watercontrol_page.dart';
 import 'services/api_service.dart';
 import 'services/sesi_store.dart';
 import 'theme/tokens.dart';
+import 'widgets/dock.dart';
+import 'widgets/ikon.dart';
 import 'widgets/kaca.dart';
 
 /// GARAP — monitoring greenhouse hidroponik (Arutmin: navy, emas, moss).
@@ -175,11 +175,10 @@ class _GarapRootState extends State<_GarapRoot> {
 }
 
 class _Tab {
-  const _Tab(this.label, this.ikon, this.ikonAktif, this.bangun);
+  const _Tab(this.label, this.ikon, this.bangun);
 
   final String label;
   final IconData ikon;
-  final IconData ikonAktif;
   final Widget Function(bool aktif) bangun;
 }
 
@@ -208,33 +207,20 @@ class _MainShellState extends State<_MainShell>
     _tab = [
       _Tab(
         'Beranda',
-        Icons.home_outlined,
-        Icons.home_rounded,
+        Ikon.beranda,
         (a) => DashboardPage(api: apiService, aktif: a),
       ),
-      _Tab(
-        'Sensor',
-        Icons.sensors_outlined,
-        Icons.sensors_rounded,
-        (a) => SensorPage(api: apiService, aktif: a),
-      ),
+      _Tab('Sensor', Ikon.sensor, (a) => SensorPage(api: apiService, aktif: a)),
       if (kontrol)
         _Tab(
           'Kontrol',
-          Icons.water_drop_outlined,
-          Icons.water_drop_rounded,
+          Ikon.air,
           (a) => WaterControlPage(api: apiService, aktif: a),
         ),
-      _Tab(
-        'Tanam',
-        Icons.spa_outlined,
-        Icons.spa_rounded,
-        (a) => TanamPage(api: apiService, aktif: a),
-      ),
+      _Tab('Tanam', Ikon.tanam, (a) => TanamPage(api: apiService, aktif: a)),
       _Tab(
         'Akun',
-        Icons.person_outline_rounded,
-        Icons.person_rounded,
+        Ikon.profil,
         (a) => ProfilPage(api: apiService, aktif: a, onLogout: widget.onLogout),
       ),
     ];
@@ -288,138 +274,14 @@ class _MainShellState extends State<_MainShell>
             child: SafeArea(
               top: false,
               minimum: const EdgeInsets.only(bottom: 12),
-              child: _Dock(tab: _tab, indeks: _indeks, onPilih: _pilih),
+              child: DockNav(
+                item: [for (final t in _tab) DockItem(t.label, t.ikon)],
+                indeks: _indeks,
+                onPilih: _pilih,
+              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _Dock extends StatelessWidget {
-  const _Dock({required this.tab, required this.indeks, required this.onPilih});
-
-  final List<_Tab> tab;
-  final int indeks;
-  final ValueChanged<int> onPilih;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(28),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Tok.navy.withValues(alpha: 0.80),
-                Tok.navy2.withValues(alpha: 0.72),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x66071527),
-                blurRadius: 30,
-                spreadRadius: -6,
-                offset: Offset(0, 14),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              for (var i = 0; i < tab.length; i++)
-                Expanded(
-                  flex: i == indeks ? 3 : 2,
-                  child: _ItemDock(
-                    tab: tab[i],
-                    aktif: i == indeks,
-                    onTap: () => onPilih(i),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ItemDock extends StatelessWidget {
-  const _ItemDock({
-    required this.tab,
-    required this.aktif,
-    required this.onTap,
-  });
-
-  final _Tab tab;
-  final bool aktif;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: aktif,
-      label: tab.label,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 320),
-          curve: Tok.ease,
-          constraints: const BoxConstraints(minHeight: 48),
-          alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          decoration: BoxDecoration(
-            gradient: aktif ? Tok.activePill : null,
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: aktif
-                ? const [
-                    BoxShadow(
-                      color: Color(0x596B9D4A),
-                      blurRadius: 16,
-                      spreadRadius: -4,
-                      offset: Offset(0, 6),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                aktif ? tab.ikonAktif : tab.ikon,
-                size: 22,
-                color: aktif
-                    ? Colors.white
-                    : Colors.white.withValues(alpha: 0.62),
-              ),
-              if (aktif) ...[
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    tab.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: false,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
       ),
     );
   }

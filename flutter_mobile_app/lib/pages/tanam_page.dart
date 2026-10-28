@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/brand.dart';
+import '../widgets/dock.dart';
 import '../widgets/motion.dart';
 import 'naik_harian_page.dart';
 
@@ -156,7 +157,7 @@ class _TanamPageState extends State<TanamPage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 18, 16, 120),
+            padding: EdgeInsets.fromLTRB(16, 18, 16, DockNav.ruang(context)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
