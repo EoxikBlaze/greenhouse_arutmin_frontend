@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../theme/tokens.dart';
 import '../util/format.dart';
@@ -170,8 +171,8 @@ class _PipePainter extends CustomPainter {
   bool shouldRepaint(covariant _PipePainter oldDelegate) => false;
 }
 
-/// Kepala halaman bergaya panel brand web: gradasi navy, cahaya moss,
-/// lingkaran emas, dan motif pipa yang mengalir.
+/// Kepala halaman kaca terang: gradasi putih-biru-hijau, cahaya emas dan biru,
+/// teks gelap. Status bar memakai ikon gelap.
 class HeroHeader extends StatelessWidget {
   const HeroHeader({
     super.key,
@@ -189,103 +190,138 @@ class HeroHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const radius = BorderRadius.vertical(bottom: Radius.circular(Tok.rChrome));
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: Tok.brandPanel,
-        borderRadius: radius,
-        boxShadow: Tok.deep,
-      ),
-      child: ClipRRect(
-        borderRadius: radius,
-        child: Stack(
-          children: [
-            const Positioned.fill(
-              child: Opacity(opacity: 0.9, child: PipeFlow()),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white.withValues(alpha: 0.86),
+              const Color(0xFFD7E8F8).withValues(alpha: 0.80),
+              const Color(0xFFE2F0D8).withValues(alpha: 0.78),
+            ],
+          ),
+          borderRadius: radius,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x402A5080),
+              blurRadius: 34,
+              spreadRadius: -12,
+              offset: Offset(0, 16),
             ),
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment.topLeft,
-                    radius: 1.15,
-                    colors: [
-                      Tok.moss.withValues(alpha: 0.30),
-                      Colors.transparent,
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: Alignment.topLeft,
+                      radius: 1.15,
+                      colors: [
+                        Tok.moss.withValues(alpha: 0.26),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: Alignment.bottomRight,
+                      radius: 1.0,
+                      colors: [
+                        const Color(0xFF70A8EC).withValues(alpha: 0.34),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                right: -46,
+                top: -56,
+                child: Container(
+                  width: 170,
+                  height: 170,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        Tok.emas.withValues(alpha: 0.55),
+                        Tok.emas.withValues(alpha: 0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Monogram(size: 40),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  judul,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontFamily: Tok.fontJudul,
+                                    color: Tok.tinta,
+                                    fontSize: 22,
+                                    height: 1.2,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.3,
+                                  ),
+                                ),
+                                if (subjudul != null) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    subjudul!,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Tok.abuTeks,
+                                      fontSize: 13,
+                                      height: 1.35,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          if (trailing != null) ...[
+                            const SizedBox(width: 8),
+                            trailing!,
+                          ],
+                        ],
+                      ),
+                      if (bawah != null) ...[const SizedBox(height: 18), bawah!],
                     ],
                   ),
                 ),
               ),
-            ),
-            Positioned(
-              right: -46,
-              top: -56,
-              child: Container(
-                width: 170,
-                height: 170,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Tok.emas.withValues(alpha: 0.25)),
-                ),
-              ),
-            ),
-            SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Monogram(size: 40),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                judul,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontFamily: Tok.fontJudul,
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  height: 1.2,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.3,
-                                ),
-                              ),
-                              if (subjudul != null) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  subjudul!,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.72),
-                                    fontSize: 13,
-                                    height: 1.35,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        if (trailing != null) ...[
-                          const SizedBox(width: 8),
-                          trailing!,
-                        ],
-                      ],
-                    ),
-                    if (bawah != null) ...[const SizedBox(height: 18), bawah!],
-                  ],
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -370,15 +406,17 @@ class StatusPill extends StatelessWidget {
   final Color warna;
   final bool berdenyut;
 
-  /// true bila dipasang di atas latar gelap (hero navy).
+  /// true bila dipasang di atas hero kaca (pil putih tembus pandang).
   final bool terang;
 
   @override
   Widget build(BuildContext context) {
     final latar = terang
-        ? Colors.white.withValues(alpha: 0.12)
+        ? Colors.white.withValues(alpha: 0.7)
         : warna.withValues(alpha: 0.12);
-    final teksWarna = terang ? Colors.white : warna;
+    final teksWarna = terang
+        ? (Color.lerp(warna, Tok.tinta, 0.55) ?? warna)
+        : warna;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -386,7 +424,7 @@ class StatusPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
           color: terang
-              ? Colors.white.withValues(alpha: 0.18)
+              ? Colors.white.withValues(alpha: 0.95)
               : warna.withValues(alpha: 0.28),
         ),
       ),

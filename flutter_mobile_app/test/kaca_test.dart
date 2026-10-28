@@ -25,10 +25,19 @@ void main() {
     expect(find.byType(BackdropFilter), findsOneWidget);
   });
 
-  testWidgets('panel dan solid tidak memakai blur', (tester) async {
+  testWidgets('panel memakai blur ringan, solid tidak', (tester) async {
     await _pasang(tester, KacaVarian.panel);
-    expect(find.byType(BackdropFilter), findsNothing);
+    expect(find.byType(BackdropFilter), findsOneWidget);
     await _pasang(tester, KacaVarian.solid);
+    expect(find.byType(BackdropFilter), findsNothing);
+  });
+
+  testWidgets('panel buram:false tidak memakai blur', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: KacaCair(buram: false, child: Text('isi'))),
+      ),
+    );
     expect(find.byType(BackdropFilter), findsNothing);
   });
 

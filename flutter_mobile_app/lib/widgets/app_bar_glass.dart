@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import '../theme/tokens.dart';
 import 'ikon.dart';
 
-/// App bar halaman dalam (desain v2): kaca chrome navy (blur asli) berujung
+/// App bar halaman dalam (desain v3): kaca terang (blur asli) berujung
 /// bawah membulat, tombol kembali Lucide, judul Space Grotesk. Pengganti `AppBar`.
 class AppBarGlass extends StatelessWidget implements PreferredSizeWidget {
   const AppBarGlass({super.key, required this.judul, this.aksi});
@@ -21,7 +21,7 @@ class AppBarGlass extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final bisaKembali = Navigator.canPop(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: SystemUiOverlayStyle.dark,
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(
           bottom: Radius.circular(Tok.rChrome),
@@ -34,12 +34,12 @@ class AppBarGlass extends StatelessWidget implements PreferredSizeWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Tok.navy.withValues(alpha: 0.88),
-                  Tok.navy2.withValues(alpha: 0.80),
+                  Colors.white.withValues(alpha: 0.78),
+                  Colors.white.withValues(alpha: 0.52),
                 ],
               ),
               border: Border(
-                bottom: BorderSide(color: Colors.white.withValues(alpha: 0.16)),
+                bottom: BorderSide(color: Colors.white.withValues(alpha: 0.9)),
               ),
             ),
             child: SafeArea(
@@ -51,7 +51,7 @@ class AppBarGlass extends StatelessWidget implements PreferredSizeWidget {
                     if (bisaKembali)
                       IconButton(
                         tooltip: 'Kembali',
-                        icon: const Icon(Ikon.kiri, color: Colors.white),
+                        icon: const Icon(Ikon.kiri, color: Tok.tinta),
                         onPressed: () => Navigator.maybePop(context),
                       )
                     else
@@ -62,7 +62,7 @@ class AppBarGlass extends StatelessWidget implements PreferredSizeWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Tok.h3.copyWith(
-                          color: Colors.white,
+                          color: Tok.tinta,
                           fontSize: 18,
                         ),
                       ),

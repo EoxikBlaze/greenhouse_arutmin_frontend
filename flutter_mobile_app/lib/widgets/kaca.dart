@@ -14,8 +14,8 @@ import '../theme/tokens.dart';
 ///  * blur sungguhan ([blur]) hanya untuk lapisan mengambang (dock, bilah):
 ///    puluhan BackdropFilter di daftar membuat HP kelas bawah tersendat, dan di
 ///    atas [LatarCair] yang lembut kaca tanpa blur tampak hampir sama.
-/// Tiga permukaan desain v2: [chrome] glass asli (blur, navy; dock/bilah/sheet,
-/// maksimal 3 di layar), [panel] glass ringan tanpa blur (kartu), [solid] putih.
+/// Tiga permukaan desain v3: [chrome] kaca terang blur kuat (dock/bilah),
+/// [panel] kaca terang blur ringan (kartu), [solid] putih (sheet, form).
 enum KacaVarian { chrome, panel, solid }
 
 class KacaCair extends StatefulWidget {
@@ -26,6 +26,7 @@ class KacaCair extends StatefulWidget {
     this.radius = Tok.rKartu,
     this.gelap = false,
     this.blur = false,
+    this.buram = true,
     this.varian = KacaVarian.panel,
     this.onTap,
   });
@@ -40,6 +41,10 @@ class KacaCair extends StatefulWidget {
 
   /// Lama: true = sama dengan `varian: KacaVarian.chrome`.
   final bool blur;
+
+  /// Panel kaca ikut mengaburkan latar (blur ringan). Matikan untuk daftar
+  /// panjang bila HP kelas bawah tersendat.
+  final bool buram;
 
   final KacaVarian varian;
 
@@ -63,7 +68,7 @@ class _KacaCairState extends State<KacaCair> {
     final kontras = MediaQuery.of(context).highContrast;
     final chrome = widget.varian == KacaVarian.chrome || widget.blur;
     final solid = widget.varian == KacaVarian.solid;
-    final gelap = chrome || (widget.gelap && !solid);
+    final gelap = widget.gelap && !solid && !chrome;
 
     final Widget isi = Padding(padding: widget.padding, child: widget.child);
 
@@ -88,14 +93,13 @@ class _KacaCairState extends State<KacaCair> {
         child: isi,
       );
     } else {
-      // tanpa blur, tint dipertebal agar teks tetap terbaca di atas latar berwarna
-      final tebal = chrome ? 0.0 : 0.16;
+      // kaca terang: putih tembus pandang di atas latar berwarna; teks tetap gelap
       final warnaA = gelap
-          ? Tok.navy.withValues(alpha: chrome ? 0.84 : 0.66 + tebal)
-          : Colors.white.withValues(alpha: 0.66 + tebal);
+          ? Tok.navy.withValues(alpha: 0.66)
+          : Colors.white.withValues(alpha: chrome ? 0.70 : 0.74);
       final warnaB = gelap
-          ? Tok.navy.withValues(alpha: chrome ? 0.72 : 0.40 + tebal)
-          : Colors.white.withValues(alpha: 0.36 + tebal);
+          ? Tok.navy.withValues(alpha: 0.40)
+          : Colors.white.withValues(alpha: chrome ? 0.44 : 0.46);
       final permukaan = DecoratedBox(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -105,7 +109,7 @@ class _KacaCairState extends State<KacaCair> {
           ),
           borderRadius: r,
           border: Border.all(
-            color: Colors.white.withValues(alpha: gelap ? 0.28 : 0.75),
+            color: Colors.white.withValues(alpha: gelap ? 0.28 : 0.9),
             width: 1.2,
           ),
         ),
@@ -134,9 +138,11 @@ class _KacaCairState extends State<KacaCair> {
       );
       kaca = ClipRRect(
         borderRadius: r,
-        child: chrome
+        child: chrome || (widget.buram && !gelap)
             ? BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                filter: chrome
+                    ? ImageFilter.blur(sigmaX: 24, sigmaY: 24)
+                    : ImageFilter.blur(sigmaX: 14, sigmaY: 14),
                 child: permukaan,
               )
             : permukaan,
@@ -148,10 +154,10 @@ class _KacaCairState extends State<KacaCair> {
         borderRadius: r,
         boxShadow: const [
           BoxShadow(
-            color: Color(0x2D071527),
-            blurRadius: 24,
-            spreadRadius: -8,
-            offset: Offset(0, 12),
+            color: Color(0x332A5080),
+            blurRadius: 30,
+            spreadRadius: -10,
+            offset: Offset(0, 14),
           ),
         ],
       ),
@@ -200,7 +206,7 @@ class LatarCair extends StatelessWidget {
     );
   }
 
-  /// Hanya warna palet (moss, emas, forest) — sama dengan `.app-latar` di web.
+  /// Biru, lavender, hijau moss, emas — sama dengan `.app-latar` di web.
   @override
   Widget build(BuildContext context) {
     return RepaintBoundary(
@@ -208,16 +214,17 @@ class LatarCair extends StatelessWidget {
         child: DecoratedBox(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFFEEF3EA), Tok.page, Color(0xFFEAF0E6)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFE6F0FB), Color(0xFFECF4EE), Color(0xFFFAF4DE)],
             ),
           ),
           child: Stack(
             children: [
-              _bola(const Alignment(-1.1, -0.9), 360, Tok.moss, 0.30),
-              _bola(const Alignment(1.2, -0.7), 320, Tok.emas, 0.26),
-              _bola(const Alignment(0.4, 1.15), 380, Tok.forest, 0.24),
+              _bola(const Alignment(-1.1, -0.85), 440, const Color(0xFF70A8EC), 0.55),
+              _bola(const Alignment(1.25, -0.4), 380, const Color(0xFFA89AEE), 0.40),
+              _bola(const Alignment(-1.2, 0.95), 420, Tok.moss, 0.40),
+              _bola(const Alignment(1.2, 1.0), 400, Tok.emas, 0.42),
             ],
           ),
         ),

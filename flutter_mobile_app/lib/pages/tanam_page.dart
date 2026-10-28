@@ -142,13 +142,15 @@ class _TanamPageState extends State<TanamPage> {
                         // warna latar opak: dulu chip tak terpilih tampil putih dengan teks putih
                         // (tak terbaca) di atas header gelap
                         color: WidgetStatePropertyAll(
-                          _filter == f.$1 ? Tok.emas : Tok.navy3,
+                          _filter == f.$1
+                              ? Tok.emas
+                              : Colors.white.withValues(alpha: 0.7),
                         ),
                         side: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.18),
+                          color: Colors.white.withValues(alpha: 0.95),
                         ),
                         labelStyle: TextStyle(
-                          color: _filter == f.$1 ? Tok.navy : Colors.white,
+                          color: Tok.tinta,
                           fontWeight: FontWeight.w600,
                           fontSize: 12.5,
                         ),

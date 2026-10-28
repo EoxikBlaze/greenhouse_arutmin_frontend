@@ -107,7 +107,7 @@ class _ItemDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final warna = aktif ? Colors.white : Colors.white.withValues(alpha: 0.72);
+    final warna = aktif ? Colors.white : Tok.tinta.withValues(alpha: 0.66);
     return Semantics(
       button: true,
       selected: aktif,
