@@ -433,7 +433,7 @@ class _Gelembung extends StatelessWidget {
         ? Tok.forest
         : p.galat
         ? Tok.error.withValues(alpha: 0.08)
-        : Colors.white;
+        : Colors.white.withValues(alpha: 0.82);
     final Color teks = user
         ? Colors.white
         : p.galat

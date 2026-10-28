@@ -84,13 +84,15 @@ class _NaikHarianPageState extends State<NaikHarianPage> {
     final pesan = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.transparent,
       showDragHandle: true,
-      builder: (_) => _SheetUbah(
-        api: widget.api,
-        tanaman: t,
-        ambangMaks: _ambangMaks,
-        petani: widget.api.role == 'petani',
+      builder: (_) => SheetKaca(
+        child: _SheetUbah(
+          api: widget.api,
+          tanaman: t,
+          ambangMaks: _ambangMaks,
+          petani: widget.api.role == 'petani',
+        ),
       ),
     );
     if (pesan == null || !mounted) return;

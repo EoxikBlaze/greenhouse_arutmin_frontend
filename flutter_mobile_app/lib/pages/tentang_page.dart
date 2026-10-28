@@ -105,9 +105,9 @@ class TentangPage extends StatelessWidget {
   void _bukaMitra(BuildContext context, _Mitra m) {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.transparent,
       showDragHandle: true,
-      builder: (ctx) => SafeArea(
+      builder: (ctx) => SheetKaca(child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
           child: Column(
@@ -133,7 +133,7 @@ class TentangPage extends StatelessWidget {
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 

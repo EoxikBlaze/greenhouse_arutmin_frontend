@@ -6,6 +6,7 @@ import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/brand.dart';
 import '../widgets/ikon.dart';
+import '../widgets/kaca.dart';
 import '../widgets/dock.dart';
 import '../widgets/motion.dart';
 import '../widgets/rute.dart';
@@ -79,9 +80,9 @@ class _TanamPageState extends State<TanamPage> {
     final pesan = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.transparent,
       showDragHandle: true,
-      builder: (_) => _SheetHasil(api: widget.api, item: item),
+      builder: (_) => SheetKaca(child: _SheetHasil(api: widget.api, item: item)),
     );
     if (pesan == null || !mounted) return;
     tampilkanPesan(context, pesan);
@@ -92,9 +93,9 @@ class _TanamPageState extends State<TanamPage> {
     final pesan = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.transparent,
       showDragHandle: true,
-      builder: (_) => _SheetMulai(api: widget.api),
+      builder: (_) => SheetKaca(child: _SheetMulai(api: widget.api)),
     );
     if (pesan == null || !mounted) return;
     tampilkanPesan(context, pesan);

@@ -243,3 +243,21 @@ class LatarHalaman extends StatelessWidget {
     );
   }
 }
+
+/// Isi bottom sheet berkaca: latar sheet dibuat transparan, lalu isinya
+/// dibungkus permukaan solid putih bertepi cahaya agar teks tetap terbaca.
+class SheetKaca extends StatelessWidget {
+  const SheetKaca({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+    child: KacaCair(
+      varian: KacaVarian.solid,
+      padding: EdgeInsets.zero,
+      child: child,
+    ),
+  );
+}
