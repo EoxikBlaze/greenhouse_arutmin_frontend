@@ -196,6 +196,20 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
+          <div className="mt-6 grid grid-cols-2 gap-3">
+            <div className="rounded-card border border-white/80 bg-white/55 p-3 shadow-[inset_0_1px_0_#fff]">
+              <div className="text-[12px] text-abu">Tanaman dipanen</div>
+              <div className="font-display text-[24px] font-bold leading-tight tabular-nums text-arutmin-forest">
+                {loading && !data ? '—' : <AngkaHidup nilai={Number(data?.total_panen_qty ?? 0)} />}
+              </div>
+            </div>
+            <div className="rounded-card border border-white/80 bg-white/55 p-3 shadow-[inset_0_1px_0_#fff]">
+              <div className="text-[12px] text-abu">Total batch tercatat</div>
+              <div className="font-display text-[24px] font-bold leading-tight tabular-nums text-arutmin-forest">
+                {loading && !data ? '—' : <AngkaHidup nilai={Number(data?.total_semai ?? 0) + Number(data?.total_peremajaan ?? 0) + Number(data?.total_pendewasaan ?? 0)} />}
+              </div>
+            </div>
+          </div>
           <div className="mt-auto flex flex-wrap gap-2 pt-6">
             <Link
               to="/sensor-realtime"
@@ -262,7 +276,6 @@ export default function DashboardPage() {
                   )
                 })}
           </div>
-          {s?.created_at && <div className="mt-2 px-1 text-[12px] text-tinta/80 [text-shadow:0_1px_8px_rgba(255,255,255,.9)]">Bacaan sensor terakhir: {tgl(s.created_at)}</div>}
         </section>
 
         {/* Grafik batang tren sensor */}

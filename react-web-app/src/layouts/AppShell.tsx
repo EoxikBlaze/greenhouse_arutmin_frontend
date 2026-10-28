@@ -262,6 +262,16 @@ export function AppShell() {
     handleClose: logoutClose,
   } = useDialog({ open: confirmKeluar, onClose: () => setConfirmKeluar(false) })
 
+  // Kilau spekular: titik terang di kaca mengikuti kursor (hanya perangkat pointer halus).
+  function ikutiKursor(e: React.PointerEvent<HTMLElement>) {
+    if (e.pointerType !== 'mouse') return
+    const el = (e.target as HTMLElement).closest<HTMLElement>('.vsf-card, .vsf-kpi-kaca, .vsf-kpi')
+    if (!el) return
+    const r = el.getBoundingClientRect()
+    el.style.setProperty('--mx', `${(((e.clientX - r.left) / r.width) * 100).toFixed(1)}%`)
+    el.style.setProperty('--my', `${(((e.clientY - r.top) / r.height) * 100).toFixed(1)}%`)
+  }
+
   return (
     <div className="relative isolate min-h-dvh">
       <div className="app-latar" aria-hidden />
@@ -364,7 +374,7 @@ export function AppShell() {
         />
       )}
 
-      <main id="vsf-main" tabIndex={-1} className="flex min-h-dvh min-w-0 flex-col outline-none lg:pl-[92px]">
+      <main id="vsf-main" tabIndex={-1} onPointerMove={ikutiKursor} className="flex min-h-dvh min-w-0 flex-col outline-none lg:pl-[92px]">
         {/* Bilah atas: merek, nav pill submenu grup aktif, status. */}
         <header className="vsf-topbar sticky top-0 z-20 px-4 pt-3 sm:px-6">
           <div className="glass-chrome flex flex-wrap items-center gap-x-3 gap-y-2 py-2 pl-2 pr-2 sm:pl-3 xl:flex-nowrap">

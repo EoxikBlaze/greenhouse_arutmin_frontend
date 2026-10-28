@@ -1119,3 +1119,26 @@
   .vsf-kpi-kaca { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
   .vsf-pillnav-track { background: #fff; }
 }
+
+/* ══ Kilau spekular liquid glass: titik terang mengikuti kursor (--mx/--my diisi AppShell) ══ */
+@property --sheen { syntax: '<number>'; inherits: false; initial-value: 0; }
+.vsf-card {
+  background:
+    radial-gradient(260px circle at var(--mx) var(--my), rgba(255, 255, 255, calc(var(--sheen) * 1)), transparent 70%),
+    linear-gradient(155deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
+  transition: transform var(--dur-normal) var(--ease-v2), border-color var(--dur-normal) ease, box-shadow var(--dur-normal) ease, --sheen 0.35s ease;
+}
+.vsf-kpi-kaca {
+  background:
+    radial-gradient(240px circle at var(--mx) var(--my), rgba(255, 255, 255, calc(var(--sheen) * 1)), transparent 70%),
+    linear-gradient(155deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
+  transition: transform var(--dur-normal) var(--ease-v2), box-shadow var(--dur-normal) var(--ease-v2), --sheen 0.35s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .vsf-card:hover,
+  .vsf-kpi-kaca:hover { --sheen: 0.6; }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-card,
+  .vsf-kpi-kaca { background: #fff; }
+}
