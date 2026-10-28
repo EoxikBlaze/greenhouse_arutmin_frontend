@@ -27,6 +27,22 @@ class Tok {
   static const Color error = Color(0xFFC0392B);
   static const Color warning = Color(0xFFE0A42B);
 
+  // ── Desain v2: jarak, radius tingkat tiga, gerak ─────────────────────
+  static const double sp1 = 4;
+  static const double sp2 = 8;
+  static const double sp3 = 12;
+  static const double sp4 = 16;
+  static const double sp6 = 24;
+  static const double sp8 = 32;
+
+  /// Kartu 20, chrome (dock/bilah/sheet) 28; kecil = [r] (12).
+  static const double rKartu = 20;
+  static const double rChrome = 28;
+
+  static const Duration dCepat = Duration(milliseconds: 120);
+  static const Duration dNormal = Duration(milliseconds: 220);
+  static const Duration dLambat = Duration(milliseconds: 380);
+
   // ── Radius ───────────────────────────────────────────────────────────
   static const double rSm = 10;
   static const double r = 12;
