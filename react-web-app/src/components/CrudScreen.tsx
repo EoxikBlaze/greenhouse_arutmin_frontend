@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { useDialog } from '../lib/useDialog'
 import { ModalBackdrop } from './ModalBackdrop'
+import { Ikon } from './Ikon'
 
 export type Column<T> = {
   key: string
@@ -178,14 +179,11 @@ export function CrudScreen<T>({
   const emptyName = moduleName ?? title
 
   return (
-    <div className="mx-auto max-w-[1180px] grid gap-4 vsf-stagger">
-      <section className="vsf-card p-5 min-w-0">
+    <div className="vsf-halaman vsf-stagger">
+      <section className="vsf-card min-w-0 p-4 sm:p-5">
         {/* Toolbar: hierarki jelas (h2 display + aksen emas) + aksi utama. */}
         <div className="flex flex-wrap items-center gap-3">
-          <h2 className="flex min-w-0 items-center gap-2.5 font-display text-[18px] font-bold leading-tight text-navy">
-            <span aria-hidden className="h-4 w-1 shrink-0 rounded-full bg-emas" />
-            <span className="truncate">{title}</span>
-          </h2>
+          <h2 className="vsf-judul-bagian min-w-0 truncate">{title}</h2>
           <span className="flex-1" />
           {!hideAdd && (
             <button className="vsf-btn-primary" disabled={!form} onClick={() => setFormOpen(true)}>
@@ -200,9 +198,7 @@ export function CrudScreen<T>({
             aria-live="polite"
             className={`vsf-banner mt-4 flex items-center gap-2 rounded-std border border-arutmin-moss bg-arutmin-mint/50 px-3 py-2 text-[13px] text-arutmin-forest${flashHiding ? ' is-closing' : ''}`}
           >
-            <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M5 12.5 10 17.5 19 7" />
-            </svg>
+            <Ikon nama="centang" className="h-4 w-4" />
             {flash}
           </div>
         )}
@@ -247,10 +243,7 @@ export function CrudScreen<T>({
                   <td colSpan={colSpan} className="px-4 py-10 text-center">
                     <div role="alert" className="grid justify-items-center gap-2 py-4">
                       <span className="grid h-12 w-12 place-items-center rounded-full bg-red-50 text-red-600">
-                        <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-                          <path d="M12 3 1.8 20.5h20.4z" />
-                          <path d="M12 9.5v4.5M12 17.2v.2" />
-                        </svg>
+                        <Ikon nama="peringatan" className="h-6 w-6" />
                       </span>
                       <b className="text-red-700">Gagal memuat data</b>
                       <span className="text-[13px] text-red-700">{listError}</span>
@@ -268,10 +261,7 @@ export function CrudScreen<T>({
                     {/* State Gallery: ikon + 1 kalimat + aksi utama */}
                     <div className="grid justify-items-center gap-2 py-4">
                       <span className="grid h-12 w-12 place-items-center rounded-full bg-navy/[.06] text-navy">
-                        <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                          <path d="M3 13h5l1.5 2.5h5L16 13h5" />
-                          <path d="M4.5 5.5h15L21 13v5.5H3V13z" />
-                        </svg>
+                        <Ikon nama="kosong" className="h-6 w-6" />
                       </span>
                       <b className="text-slate-700">Belum ada data</b>
                       <span className="text-[13px]">Belum ada data {emptyName} — tambah data pertama untuk memulai.</span>
@@ -380,9 +370,7 @@ export function CrudScreen<T>({
           >
             <div id="vsf-hapus-title" data-dialog-title tabIndex={-1} className="flex items-center gap-2 text-[16px] font-bold outline-none">
               <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-red-50 text-red-700">
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
-                  <path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13" />
-                </svg>
+                <Ikon nama="hapus" className="h-4 w-4" />
               </span>
               Hapus data?
             </div>
@@ -436,9 +424,7 @@ export function BtnEdit({ onClick, name }: { onClick?: () => void; name?: string
       onClick={onClick}
       aria-label={name ? `Ubah ${name}` : undefined}
     >
-      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M4 20h4L19 9l-4-4L4 16z" />
-      </svg>
+      <Ikon nama="ubah" className="h-3.5 w-3.5" />
       Edit
     </button>
   )
@@ -465,9 +451,7 @@ export function BtnHapus({
       onClick={() => onPick(label, id)}
       aria-label={`Hapus ${label}`}
     >
-      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13" />
-      </svg>
+      <Ikon nama="hapus" className="h-3.5 w-3.5" />
       Hapus
     </button>
   )
@@ -485,10 +469,7 @@ export function BtnDetail({ name, onClick }: { name: string; onClick?: () => voi
       onClick={onClick}
       aria-label={`Detail ${name}`}
     >
-      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" />
-        <circle cx="12" cy="12" r="2.6" />
-      </svg>
+      <Ikon nama="mata" className="h-3.5 w-3.5" />
       Detail
     </button>
   )

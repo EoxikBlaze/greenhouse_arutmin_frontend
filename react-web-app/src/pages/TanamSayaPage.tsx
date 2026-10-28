@@ -8,6 +8,7 @@ import { Field, FieldError } from '../components/CrudScreen'
 import { useDialog } from '../lib/useDialog'
 import { ModalBackdrop } from '../components/ModalBackdrop'
 import { NaikHarian } from '../components/NaikHarian'
+import { Ikon } from '../components/Ikon'
 
 /** Satu baris `list` dari GET /tanam (routes/tanam.js — UNION semai/peremajaan/pendewasaan). */
 type TanamRow = {
@@ -309,16 +310,14 @@ export default function TanamSayaPage() {
   // GET /tanam dilayani semua role (index.js: semuaRole) — 403 tidak mungkin di sini,
   // sehingga error apa pun cukup ditampilkan apa adanya + Muat ulang.
   return (
-    <div className="mx-auto max-w-[1180px] grid gap-4 vsf-stagger">
+    <div className="vsf-halaman vsf-stagger">
       {flash && (
         <div
           role="status"
           aria-live="polite"
           className="vsf-banner flex items-center gap-2 rounded-std border border-arutmin-moss bg-arutmin-mint/50 px-3 py-2 text-[13px] text-arutmin-forest"
         >
-          <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M5 12.5 10 17.5 19 7" />
-          </svg>
+          <Ikon nama="centang" className="h-4 w-4" />
           {flash}
         </div>
       )}
@@ -326,7 +325,7 @@ export default function TanamSayaPage() {
       <section className="vsf-card p-4 sm:p-5">
         <div className="flex flex-wrap items-start gap-3">
           <div className="min-w-0">
-            <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Tanam aktif</div>
+            <div className="vsf-judul-bagian">Tanam aktif</div>
             <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
               Gabungan batch semai, peremajaan, dan pendewasaan yang sedang berjalan — segar dari server.
             </p>
@@ -358,7 +357,7 @@ export default function TanamSayaPage() {
 
       {/* Satu state per layar: loading → error → kosong → daftar */}
       <section className="vsf-card p-4 sm:p-5">
-        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Daftar tanam</div>
+        <div className="vsf-judul-bagian">Daftar tanam</div>
 
         {loading ? (
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" role="status" aria-label="Memuat daftar tanam">
@@ -371,7 +370,7 @@ export default function TanamSayaPage() {
             role="alert"
             className="vsf-banner mt-3 rounded-input vsf-tone-error px-3 py-3 text-[13px] flex flex-wrap items-center gap-3"
           >
-            <span className="inline-flex items-center gap-1.5"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="shrink-0"><path d="M8 1.8 14.8 13.8H1.2L8 1.8Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M8 6.4v3.1M8 11.5v.1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> {error}</span>
+            <span className="inline-flex items-center gap-1.5"><Ikon nama="peringatan" className="h-4 w-4" /> {error}</span>
             <button type="button" className="vsf-input rounded-full font-semibold" onClick={reload}>
               Muat ulang
             </button>

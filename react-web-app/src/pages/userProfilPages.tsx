@@ -5,26 +5,9 @@ import { useApiObject } from '../lib/useApiObject'
 import { useAuth } from '../lib/authContext'
 import { StatusBadge } from '../components/StatusBadge'
 import { BtnEdit, BtnHapus, CrudScreen, Field, FieldError, type Column, type HapusTarget } from '../components/CrudScreen'
+import { Ikon } from '../components/Ikon'
 
 /* ── Ikon SVG inline (R3): pengganti emoji silang/centang — aria-hidden, 16px ── */
-function IkonSalah({ className }: { className?: string }) {
-  return (
-    <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="8" cy="8" r="6.4" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M6.1 6.1l3.8 3.8M9.9 6.1L6.1 9.9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function IkonOk({ className }: { className?: string }) {
-  return (
-    <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="8" cy="8" r="6.4" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M5.3 8.3l1.9 1.9 3.5-4.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
 type FormState = Record<string, string>
 
 function cell(v: unknown): string {
@@ -363,13 +346,13 @@ export function ProfilPage() {
   const daftarError = error ?? null
 
   return (
-    <div className="mx-auto max-w-[1180px] grid gap-4 vsf-stagger">
+    <div className="vsf-halaman vsf-stagger">
       {banner && (
         <div
           role="status"
           className="vsf-banner rounded-card border border-arutmin-moss bg-arutmin-mint/40 px-4 py-2 text-[13px] text-arutmin-forest flex items-start gap-2"
         >
-          <IkonOk className="mt-[2px] shrink-0" />
+          <Ikon nama="ok" className="h-4 w-4 mt-[2px] shrink-0" />
           <span>{banner}</span>
         </div>
       )}
@@ -380,7 +363,7 @@ export function ProfilPage() {
           className="vsf-banner rounded-card vsf-tone-error px-4 py-2 text-[13px] flex flex-wrap items-center gap-3"
         >
           <span className="flex items-center gap-2">
-            <IkonSalah className="shrink-0" />
+            <Ikon nama="salah" className="h-4 w-4 shrink-0" />
             <span>{daftarError}</span>
           </span>
           <button type="button" className="vsf-input rounded-full font-semibold" onClick={reload}>
@@ -391,7 +374,7 @@ export function ProfilPage() {
 
       {/* Kartu identitas */}
       <section className="vsf-card p-4 sm:p-5">
-        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Kartu identitas</div>
+        <div className="vsf-judul-bagian">Kartu identitas</div>
         <div className="mt-3 flex flex-wrap items-center gap-4">
           <div className="h-[64px] w-[64px] rounded-full border border-arutmin-moss bg-arutmin-mint/40 grid place-items-center text-arutmin-forest font-bold uppercase">
             {loading && !user ? '…' : (user?.username ?? '?').slice(0, 2) || '—'}
@@ -415,13 +398,13 @@ export function ProfilPage() {
 
       {/* Edit profil */}
       <section className="vsf-card p-4 sm:p-5">
-        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Edit profil</div>
+        <div className="vsf-judul-bagian">Edit profil</div>
         {editError && (
           <div
             role="alert"
             className="mt-3 vsf-banner rounded-input vsf-tone-error px-3 py-2 text-[13px] flex items-start gap-2"
           >
-            <IkonSalah className="mt-[2px] shrink-0" />
+            <Ikon nama="salah" className="h-4 w-4 mt-[2px] shrink-0" />
             <span>{editError}</span>
           </div>
         )}
@@ -454,14 +437,14 @@ export function ProfilPage() {
 
       {/* Ganti password */}
       <section className="vsf-card p-4 sm:p-5">
-        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Ganti password</div>
+        <div className="vsf-judul-bagian">Ganti password</div>
         <div className="mt-1 text-[12px] text-slate-500">Kata sandi lama diperiksa sebelum diganti.</div>
         {sandiError && (
           <div
             role="alert"
             className="mt-3 vsf-banner rounded-input vsf-tone-error px-3 py-2 text-[13px] flex items-start gap-2"
           >
-            <IkonSalah className="mt-[2px] shrink-0" />
+            <Ikon nama="salah" className="h-4 w-4 mt-[2px] shrink-0" />
             <span>{sandiError}</span>
           </div>
         )}
@@ -501,7 +484,7 @@ export function ProfilPage() {
       </section>
 
       <section className="vsf-card p-4 sm:p-5">
-        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Tentang layar ini</div>
+        <div className="vsf-judul-bagian">Tentang layar ini</div>
         <ul className="mt-2 list-disc pl-5 text-[13px] text-slate-700 leading-relaxed">
           <li>Live: GET /profil (identitas sesuai role) · POST /profil/update · POST /profil/password — Bearer JWT.</li>
           <li>Daftar user (GET /user) hanya untuk pengelola; role yang ditolak mendapat pesan ramah tanpa data.</li>

@@ -1063,3 +1063,8 @@ img { -webkit-user-drag: none; }
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
   .glass-hero { background: #1b2e4a; }
 }
+
+/* Target sentuh 44px untuk kolom isian di layar kecil. */
+@media (max-width: 639px) {
+  .vsf-input { min-height: 44px; }
+}

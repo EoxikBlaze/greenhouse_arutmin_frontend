@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { api } from '../lib/api'
 import { useApiError } from '../lib/crudApi'
+import { Ikon } from '../components/Ikon'
 
 /**
  * 17 · RIWAYAT AUDIT (/audit) — GET /audit-logs (admin + demo).
@@ -246,10 +247,10 @@ export function AuditPage() {
   const colSpan = 5
 
   return (
-    <div className="mx-auto grid w-full max-w-[1180px] grid-cols-[minmax(0,1fr)] gap-4 vsf-stagger">
+    <div className="vsf-halaman vsf-stagger">
       {/* Filter — dua kontrol utama (tabel & aksi) + ukuran halaman */}
       <section className="vsf-card p-4 sm:p-5">
-        <div className="text-[12px] font-bold uppercase tracking-[.14em] text-slate-500">
+        <div className="vsf-judul-bagian">
           Filter riwayat
         </div>
         <div className="mt-3 flex flex-wrap items-end gap-3">
@@ -342,10 +343,7 @@ export function AuditPage() {
                   <td colSpan={colSpan} className="px-4 py-10 text-center">
                     <div role="alert" className="grid justify-items-center gap-2 py-4">
                       <span className="grid h-12 w-12 place-items-center rounded-full bg-red-50 text-red-600">
-                        <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-                          <path d="M12 3 1.8 20.5h20.4z" />
-                          <path d="M12 9.5v4.5M12 17.2v.2" />
-                        </svg>
+                        <Ikon nama="peringatan" className="h-6 w-6" />
                       </span>
                       <b className="text-red-700">Gagal memuat riwayat audit</b>
                       <span className="max-w-[420px] text-[13px] text-red-700">{failure}</span>
@@ -360,10 +358,7 @@ export function AuditPage() {
                   <td colSpan={colSpan} className="px-4 py-10 text-center text-slate-500">
                     <div className="grid justify-items-center gap-2 py-4">
                       <span className="grid h-12 w-12 place-items-center rounded-full bg-navy/[.06] text-navy">
-                        <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                          <circle cx="12" cy="12" r="9" />
-                          <path d="M12 7v5l3.2 2" />
-                        </svg>
+                        <Ikon nama="jam" className="h-6 w-6" />
                       </span>
                       <b className="text-slate-700">Belum ada aktivitas tercatat</b>
                       <span className="max-w-[420px] text-[13px]">

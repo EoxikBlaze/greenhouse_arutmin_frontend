@@ -169,7 +169,7 @@ export function TargetPenampung({ versi, onUbah }: { versi: number; onUbah: () =
     <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 max-w-[720px]">
-          <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Target tiap penampung</div>
+          <div className="vsf-judul-bagian">Target tiap penampung</div>
           <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
             Mode <b>Otomatis</b>: target EC/pH diambil dari preset yang cocok dengan tanaman, tahap, dan umur batch
             yang sedang berjalan di meja itu, lalu ikut berganti saat tahap berpindah. Mode <b>Manual</b>: target
@@ -268,7 +268,7 @@ export function TargetPenampung({ versi, onUbah }: { versi: number; onUbah: () =
             onSubmit={(e) => { e.preventDefault(); void simpanManual() }}
             onKeyDown={(e) => { if (e.key === 'Escape' && sibuk === null) setManual(null) }}
           >
-            <div id="vsf-manual-judul" className="text-[12px] uppercase tracking-[.14em] font-bold text-slate-500">Target manual · {manual.meja}</div>
+            <div id="vsf-manual-judul" className="vsf-judul-bagian">Target manual · {manual.meja}</div>
             <p className="mt-2 text-[13px] text-slate-600">Sistem tidak akan mengubah target ini sampai dikembalikan ke otomatis.</p>
             <label className="mt-3 block text-[13px] font-semibold text-slate-700">
               Target EC (ppm)
@@ -395,7 +395,7 @@ export function PresetNutrisi({ onUbah }: { onUbah: () => void }) {
     <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 max-w-[720px]">
-          <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Preset nutrisi (template)</div>
+          <div className="vsf-judul-bagian">Preset nutrisi (template)</div>
           <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
             Satu preset = rentang EC dan pH untuk satu tahap, berlaku untuk satu tanaman atau semua tanaman, dan bisa
             dibatasi umur (hari sejak semai). Target penampung = titik tengah rentang. Hanya preset berstatus
@@ -472,7 +472,7 @@ export function PresetNutrisi({ onUbah }: { onUbah: () => void }) {
             onSubmit={(e) => { e.preventDefault(); void simpan() }}
             onKeyDown={(e) => { if (e.key === 'Escape' && !sibuk) setForm(null) }}
           >
-            <div id="vsf-preset-judul" className="text-[12px] uppercase tracking-[.14em] font-bold text-slate-500">
+            <div id="vsf-preset-judul" className="vsf-judul-bagian">
               {editId ? `Ubah preset #${editId}` : 'Tambah preset nutrisi'}
             </div>
             <div className="mt-3 grid grid-cols-2 gap-3">

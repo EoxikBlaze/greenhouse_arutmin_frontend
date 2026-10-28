@@ -13,6 +13,7 @@ import {
   type HapusTarget,
 } from '../components/CrudScreen'
 import { useDialog } from '../lib/useDialog'
+import { Ikon } from '../components/Ikon'
 import { ModalBackdrop } from '../components/ModalBackdrop'
 
 /** Form terkontrol: kunci = nama kolom backend. */
@@ -41,15 +42,6 @@ function namaTanaman(rows: TanamanMini[], id: unknown): string {
 }
 
 /* ── Ikon SVG inline (R3): pengganti emoji silang — aria-hidden, 16px ── */
-function IkonSalah({ className }: { className?: string }) {
-  return (
-    <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="8" cy="8" r="6.4" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M6.1 6.1l3.8 3.8M9.9 6.1L6.1 9.9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  )
-}
-
 /**
  * Pill status baris — tone mengikuti data (bukan hiasan tetap): `selesai` → hijau,
  * sedang berjalan → netral, gagal/batal → merah. (temuan S6 — indikator dari data)
@@ -232,7 +224,7 @@ function ModalDetailBaris({
           id="vsf-baris-detail-title"
           data-dialog-title
           tabIndex={-1}
-          className="text-[12px] uppercase tracking-[.14em] font-bold text-slate-500 outline-none"
+          className="vsf-judul-bagian outline-none"
         >
           {data.judul}
         </div>
@@ -418,10 +410,10 @@ export function SemaiPage() {
   const d = detail?.semai
 
   return (
-    <>
+    <div className="vsf-halaman vsf-stagger">
       {/* Tab baca: /semai (semua) · /semai/selesai (hanya yang status selesai). */}
-      <div className="mx-auto max-w-[1180px] vsf-card p-4 sm:p-5 flex flex-wrap items-center gap-3">
-        <span className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Tampilan</span>
+      <div className="vsf-card p-4 sm:p-5 flex flex-wrap items-center gap-3">
+        <span className="vsf-judul-bagian">Tampilan</span>
         <button
           type="button"
           className={tab === 'semua' ? 'vsf-btn-primary' : 'vsf-input rounded-full'}
@@ -442,7 +434,7 @@ export function SemaiPage() {
       </div>
 
       {/* Catatan jujur yang tampil: kenapa tab ini tanpa tombol Tambah. */}
-      <div className="mx-auto max-w-[1180px] vsf-card p-4 sm:p-5 text-[13px] leading-relaxed text-slate-600">
+      <div className="vsf-card p-4 sm:p-5 text-[13px] leading-relaxed text-slate-600">
         <span className="font-bold text-slate-700">Catatan:</span> tab ini menampilkan daftar, detail, dan
         penutupan tahap (Tandai Selesai). Batch semai BARU dibuat lewat tombol{' '}
         <b>Mulai Semai Baru</b> di Dashboard atau halaman Tanam Saya.
@@ -491,7 +483,7 @@ export function SemaiPage() {
               id="vsf-detail-title"
               data-dialog-title
               tabIndex={-1}
-              className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold outline-none"
+              className="vsf-judul-bagian outline-none"
             >
               Detail semai #{detailId}
             </div>
@@ -508,7 +500,7 @@ export function SemaiPage() {
                 role="alert"
                 className="vsf-banner mt-3 rounded-input vsf-tone-error px-3 py-2 text-[13px] flex items-start gap-2"
               >
-                <IkonSalah className="mt-[2px] shrink-0" />
+                <Ikon nama="salah" className="h-4 w-4 mt-[2px] shrink-0" />
                 <span>{detailError}</span>
               </div>
             )}
@@ -531,7 +523,7 @@ export function SemaiPage() {
                   <b>Keterangan</b>: {cell(d?.keterangan)}
                 </div>
 
-                <div className="mt-2 border-t border-arutmin-border pt-2 text-[12px] uppercase tracking-[.14em] font-bold text-slate-500">
+                <div className="vsf-label mt-2 border-t border-arutmin-border pt-2">
                   Riwayat tahap berikutnya
                 </div>
                 {daftarTahap('Peremajaan', detail.peremajaan, 'tgl_awal_peremajaan')}
@@ -569,7 +561,7 @@ export function SemaiPage() {
           </div>
         </ModalBackdrop>
       )}
-    </>
+    </div>
   )
 }
 
@@ -815,9 +807,9 @@ function TahapCrudPage<T>({
   }
 
   return (
-    <>
+    <div className="vsf-halaman vsf-stagger">
       {catatan && (
-        <div className="mx-auto max-w-[1180px] vsf-card p-4 sm:p-5 text-[13px] leading-relaxed text-slate-600">
+        <div className="vsf-card p-4 sm:p-5 text-[13px] leading-relaxed text-slate-600">
           <span className="font-bold text-slate-700">Catatan:</span> {catatan}
         </div>
       )}
@@ -920,7 +912,7 @@ function TahapCrudPage<T>({
         selesaiError={selesaiError}
         onClose={() => setLihat(null)}
       />
-    </>
+    </div>
   )
 }
 

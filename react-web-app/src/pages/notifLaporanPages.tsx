@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { api } from '../lib/api'
 import { useApiError, fieldError, type ApiFailure } from '../lib/crudApi'
+import { Ikon } from '../components/Ikon'
 
 /** 403 dari requireRole / demoGuard — dipresentasikan ramah, bukan banner merah. */
 function aksesDitolak(msg: string | null): boolean {
@@ -95,7 +96,7 @@ export function LaporanPage() {
     <div className="vsf-halaman vsf-stagger">
       {/* Filter */}
       <section className="vsf-card p-4 sm:p-5">
-        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Filter laporan</div>
+        <div className="vsf-judul-bagian">Filter laporan</div>
         <form className="mt-3 flex flex-wrap items-start gap-2" onSubmit={terapkan}>
           <label className="block">
             <span className="sr-only">Dari tanggal</span>
@@ -131,7 +132,7 @@ export function LaporanPage() {
       {/* Satu state per layar */}
       <section className="vsf-card p-4 sm:p-5">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Matriks laporan</div>
+          <div className="vsf-judul-bagian">Matriks laporan</div>
           <span className="flex-1" />
           <button type="button" className="vsf-btn-secondary" onClick={() => void unduhCsv()} disabled={loading}>
             Unduh CSV
@@ -160,7 +161,7 @@ export function LaporanPage() {
             role="alert"
             className="vsf-banner mt-3 rounded-input vsf-tone-error px-3 py-2 text-[13px] flex flex-wrap items-center gap-3"
           >
-            <span className="inline-flex items-center gap-1.5"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="shrink-0"><path d="M8 1.8 14.8 13.8H1.2L8 1.8Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M8 6.4v3.1M8 11.5v.1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> {failure.message}</span>
+            <span className="inline-flex items-center gap-1.5"><Ikon nama="peringatan" className="h-4 w-4" /> {failure.message}</span>
             <button
               type="button"
               className="vsf-input rounded-full font-semibold"
