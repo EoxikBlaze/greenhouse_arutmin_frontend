@@ -37,6 +37,7 @@ const TITLES: Record<string, string> = {
   '/dosing': 'Dosing Otomatis',
   '/kalibrasi': 'Kalibrasi Alat',
   '/audit': 'Riwayat Audit',
+  '/galeri': 'Galeri Desain',
 }
 
 /* ── QW5 · Sidebar per role ───────────────────────────────────────────

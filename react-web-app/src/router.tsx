@@ -25,6 +25,7 @@ import {
 import { LaporanPage } from './pages/notifLaporanPages'
 import { ManajemenUserPage, ProfilPage } from './pages/userProfilPages'
 import AuditPage from './pages/AuditPage'
+import GaleriPage from './pages/GaleriPage'
 import TentangPage from './pages/TentangPage'
 import { GalatHalaman } from './components/GalatHalaman'
 
@@ -81,6 +82,8 @@ export const router = createBrowserRouter([
           { path: '/user', element: <RequireAuth allow={ADMIN_DEMO} element={<ManajemenUserPage />} /> },
           // 07 · Riwayat Audit — admin + demo (baca saja; backend: requireRole admin)
           { path: '/audit', element: <RequireAuth allow={ADMIN_DEMO} element={<AuditPage />} /> },
+          // SEMENTARA (desain v2) — dihapus di F5.
+          { path: '/galeri', element: <RequireAuth allow={ALL} element={<GaleriPage />} /> },
 
           // alias gaya .pen / mockup → resource route Laravel
           { path: '/master/jenis-tanaman', element: <Navigate to="/tanaman" replace /> },

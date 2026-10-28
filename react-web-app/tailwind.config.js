@@ -28,12 +28,12 @@ export default {
       },
       borderRadius: {
         // nilai menunjuk token :root — transform in-place, nama class TETAP sama
-        card: 'var(--r-lg, 14px)',
-        input: 'var(--r-sm, 10px)',
+        card: 'var(--r-lg, 20px)',
+        input: 'var(--r-sm, 12px)',
         // varian netral (tak memakai awalan r/l/t/b bawaan TW agar tak bentrok)
         std: 'var(--r, 12px)',
-        'std-sm': 'var(--r-sm, 10px)',
-        'std-lg': 'var(--r-lg, 14px)',
+        'std-sm': 'var(--r-sm, 12px)',
+        'std-lg': 'var(--r-lg, 20px)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

@@ -21,7 +21,7 @@ export function ModalBackdrop({
 }) {
   return createPortal(
     <div
-      className={`fixed inset-0 z-50 grid place-items-center bg-black/40 px-4 vsf-modal-backdrop${closing ? ' is-closing' : ''}`}
+      className={`fixed inset-0 z-50 grid place-items-center px-4 vsf-modal-backdrop${closing ? ' is-closing' : ''}`}
       onMouseDown={onMouseDown}
     >
       {children}
