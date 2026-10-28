@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/brand.dart';
+import '../widgets/ikon.dart';
 import '../widgets/dock.dart';
 import '../widgets/motion.dart';
 import 'naik_harian_page.dart';
@@ -164,14 +165,14 @@ class _TanamPageState extends State<TanamPage> {
                 if (bisaUbah) ...[
                   TombolGradasi(
                     label: 'Mulai tanam baru',
-                    ikon: Icons.add_rounded,
+                    ikon: Ikon.tambah,
                     onTap: _mulai,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: Tok.sp3),
                 ],
                 // target ppm naik harian per tanaman — petani cukup isi target akhir
                 OutlinedButton.icon(
-                  icon: const Icon(Icons.trending_up_rounded),
+                  icon: const Icon(Ikon.naik),
                   label: const Text('Target nutrisi naik harian'),
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
@@ -211,7 +212,7 @@ class _TanamPageState extends State<TanamPage> {
           child: Center(
             child: Column(
               children: [
-                Icon(Icons.spa_outlined, size: 40, color: Tok.mint),
+                Icon(Ikon.tanam, size: 40, color: Tok.mint),
                 SizedBox(height: 8),
                 Text('Belum ada tanaman di tahap ini.', style: Tok.kecil),
               ],
@@ -302,7 +303,7 @@ class _KartuTanam extends StatelessWidget {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(Tok.sp4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -324,20 +325,17 @@ class _KartuTanam extends StatelessWidget {
                       spacing: 14,
                       runSpacing: 4,
                       children: [
+                        _Info(Ikon.meja, '${item['meja'] ?? '-'}'),
                         _Info(
-                          Icons.grid_view_rounded,
-                          '${item['meja'] ?? '-'}',
-                        ),
-                        _Info(
-                          Icons.calendar_today_outlined,
+                          Ikon.kalender,
                           tanggalPendek(item['mulai']?.toString()),
                         ),
                         if (jumlah != null)
-                          _Info(Icons.numbers, '$jumlah tanaman'),
+                          _Info(Ikon.angka, '$jumlah tanaman'),
                       ],
                     ),
                     if (hari != null) ...[
-                      const SizedBox(height: 10),
+                      const SizedBox(height: Tok.sp3),
                       Row(
                         children: [
                           Text(
@@ -377,10 +375,7 @@ class _KartuTanam extends StatelessWidget {
                         child: siap
                             ? FilledButton.icon(
                                 onPressed: onSelesai,
-                                icon: const Icon(
-                                  Icons.arrow_forward_rounded,
-                                  size: 18,
-                                ),
+                                icon: const Icon(Ikon.panah, size: 18),
                                 label: Text(_labelAksi(tipe)),
                                 style: FilledButton.styleFrom(
                                   backgroundColor: Tok.mossGelap,
@@ -388,10 +383,7 @@ class _KartuTanam extends StatelessWidget {
                               )
                             : TextButton.icon(
                                 onPressed: onSelesai,
-                                icon: const Icon(
-                                  Icons.arrow_forward_rounded,
-                                  size: 18,
-                                ),
+                                icon: const Icon(Ikon.panah, size: 18),
                                 label: Text(_labelAksi(tipe)),
                                 style: TextButton.styleFrom(
                                   foregroundColor: Tok.mossGelap,
@@ -545,7 +537,7 @@ class _SheetHasilState extends State<_SheetHasil> {
             children: [
               IconButton.filledTonal(
                 onPressed: _sibuk ? null : () => _atur((b ?? 0) - 1),
-                icon: const Icon(Icons.remove_rounded),
+                icon: const Icon(Ikon.kurang),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -562,11 +554,11 @@ class _SheetHasilState extends State<_SheetHasil> {
               const SizedBox(width: 10),
               IconButton.filledTonal(
                 onPressed: _sibuk ? null : () => _atur((b ?? 0) + 1),
-                icon: const Icon(Icons.add_rounded),
+                icon: const Icon(Ikon.tambah),
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: Tok.sp3),
           if (_jumlah != null)
             Wrap(
               spacing: 8,

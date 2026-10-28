@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
+import '../widgets/ikon.dart';
 import '../util/format.dart';
 import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
@@ -120,11 +121,7 @@ class _MejaPageState extends State<MejaPage>
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.table_restaurant_outlined,
-                          size: 18,
-                          color: scheme.primary,
-                        ),
+                        Icon(Ikon.meja, size: 18, color: scheme.primary),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -144,7 +141,7 @@ class _MejaPageState extends State<MejaPage>
                           ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: Tok.sp3),
                     Wrap(
                       spacing: 16,
                       runSpacing: 6,

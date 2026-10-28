@@ -6,6 +6,7 @@ import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
+import '../widgets/ikon.dart';
 import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
 
@@ -85,9 +86,9 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
         padding: const EdgeInsets.all(16),
         children: const [
           SkeletonBox(height: 96, radius: 14),
-          SizedBox(height: 10),
+          SizedBox(height: Tok.sp3),
           SkeletonBox(height: 96, radius: 14),
-          SizedBox(height: 10),
+          SizedBox(height: Tok.sp3),
           SkeletonBox(height: 96, radius: 14),
         ],
       );
@@ -132,17 +133,13 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: Panel(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(Tok.sp4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.monitor_heart_outlined,
-                          size: 16,
-                          color: scheme.primary,
-                        ),
+                        Icon(Ikon.sensor, size: 16, color: scheme.primary),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(

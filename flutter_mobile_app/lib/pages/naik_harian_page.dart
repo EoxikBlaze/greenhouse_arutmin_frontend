@@ -5,6 +5,8 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
+import '../widgets/ikon.dart';
+import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
 
 /// Target nutrisi NAIK HARIAN per jenis tanaman —
@@ -101,37 +103,39 @@ class _NaikHarianPageState extends State<NaikHarianPage> {
     final bisaUbah = widget.api.role != 'demo';
     return Scaffold(
       appBar: const AppBarGlass(judul: 'Target nutrisi'),
-      body: RefreshIndicator(
-        color: Tok.moss,
-        onRefresh: _muat,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
-          physics: const AlwaysScrollableScrollPhysics(),
-          children: [
-            const Text(
-              'Cukup isi target akhir tiap tanaman. Mulai hari pindah netpot, target ppm penampung '
-              'naik sedikit tiap hari sampai target akhir, lalu ditahan sampai panen. '
-              'Tahap semai tetap memakai preset.',
-              style: Tok.kecil,
-            ),
-            const SizedBox(height: 14),
-            if (_memuat && _list.isEmpty) ...[
-              const SkeletonBox(height: 76, radius: 14),
-              const SizedBox(height: 10),
-              const SkeletonBox(height: 76, radius: 14),
-            ] else if (_galat != null && _list.isEmpty)
-              ErrorPanel(pesan: _galat!, onCoba: _muat)
-            else
-              for (final t in _list)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: _Kartu(
-                    t: t,
-                    ambangMaks: _ambangMaks,
-                    onTap: bisaUbah ? () => _ubah(t) : null,
+      body: LatarHalaman(
+        child: RefreshIndicator(
+          color: Tok.moss,
+          onRefresh: _muat,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              const Text(
+                'Cukup isi target akhir tiap tanaman. Mulai hari pindah netpot, target ppm penampung '
+                'naik sedikit tiap hari sampai target akhir, lalu ditahan sampai panen. '
+                'Tahap semai tetap memakai preset.',
+                style: Tok.kecil,
+              ),
+              const SizedBox(height: 14),
+              if (_memuat && _list.isEmpty) ...[
+                const SkeletonBox(height: 76, radius: 14),
+                const SizedBox(height: 10),
+                const SkeletonBox(height: 76, radius: 14),
+              ] else if (_galat != null && _list.isEmpty)
+                ErrorPanel(pesan: _galat!, onCoba: _muat)
+              else
+                for (final t in _list)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _Kartu(
+                      t: t,
+                      ambangMaks: _ambangMaks,
+                      onTap: bisaUbah ? () => _ubah(t) : null,
+                    ),
                   ),
-                ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -196,8 +200,7 @@ class _Kartu extends StatelessWidget {
               ],
             ),
           ),
-          if (onTap != null)
-            const Icon(Icons.chevron_right_rounded, color: Tok.abu),
+          if (onTap != null) const Icon(Ikon.kanan, color: Tok.abu),
         ],
       ),
     );

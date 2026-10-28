@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/brand.dart';
+import '../widgets/ikon.dart';
 import '../widgets/dock.dart';
 import '../widgets/motion.dart';
 import 'asisten_page.dart';
@@ -149,7 +150,7 @@ class _ProfilPageState extends State<ProfilPage> {
                 const SizedBox(height: 12),
               ],
               FadeUp(child: const Eyebrow('Pintasan')),
-              const SizedBox(height: 10),
+              const SizedBox(height: Tok.sp3),
               FadeUp(
                 delay: FadeUp.urutan(1),
                 child: Panel(
@@ -158,7 +159,7 @@ class _ProfilPageState extends State<ProfilPage> {
                     children: [
                       if (!demo)
                         _Pintas(
-                          ikon: Icons.smart_toy_outlined,
+                          ikon: Ikon.ai,
                           label: 'Asisten AI',
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute<void>(
@@ -167,7 +168,7 @@ class _ProfilPageState extends State<ProfilPage> {
                           ),
                         ),
                       _Pintas(
-                        ikon: Icons.videocam_outlined,
+                        ikon: Ikon.cctv,
                         label: 'CCTV greenhouse',
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute<void>(
@@ -177,7 +178,7 @@ class _ProfilPageState extends State<ProfilPage> {
                       ),
                       if (role == 'admin')
                         _Pintas(
-                          ikon: Icons.grid_view_rounded,
+                          ikon: Ikon.meja,
                           label: 'Daftar meja',
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute<void>(
@@ -186,7 +187,7 @@ class _ProfilPageState extends State<ProfilPage> {
                           ),
                         ),
                       _Pintas(
-                        ikon: Icons.history_rounded,
+                        ikon: Ikon.audit,
                         label: 'Riwayat monitoring',
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute<void>(
@@ -199,12 +200,12 @@ class _ProfilPageState extends State<ProfilPage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: Tok.sp6),
               FadeUp(
                 delay: FadeUp.urutan(2),
                 child: const Eyebrow('Data profil'),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: Tok.sp3),
               FadeUp(
                 delay: FadeUp.urutan(3),
                 child: Panel(
@@ -217,20 +218,20 @@ class _ProfilPageState extends State<ProfilPage> {
                           enabled: !demo,
                           decoration: const InputDecoration(
                             labelText: 'Nama pengguna',
-                            prefixIcon: Icon(Icons.person_outline, size: 20),
+                            prefixIcon: Icon(Ikon.profil, size: 20),
                           ),
                           validator: (v) => (v == null || v.trim().length < 3)
                               ? 'Nama pengguna minimal 3 karakter.'
                               : null,
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: Tok.sp3),
                         TextFormField(
                           controller: _surel,
                           enabled: !demo,
                           keyboardType: TextInputType.emailAddress,
                           decoration: const InputDecoration(
                             labelText: 'Email',
-                            prefixIcon: Icon(Icons.mail_outline, size: 20),
+                            prefixIcon: Icon(Ikon.surel, size: 20),
                           ),
                           validator: (v) => (v == null || !v.contains('@'))
                               ? 'Email tidak valid.'
@@ -247,12 +248,12 @@ class _ProfilPageState extends State<ProfilPage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: Tok.sp6),
               FadeUp(
                 delay: FadeUp.urutan(4),
                 child: const Eyebrow('Kata sandi'),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: Tok.sp3),
               FadeUp(
                 delay: FadeUp.urutan(5),
                 child: Panel(
@@ -266,35 +267,32 @@ class _ProfilPageState extends State<ProfilPage> {
                           enabled: !demo,
                           decoration: const InputDecoration(
                             labelText: 'Kata sandi lama',
-                            prefixIcon: Icon(Icons.lock_outline, size: 20),
+                            prefixIcon: Icon(Ikon.kunci, size: 20),
                           ),
                           validator: (v) =>
                               (v == null || v.isEmpty) ? 'Wajib diisi.' : null,
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: Tok.sp3),
                         TextFormField(
                           controller: _baru,
                           obscureText: true,
                           enabled: !demo,
                           decoration: const InputDecoration(
                             labelText: 'Kata sandi baru',
-                            prefixIcon: Icon(Icons.lock_reset, size: 20),
+                            prefixIcon: Icon(Ikon.kunciKunci, size: 20),
                           ),
                           validator: (v) => (v == null || v.length < 8)
                               ? 'Minimal 8 karakter.'
                               : null,
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: Tok.sp3),
                         TextFormField(
                           controller: _ulang,
                           obscureText: true,
                           enabled: !demo,
                           decoration: const InputDecoration(
                             labelText: 'Ulangi kata sandi baru',
-                            prefixIcon: Icon(
-                              Icons.verified_user_outlined,
-                              size: 20,
-                            ),
+                            prefixIcon: Icon(Ikon.terverifikasi, size: 20),
                           ),
                           validator: (v) => v != _baru.text
                               ? 'Tidak sama dengan kata sandi baru.'
@@ -312,24 +310,24 @@ class _ProfilPageState extends State<ProfilPage> {
                 ),
               ),
               if (demo) ...[
-                const SizedBox(height: 10),
+                const SizedBox(height: Tok.sp3),
                 const Text(
                   'Akun demo tidak dapat mengubah profil atau kata sandi.',
                   style: Tok.kecil,
                 ),
               ],
-              const SizedBox(height: 22),
+              const SizedBox(height: Tok.sp6),
               FadeUp(
                 delay: FadeUp.urutan(6),
                 child: const Eyebrow('Pengaturan'),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: Tok.sp3),
               FadeUp(
                 delay: FadeUp.urutan(7),
                 child: Panel(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: _Pintas(
-                    ikon: Icons.info_outline_rounded,
+                    ikon: Ikon.info,
                     label: 'Tentang Kami',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
@@ -339,7 +337,7 @@ class _ProfilPageState extends State<ProfilPage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: Tok.sp6),
               FadeUp(
                 delay: FadeUp.urutan(8),
                 child: SizedBox(
@@ -356,7 +354,7 @@ class _ProfilPageState extends State<ProfilPage> {
                       );
                       if (ok) widget.onLogout();
                     },
-                    icon: const Icon(Icons.logout_rounded, size: 18),
+                    icon: const Icon(Ikon.keluar, size: 18),
                     label: const Text('Keluar'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Tok.error,
@@ -388,7 +386,7 @@ class _Pintas extends StatelessWidget {
     return ListTile(
       leading: Icon(ikon, color: Tok.mossGelap),
       title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-      trailing: const Icon(Icons.chevron_right_rounded, color: Tok.abu),
+      trailing: const Icon(Ikon.kanan, color: Tok.abu),
       onTap: onTap,
     );
   }

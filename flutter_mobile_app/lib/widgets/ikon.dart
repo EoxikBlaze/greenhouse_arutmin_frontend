@@ -50,4 +50,12 @@ class Ikon {
   static const IconData keranjang = LucideIcons.shoppingBasket;
   static const IconData berhenti = LucideIcons.circleStop;
   static const IconData bukaKunci = LucideIcons.lockOpen;
+  static const IconData naik = LucideIcons.trendingUp;
+  static const IconData kalender = LucideIcons.calendar;
+  static const IconData angka = LucideIcons.hash;
+  static const IconData panah = LucideIcons.arrowRight;
+  static const IconData kurang = LucideIcons.minus;
+  static const IconData surel = LucideIcons.mail;
+  static const IconData kunciKunci = LucideIcons.keyRound;
+  static const IconData terverifikasi = LucideIcons.shieldCheck;
 }
