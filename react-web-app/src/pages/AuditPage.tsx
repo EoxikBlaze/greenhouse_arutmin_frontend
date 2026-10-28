@@ -248,7 +248,7 @@ export function AuditPage() {
   return (
     <div className="mx-auto grid w-full max-w-[1180px] grid-cols-[minmax(0,1fr)] gap-4 vsf-stagger">
       {/* Filter — dua kontrol utama (tabel & aksi) + ukuran halaman */}
-      <section className="vsf-card p-4">
+      <section className="vsf-card p-4 sm:p-5">
         <div className="text-[12px] font-bold uppercase tracking-[.14em] text-slate-500">
           Filter riwayat
         </div>

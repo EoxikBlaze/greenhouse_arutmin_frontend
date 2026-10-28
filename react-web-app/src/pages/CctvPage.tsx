@@ -255,8 +255,8 @@ export default function CctvPage() {
   const aktifN = rows.filter((k) => k.aktif).length
 
   return (
-    <div className="mx-auto w-full max-w-[1180px] grid grid-cols-[minmax(0,1fr)] gap-4 vsf-stagger">
-      <section className="vsf-card w-full min-w-0 p-4">
+    <div className="vsf-halaman vsf-stagger">
+      <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
         <div className="flex flex-wrap items-center gap-3">
           <div className="min-w-0">
             <div className="text-[12px] font-bold uppercase tracking-[.14em] text-slate-500">CCTV greenhouse</div>
@@ -289,7 +289,7 @@ export default function CctvPage() {
       </section>
 
       {form && admin && (
-        <section className="vsf-card w-full min-w-0 p-4" aria-labelledby="vsf-cctv-form">
+        <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-labelledby="vsf-cctv-form">
           <div id="vsf-cctv-form" className="text-[14px] font-bold text-tinta">
             {editId === null ? 'Tambah kamera' : 'Ubah kamera'}
           </div>
@@ -355,7 +355,7 @@ export default function CctvPage() {
           {[0, 1, 2].map((i) => <div key={i} className="vsf-skeleton h-[220px] rounded-card" />)}
         </div>
       ) : error ? (
-        <div role="alert" className="vsf-card p-4 text-[13px] text-red-700">{error}</div>
+        <div role="alert" className="vsf-card p-4 sm:p-5 text-[13px] text-red-700">{error}</div>
       ) : rows.length === 0 ? (
         <section className="vsf-card w-full min-w-0 p-6">
           <div className="rounded-card border border-dashed border-arutmin-border px-4 py-8 text-center">

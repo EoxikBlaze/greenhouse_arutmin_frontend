@@ -420,7 +420,7 @@ export function SemaiPage() {
   return (
     <>
       {/* Tab baca: /semai (semua) · /semai/selesai (hanya yang status selesai). */}
-      <div className="mx-auto max-w-[1180px] vsf-card p-4 flex flex-wrap items-center gap-3">
+      <div className="mx-auto max-w-[1180px] vsf-card p-4 sm:p-5 flex flex-wrap items-center gap-3">
         <span className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Tampilan</span>
         <button
           type="button"
@@ -442,7 +442,7 @@ export function SemaiPage() {
       </div>
 
       {/* Catatan jujur yang tampil: kenapa tab ini tanpa tombol Tambah. */}
-      <div className="mx-auto max-w-[1180px] vsf-card p-4 text-[13px] leading-relaxed text-slate-600">
+      <div className="mx-auto max-w-[1180px] vsf-card p-4 sm:p-5 text-[13px] leading-relaxed text-slate-600">
         <span className="font-bold text-slate-700">Catatan:</span> tab ini menampilkan daftar, detail, dan
         penutupan tahap (Tandai Selesai). Batch semai BARU dibuat lewat tombol{' '}
         <b>Mulai Semai Baru</b> di Dashboard atau halaman Tanam Saya.
@@ -817,7 +817,7 @@ function TahapCrudPage<T>({
   return (
     <>
       {catatan && (
-        <div className="mx-auto max-w-[1180px] vsf-card p-4 text-[13px] leading-relaxed text-slate-600">
+        <div className="mx-auto max-w-[1180px] vsf-card p-4 sm:p-5 text-[13px] leading-relaxed text-slate-600">
           <span className="font-bold text-slate-700">Catatan:</span> {catatan}
         </div>
       )}

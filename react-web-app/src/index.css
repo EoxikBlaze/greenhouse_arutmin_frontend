@@ -1021,3 +1021,45 @@ img { -webkit-user-drag: none; }
   .vsf-card { background: #fff; border-color: var(--garis); }
   .vsf-modal-backdrop { background: rgba(10, 31, 56, 0.7); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
+
+/* Desain v2 — tipografi bagian + ritme halaman (satu sumber untuk semua halaman). */
+@layer components {
+  /* Judul kartu/bagian: kalimat biasa, bukan huruf kapital berjarak. */
+  .vsf-judul-bagian {
+    font-family: theme('fontFamily.heading');
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.005em;
+    color: var(--tinta);
+  }
+  /* Label kecil di dalam kartu (nama metrik, kolom info). */
+  .vsf-label {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #475569;
+  }
+  /* Kerangka halaman: satu kolom, lebar maks 1180, jarak bagian 16 (HP) / 24 (desktop). */
+  .vsf-halaman {
+    @apply mx-auto grid w-full max-w-[1180px] grid-cols-[minmax(0,1fr)] gap-4 md:gap-6;
+  }
+}
+
+@layer components {
+  /* Hero halaman: glass gelap pekat (navy → forest) dengan satu sorot emas halus. Tanpa blur. */
+  .glass-hero {
+    background:
+      radial-gradient(28rem 14rem at 100% 0%, rgba(233, 205, 83, 0.2), transparent 70%),
+      linear-gradient(135deg, rgba(27, 46, 74, 0.96) 0%, rgba(34, 58, 36, 0.94) 58%, rgba(45, 69, 47, 0.92) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--rad-md);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.16),
+      0 18px 36px -24px rgba(7, 21, 39, 0.7);
+    color: #fff;
+  }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .glass-hero { background: #1b2e4a; }
+}

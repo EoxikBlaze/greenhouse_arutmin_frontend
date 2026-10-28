@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { PageHeader } from '../components/PageHeader'
 import clsx from 'clsx'
 import { api } from '../lib/api'
 import { useAuth } from '../lib/authContext'
@@ -113,7 +114,7 @@ const urutKonstanta = (k: Record<string, number>) => Object.entries(k)
 const potongan = (k: Record<string, number>) => urutKonstanta(k).map(([nama, v]) => `const float ${nama} = ${v}f;`).join('\n')
 
 function Kartu({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={clsx('vsf-card w-full min-w-0 p-4', className)}>{children}</section>
+  return <section className={clsx('vsf-card w-full min-w-0 p-4 sm:p-5', className)}>{children}</section>
 }
 
 function Modal({ judul, onTutup, children, lebar = 'max-w-[520px]' }: { judul: string; onTutup: () => void; children: ReactNode; lebar?: string }) {
@@ -121,7 +122,7 @@ function Modal({ judul, onTutup, children, lebar = 'max-w-[520px]' }: { judul: s
     <ModalBackdrop onMouseDown={(e) => { if (e.target === e.currentTarget) onTutup() }}>
       <div role="dialog" aria-modal="true" aria-label={judul} onKeyDown={(e) => { if (e.key === 'Escape') onTutup() }}
         className={clsx('w-full rounded-card bg-white p-5 vsf-modal-card max-h-[90vh] overflow-auto', lebar)}>
-        <div className="text-[12px] uppercase tracking-[.14em] font-bold text-slate-500">{judul}</div>
+        <div className="vsf-judul-bagian">{judul}</div>
         {children}
       </div>
     </ModalBackdrop>
@@ -367,28 +368,18 @@ export default function KalibrasiPage() {
   const online = !!terkini?.is_online
 
   return (
-    <div className="mx-auto w-full max-w-[1180px] grid grid-cols-[minmax(0,1fr)] gap-4 vsf-stagger">
-      <Kartu>
-        <div className="flex flex-wrap items-start gap-3">
-          <div className="min-w-0 max-w-[680px]">
-            <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Kalibrasi alat IoT</div>
-            <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
-              Sensor yang tidak dikalibrasi tetap mengirim angka yang terlihat wajar tetapi salah, dan dosing otomatis akan
-              mengikutinya. Ikuti jadwal di bawah, catat hasilnya, dan untuk pH/EC salin konstanta baru ke firmware.
-            </p>
-          </div>
-          <span className="flex-1" />
-          <div className="flex flex-wrap gap-2">
-            {(['terlambat', 'segera', 'belum', 'aman'] as const).map((k) => (
-              <span key={k} className={clsx('vsf-pill', STATUS[k].kelas)}>{STATUS[k].label}: {hitung(k)}</span>
-            ))}
-          </div>
-        </div>
-      </Kartu>
+    <div className="vsf-halaman vsf-stagger">
+      <PageHeader
+        judul="Kalibrasi alat IoT"
+        deskripsi="Sensor yang tidak dikalibrasi tetap mengirim angka yang terlihat wajar tetapi salah, dan dosing otomatis akan mengikutinya. Ikuti jadwal di bawah, catat hasilnya, dan untuk pH/EC salin konstanta baru ke firmware."
+        aksi={(['terlambat', 'segera', 'belum', 'aman'] as const).map((k) => (
+          <span key={k} className={clsx('vsf-pill', STATUS[k].kelas)}>{STATUS[k].label}: {hitung(k)}</span>
+        ))}
+      />
 
       <Kartu>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Bacaan sensor saat ini</div>
+          <div className="vsf-judul-bagian">Bacaan sensor saat ini</div>
           <span className={clsx('vsf-pill', online ? 'border-arutmin-moss bg-arutmin-mint/50 text-arutmin-forest' : 'vsf-tone-warn')}>
             {online ? 'Perangkat online · diperbarui tiap 5 detik' : 'Perangkat offline — bacaan bisa sudah lama'}
           </span>
@@ -400,7 +391,7 @@ export default function KalibrasiPage() {
             ['Kelembapan', s?.humidity != null ? `${n(s.humidity, 0)} %` : '—'],
           ].map(([k, v]) => (
             <div key={k} className="rounded-std border border-arutmin-border bg-white px-3 py-2">
-              <div className="text-[12px] uppercase tracking-[.12em] text-slate-500 font-bold">{k}</div>
+              <div className="vsf-label">{k}</div>
               <div className="mt-0.5 text-[18px] font-bold tabular-nums text-slate-900">{v}</div>
             </div>
           ))}
@@ -412,7 +403,7 @@ export default function KalibrasiPage() {
 
       <div className="grid gap-4 md:grid-cols-2">
         {loading && rows.length === 0
-          ? [0, 1, 2, 3].map((i) => <div key={i} className="vsf-card p-4"><div className="vsf-skeleton h-28 w-full rounded" /></div>)
+          ? [0, 1, 2, 3].map((i) => <div key={i} className="vsf-card p-4 sm:p-5"><div className="vsf-skeleton h-28 w-full rounded" /></div>)
           : rows.map((a) => (
             <Kartu key={a.sensor} className={a.status === 'terlambat' ? 'border-red-600/40' : undefined}>
               <div className="flex items-start gap-3">

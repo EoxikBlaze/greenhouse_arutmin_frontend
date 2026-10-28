@@ -5,6 +5,7 @@ import { useApiError, useApiList } from '../lib/crudApi'
 import { useAuth } from '../lib/authContext'
 import { StatusBadge } from '../components/StatusBadge'
 import { relatif, waktuBasi } from '../lib/waktu'
+import { Ikon } from '../components/Ikon'
 
 type Param = 'pH' | 'Suhu Air' | 'TDS' | 'Suhu Udara' | 'Kelembapan'
 type Range = '6 Jam' | '24 Jam' | '7 Hari'
@@ -60,7 +61,7 @@ function Pill({ active, children, onClick }: { active?: boolean; children: strin
       type="button"
       onClick={onClick}
       className={clsx(
-        'inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-semibold transition',
+        'inline-flex min-h-[44px] items-center rounded-full border px-3 py-1 text-[12px] font-semibold transition sm:min-h-0',
         active
           ? 'border-arutmin-moss bg-activePill text-white'
           : 'border-arutmin-border bg-white text-slate-700 hover:border-arutmin-moss/60',
@@ -72,25 +73,6 @@ function Pill({ active, children, onClick }: { active?: boolean; children: strin
 }
 
 /* ── Ikon SVG inline (R3): pengganti emoji ikon kotak/jam/peringatan — aria-hidden, 16px ── */
-function IkonSalah({ className }: { className?: string }) {
-  return (
-    <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="8" cy="8" r="6.4" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M6.1 6.1l3.8 3.8M9.9 6.1L6.1 9.9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function IkonPeringatan({ className }: { className?: string }) {
-  return (
-    <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M8 2.4l5.6 10.2H2.4L8 2.4z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-      <path d="M8 6.4v3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-      <circle cx="8" cy="11.3" r="0.85" fill="currentColor" />
-    </svg>
-  )
-}
-
 /** Ilustrasi kotak kosong — empty state "belum ada data" (44px). */
 function IlustrasiKotakKosong() {
   return (
@@ -285,10 +267,10 @@ export default function SensorRealtimePage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[1180px] grid grid-cols-[minmax(0,1fr)] gap-4 vsf-stagger">
+    <div className="vsf-halaman vsf-stagger">
       {/* Kendali grafik: pilihan parameter & rentang */}
-      <section className="vsf-card p-4">
-        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Parameter &amp; Rentang</div>
+      <section className="vsf-card p-4 sm:p-5">
+        <div className="vsf-judul-bagian">Parameter &amp; Rentang</div>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           {(Object.keys(PARAM_DEFS) as Param[]).map((p) => (
             <Pill key={p} active={param === p} onClick={() => setParam(p)}>
@@ -333,7 +315,7 @@ export default function SensorRealtimePage() {
             role="status"
             className="mt-2 vsf-banner rounded-input vsf-tone-warn px-3 py-2 text-[12px] flex items-start gap-2"
           >
-            <IkonPeringatan className="mt-[2px] shrink-0" />
+            <Ikon nama="peringatan" className="h-4 w-4 mt-[2px] shrink-0" />
             <span>
               Bacaan terakhir {waktuBasi(kini - waktuTerbaru!, new Date(waktuTerbaru!).toISOString())} — grafik menampilkan riwayat terakhir yang tersedia di server.
             </span>
@@ -342,8 +324,8 @@ export default function SensorRealtimePage() {
       </section>
 
       {/* Grafik sensor (chart live) */}
-      <section className="vsf-card p-4">
-        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Grafik Sensor</div>
+      <section className="vsf-card p-4 sm:p-5">
+        <div className="vsf-judul-bagian">Grafik Sensor</div>
 
         {error && (
           <div
@@ -351,7 +333,7 @@ export default function SensorRealtimePage() {
             className="mt-3 vsf-banner rounded-input vsf-tone-error px-3 py-2 text-[13px] flex flex-wrap items-center gap-3"
           >
             <span className="flex items-center gap-2">
-              <IkonSalah className="shrink-0" />
+              <Ikon nama="salah" className="h-4 w-4 shrink-0" />
               <span>{error}</span>
             </span>
             <button type="button" className="vsf-input rounded-full font-semibold" onClick={reload}>
@@ -417,8 +399,8 @@ export default function SensorRealtimePage() {
 
       {/* Riwayat data historis — hanya role pengelola (petani: lihat grafik saja) */}
       {role !== 'petani' && (
-        <section className="vsf-card p-4">
-          <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Riwayat Data Historis</div>
+        <section className="vsf-card p-4 sm:p-5">
+          <div className="vsf-judul-bagian">Riwayat Data Historis</div>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <input
               type="date"
@@ -451,7 +433,7 @@ export default function SensorRealtimePage() {
               role="alert"
               className="mt-3 vsf-banner rounded-input vsf-tone-error px-3 py-2 text-[13px] flex items-start gap-2"
             >
-              <IkonSalah className="mt-[2px] shrink-0" />
+              <Ikon nama="salah" className="h-4 w-4 mt-[2px] shrink-0" />
               <span>{tarikError}</span>
             </div>
           )}
@@ -510,8 +492,8 @@ export default function SensorRealtimePage() {
         </section>
       )}
 
-      <section className="vsf-card p-4">
-        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Tentang layar ini</div>
+      <section className="vsf-card p-4 sm:p-5">
+        <div className="vsf-judul-bagian">Tentang layar ini</div>
         <ul className="mt-2 list-disc pl-5 text-[13px] text-slate-700 leading-relaxed">
           <li>Live: GET /monitoring/chart-data (polling 15 dtk) · GET /monitoring/tarik (riwayat manual) — Bearer JWT.</li>
           <li>Rentang difilter di klien dari titik terakhir yang tersedia; bacaan basi ditandai banner peringatan.</li>

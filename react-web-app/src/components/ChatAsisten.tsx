@@ -174,7 +174,7 @@ export function ChatAsisten() {
   }
 
   return (
-    <section className="vsf-card w-full min-w-0 p-4" aria-labelledby="vsf-chat-title">
+    <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-labelledby="vsf-chat-title">
       <div className="flex flex-wrap items-center gap-2">
         <div id="vsf-chat-title" className="text-[12px] font-bold uppercase tracking-[.14em] text-slate-500">
           Tanya asisten

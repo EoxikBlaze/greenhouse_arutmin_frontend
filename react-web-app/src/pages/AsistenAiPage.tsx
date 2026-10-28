@@ -142,7 +142,7 @@ export default function AsistenAiPage() {
 
       {/* Kanan: langkah berikutnya + data yang dibaca */}
       <aside className="grid min-w-0 gap-4">
-        <section className="vsf-card w-full min-w-0 p-4">
+        <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
           <div className="text-[12px] font-bold uppercase tracking-[.14em] text-slate-500">Langkah berikutnya</div>
           <p className="mt-1 text-[12.5px] leading-relaxed text-slate-600">
             Satu rekomendasi prioritas beserta alasannya, dari kondisi kebun saat ini.
@@ -206,7 +206,7 @@ export default function AsistenAiPage() {
           )}
         </section>
 
-        <section className="vsf-card w-full min-w-0 p-4">
+        <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
           <div className="text-[12px] font-bold uppercase tracking-[.14em] text-slate-500">Data yang dibaca</div>
           <ul className="mt-2.5 flex flex-wrap gap-1.5">
             {SUMBER_DATA.map((k) => (

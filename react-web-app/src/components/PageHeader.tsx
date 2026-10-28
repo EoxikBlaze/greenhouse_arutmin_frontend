@@ -11,7 +11,7 @@ export function PageHeader({
   deskripsi,
   aksi,
 }: {
-  eyebrow: string
+  eyebrow?: string
   judul?: string
   deskripsi?: ReactNode
   aksi?: ReactNode
@@ -19,9 +19,9 @@ export function PageHeader({
   return (
     <section className="vsf-card flex flex-wrap items-start justify-between gap-x-6 gap-y-3 p-4 sm:p-5">
       <div className="min-w-0 flex-1 basis-[280px]">
-        <div className="vsf-eyebrow">{eyebrow}</div>
-        {judul && <h2 className="mt-1 font-display text-[20px] font-bold leading-tight text-tinta">{judul}</h2>}
-        {deskripsi && <p className="mt-2 max-w-[68ch] text-[13px] leading-relaxed text-slate-600">{deskripsi}</p>}
+        {eyebrow && <div className="vsf-eyebrow">{eyebrow}</div>}
+        {judul && <h2 className="font-display text-[20px] font-bold leading-tight text-tinta">{judul}</h2>}
+        {deskripsi && <p className="mt-1.5 max-w-[68ch] text-[13px] leading-relaxed text-slate-600">{deskripsi}</p>}
       </div>
       {aksi && <div className="flex shrink-0 flex-wrap items-center gap-2">{aksi}</div>}
     </section>

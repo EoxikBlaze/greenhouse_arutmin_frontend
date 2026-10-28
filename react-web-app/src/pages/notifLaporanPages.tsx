@@ -92,9 +92,9 @@ export function LaporanPage() {
   const errSampai = failure ? fieldError(failure.fieldErrors, 'sampai') : undefined
 
   return (
-    <div className="mx-auto w-full max-w-[1180px] grid grid-cols-[minmax(0,1fr)] gap-4 vsf-stagger">
+    <div className="vsf-halaman vsf-stagger">
       {/* Filter */}
-      <section className="vsf-card p-4">
+      <section className="vsf-card p-4 sm:p-5">
         <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Filter laporan</div>
         <form className="mt-3 flex flex-wrap items-start gap-2" onSubmit={terapkan}>
           <label className="block">
@@ -129,7 +129,7 @@ export function LaporanPage() {
       </section>
 
       {/* Satu state per layar */}
-      <section className="vsf-card p-4">
+      <section className="vsf-card p-4 sm:p-5">
         <div className="flex flex-wrap items-center gap-3">
           <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Matriks laporan</div>
           <span className="flex-1" />

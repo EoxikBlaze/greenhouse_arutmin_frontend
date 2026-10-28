@@ -166,7 +166,7 @@ export function TargetPenampung({ versi, onUbah }: { versi: number; onUbah: () =
   const aktif = rows.filter((r) => r.batch || r.target_mode === 'manual' || r.target_ec_ppm != null)
 
   return (
-    <section className="vsf-card w-full min-w-0 p-4">
+    <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 max-w-[720px]">
           <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Target tiap penampung</div>
@@ -392,7 +392,7 @@ export function PresetNutrisi({ onUbah }: { onUbah: () => void }) {
   )
 
   return (
-    <section className="vsf-card w-full min-w-0 p-4">
+    <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 max-w-[720px]">
           <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Preset nutrisi (template)</div>

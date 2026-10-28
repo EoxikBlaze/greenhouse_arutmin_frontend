@@ -323,7 +323,7 @@ export default function TanamSayaPage() {
         </div>
       )}
       {/* Ringkasan + pencarian */}
-      <section className="vsf-card p-4">
+      <section className="vsf-card p-4 sm:p-5">
         <div className="flex flex-wrap items-start gap-3">
           <div className="min-w-0">
             <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Tanam aktif</div>
@@ -357,7 +357,7 @@ export default function TanamSayaPage() {
       </section>
 
       {/* Satu state per layar: loading → error → kosong → daftar */}
-      <section className="vsf-card p-4">
+      <section className="vsf-card p-4 sm:p-5">
         <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Daftar tanam</div>
 
         {loading ? (

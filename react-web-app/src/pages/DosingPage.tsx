@@ -6,6 +6,8 @@ import { fieldError, useApiError, useApiList } from '../lib/crudApi'
 import { useApiObject } from '../lib/useApiObject'
 import { PresetNutrisi, TargetPenampung } from '../components/PresetDosing'
 import { NaikHarian } from '../components/NaikHarian'
+import { Ikon } from '../components/Ikon'
+import { PageHeader } from '../components/PageHeader'
 
 /**
  * Dosing otomatis — terhubung ke endpoint KONFIGURASI V2 riil (routes/konfigurasi.js):
@@ -94,10 +96,7 @@ function Galat({ pesan, onTutup }: { pesan: string; onTutup: () => void }) {
       className="vsf-banner mb-3 rounded-input vsf-tone-error px-3 py-2 text-[13px] flex flex-wrap items-center gap-3"
     >
       <span className="inline-flex items-center gap-1.5">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="shrink-0">
-          <path d="M8 1.8 14.8 13.8H1.2L8 1.8Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-          <path d="M8 6.4v3.1M8 11.5v.1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-        </svg>
+        <Ikon nama="peringatan" className="h-4 w-4" />
         {pesan}
       </span>
       <button type="button" className="vsf-input rounded-full font-semibold" onClick={onTutup}>
@@ -182,10 +181,10 @@ function TabelParameter({
   const kosong = !loading && !error && rows.length === 0
 
   return (
-    <section className="vsf-card w-full min-w-0 p-4">
+    <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
       <div className="flex flex-wrap items-center gap-3">
         <div className="min-w-0">
-          <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">{judul}</div>
+          <div className="vsf-judul-bagian">{judul}</div>
           <div className="mt-1 text-[12px] text-slate-500">
             <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET {path}</code>
             {' · '}
@@ -328,26 +327,25 @@ export default function DosingPage() {
   const ubahTarget = () => setVersiTarget((v) => v + 1)
 
   return (
-    <div className="mx-auto w-full max-w-[1180px] grid grid-cols-[minmax(0,1fr)] gap-4 vsf-stagger">
+    <div className="vsf-halaman vsf-stagger">
       {/* Ringkas modul — sumber daya nyata */}
-      <section className="vsf-card w-full min-w-0 p-4">
-        <div className="flex flex-wrap items-start gap-3">
-          <div className="min-w-0">
-            <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Dosing otomatis</div>
-            <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
-              Injeksi nutrisi yang diatur sendiri: target EC/pH tiap penampung diambil otomatis dari
-              <b> preset nutrisi</b> sesuai tanaman, tahap, dan umur batch di meja itu, lalu pompa dosing
-              mengejarnya dengan jeda dan batas harian. Parameter, timing, aturan fail-safe, dan jadwal
-              perawatan di bawah diambil langsung dari modul Konfigurasi V2.
-            </p>
-          </div>
-          <span className="flex-1" />
+      <PageHeader
+        judul="Dosing otomatis"
+        deskripsi={
+          <>
+            Injeksi nutrisi yang diatur sendiri: target EC/pH tiap penampung diambil otomatis dari
+            <b> preset nutrisi</b> sesuai tanaman, tahap, dan umur batch di meja itu, lalu pompa dosing
+            mengejarnya dengan jeda dan batas harian. Parameter, timing, aturan fail-safe, dan jadwal
+            perawatan di bawah diambil langsung dari modul Konfigurasi V2.
+          </>
+        }
+        aksi={
           <span className="vsf-pill border-arutmin-moss/50 bg-arutmin-mint/40 text-arutmin-forest">
             <span className="vsf-dot mr-1 h-[7px] w-[7px] rounded-full bg-arutmin-forest" aria-hidden="true" />
             Terhubung · Konfigurasi V2
           </span>
-        </div>
-      </section>
+        }
+      />
 
       <TargetPenampung versi={versiTarget} onUbah={ubahTarget} />
       <NaikHarian />
@@ -374,10 +372,10 @@ export default function DosingPage() {
       />
 
       {/* Aturan fail-safe — baca saja (tidak ada endpoint tulis di kontrak V2) */}
-      <section className="vsf-card w-full min-w-0 p-4">
+      <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
         <div className="flex flex-wrap items-center gap-3">
           <div className="min-w-0">
-            <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Aturan fail-safe</div>
+            <div className="vsf-judul-bagian">Aturan fail-safe</div>
             <div className="mt-1 text-[12px] text-slate-500">
               <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET /aturan-fail-safe</code>
               {' — perlindungan darurat (E-STOP, ambang EC, jatah kejadian dosing). Baca saja.'}
@@ -448,10 +446,10 @@ export default function DosingPage() {
       </section>
 
       {/* Jadwal perawatan — baca saja */}
-      <section className="vsf-card w-full min-w-0 p-4">
+      <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
         <div className="flex flex-wrap items-center gap-3">
           <div className="min-w-0">
-            <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Jadwal perawatan</div>
+            <div className="vsf-judul-bagian">Jadwal perawatan</div>
             <div className="mt-1 text-[12px] text-slate-500">
               <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET /jadwal-perawatan</code>
               {' — kegiatan kalibrasi & pembersihan berkala. Baca saja.'}
@@ -513,10 +511,10 @@ export default function DosingPage() {
       </section>
 
       {/* Ringkasan status katup — sumber nyata: GET /watercontrol/status */}
-      <section className="vsf-card w-full min-w-0 p-4">
+      <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
         <div className="flex flex-wrap items-center gap-3">
           <div>
-            <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">
+            <div className="vsf-judul-bagian">
               Status terkait · Water Control
             </div>
             <div className="mt-1 text-[12px] text-slate-500">
@@ -545,7 +543,7 @@ export default function DosingPage() {
             role="alert"
             className="vsf-banner mt-3 rounded-input vsf-tone-error px-3 py-2 text-[13px] flex flex-wrap items-center gap-3"
           >
-            <span className="inline-flex items-center gap-1.5"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="shrink-0"><path d="M8 1.8 14.8 13.8H1.2L8 1.8Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M8 6.4v3.1M8 11.5v.1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> {error}</span>
+            <span className="inline-flex items-center gap-1.5"><Ikon nama="peringatan" className="h-4 w-4" /> {error}</span>
             <button type="button" className="vsf-input rounded-full font-semibold" onClick={reload}>
               Muat ulang
             </button>
@@ -561,7 +559,7 @@ export default function DosingPage() {
         ) : (
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 vsf-stagger">
             <div className="rounded-card border border-arutmin-border bg-white p-4">
-              <div className="text-[12px] uppercase tracking-[.12em] text-slate-500">Katup</div>
+              <div className="vsf-label">Katup</div>
               <div
                 className={clsx(
                   'mt-1 text-[15px] font-bold',
@@ -573,17 +571,17 @@ export default function DosingPage() {
               <div className="text-[12px] text-slate-500">state katup tandon</div>
             </div>
             <div className="rounded-card border border-arutmin-border bg-white p-4">
-              <div className="text-[12px] uppercase tracking-[.12em] text-slate-500">Mode</div>
+              <div className="vsf-label">Mode</div>
               <div className="mt-1 text-[15px] font-bold text-slate-900">{data.mode ?? '—'}</div>
               <div className="text-[12px] text-slate-500">AUTO mengikuti ambang sensor</div>
             </div>
             <div className="rounded-card border border-arutmin-border bg-white p-4">
-              <div className="text-[12px] uppercase tracking-[.12em] text-slate-500">Perintah terakhir</div>
+              <div className="vsf-label">Perintah terakhir</div>
               <div className="mt-1 text-[15px] font-bold text-slate-900">{data.command ?? '—'}</div>
               <div className="text-[12px] text-slate-500">tersimpan di server</div>
             </div>
             <div className="rounded-card border border-arutmin-border bg-white p-4">
-              <div className="text-[12px] uppercase tracking-[.12em] text-slate-500">Diperbarui</div>
+              <div className="vsf-label">Diperbarui</div>
               <div className="mt-1 text-[15px] font-bold text-slate-900">{tgl(data.updated_at)}</div>
               <div className="text-[12px] text-slate-500">waktu server</div>
             </div>
@@ -592,8 +590,8 @@ export default function DosingPage() {
       </section>
 
       {/* Sumber data — transparan */}
-      <section className="vsf-card w-full min-w-0 p-4">
-        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Sumber data layar ini</div>
+      <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
+        <div className="vsf-judul-bagian">Sumber data layar ini</div>
         <ul className="mt-2 grid gap-1.5 text-[13px] leading-relaxed text-slate-700">
           <li><code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET/PUT /konfigurasi-dosis</code> — parameter dosing (bisa diubah admin).</li>
           <li><code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET/PUT /timing-operasi</code> — timing operasi (bisa diubah admin).</li>

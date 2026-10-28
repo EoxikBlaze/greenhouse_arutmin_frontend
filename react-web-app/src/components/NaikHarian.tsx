@@ -84,7 +84,7 @@ export function NaikHarian() {
   const perHari = pa != null && pt != null && ph && ph > 0 && pt >= pa ? (pt - pa) / ph : null
 
   return (
-    <section className="vsf-card w-full min-w-0 p-4">
+    <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
       <div className="min-w-0 max-w-[760px]">
         <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Target nutrisi naik harian</div>
         <p className="mt-1 text-[13px] leading-relaxed text-slate-600">

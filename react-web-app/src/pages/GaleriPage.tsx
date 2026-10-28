@@ -21,7 +21,7 @@ export default function GaleriPage() {
       />
 
       <section className="grid gap-4 md:grid-cols-3">
-        <div className="vsf-card p-4 sm:p-5">
+        <div className="vsf-card p-4 sm:p-5 sm:p-5">
           <div className="vsf-eyebrow">Kartu glass ringan</div>
           <div className="mt-2 font-display text-[28px] font-bold text-tinta">6,20</div>
           <p className="mt-1 text-[13px] text-slate-600">batas aman 5–7 · perangkat online</p>
@@ -49,7 +49,7 @@ export default function GaleriPage() {
         <div className="vsf-tone-warn rounded-std px-3 py-2 text-[13px]">Peringatan: data sensor sudah 7 hari.</div>
       </section>
 
-      <section className="vsf-card p-4 sm:p-5">
+      <section className="vsf-card p-4 sm:p-5 sm:p-5">
         <div className="vsf-eyebrow">Tabel (header ringan, isi solid)</div>
         <div className="mt-3 overflow-auto rounded-card border border-arutmin-border bg-white vsf-table">
           <table aria-label="Contoh tabel" className="w-full text-[13px]">
@@ -67,7 +67,7 @@ export default function GaleriPage() {
         </div>
       </section>
 
-      <section className="vsf-card p-4 sm:p-5">
+      <section className="vsf-card p-4 sm:p-5 sm:p-5">
         <div className="vsf-eyebrow">Ikon (Lucide, garis 1.75)</div>
         <div className="mt-3 grid grid-cols-4 gap-3 sm:grid-cols-8 lg:grid-cols-12">
           {IKON.map((n) => (
