@@ -2,31 +2,17 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/authContext'
 import { Monogram } from '../layouts/AppShell'
+import { Ikon } from '../components/Ikon'
 
 /** Ikon SVG inline (R3 — tanpa emoji agar konsisten & terbaca screen reader). */
-function IconAlert({ className = 'h-4 w-4 shrink-0' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-      <path d="M12 3 1.8 20.5h20.4z" />
-      <path d="M12 9.5v4.5M12 17.2v.2" />
-    </svg>
-  )
+function IconAlert({ className = 'h-4 w-4' }: { className?: string }) {
+  return <Ikon nama="peringatan" className={className} />
 }
 function IconCheck({ className = 'h-3.5 w-3.5' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M5 12.5 10 17.5 19 7" />
-    </svg>
-  )
+  return <Ikon nama="centang" className={className} />
 }
 function IconEye({ off }: { off?: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" />
-      <circle cx="12" cy="12" r="2.8" />
-      {off && <path d="M4 4l16 16" />}
-    </svg>
-  )
+  return <Ikon nama={off ? 'mataCoret' : 'mata'} className="h-[18px] w-[18px]" />
 }
 
 const KEUNGGULAN = [

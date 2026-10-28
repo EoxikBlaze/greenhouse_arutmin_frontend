@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import { api } from '../lib/api'
 import { useApiError } from '../lib/crudApi'
 import { ChatAsisten } from '../components/ChatAsisten'
+import { Ikon } from '../components/Ikon'
 
 /**
  * Asisten AI — terhubung ke endpoint riil:
@@ -143,7 +144,7 @@ export default function AsistenAiPage() {
       {/* Kanan: langkah berikutnya + data yang dibaca */}
       <aside className="grid min-w-0 gap-4">
         <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
-          <div className="text-[12px] font-bold uppercase tracking-[.14em] text-slate-500">Langkah berikutnya</div>
+          <div className="vsf-judul-bagian">Langkah berikutnya</div>
           <p className="mt-1 text-[12.5px] leading-relaxed text-slate-600">
             Satu rekomendasi prioritas beserta alasannya, dari kondisi kebun saat ini.
           </p>
@@ -161,9 +162,7 @@ export default function AsistenAiPage() {
               </>
             ) : (
               <>
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <path d="M10 2.5 12 7.6l5.1 2-5.1 2-2 5.1-2-5.1-5.1-2 5.1-2z" fill="currentColor" />
-                </svg>
+                <Ikon nama="ai" className="h-4 w-4" />
                 Minta langkah selanjutnya
               </>
             )}
@@ -194,7 +193,7 @@ export default function AsistenAiPage() {
 
           {riwayat.length > 1 && (
             <div className="mt-4">
-              <div className="text-[12px] font-bold uppercase tracking-[.14em] text-slate-500">
+              <div className="vsf-label">
                 Sebelumnya ({riwayat.length - 1})
               </div>
               <div className="mt-2 grid gap-2">
@@ -207,7 +206,7 @@ export default function AsistenAiPage() {
         </section>
 
         <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
-          <div className="text-[12px] font-bold uppercase tracking-[.14em] text-slate-500">Data yang dibaca</div>
+          <div className="vsf-judul-bagian">Data yang dibaca</div>
           <ul className="mt-2.5 flex flex-wrap gap-1.5">
             {SUMBER_DATA.map((k) => (
               <li

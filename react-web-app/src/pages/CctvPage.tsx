@@ -259,7 +259,7 @@ export default function CctvPage() {
       <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
         <div className="flex flex-wrap items-center gap-3">
           <div className="min-w-0">
-            <div className="text-[12px] font-bold uppercase tracking-[.14em] text-slate-500">CCTV greenhouse</div>
+            <div className="vsf-label">CCTV greenhouse</div>
             <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
               Pantau greenhouse, nursery, dan area tandon. Kamera RTSP (EZVIZ) diambil lewat server; snapshot dan MJPEG
               ditarik langsung dari kamera di jaringan Anda.
