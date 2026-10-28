@@ -148,7 +148,7 @@
   /* Permukaan standar: radius token + shadow halus (150ms transisi) */
   /* Desain v2: glass ringan (transparan di atas .app-latar, TANPA blur). */
   .vsf-card {
-    background: linear-gradient(155deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.16));
+    background: linear-gradient(155deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
     backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
     border: 1px solid rgba(255, 255, 255, 0.6);
@@ -278,7 +278,8 @@
   .vsf-btn:active:not(:disabled) { transform: translateY(0) scale(0.98); }
   .vsf-btn:disabled { opacity: 0.55; cursor: not-allowed; }
   /* Page transition (dipakai AppShell, key = pathname) */
-  .vsf-page { animation: vsf-fade-up var(--dur-normal) var(--ease-v2) both; }
+  /* backwards (bukan both): fill dilepas setelah selesai, supaya backdrop-filter kartu di dalamnya tetap bekerja. */
+  .vsf-page { animation: vsf-fade-up var(--dur-normal) var(--ease-v2) backwards; }
   /* Stagger: anak-anak kartu/section naik berurutan.
      P1 — fill-mode `backwards` (bukan `both`): setelah animasi selesai, fill
      dilepas sehingga `transform` hover (.vsf-card:hover → translateY(-2px))
@@ -884,20 +885,14 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
+    /* Foto pegunungan yang sama dengan halaman Tentang Kami; kerudung putih tipis menjaga teks tetap terbaca. */
     background:
-      radial-gradient(46rem 34rem at 6% -6%, rgba(96, 160, 240, 0.62), transparent 64%),
-      radial-gradient(40rem 30rem at 98% 2%, rgba(160, 142, 242, 0.5), transparent 62%),
-      radial-gradient(44rem 34rem at 2% 104%, rgba(107, 157, 74, 0.5), transparent 62%),
-      radial-gradient(46rem 32rem at 100% 100%, rgba(233, 205, 83, 0.55), transparent 64%),
-      radial-gradient(34rem 26rem at 58% 36%, rgba(96, 160, 240, 0.4), transparent 66%),
-      radial-gradient(30rem 24rem at 28% 68%, rgba(107, 157, 74, 0.38), transparent 66%),
-      radial-gradient(28rem 22rem at 80% 66%, rgba(233, 205, 83, 0.38), transparent 66%),
-      radial-gradient(26rem 20rem at 44% 10%, rgba(160, 142, 242, 0.34), transparent 66%),
-      linear-gradient(135deg, #e2eefc 0%, #e8f3ec 48%, #fbf2d6 100%);
+      linear-gradient(rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.1)),
+      #4b9bdc url('/bg-lanskap.jpg') center / cover no-repeat;
   }
   /* Chrome: topbar, sidebar, dock, dropdown. Satu-satunya yang memakai blur. */
   .glass-chrome {
-    background: linear-gradient(155deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2));
+    background: linear-gradient(155deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.46));
     -webkit-backdrop-filter: blur(var(--glass-blur-chrome)) saturate(1.9) brightness(1.06);
     backdrop-filter: blur(var(--glass-blur-chrome)) saturate(1.9) brightness(1.06);
     border: 1px solid rgba(255, 255, 255, 0.6);
@@ -912,7 +907,7 @@
   }
   /* Glass ringan: kartu/ringkasan. Tanpa blur (hemat GPU, aman saat scroll). */
   .glass-card {
-    background: linear-gradient(155deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.16));
+    background: linear-gradient(155deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
     backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
     border: 1px solid rgba(255, 255, 255, 0.6);
@@ -993,7 +988,7 @@
     background:
       radial-gradient(26rem 14rem at 100% 0%, rgba(233, 205, 83, 0.5), transparent 70%),
       radial-gradient(30rem 16rem at 0% 100%, rgba(96, 160, 240, 0.46), transparent 70%),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(207, 226, 206, 0.26));
+      linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(207, 226, 206, 0.48));
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.9) brightness(1.06);
     backdrop-filter: blur(var(--glass-blur)) saturate(1.9) brightness(1.06);
     border: 1px solid rgba(255, 255, 255, 0.7);
