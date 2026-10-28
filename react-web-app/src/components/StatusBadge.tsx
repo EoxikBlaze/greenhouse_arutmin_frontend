@@ -14,9 +14,9 @@ export function StatusBadge({ tone, label }: { tone: StatusTone; label: string }
   }[tone]
 
   const dot = {
-    online: 'bg-[#4C9A34] shadow-[0_0_0_3px_rgba(107,157,74,.28)]',
-    offline: 'bg-red-600 shadow-[0_0_0_3px_rgba(220,38,38,.22)]',
-    warning: 'bg-amber-500 shadow-[0_0_0_3px_rgba(245,158,11,.25)]',
+    online: 'bg-arutmin-moss shadow-[0_0_0_3px_rgba(107,157,74,.28)]',
+    offline: 'bg-arutmin-error shadow-[0_0_0_3px_rgba(192,57,43,.22)]',
+    warning: 'bg-arutmin-warning shadow-[0_0_0_3px_rgba(224,164,43,.25)]',
   }[tone]
 
   return (
