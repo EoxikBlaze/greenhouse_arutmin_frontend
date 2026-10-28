@@ -96,10 +96,10 @@ class _KacaCairState extends State<KacaCair> {
       // kaca terang: putih tembus pandang di atas latar berwarna; teks tetap gelap
       final warnaA = gelap
           ? Tok.navy.withValues(alpha: 0.66)
-          : Colors.white.withValues(alpha: chrome ? 0.56 : 0.50);
+          : Colors.white.withValues(alpha: chrome ? 0.68 : 0.68);
       final warnaB = gelap
           ? Tok.navy.withValues(alpha: 0.40)
-          : Colors.white.withValues(alpha: chrome ? 0.24 : 0.18);
+          : Colors.white.withValues(alpha: chrome ? 0.44 : 0.44);
       final permukaan = DecoratedBox(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -182,54 +182,30 @@ class _KacaCairState extends State<KacaCair> {
   }
 }
 
-/// Latar berwarna lembut untuk ditaruh DI BELAKANG kaca: tanpa isi di belakangnya,
-/// kaca tampak datar. Murah (hanya gradasi, tanpa blur tambahan).
+/// Latar untuk ditaruh DI BELAKANG kaca: foto pegunungan yang sama dengan latar
+/// web (dashboard dan Tentang Kami), diberi kerudung putih tipis agar teks terbaca.
+/// Tanpa isi di belakangnya, kaca tampak datar.
 class LatarCair extends StatelessWidget {
   const LatarCair({super.key});
 
-  Widget _bola(Alignment a, double ukuran, Color warna, double alpha) {
-    return Align(
-      alignment: a,
-      child: Container(
-        width: ukuran,
-        height: ukuran,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              warna.withValues(alpha: alpha),
-              warna.withValues(alpha: 0),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Biru, lavender, hijau moss, emas — sama dengan `.app-latar` di web.
   @override
   Widget build(BuildContext context) {
     return RepaintBoundary(
       child: IgnorePointer(
-        child: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFE2EEFC), Color(0xFFE8F3EC), Color(0xFFFBF2D6)],
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            const ColoredBox(color: Color(0xFF4B9BDC)),
+            Image.asset(
+              'assets/latar/bg-lanskap.jpg',
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+              cacheWidth: 1280,
+              gaplessPlayback: true,
+              excludeFromSemantics: true,
             ),
-          ),
-          child: Stack(
-            children: [
-              _bola(const Alignment(-1.1, -0.85), 460, const Color(0xFF60A0F0), 0.62),
-              _bola(const Alignment(1.25, -0.4), 400, const Color(0xFFA08EF2), 0.50),
-              _bola(const Alignment(-1.2, 0.95), 440, Tok.moss, 0.50),
-              _bola(const Alignment(1.2, 1.0), 420, Tok.emas, 0.55),
-              _bola(const Alignment(0.3, -0.15), 340, const Color(0xFF60A0F0), 0.36),
-              _bola(const Alignment(-0.6, 0.45), 320, Tok.moss, 0.34),
-              _bola(const Alignment(0.7, 0.55), 300, Tok.emas, 0.34),
-            ],
-          ),
+            ColoredBox(color: Colors.white.withValues(alpha: 0.12)),
+          ],
         ),
       ),
     );

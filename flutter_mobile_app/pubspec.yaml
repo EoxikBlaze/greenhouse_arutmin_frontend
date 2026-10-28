@@ -63,6 +63,7 @@ flutter:
   assets:
     - assets/tentang/logo/
     - assets/tentang/tim/
+    - assets/latar/
 
   # Font sama dengan web (OFL): Inter untuk isi, Space Grotesk untuk judul.
   # Berkas variabel yang sama didaftarkan per bobot agar FontWeight 400-700 dipakai.

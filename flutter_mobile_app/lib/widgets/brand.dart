@@ -198,9 +198,9 @@ class HeroHeader extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.white.withValues(alpha: 0.58),
-              const Color(0xFFD7E8F8).withValues(alpha: 0.42),
-              const Color(0xFFE2F0D8).withValues(alpha: 0.40),
+              Colors.white.withValues(alpha: 0.72),
+              const Color(0xFFD7E8F8).withValues(alpha: 0.58),
+              const Color(0xFFE2F0D8).withValues(alpha: 0.56),
             ],
           ),
           borderRadius: radius,
