@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
+import '../widgets/halaman.dart';
 import '../widgets/ikon.dart';
 import '../util/format.dart';
 import '../widgets/kaca.dart';
@@ -63,8 +64,6 @@ class _MejaPageState extends State<MejaPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final scheme = Theme.of(context).colorScheme;
-
     Widget tarikRefresh(List<Widget> anak) => RefreshIndicator(
       color: Tok.moss,
       onRefresh: _load,
@@ -121,8 +120,16 @@ class _MejaPageState extends State<MejaPage>
                   children: [
                     Row(
                       children: [
-                        Icon(Ikon.meja, size: 18, color: scheme.primary),
-                        const SizedBox(width: 8),
+                        Container(
+                          width: 34,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Tok.moss.withValues(alpha: 0.16),
+                          ),
+                          child: Icon(Ikon.meja, size: 18, color: Tok.forest),
+                        ),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             m.meja.isEmpty ? 'Meja #${m.idMeja}' : m.meja,
@@ -133,29 +140,33 @@ class _MejaPageState extends State<MejaPage>
                           ),
                         ),
                         if (m.jenisTalang != null)
-                          Chip(
-                            label: Text(m.jenisTalang!),
-                            visualDensity: VisualDensity.compact,
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                          ),
+                          StatusPill(teks: m.jenisTalang!, warna: Tok.moss),
                       ],
                     ),
                     const SizedBox(height: Tok.sp3),
                     Wrap(
-                      spacing: 16,
-                      runSpacing: 6,
+                      spacing: 8,
+                      runSpacing: 8,
                       children: [
-                        _kv('Lubang', '${m.jumlahLubang ?? '-'}'),
-                        _kv('Talang', '${m.jumlahTalang ?? '-'}'),
-                        _kv('Lubang/talang', '${m.lubangPerTalang ?? '-'}'),
-                        _kv('Panjang', _fmt(m.panjangTalangM, satuan: ' m')),
-                        _kv(
+                        MiniNilai('Lubang', '${m.jumlahLubang ?? '-'}'),
+                        MiniNilai('Talang', '${m.jumlahTalang ?? '-'}'),
+                        MiniNilai(
+                          'Lubang/talang',
+                          '${m.lubangPerTalang ?? '-'}',
+                        ),
+                        MiniNilai(
+                          'Panjang',
+                          _fmt(m.panjangTalangM, satuan: ' m'),
+                        ),
+                        MiniNilai(
                           'Kapasitas',
                           _fmt(m.kapasitasPenampungL, satuan: ' L'),
                         ),
-                        _kv('Laju', _fmt(m.lajuPerTalangLpm, satuan: ' L/m')),
-                        _kv(
+                        MiniNilai(
+                          'Laju',
+                          _fmt(m.lajuPerTalangLpm, satuan: ' L/m'),
+                        ),
+                        MiniNilai(
                           'Kenaikan air',
                           _fmt(m.kenaikanAirCm, satuan: ' cm', desimal: 0),
                         ),
@@ -178,20 +189,8 @@ class _MejaPageState extends State<MejaPage>
     }
 
     return Scaffold(
-      appBar: const AppBarGlass(judul: 'Daftar Meja'),
+      appBar: const AppBarGlass(judul: 'Daftar meja', eyebrow: 'Data'),
       body: LatarHalaman(child: body),
     );
   }
-
-  Widget _kv(String label, String nilai) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(label, style: const TextStyle(fontSize: 11, color: Tok.abuTeks)),
-      Text(
-        nilai,
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-      ),
-    ],
-  );
 }

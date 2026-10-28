@@ -65,7 +65,7 @@ class _CctvPageState extends State<CctvPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppBarGlass(judul: 'CCTV greenhouse'),
+      appBar: const AppBarGlass(judul: 'CCTV greenhouse', eyebrow: 'Ikhtisar'),
       body: LatarHalaman(
         child: RefreshIndicator(
           color: Tok.moss,

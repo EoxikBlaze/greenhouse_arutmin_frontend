@@ -315,7 +315,10 @@ class HeroHeader extends StatelessWidget {
                           ],
                         ],
                       ),
-                      if (bawah != null) ...[const SizedBox(height: 18), bawah!],
+                      if (bawah != null) ...[
+                        const SizedBox(height: 18),
+                        bawah!,
+                      ],
                     ],
                   ),
                 ),

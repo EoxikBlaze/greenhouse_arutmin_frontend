@@ -131,10 +131,7 @@ class PilPilih extends StatelessWidget {
       ),
     );
     if (!gulir) return pil;
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: pil,
-    );
+    return SingleChildScrollView(scrollDirection: Axis.horizontal, child: pil);
   }
 
   Widget _item(int i) {
@@ -216,6 +213,42 @@ class HeroKartu extends StatelessWidget {
           ],
         ),
         child: child,
+      ),
+    );
+  }
+}
+
+/// Kotak angka kecil berlatar kaca (label di atas, nilai tebal di bawah). Dipakai
+/// untuk rincian di dalam kartu (meja, riwayat monitoring).
+class MiniNilai extends StatelessWidget {
+  const MiniNilai(this.label, this.nilai, {super.key});
+
+  final String label;
+  final String nilai;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 11, color: Tok.abuTeks)),
+          Text(
+            nilai,
+            style: const TextStyle(
+              fontSize: 14.5,
+              fontWeight: FontWeight.w700,
+              color: Tok.tinta,
+            ),
+          ),
+        ],
       ),
     );
   }

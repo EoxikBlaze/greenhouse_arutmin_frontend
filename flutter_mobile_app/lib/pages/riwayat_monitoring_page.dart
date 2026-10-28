@@ -6,6 +6,7 @@ import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
+import '../widgets/halaman.dart';
 import '../widgets/ikon.dart';
 import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
@@ -78,8 +79,6 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final scheme = Theme.of(context).colorScheme;
-
     Widget body;
     if (_loading && _items == null && _error == null) {
       body = ListView(
@@ -139,8 +138,16 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
                   children: [
                     Row(
                       children: [
-                        Icon(Ikon.sensor, size: 16, color: scheme.primary),
-                        const SizedBox(width: 8),
+                        Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Tok.moss.withValues(alpha: 0.16),
+                          ),
+                          child: Icon(Ikon.sensor, size: 16, color: Tok.forest),
+                        ),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             waktuPendek(e.createdAt),
@@ -153,14 +160,17 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
                     ),
                     const SizedBox(height: 8),
                     Wrap(
-                      spacing: 14,
-                      runSpacing: 4,
+                      spacing: 8,
+                      runSpacing: 8,
                       children: [
-                        _kv('pH', _fmt(e.ph, desimal: 2)),
-                        _kv('Suhu air', '${_fmt(e.waterTemp)} °C'),
-                        _kv('TDS', '${_fmt(e.tds, desimal: 0)} ppm'),
-                        _kv('Suhu udara', '${_fmt(e.airTemp)} °C'),
-                        _kv('Kelembapan', '${_fmt(e.humidity, desimal: 0)} %'),
+                        MiniNilai('pH', _fmt(e.ph, desimal: 2)),
+                        MiniNilai('Suhu air', '${_fmt(e.waterTemp)} °C'),
+                        MiniNilai('TDS', '${_fmt(e.tds, desimal: 0)} ppm'),
+                        MiniNilai('Suhu udara', '${_fmt(e.airTemp)} °C'),
+                        MiniNilai(
+                          'Kelembapan',
+                          '${_fmt(e.humidity, desimal: 0)} %',
+                        ),
                       ],
                     ),
                   ],
@@ -173,20 +183,8 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
     }
 
     return Scaffold(
-      appBar: const AppBarGlass(judul: 'Riwayat Monitoring'),
+      appBar: const AppBarGlass(judul: 'Riwayat monitoring', eyebrow: 'Data'),
       body: LatarHalaman(child: body),
     );
   }
-
-  Widget _kv(String label, String nilai) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(label, style: const TextStyle(fontSize: 11, color: Tok.abuTeks)),
-      Text(
-        nilai,
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-      ),
-    ],
-  );
 }

@@ -160,7 +160,9 @@ class KartuKpi extends StatelessWidget {
         child: isi,
       );
       kartu = RepaintBoundary(
-        child: onTap == null ? gradasi : Pressable(onTap: onTap!, child: gradasi),
+        child: onTap == null
+            ? gradasi
+            : Pressable(onTap: onTap!, child: gradasi),
       );
     }
 

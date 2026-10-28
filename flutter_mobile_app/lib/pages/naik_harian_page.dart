@@ -104,7 +104,10 @@ class _NaikHarianPageState extends State<NaikHarianPage> {
   Widget build(BuildContext context) {
     final bisaUbah = widget.api.role != 'demo';
     return Scaffold(
-      appBar: const AppBarGlass(judul: 'Target nutrisi'),
+      appBar: const AppBarGlass(
+        judul: 'Target nutrisi',
+        eyebrow: 'Kebun & sensor',
+      ),
       body: LatarHalaman(
         child: RefreshIndicator(
           color: Tok.moss,

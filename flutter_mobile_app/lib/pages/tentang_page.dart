@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../theme/tokens.dart';
 import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
+import '../widgets/halaman.dart';
 import '../widgets/ikon.dart';
 import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
@@ -107,33 +108,38 @@ class TentangPage extends StatelessWidget {
       context: context,
       backgroundColor: Colors.transparent,
       showDragHandle: true,
-      builder: (ctx) => SheetKaca(child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Image.asset('assets/tentang/logo/${m.logo}', height: 72),
-              ),
-              const SizedBox(height: Tok.sp3),
-              Text(m.nama, style: Tok.h3),
-              Text(m.peran, style: Tok.kecil),
-              const SizedBox(height: Tok.sp3),
-              Text(m.teks, style: Tok.body),
-              if (m.tautan != null) ...[
-                const SizedBox(height: Tok.sp3),
-                OutlinedButton.icon(
-                  onPressed: () => _salin(ctx, m.tautan!, 'Tautan'),
-                  icon: const Icon(Ikon.salin, size: 18),
-                  label: Text(m.tautan!, overflow: TextOverflow.ellipsis),
+      builder: (ctx) => SheetKaca(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Image.asset(
+                    'assets/tentang/logo/${m.logo}',
+                    height: 72,
+                  ),
                 ),
+                const SizedBox(height: Tok.sp3),
+                Text(m.nama, style: Tok.h3),
+                Text(m.peran, style: Tok.kecil),
+                const SizedBox(height: Tok.sp3),
+                Text(m.teks, style: Tok.body),
+                if (m.tautan != null) ...[
+                  const SizedBox(height: Tok.sp3),
+                  OutlinedButton.icon(
+                    onPressed: () => _salin(ctx, m.tautan!, 'Tautan'),
+                    icon: const Icon(Ikon.salin, size: 18),
+                    label: Text(m.tautan!, overflow: TextOverflow.ellipsis),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
-      )),
+      ),
     );
   }
 
@@ -143,14 +149,14 @@ class TentangPage extends StatelessWidget {
     final kolomMitra = lebar >= 600 ? 4 : 2;
 
     return Scaffold(
-      appBar: const AppBarGlass(judul: 'Tentang Kami'),
+      appBar: const AppBarGlass(judul: 'Tentang kami', eyebrow: 'Sistem'),
       body: LatarHalaman(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
           children: [
             FadeUp(
-              child: Panel(
-                padding: const EdgeInsets.all(20),
+              child: HeroKartu(
+                padding: 20,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

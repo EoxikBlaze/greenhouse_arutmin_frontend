@@ -271,11 +271,12 @@ class _AsistenPageState extends State<AsistenPage> {
     return Scaffold(
       appBar: AppBarGlass(
         judul: 'Asisten AI',
+        eyebrow: 'Ikhtisar',
         aksi: [
           if (_pesan.isNotEmpty)
             IconButton(
               tooltip: 'Hapus percakapan',
-              icon: const Icon(Ikon.hapus, color: Colors.white),
+              icon: const Icon(Ikon.hapus, color: Tok.tinta),
               onPressed: _memuat ? null : () => setState(_pesan.clear),
             ),
         ],
@@ -310,8 +311,11 @@ class _AsistenPageState extends State<AsistenPage> {
                           x.label,
                           style: const TextStyle(fontSize: 12),
                         ),
-                        backgroundColor: Colors.white,
-                        side: const BorderSide(color: Tok.garis),
+                        backgroundColor: Colors.white.withValues(alpha: 0.7),
+                        side: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.95),
+                        ),
+                        shape: const StadiumBorder(),
                         onPressed: _memuat ? null : () => _kirim(x.pesan),
                       ),
                     ),
@@ -333,9 +337,34 @@ class _AsistenPageState extends State<AsistenPage> {
                         maxLength: _batas,
                         textInputAction: TextInputAction.send,
                         onSubmitted: _kirim,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: 'Tulis pertanyaan…',
                           counterText: '',
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.82),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(999),
+                            borderSide: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.95),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(999),
+                            borderSide: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.95),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(999),
+                            borderSide: const BorderSide(
+                              color: Tok.moss,
+                              width: 1.6,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -346,12 +375,12 @@ class _AsistenPageState extends State<AsistenPage> {
                       child: Material(
                         color: Colors.transparent,
                         child: Ink(
-                          decoration: BoxDecoration(
-                            gradient: Tok.primary,
-                            borderRadius: BorderRadius.circular(Tok.rSm),
+                          decoration: const BoxDecoration(
+                            gradient: Tok.activePill,
+                            shape: BoxShape.circle,
                           ),
                           child: InkWell(
-                            borderRadius: BorderRadius.circular(Tok.rSm),
+                            customBorder: const CircleBorder(),
                             onTap: _memuat ? null : () => _kirim(_ctrl.text),
                             child: Icon(
                               Ikon.kirim,
@@ -407,8 +436,11 @@ class _Kosong extends StatelessWidget {
                   for (final s in saran)
                     ActionChip(
                       label: Text(s, style: const TextStyle(fontSize: 12.5)),
-                      backgroundColor: Colors.white,
-                      side: const BorderSide(color: Tok.moss),
+                      backgroundColor: Colors.white.withValues(alpha: 0.7),
+                      side: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.95),
+                      ),
+                      shape: const StadiumBorder(),
                       onPressed: () => onSaran(s),
                     ),
                 ],
@@ -453,7 +485,8 @@ class _Gelembung extends StatelessWidget {
                 (p.tabel.isNotEmpty ? 0.94 : 0.82),
           ),
           decoration: BoxDecoration(
-            color: latar,
+            color: user ? null : latar,
+            gradient: user ? Tok.activePill : null,
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(Tok.rLg),
               topRight: const Radius.circular(Tok.rLg),
