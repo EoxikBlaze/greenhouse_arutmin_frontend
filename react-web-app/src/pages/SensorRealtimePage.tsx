@@ -146,7 +146,7 @@ function Grafik({ points, unit }: { points: Array<{ t: number; y: number; teks: 
       {ticks.map((v, i) => (
         <g key={i}>
           <line x1={PL} x2={W - PR} y1={y(v)} y2={y(v)} stroke="#E2E8DD" strokeWidth={1} />
-          <text x={PL - 8} y={y(v) + 4} textAnchor="end" fontSize={11} fill="#64748B">
+          <text x={PL - 8} y={y(v) + 4} textAnchor="end" fontSize={12} fill="#64748B">
             {v.toFixed(digit)}
           </text>
         </g>
@@ -163,10 +163,10 @@ function Grafik({ points, unit }: { points: Array<{ t: number; y: number; teks: 
         <title>{`${tgl(new Date(akhir.t).toISOString())} — ${akhir.teks}`}</title>
       </circle>
 
-      <text x={PL} y={H - 8} fontSize={11} fill="#64748B">
+      <text x={PL} y={H - 8} fontSize={12} fill="#64748B">
         {tgl(new Date(points[0].t).toISOString())}
       </text>
-      <text x={W - PR} y={H - 8} fontSize={11} fill="#64748B" textAnchor="end">
+      <text x={W - PR} y={H - 8} fontSize={12} fill="#64748B" textAnchor="end">
         {tgl(new Date(akhir.t).toISOString())}
       </text>
     </svg>
