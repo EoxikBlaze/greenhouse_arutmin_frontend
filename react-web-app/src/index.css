@@ -1006,3 +1006,116 @@
 /* Target sentuh 44px untuk kolom isian di layar kecil. */
 @media (max-width: 639px) {
   .vsf-input { min-height: 44px; }}
+/* ══ Desain v4 — nav pill, kartu KPI, grafik batang, progres (dashboard ala referensi, bahan liquid glass) ══ */
+.vsf-pillnav { display: flex; min-width: 0; justify-content: center; }
+.vsf-pillnav-track {
+  position: relative;
+  display: flex;
+  gap: 4px;
+  max-width: 100%;
+  width: max-content;
+  padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8), inset 0 1px 0 #fff;
+}
+.vsf-pillnav-track::-webkit-scrollbar { display: none; }
+.vsf-pillnav-pil {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: 0;
+  border-radius: 999px;
+  pointer-events: none;
+  background: linear-gradient(135deg, #4e7733, #42662b);
+  box-shadow: 0 8px 18px -10px rgba(78, 119, 51, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.42s var(--ease-v2), width 0.42s var(--ease-v2), opacity 0.2s ease;
+}
+.vsf-pillnav-item {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tinta);
+  opacity: 0.78;
+  transition: color 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
+}
+.vsf-pillnav-item:hover { opacity: 1; background: rgba(255, 255, 255, 0.55); }
+.vsf-pillnav-item.is-aktif,
+.vsf-pillnav-item.is-aktif:hover { color: #fff; opacity: 1; background: transparent; }
+
+/* Kartu KPI: kaca biasa, atau disorot hijau / emas */
+.vsf-kpi {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 0 28px rgba(255, 255, 255, 0.14),
+    0 12px 36px -14px rgba(40, 80, 130, 0.3);
+  transition: transform var(--dur-normal) var(--ease-v2), box-shadow var(--dur-normal) var(--ease-v2);
+}
+.vsf-kpi:hover { transform: translateY(-3px); }
+.vsf-kpi-kaca {
+  color: var(--tinta);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
+}
+.vsf-kpi-kaca .vsf-kpi-ikon { background: rgba(107, 157, 74, 0.16); color: #2d452f; }
+.vsf-kpi-hijau {
+  color: #fff;
+  background:
+    radial-gradient(14rem 8rem at 100% 0%, rgba(233, 205, 83, 0.38), transparent 70%),
+    linear-gradient(145deg, rgba(107, 157, 74, 0.92), rgba(45, 69, 47, 0.9));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+}
+.vsf-kpi-hijau .vsf-kpi-ikon { background: rgba(255, 255, 255, 0.22); color: #fff; }
+.vsf-kpi-emas {
+  color: #2a2208;
+  background:
+    radial-gradient(14rem 8rem at 0% 100%, rgba(255, 255, 255, 0.42), transparent 70%),
+    linear-gradient(145deg, rgba(240, 214, 96, 0.95), rgba(214, 168, 40, 0.9));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+}
+.vsf-kpi-emas .vsf-kpi-ikon { background: rgba(255, 255, 255, 0.4); color: #2a2208; }
+
+/* Grafik batang tumbuh dari bawah */
+@keyframes vsf-batang-tumbuh { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.vsf-batang {
+  transform-origin: bottom;
+  animation: vsf-batang-tumbuh 0.6s var(--ease-v2) backwards;
+  background: linear-gradient(180deg, #4c6a4b, #2d452f);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: filter 0.2s ease;
+}
+.vsf-batang:hover { filter: brightness(1.2); }
+.vsf-batang-sorot { background: linear-gradient(180deg, #f0d660, #6b9d4a); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 18px -8px rgba(107, 157, 74, 0.8); }
+
+/* Progres tahap */
+@keyframes vsf-progres-isi { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.vsf-progres { transform-origin: left; animation: vsf-progres-isi 0.7s var(--ease-v2) backwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vsf-pillnav-pil,
+  .vsf-kpi,
+  .vsf-batang,
+  .vsf-progres { animation: none; transition: none; }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-kpi-kaca { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .vsf-pillnav-track { background: #fff; }
+}

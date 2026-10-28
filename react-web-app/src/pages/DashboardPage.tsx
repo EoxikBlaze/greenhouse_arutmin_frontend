@@ -4,6 +4,7 @@ import { useApiObject, useFlashOnChange } from '../lib/useApiObject'
 import { waktuBasi } from '../lib/waktu'
 import { Ikon, type NamaIkon } from '../components/Ikon'
 import { AngkaHidup } from '../components/AngkaHidup'
+import { TrenBatang } from '../components/TrenBatang'
 
 /**
  * Dashboard live — GET /dashboard (semua role).
@@ -84,7 +85,7 @@ function IkonMetrik({ kind }: { kind: string }) {
 }
 
 export default function DashboardPage() {
-  const { role } = useAuth()
+  const { role, username } = useAuth()
   const { data, loading, error, reload } = useApiObject<DashboardData>('/dashboard')
   // P4 — sorot kilat 0.5s saat data sensor terkini berubah (refresh senyap).
   const sensorFlash = useFlashOnChange(JSON.stringify(data?.latest_sensor ?? null))
@@ -138,6 +139,11 @@ export default function DashboardPage() {
     { k: 'panen', label: 'Panen', total: data?.total_panen, jalan: data?.total_panen_qty, to: '/panen', ket: 'tanaman dipanen' },
   ]
 
+  const batchAktif = (data?.semai_aktif ?? 0) + (data?.peremajaan_aktif ?? 0) + (data?.pendewasaan_aktif ?? 0)
+  const jamSekarang = new Date().getHours()
+  const sapaan = jamSekarang < 11 ? 'pagi' : jamSekarang < 15 ? 'siang' : jamSekarang < 18 ? 'sore' : 'malam'
+  const nama = (username || role || '').trim()
+
   return (
     <div className="vsf-halaman vsf-stagger">
       {error && (
@@ -155,137 +161,155 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Sambutan + aksi cepat (Link nyata, disesuaikan role) — gradasi navy halus */}
-      <section className="glass-hero overflow-hidden">
-        <div className="p-5 sm:p-6">
-          <div className="flex flex-wrap items-start gap-5">
-            <div className="flex-1 min-w-[260px]">
-              <div className="text-[12px] uppercase tracking-[.14em] text-arutmin-forest/70 font-bold">Selamat datang</div>
-              <div className="mt-2 text-[20px] sm:text-[24px] font-extrabold text-tinta leading-snug">
-                Selamat Datang di GARAP — PT Arutmin Indonesia
-              </div>
-              <div className="mt-1 text-[13px] text-slate-600">
-                Pantau kondisi air nutrisi, suhu tanaman, dan jadwal panen hidroponik.
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Link
-                  to="/sensor-realtime"
-                  className="inline-flex min-h-[44px] basis-full items-center justify-center rounded-full bg-activePill px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_-10px_rgba(78,119,51,.9)] transition hover:brightness-110 sm:basis-auto"
-                >
-                  Lihat Grafik Sensor
-                </Link>
-                {kelola ? (
-                  <>
-                    <Link
-                      to="/tanam"
-                      state={{ mulaiBaru: true }}
-                      className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[13px] font-semibold text-tinta shadow-[inset_0_1px_0_#fff] transition hover:bg-white/85 sm:flex-none"
-                    >
-                      Mulai Semai Baru
-                    </Link>
-                    <Link
-                      to="/watercontrol"
-                      className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[13px] font-semibold text-tinta shadow-[inset_0_1px_0_#fff] transition hover:bg-white/85 sm:flex-none"
-                    >
-                      Water Control
-                    </Link>
-                  </>
-                ) : (
-                  <Link
-                    to="/tanam"
-                    className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[13px] font-semibold text-tinta shadow-[inset_0_1px_0_#fff] transition hover:bg-white/85 sm:flex-none"
-                  >
-                    Tanam Saya
-                  </Link>
-                )}
-              </div>
-            </div>
+      {/* Sapaan */}
+      <header>
+        <div className="glass-card inline-flex max-w-full flex-col gap-1 px-5 py-4 sm:px-6">
+          <h1 className="font-display text-[26px] font-bold leading-tight text-tinta sm:text-[32px]">
+            Selamat {sapaan}, <span className="capitalize">{nama}</span>
+          </h1>
+          <p className="text-[13px] text-abu sm:text-[14px]">Pantau kondisi air nutrisi, suhu tanaman, dan jadwal panen hidroponik.</p>
+        </div>
+      </header>
 
-            {/* Panel status IoT (mengganti kotak placeholder) */}
-            <div className="w-full sm:w-[240px] rounded-card border border-white/90 bg-white/65 p-4 shadow-[inset_0_1px_0_#fff] backdrop-blur-md">
-              <div className="vsf-label">Bacaan IoT</div>
-              <div className="mt-2 text-[12px] text-slate-600">
-                {loading && !data ? (
-                  <div className="vsf-skeleton h-[24px] w-[130px]" />
-                ) : iot?.last_seen ? (
-                  <>Bacaan terakhir: {iot.seconds_ago != null ? waktuBasi(iot.seconds_ago * 1000, iot.last_seen) : tgl(iot.last_seen)}</>
-                ) : (
-                  'Belum ada bacaan sensor.'
-                )}
-              </div>
+      <div className="grid grid-cols-1 gap-4 md:gap-6 xl:grid-cols-12">
+        {/* Hero: status greenhouse + aksi cepat (padanan kartu saldo di referensi) */}
+        <section className="glass-hero flex flex-col p-5 sm:p-6 xl:col-span-5" aria-label="Status greenhouse">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-[12px] font-bold uppercase tracking-[.14em] text-arutmin-forest/75">Status greenhouse</div>
+            <span className="vsf-chip-terang" role="status">
+              <span className={`h-2 w-2 rounded-full ${online ? 'bg-moss' : 'bg-arutmin-error'}`} aria-hidden />
+              {online ? 'Alat terhubung' : 'Alat terputus'}
+            </span>
+          </div>
+          <div className="mt-5">
+            <div className="text-[13px] text-abu">Batch tanam berjalan</div>
+            <div className="font-display text-[48px] font-bold leading-none tabular-nums text-tinta sm:text-[56px]">
+              {loading && !data ? <span className="vsf-skeleton inline-block h-[52px] w-[120px] align-middle" /> : <AngkaHidup nilai={batchAktif} />}
+            </div>
+            <div className="mt-2 text-[12px] text-abu">
+              {loading && !data ? (
+                <span className="vsf-skeleton inline-block h-[16px] w-[200px]" />
+              ) : iot?.last_seen ? (
+                <>Bacaan terakhir: {iot.seconds_ago != null ? waktuBasi(iot.seconds_ago * 1000, iot.last_seen) : tgl(iot.last_seen)}</>
+              ) : (
+                'Belum ada bacaan sensor.'
+              )}
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Kondisi air & tanaman — enam kartu ringkas */}
-      <section className="vsf-card p-4 sm:p-5">
-        <div className="vsf-judul-bagian">Kondisi Air &amp; Tanaman Terkini</div>
-        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {loading && !data
-            ? Array.from({ length: 6 }, (_, i) => <div key={i} className="vsf-skeleton h-[112px]" />)
-            : metrik.map((m) => (
-                <div
-                  key={m.k}
-                  className="group rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm"
+          <div className="mt-auto flex flex-wrap gap-2 pt-6">
+            <Link
+              to="/sensor-realtime"
+              className="inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-full bg-activePill px-4 py-2 text-[13px] font-semibold text-white shadow-[0_10px_20px_-10px_rgba(78,119,51,.95),inset_0_1px_0_rgba(255,255,255,.3)] transition hover:brightness-110 sm:flex-none"
+            >
+              <Ikon nama="sensor" className="h-4 w-4" />
+              Lihat Grafik Sensor
+            </Link>
+            {kelola ? (
+              <>
+                <Link
+                  to="/tanam"
+                  state={{ mulaiBaru: true }}
+                  className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[13px] font-semibold text-tinta shadow-[inset_0_1px_0_#fff] transition hover:bg-white/85 sm:flex-none"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="vsf-label">{m.label}</div>
-                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-arutmin-mint/40 text-arutmin-olive transition group-hover:bg-arutmin-mint/70">
-                      <IkonMetrik kind={m.k} />
-                    </span>
-                  </div>
-                  <div className={`mt-1 text-[26px] leading-tight font-extrabold text-arutmin-forest tabular-nums ${sensorFlash}`}>{adaAngka(m.num) ? <AngkaHidup nilai={Number(m.num)} digit={m.digit} akhiran={m.akhiran} /> : m.nilai}</div>
-                  <div className="text-[12px] text-slate-600">
-                    {m.target} • {statusKata}
-                  </div>
-                  <Link
-                    to="/sensor-realtime"
-                    className="mt-1 inline-flex min-h-[44px] items-center text-[12px] sm:min-h-0 font-semibold text-arutmin-forest underline underline-offset-2 transition group-hover:text-arutmin-moss"
-                  >
-                    Lihat grafik →
-                  </Link>
-                </div>
-              ))}
-        </div>
-        {s?.created_at && (
-          <div className="mt-2 text-[12px] text-slate-500">Bacaan sensor terakhir: {tgl(s.created_at)}</div>
-        )}
-      </section>
-
-      {/* Alur tanam 4 tahap */}
-      <section className="vsf-card p-4 sm:p-5">
-        <div className="vsf-judul-bagian">Alur Tanam — 4 Tahap</div>
-        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {loading && !data
-            ? Array.from({ length: 4 }, (_, i) => <div key={i} className="vsf-skeleton h-[104px]" />)
-            : pipeline.map((p, i) => (
-                <div
-                  key={p.k}
-                  className="group rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm"
+                  Mulai Semai Baru
+                </Link>
+                <Link
+                  to="/watercontrol"
+                  className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[13px] font-semibold text-tinta shadow-[inset_0_1px_0_#fff] transition hover:bg-white/85 sm:flex-none"
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="vsf-label">{p.label}</div>
-                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-arutmin-forest text-[12px] font-bold text-white tabular-nums">
-                      {i + 1}
-                    </span>
-                  </div>
-                  <div className="mt-1 text-[26px] leading-tight font-extrabold text-arutmin-forest tabular-nums"><AngkaHidup nilai={Number(p.total ?? 0)} /></div>
-                  <div className="text-[12px] text-slate-600">
-                    {angka(p.jalan)} {p.ket}
-                  </div>
-                  {kelola && (
+                  Water Control
+                </Link>
+              </>
+            ) : (
+              <Link
+                to="/tanam"
+                className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[13px] font-semibold text-tinta shadow-[inset_0_1px_0_#fff] transition hover:bg-white/85 sm:flex-none"
+              >
+                Tanam Saya
+              </Link>
+            )}
+          </div>
+        </section>
+
+        {/* KPI: enam metrik; pH dan TDS disorot (hijau dan emas) */}
+        <section className="xl:col-span-7" aria-label="Kondisi air dan tanaman">
+          <div className="grid h-full grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+            {loading && !data
+              ? Array.from({ length: 6 }, (_, i) => <div key={i} className="vsf-skeleton min-h-[132px]" />)
+              : metrik.map((m) => {
+                  const sorot = m.k === 'ph' ? 'vsf-kpi-hijau' : m.k === 'tds' ? 'vsf-kpi-emas' : 'vsf-kpi-kaca'
+                  return (
                     <Link
-                      to={p.to}
-                      className="mt-1 inline-flex min-h-[44px] items-center text-[12px] sm:min-h-0 font-semibold text-arutmin-forest underline underline-offset-2 transition group-hover:text-arutmin-moss"
+                      key={m.k}
+                      to="/sensor-realtime"
+                      className={`vsf-kpi ${sorot} group flex min-h-[132px] flex-col justify-between p-4 sm:p-5`}
                     >
-                      Buka {p.label} →
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="text-[13px] font-semibold opacity-80">{m.label}</div>
+                        <span className="vsf-kpi-ikon grid h-9 w-9 shrink-0 place-items-center rounded-full">
+                          <IkonMetrik kind={m.k} />
+                        </span>
+                      </div>
+                      <div>
+                        <div className={`font-display text-[28px] font-bold leading-tight tabular-nums sm:text-[32px] ${sensorFlash}`}>
+                          {adaAngka(m.num) ? <AngkaHidup nilai={Number(m.num)} digit={m.digit} akhiran={m.akhiran} /> : m.nilai}
+                        </div>
+                        <div className="mt-0.5 text-[12px] opacity-75">
+                          {m.target} • {statusKata}
+                        </div>
+                      </div>
                     </Link>
-                  )}
-                </div>
-              ))}
+                  )
+                })}
+          </div>
+          {s?.created_at && <div className="mt-2 px-1 text-[12px] text-tinta/80 [text-shadow:0_1px_8px_rgba(255,255,255,.9)]">Bacaan sensor terakhir: {tgl(s.created_at)}</div>}
+        </section>
+
+        {/* Grafik batang tren sensor */}
+        <div className="xl:col-span-7">
+          <TrenBatang />
         </div>
-      </section>
+
+        {/* Daftar tahap tanam (padanan "Recent Activities") */}
+        <section className="vsf-card flex flex-col p-4 sm:p-5 xl:col-span-5" aria-label="Alur tanam">
+          <div className="vsf-judul-bagian">Alur Tanam — 4 Tahap</div>
+          <ul className="mt-3 grid flex-1 content-start gap-2">
+            {loading && !data
+              ? Array.from({ length: 4 }, (_, i) => <li key={i} className="vsf-skeleton h-[64px]" />)
+              : pipeline.map((p, i) => {
+                  const total = Number(p.total ?? 0)
+                  const jalan = Number(p.jalan ?? 0)
+                  const persen = p.k === 'panen' || total <= 0 ? (total > 0 ? 100 : 0) : Math.min(100, Math.round((jalan / total) * 100))
+                  return (
+                    <li key={p.k} className="vsf-baris rounded-card border border-arutmin-border bg-white/85 p-3 transition hover:border-arutmin-moss/60 hover:bg-white">
+                      <div className="flex items-center gap-3">
+                        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-arutmin-forest text-[13px] font-bold tabular-nums text-white">{i + 1}</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-[14px] font-semibold text-tinta">{p.label}</div>
+                          <div className="text-[12px] text-abu">
+                            {angka(p.jalan)} {p.ket}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-display text-[20px] font-bold leading-none tabular-nums text-arutmin-forest">
+                            <AngkaHidup nilai={total} />
+                          </div>
+                          {kelola && (
+                            <Link to={p.to} className="text-[12px] font-semibold text-arutmin-forest underline underline-offset-2 hover:text-arutmin-moss">
+                              Buka →
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-arutmin-mint/60" aria-hidden>
+                        <div className="vsf-progres h-full rounded-full bg-[linear-gradient(90deg,#6b9d4a,#e9cd53)]" style={{ width: `${persen}%`, animationDelay: `${i * 80}ms` }} />
+                      </div>
+                    </li>
+                  )
+                })}
+          </ul>
+        </section>
+      </div>
     </div>
   )
 }

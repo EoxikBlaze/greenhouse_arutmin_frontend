@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { SiteFooter } from '../components/SiteFooter'
 import { Monogram } from '../components/Monogram'
 import { DemoBanner } from '../components/DemoBanner'
@@ -8,6 +8,7 @@ import type { Role } from '../lib/authTypes'
 import { useDialog } from '../lib/useDialog'
 import { ModalBackdrop } from '../components/ModalBackdrop'
 import { Ikon, type NamaIkon } from '../components/Ikon'
+import { PillNav } from '../components/PillNav'
 import { useApiObject } from '../lib/useApiObject'
 
 /** Bentuk data /dashboard yang dipakai chrome (hanya utk indikator IoT). */
@@ -39,11 +40,11 @@ const TITLES: Record<string, string> = {
   '/audit': 'Riwayat Audit',
 }
 
-/* ── QW5 · Sidebar per role ───────────────────────────────────────────
- * Data NAV terstruktur; `allow` = role yang boleh LIHAT menu — sengaja
- * disamakan dengan guard router (router.tsx): ALL = semua role,
- * ADMIN_DEMO = admin + demo (petani tidak). Tanpa `allow` = semua role.
- * Subheader opsional ("Data Tahap") hanya tampil bila anaknya lolos filter. */
+/* ── Menu per role ────────────────────────────────────────────────────
+ * Desktop: rail ikon di kiri = menu utama (satu ikon per grup); nav pill di
+ * atas = submenu grup yang sedang aktif. Mobile: laci berisi semua grup.
+ * `allow` = role yang boleh LIHAT menu — sengaja disamakan dengan guard
+ * router (router.tsx): ALL = semua role, ADMIN_DEMO = admin + demo. */
 type RoleSet = Role[]
 const ADMIN_DEMO: RoleSet = ['admin', 'demo']
 
@@ -56,12 +57,12 @@ type NavItem = {
   /** Nomor urut tahap (Semai 1 … Panen 4) — ganti ikon dengan bulatan bernomor. */
   langkah?: number
 }
-type NavGroup = { label: string; items: NavItem[] }
-
+type NavGroup = { label: string; ikon: NamaIkon; items: NavItem[] }
 
 const NAV: NavGroup[] = [
   {
     label: 'Ikhtisar',
+    ikon: 'dashboard',
     items: [
       { to: '/dashboard', label: 'Dashboard', ikon: 'dashboard' },
       { to: '/asisten-ai', label: 'Asisten AI', ikon: 'ai' },
@@ -69,6 +70,7 @@ const NAV: NavGroup[] = [
   },
   {
     label: 'Kebun & Sensor',
+    ikon: 'sensor',
     items: [
       { to: '/sensor-realtime', label: 'Sensor Real-Time', ikon: 'sensor' },
       { to: '/tanam', label: 'Tanam Saya', ikon: 'tanam' },
@@ -80,6 +82,7 @@ const NAV: NavGroup[] = [
   },
   {
     label: 'Siklus Tanam',
+    ikon: 'siklus',
     items: [
       { to: '/semai', label: 'Semai', ikon: 'tanam', langkah: 1, allow: ADMIN_DEMO },
       { to: '/peremajaan', label: 'Peremajaan', ikon: 'tanam', langkah: 2, allow: ADMIN_DEMO },
@@ -90,6 +93,7 @@ const NAV: NavGroup[] = [
   },
   {
     label: 'Master Data',
+    ikon: 'meja',
     items: [
       { to: '/tanaman', label: 'Jenis Tanaman', ikon: 'daun', allow: ADMIN_DEMO },
       { to: '/meja', label: 'Meja Tanaman', ikon: 'meja', allow: ADMIN_DEMO },
@@ -98,6 +102,7 @@ const NAV: NavGroup[] = [
   },
   {
     label: 'Laporan & Sistem',
+    ikon: 'laporan',
     items: [
       { to: '/laporan', label: 'Laporan', ikon: 'laporan', allow: ADMIN_DEMO },
       { to: '/user', label: 'Manajemen User', ikon: 'user', allow: ADMIN_DEMO },
@@ -108,42 +113,44 @@ const NAV: NavGroup[] = [
   },
 ]
 
-/** Preferensi tampilan sidebar per peramban (aman bila storage diblokir). */
-const SIMPAN_KEY = 'vsf-sidebar'
-type Pref = { ciut?: boolean; tutup?: string[] }
-function bacaPref(): Pref {
-  try {
-    return JSON.parse(localStorage.getItem(SIMPAN_KEY) || '{}') as Pref
-  } catch {
-    return {}
-  }
-}
-function tulisPref(p: Pref) {
-  try {
-    localStorage.setItem(SIMPAN_KEY, JSON.stringify(p))
-  } catch {
-    /* storage diblokir → preferensi tidak diingat, sidebar tetap jalan */
-  }
-}
-
 /** Menu yang berhak dilihat role ini (petani → hanya rute ALL, tanpa 19 menu). */
 function visibleItems(group: NavGroup, role: Role): NavItem[] {
   return group.items.filter((i) => !i.allow || i.allow.includes(role))
 }
 
-function SideItem({ item, ciut }: { item: NavItem; ciut: boolean }) {
+/** Satu ikon di rail desktop; label muncul sebagai tooltip kaca saat disorot/fokus. */
+function RailItem({ to, label, ikon, aktif }: { to: string; label: string; ikon: NamaIkon; aktif: boolean }) {
+  return (
+    <Link
+      to={to}
+      aria-label={label}
+      aria-current={aktif ? 'true' : undefined}
+      className={[
+        'group/rail relative grid h-12 w-12 place-items-center rounded-[18px] transition-all duration-[var(--dur-normal)] ease-[var(--ease-v2)]',
+        aktif
+          ? 'bg-activePill text-white shadow-[0_10px_20px_-10px_rgba(78,119,51,.95),inset_0_1px_0_rgba(255,255,255,.35)]'
+          : 'text-tinta/70 hover:bg-white/75 hover:text-tinta',
+      ].join(' ')}
+    >
+      <Ikon nama={ikon} className="h-[22px] w-[22px]" />
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 z-50 -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-full border border-white/70 bg-white/80 px-3 py-1.5 text-[13px] font-semibold text-tinta opacity-0 shadow-[0_8px_24px_-10px_rgba(40,80,130,.4)] backdrop-blur-md transition-all duration-[var(--dur-normal)] group-hover/rail:translate-x-0 group-hover/rail:opacity-100 group-focus-visible/rail:translate-x-0 group-focus-visible/rail:opacity-100"
+      >
+        {label}
+      </span>
+    </Link>
+  )
+}
+
+/** Item di laci mobile (semua grup, daftar penuh). */
+function DrawerItem({ item }: { item: NavItem }) {
   return (
     <NavLink
       to={item.to}
-      end={item.to === '/'}
-      title={ciut ? item.label : undefined}
-      aria-label={ciut ? item.label : undefined}
       className={({ isActive }) =>
         [
-          // QW2 — target sentuh ≥44px di layar sentuh; desktop sedikit lebih rapat (40px).
-          'group/item flex min-h-[44px] items-center gap-3 rounded-std-sm px-3 py-2 text-[14px] transition-all duration-[var(--dur-normal)] ease-[var(--ease-v2)] lg:min-h-[40px]',
-          ciut ? 'lg:justify-center lg:px-0' : '',
-          // Desain v2: aktif = pil hijau SOLID (penanda tegas di atas glass); lain = teks putih + sorot halus.
+          'flex min-h-[44px] items-center gap-3 rounded-std-sm px-3 py-2 text-[14px] transition-all duration-[var(--dur-normal)] ease-[var(--ease-v2)]',
           isActive
             ? 'bg-activePill font-semibold text-white shadow-[0_8px_18px_-10px_rgba(78,119,51,.9)]'
             : 'text-tinta/80 hover:bg-white/70 hover:text-tinta',
@@ -162,27 +169,10 @@ function SideItem({ item, ciut }: { item: NavItem; ciut: boolean }) {
           ) : (
             <Ikon nama={item.ikon} className={`h-[18px] w-[18px] ${isActive ? 'text-emas' : ''}`} />
           )}
-          <span className={ciut ? 'lg:sr-only' : 'truncate'}>{item.label}</span>
+          <span className="truncate">{item.label}</span>
         </>
       )}
     </NavLink>
-  )
-}
-
-/** Judul grup yang bisa dilipat (desktop & mobile); saat sidebar diciutkan diganti garis pemisah. */
-function GroupLabel({ label, buka, onToggle, ciut }: { label: string; buka: boolean; onToggle: () => void; ciut: boolean }) {
-  if (ciut) return <div aria-hidden className="mx-auto mb-1 mt-4 hidden h-px w-6 bg-tinta/15 lg:block" />
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-expanded={buka}
-      className="vsf-eyebrow vsf-eyebrow-chrome mt-4 mb-1 flex w-full items-center gap-2 rounded px-1 py-1 text-left hover:text-tinta"
-    >
-      <span aria-hidden className="h-px w-3 bg-emas/70" />
-      <span className="flex-1">{label}</span>
-      <Ikon nama="bawah" className={`h-3.5 w-3.5 transition-transform duration-[var(--dur-normal)] ${buka ? '' : '-rotate-90'}`} />
-    </button>
   )
 }
 
@@ -202,24 +192,13 @@ export function AppShell() {
   const navigate = useNavigate()
   const [clock, setClock] = useState(() => formatClock())
   const [confirmKeluar, setConfirmKeluar] = useState(false)
-  // QW6 — sidebar off-canvas di layar kecil (hamburger + backdrop).
+  // Laci menu di layar kecil (hamburger + backdrop).
   const [navOpen, setNavOpen] = useState(false)
-  // Sidebar desktop bisa diciutkan jadi deretan ikon; grup bisa dilipat. Diingat per peramban.
-  const [pref, setPref] = useState<Pref>(() => bacaPref())
-  const ciut = !!pref.ciut && !navOpen
-  function ubahPref(p: Pref) {
-    setPref(p)
-    tulisPref(p)
-  }
-  const grupAktif = NAV.find((gr) => gr.items.some((it) => (it.to === '/' ? location.pathname === '/' : location.pathname.startsWith(it.to))))?.label
-  // grup halaman yang sedang dibuka selalu terbuka, walau pernah dilipat
-  const grupBuka = (label: string) => label === grupAktif || !(pref.tutup ?? []).includes(label)
-  function toggleGrup(label: string) {
-    const tutup = new Set(pref.tutup ?? [])
-    if (grupBuka(label)) tutup.add(label)
-    else tutup.delete(label)
-    ubahPref({ ...pref, tutup: [...tutup] })
-  }
+
+  const grupTampil = NAV.map((gr) => ({ ...gr, items: visibleItems(gr, role) })).filter((gr) => gr.items.length > 0)
+  const grupAktif = grupTampil.find((gr) =>
+    gr.items.some((it) => location.pathname === it.to || location.pathname.startsWith(`${it.to}/`)),
+  )
 
   // S6 — indikator IoT topbar DARI data live (bukan hard-code selalu hijau).
   // Satu GET /dashboard per sesi AppShell + senyap tiap 60s; bila belum ada
@@ -234,9 +213,7 @@ export function AppShell() {
     return () => clearInterval(id)
   }, [])
 
-  // Pindah rute → tutup sidebar mobile (penyesuaian state DILARANG di effect:
-  // oxlint react(set-state-in-effect); pola "adjust state during render".)
-  // Menu mobile terbuka → kunci scroll latar agar tidak "bocor" ke halaman.
+  // Laci mobile terbuka → kunci scroll latar agar tidak "bocor" ke halaman.
   useEffect(() => {
     if (!navOpen) return
     const lama = document.body.style.overflow
@@ -251,6 +228,7 @@ export function AppShell() {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
   }, [location.pathname])
 
+  // Pindah rute → tutup laci ("adjust state during render", bukan di effect).
   const [prevPath, setPrevPath] = useState(location.pathname)
   if (prevPath !== location.pathname) {
     setPrevPath(location.pathname)
@@ -260,6 +238,7 @@ export function AppShell() {
   const title =
     TITLES[location.pathname] ??
     (TITLES[location.pathname.replace(/\/$/, '')] ?? 'GARAP')
+  const beranda = location.pathname === '/dashboard'
 
   // QW5 — notice dari RequireAuth saat redirect karena role tak diizinkan.
   const notice = (location.state as { notice?: string } | null)?.notice
@@ -285,7 +264,6 @@ export function AppShell() {
 
   return (
     <div className="relative isolate min-h-dvh">
-      {/* Desain v2: lapisan latar palet di belakang chrome glass. */}
       <div className="app-latar" aria-hidden />
       <DemoBanner demo={demo} />
       {/* R4 — skip-link ke konten utama (sembunyi sampai difokus keyboard). */}
@@ -295,170 +273,183 @@ export function AppShell() {
       >
         Lewati ke konten utama
       </a>
-      <div className="flex min-h-dvh">
-        {/* QW6 — mobile: fixed off-canvas (tersembunyi ke kiri), desktop: statis. */}
-        <aside
-          id="vsf-sidebar"
-          className={[
-            // Desain v2: panel glass melayang (margin 12px) — chrome pertama dari anggaran 3 blur.
-            'fixed inset-y-3 left-3 z-40 flex w-[260px] shrink-0 flex-col glass-chrome vsf-stagger transition-[transform,width] duration-[var(--dur-normal)] ease-[var(--ease-v2)]',
-            'lg:sticky lg:top-3 lg:z-auto lg:m-3 lg:h-[calc(100dvh-1.5rem)] lg:translate-x-0',
-            ciut ? 'lg:w-[76px]' : '',
-            navOpen ? 'translate-x-0' : '-translate-x-[calc(100%+1rem)]',
-          ].join(' ')}
+
+      {/* Rail desktop — menu utama: satu ikon per grup, tooltip kaca di kanan. */}
+      <aside
+        aria-label="Menu utama"
+        className="glass-chrome vsf-stagger fixed bottom-3 left-3 top-3 z-40 hidden w-[72px] flex-col items-center gap-2 py-3 lg:flex"
+      >
+        <Link to="/dashboard" aria-label="GARAP — ke dashboard" className="mb-1 block">
+          <Monogram className="h-9 w-12" />
+        </Link>
+        <div className="my-1 h-px w-8 bg-tinta/15" aria-hidden />
+        <nav className="flex flex-1 flex-col items-center gap-2">
+          {grupTampil.map((gr) => (
+            <RailItem key={gr.label} to={gr.items[0].to} label={gr.label} ikon={gr.ikon} aktif={gr === grupAktif} />
+          ))}
+        </nav>
+        <RailItem to="/" label="Tentang Kami" ikon="info" aktif={false} />
+        <button
+          type="button"
+          onClick={() => setConfirmKeluar(true)}
+          aria-label="Keluar"
+          title="Keluar"
+          className="grid h-12 w-12 place-items-center rounded-[18px] text-tinta/70 transition hover:bg-white/75 hover:text-tinta"
         >
-          {/* Kepala sidebar — brand + tombol ciutkan (desktop). */}
-          <div className={`flex items-center gap-3 px-4 pt-4 ${ciut ? 'lg:flex-col lg:px-2' : ''}`}>
-            <div className={`flex min-w-0 flex-1 items-center gap-3 rounded-lg border border-white/80 bg-white/55 p-2.5 shadow-[inset_0_1px_0_#fff,0_6px_18px_-12px_rgba(40,80,130,.35)] ${ciut ? 'lg:flex-none lg:p-1.5' : ''}`}>
-              <Monogram className={`shrink-0 ${ciut ? 'h-9 w-11' : 'h-10 w-14'}`} />
-              <div className={`min-w-0 ${ciut ? 'lg:hidden' : ''}`}>
-                <div className="truncate font-display text-[16px] font-bold leading-tight text-tinta">Vertonik</div>
-                <div className="vsf-eyebrow vsf-eyebrow-gold mt-0.5 truncate">Smart Farm</div>
+          <Ikon nama="keluar" className="h-[22px] w-[22px]" />
+        </button>
+      </aside>
+
+      {/* Laci mobile (<lg) — semua grup + menu berurutan. */}
+      <aside
+        id="vsf-sidebar"
+        className={[
+          'glass-chrome fixed inset-y-3 left-3 z-40 flex w-[280px] max-w-[calc(100vw-1.5rem)] flex-col transition-transform duration-[var(--dur-normal)] ease-[var(--ease-v2)] lg:hidden',
+          navOpen ? 'translate-x-0' : '-translate-x-[calc(100%+1rem)]',
+        ].join(' ')}
+      >
+        <div className="flex items-center gap-3 px-4 pt-4">
+          <Monogram className="h-10 w-14" />
+          <div className="min-w-0">
+            <div className="truncate font-display text-[16px] font-bold leading-tight text-tinta">Vertonik</div>
+            <div className="vsf-eyebrow vsf-eyebrow-gold mt-0.5 truncate">Smart Farm</div>
+          </div>
+        </div>
+        <nav aria-label="Menu utama" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-3">
+          {grupTampil.map((gr) => (
+            <div key={gr.label}>
+              <div className="vsf-eyebrow vsf-eyebrow-chrome mb-1 mt-4 flex items-center gap-2 px-1">
+                <span aria-hidden className="h-px w-3 bg-emas/70" />
+                {gr.label}
               </div>
+              <div className="grid gap-0.5">
+                {gr.items.map((item) => (
+                  <DrawerItem key={item.to} item={item} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </nav>
+        <div className="px-4 pb-2">
+          <DrawerItem item={{ to: '/', label: 'Tentang Kami', ikon: 'info' }} />
+        </div>
+        <div className="border-t border-white/60 p-3">
+          <div className="flex items-center gap-2.5 rounded-lg bg-white/55 p-2">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emas text-[12px] font-bold uppercase text-navy" aria-hidden>
+              {inisial}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-[13.5px] font-semibold text-tinta">{namaUser || role}</div>
+              <div className="truncate text-[12px] capitalize text-abu">{role}</div>
             </div>
             <button
               type="button"
-              onClick={() => ubahPref({ ...pref, ciut: !pref.ciut })}
-              aria-label={ciut ? 'Lebarkan sidebar' : 'Ciutkan sidebar'}
-              title={ciut ? 'Lebarkan sidebar' : 'Ciutkan sidebar'}
-              className="hidden h-9 w-9 shrink-0 place-items-center rounded-full text-tinta/60 hover:bg-white/75 hover:text-tinta lg:grid"
+              onClick={() => setConfirmKeluar(true)}
+              aria-label="Keluar"
+              title="Keluar"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-tinta/70 hover:bg-white/75 hover:text-tinta"
             >
-              <Ikon nama="kiri" className={`h-4 w-4 transition-transform duration-[var(--dur-normal)] ${ciut ? 'rotate-180' : ''}`} />
+              <Ikon nama="keluar" />
             </button>
           </div>
+        </div>
+      </aside>
 
-          {/* QW5 — grup & item terfilter per role (petani: dashboard, asisten, sensor, tanam, cctv, profil). */}
-          <nav aria-label="Menu utama" className={`min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-3 ${ciut ? 'lg:px-3' : ''}`}>
-            {NAV.map((group) => {
-              const items = visibleItems(group, role)
-              if (items.length === 0) return null
-              const buka = ciut || grupBuka(group.label)
-              return (
-                <div key={group.label}>
-                  <GroupLabel label={group.label} buka={buka} ciut={ciut} onToggle={() => toggleGrup(group.label)} />
-                  {buka && (
-                    <div className="grid gap-0.5">
-                      {items.map((item) => (
-                        <SideItem key={item.to} item={item} ciut={ciut} />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </nav>
+      {/* Backdrop laci mobile — fade 180ms. */}
+      {navOpen && (
+        <div
+          aria-hidden
+          className="fixed inset-0 z-30 bg-[rgba(10,31,56,0.32)] backdrop-blur-[3px] lg:hidden vsf-backdrop"
+          onClick={() => setNavOpen(false)}
+        />
+      )}
 
-          {/* Halaman publik (/) — rutenya di luar RequireAuth, jadi bukan bagian grup menu. */}
-          <div className={`px-4 pb-2 ${ciut ? 'lg:px-3' : ''}`}>
-            <SideItem item={{ to: '/', label: 'Tentang Kami', ikon: 'info' }} ciut={ciut} />
-          </div>
-
-          {/* Kartu pengguna + Keluar — selalu terlihat di dasar sidebar. */}
-          <div className={`border-t border-white/60 p-3 ${ciut ? 'lg:px-2' : ''}`}>
-            <div className={`flex items-center gap-2.5 rounded-lg bg-white/55 p-2 ${ciut ? 'lg:flex-col lg:bg-transparent lg:p-0' : ''}`}>
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emas text-[12px] font-bold uppercase text-navy" aria-hidden>
-                {inisial}
-              </span>
-              <div className={`min-w-0 flex-1 ${ciut ? 'lg:hidden' : ''}`}>
-                <div className="truncate text-[13.5px] font-semibold text-tinta">{namaUser || role}</div>
-                <div className="truncate text-[12px] capitalize text-abu">{role}</div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setConfirmKeluar(true)}
-                aria-label="Keluar"
-                title="Keluar"
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-tinta/70 hover:bg-white/75 hover:text-tinta"
-              >
-                <Ikon nama="keluar" />
-              </button>
+      <main id="vsf-main" tabIndex={-1} className="flex min-h-dvh min-w-0 flex-col outline-none lg:pl-[92px]">
+        {/* Bilah atas: merek, nav pill submenu grup aktif, status. */}
+        <header className="vsf-topbar sticky top-0 z-20 px-4 pt-3 sm:px-6">
+          <div className="glass-chrome flex flex-wrap items-center gap-x-3 gap-y-2 py-2 pl-2 pr-2 sm:pl-3 xl:flex-nowrap">
+            <button
+              type="button"
+              className="vsf-chrome-tautan !min-h-[44px] !min-w-[44px] justify-center !px-0 lg:!hidden"
+              aria-expanded={navOpen}
+              aria-controls="vsf-sidebar"
+              aria-label={navOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
+              onClick={() => setNavOpen((v) => !v)}
+            >
+              <Ikon nama={navOpen ? 'tutup' : 'menu'} className="h-5 w-5" />
+            </button>
+            <div className="min-w-0 xl:hidden 2xl:block 2xl:w-[190px] 2xl:shrink-0">
+              <div className="truncate font-display text-[16px] font-bold leading-tight text-tinta">Vertonik Smart Farm</div>
+              <div className="hidden truncate text-[12px] text-abu sm:block">GARAP · greenhouse hidroponik</div>
             </div>
-          </div>
-        </aside>
-
-          {/* Backdrop off-canvas (mobile saja) — P7: fade 180ms (bukan pop). */}
-        {navOpen && (
-          <div
-            aria-hidden
-            className="fixed inset-0 z-30 bg-[rgba(10,31,56,0.32)] backdrop-blur-[3px] lg:hidden vsf-backdrop"
-            onClick={() => setNavOpen(false)}
-          />
-        )}
-
-        <main id="vsf-main" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-none">
-          {/* QW6 — header responsif: hamburger di <lg, badge/clock disederhanakan.
-              Chrome navy (token --navy/--navy2) + aksen emas. */}
-          {/* Header — bilah liquid glass melayang (gaya sama dengan landing), tint navy lebih pekat
-              karena latar aplikasi terang. */}
-          <header className="vsf-topbar sticky top-0 z-20 px-4 pt-3 sm:px-6">
-            <div className="glass-chrome flex min-h-[60px] items-center gap-3 py-2 pl-2 pr-2 sm:pl-5">
-              <button
-                type="button"
-                className="vsf-chrome-tautan !min-h-[44px] !min-w-[44px] justify-center !px-0 lg:!hidden"
-                aria-expanded={navOpen}
-                aria-controls="vsf-sidebar"
-                aria-label={navOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
-                onClick={() => setNavOpen((v) => !v)}
-              >
-                <Ikon nama={navOpen ? 'tutup' : 'menu'} className="h-5 w-5" />
-              </button>
-              <div className="min-w-0">
-                <h1 className="truncate text-[19px] font-bold leading-tight text-tinta sm:text-[22px]">{title}</h1>
-                <div className="hidden text-[12px] text-abu sm:block">GARAP · greenhouse hidroponik</div>
-              </div>
-              <div className="ml-auto flex items-center gap-2 sm:gap-3">
-                {/* S6 — status IoT dari data live /dashboard (lihat useApiObject di atas). */}
-                {dash && (
-                  <span className="hidden md:inline-flex">
-                    <span className="vsf-chip-terang" role="status">
-                      <span className={`h-2 w-2 rounded-full ${iotOnline ? 'bg-moss' : 'bg-arutmin-error'}`} aria-hidden />
-                      {iotOnline ? 'Alat terhubung' : 'Alat terputus'}
-                    </span>
+            {grupAktif && (
+              <PillNav
+                items={grupAktif.items}
+                label={`Submenu ${grupAktif.label}`}
+                className="order-last w-full xl:order-none xl:w-auto xl:min-w-0 xl:flex-1"
+              />
+            )}
+            <div className="ml-auto flex items-center gap-2 sm:gap-3">
+              {/* S6 — status IoT dari data live /dashboard (lihat useApiObject di atas). */}
+              {dash && (
+                <span className="hidden md:inline-flex xl:hidden 2xl:inline-flex">
+                  <span className="vsf-chip-terang" role="status">
+                    <span className={`h-2 w-2 rounded-full ${iotOnline ? 'bg-moss' : 'bg-arutmin-error'}`} aria-hidden />
+                    {iotOnline ? 'Alat terhubung' : 'Alat terputus'}
                   </span>
-                )}
-                <span className="hidden text-[14px] font-semibold tabular-nums text-tinta/85 sm:block">{clock}</span>
-                {/* Avatar inisial user (bukan emoji) + nama & role. */}
-                <div className="vsf-chip-terang !gap-2 !py-1 !pl-1">
-                  <span
-                    className="grid h-8 w-8 place-items-center rounded-full bg-emas text-[12px] font-bold uppercase leading-none text-navy [text-shadow:none]"
-                    aria-hidden
-                  >
-                    {inisial}
-                  </span>
-                  <span className="text-[14px] font-semibold text-tinta">{namaUser || role}</span>
-                  <span className="hidden text-[12px] text-abu lg:block">{role}</span>
-                </div>
-              </div>
-            </div>
-          </header>
-
-          <div className="min-w-0 flex-1 overflow-x-clip p-4 sm:p-6">
-            {/* QW5 — notice redirect role (state dari RequireAuth). */}
-            {notice && (
-              <div
-                role="status"
-                aria-live="polite"
-                className="vsf-banner mb-4 flex items-center gap-3 rounded-std vsf-tone-warn px-3 py-2 text-[13px]"
-              >
-                <Ikon nama="peringatan" className="h-4 w-4" />
-                <span>{notice}</span>
-                <button
-                  type="button"
-                  aria-label="Tutup pemberitahuan"
-                  className="ml-auto inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full px-2 text-amber-800 sm:min-h-[36px] sm:min-w-[36px] hover:bg-amber-100"
-                  onClick={dismissNotice}
+                </span>
+              )}
+              <span className="hidden text-[14px] font-semibold tabular-nums text-tinta/85 sm:block">{clock}</span>
+              {/* Avatar inisial user (bukan emoji) + nama & role. */}
+              <div className="vsf-chip-terang !gap-2 !py-1 !pl-1">
+                <span
+                  className="grid h-8 w-8 place-items-center rounded-full bg-emas text-[12px] font-bold uppercase leading-none text-navy [text-shadow:none]"
+                  aria-hidden
                 >
-                  <Ikon nama="tutup" className="h-4 w-4" />
-                </button>
+                  {inisial}
+                </span>
+                <span className="text-[14px] font-semibold text-tinta">{namaUser || role}</span>
+                <span className="hidden text-[12px] text-abu lg:block">{role}</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="min-w-0 flex-1 overflow-x-clip p-4 sm:p-6">
+          {/* QW5 — notice redirect role (state dari RequireAuth). */}
+          {notice && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="vsf-banner mb-4 flex items-center gap-3 rounded-std vsf-tone-warn px-3 py-2 text-[13px]"
+            >
+              <Ikon nama="peringatan" className="h-4 w-4" />
+              <span>{notice}</span>
+              <button
+                type="button"
+                aria-label="Tutup pemberitahuan"
+                className="ml-auto inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full px-2 text-amber-800 sm:min-h-[36px] sm:min-w-[36px] hover:bg-amber-100"
+                onClick={dismissNotice}
+              >
+                <Ikon nama="tutup" className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+          <div key={location.pathname} className="vsf-page min-w-0">
+            {/* Judul halaman (dashboard punya sapaan sendiri sebagai h1). */}
+            {!beranda && (
+              <div className="mx-auto mb-4 w-full max-w-[1180px] md:mb-6">
+                <div className="glass-card inline-flex flex-col gap-0.5 px-5 py-3">
+                  {grupAktif && <div className="vsf-eyebrow vsf-eyebrow-chrome">{grupAktif.label}</div>}
+                  <h1 className="font-display text-[24px] font-bold leading-tight text-tinta">{title}</h1>
+                </div>
               </div>
             )}
-            <div key={location.pathname} className="vsf-page min-w-0">
-              <Outlet />
-            </div>
+            <Outlet />
           </div>
-          <SiteFooter pekat />
-        </main>
-      </div>
+        </div>
+        <SiteFooter pekat />
+      </main>
 
       {/* Confirm sheet: Keluar — QW3: alertdialog + label + fokus + trap. */}
       {confirmKeluar && (
