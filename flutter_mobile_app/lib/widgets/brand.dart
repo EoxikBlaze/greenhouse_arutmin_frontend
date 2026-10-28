@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
+import '../util/format.dart';
 import 'kaca.dart';
 import 'motion.dart';
 
@@ -436,6 +437,35 @@ class ErrorPanel extends StatelessWidget {
   }
 }
 
+/// Banner bila polling gagal tetapi data terakhir masih ditampilkan.
+class BannerBasi extends StatelessWidget {
+  const BannerBasi({super.key, required this.sejak});
+
+  /// Waktu data terakhir berhasil diambil.
+  final DateTime sejak;
+
+  @override
+  Widget build(BuildContext context) {
+    final teks =
+        'Koneksi terputus · data terakhir diterima ${waktuRelatifDari(sejak)}';
+    return Semantics(
+      liveRegion: true,
+      label: teks,
+      excludeSemantics: true,
+      child: Panel(
+        warnaTepi: Tok.warning,
+        child: Row(
+          children: [
+            const Icon(Icons.cloud_off_outlined, color: Tok.warning),
+            const SizedBox(width: 10),
+            Expanded(child: Text(teks, style: Tok.body)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Tombol utama bergradasi hijau (padanan `bg-primary` web).
 class TombolGradasi extends StatelessWidget {
   const TombolGradasi({
@@ -511,6 +541,37 @@ class TombolGradasi extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Dialog konfirmasi; true bila [labelYa] ditekan. [bahaya] = tombol merah.
+Future<bool> konfirmasi(
+  BuildContext context, {
+  required String judul,
+  required String isi,
+  required String labelYa,
+  bool bahaya = false,
+}) async {
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (c) => AlertDialog(
+      title: Text(judul),
+      content: Text(isi),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(c, false),
+          child: const Text('Batal'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(c, true),
+          style: bahaya
+              ? FilledButton.styleFrom(backgroundColor: Tok.error)
+              : null,
+          child: Text(labelYa),
+        ),
+      ],
+    ),
+  );
+  return ok == true;
 }
 
 /// Notifikasi singkat bergaya aplikasi.

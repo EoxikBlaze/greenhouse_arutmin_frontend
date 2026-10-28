@@ -26,16 +26,18 @@ class _SensorPageState extends State<SensorPage> {
   bool _memuat = true;
   String _pilih = 'ph';
 
+  /// Waktu fetch sukses terakhir; [_putus] = fetch terbaru gagal, data lama ditampilkan.
+  DateTime? _sukses;
+  bool _putus = false;
+
   late final PollTimer _pollTerbaru;
   late final PollTimer _pollRiwayat;
 
   @override
   void initState() {
     super.initState();
-    _pollTerbaru =
-        PollTimer(const Duration(seconds: 5), () => _muatTerbaru());
-    _pollRiwayat =
-        PollTimer(const Duration(seconds: 30), () => _muatRiwayat());
+    _pollTerbaru = PollTimer(const Duration(seconds: 5), () => _muatTerbaru());
+    _pollRiwayat = PollTimer(const Duration(seconds: 30), () => _muatRiwayat());
     _pollTerbaru.atur(widget.aktif);
     _pollRiwayat.atur(widget.aktif);
     _muatTerbaru();
@@ -70,11 +72,17 @@ class _SensorPageState extends State<SensorPage> {
         _terbaru = d;
         _galat = null;
         _memuat = false;
+        _sukses = DateTime.now();
+        _putus = false;
       });
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() {
-        if (_terbaru == null) _galat = e.message;
+        if (_terbaru == null) {
+          _galat = e.message;
+        } else {
+          _putus = true;
+        }
         _memuat = false;
       });
     }
@@ -174,10 +182,13 @@ class _SensorPageState extends State<SensorPage> {
       );
     }
     if (_galat != null && _terbaru == null) {
-      return ErrorPanel(pesan: _galat!, onCoba: () {
-        setState(() => _memuat = true);
-        _muatTerbaru();
-      });
+      return ErrorPanel(
+        pesan: _galat!,
+        onCoba: () {
+          setState(() => _memuat = true);
+          _muatTerbaru();
+        },
+      );
     }
 
     final t = _terbaru!;
@@ -195,12 +206,15 @@ class _SensorPageState extends State<SensorPage> {
       for (final e in _riwayat)
         if (_ambil(e, def.kunci) != null) _ambil(e, def.kunci)!,
     ];
-    final tampil =
-        deret.length > 96 ? deret.sublist(deret.length - 96) : deret;
+    final tampil = deret.length > 96 ? deret.sublist(deret.length - 96) : deret;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (_putus && _sukses != null) ...[
+          BannerBasi(sejak: _sukses!),
+          const SizedBox(height: 16),
+        ],
         if (anom.isNotEmpty) ...[
           FadeUp(
             child: Panel(
@@ -214,7 +228,10 @@ class _SensorPageState extends State<SensorPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('${anom.length} nilai di luar batas', style: Tok.h3),
+                        Text(
+                          '${anom.length} nilai di luar batas',
+                          style: Tok.h3,
+                        ),
                         const SizedBox(height: 4),
                         for (final a in anom.whereType<Map>())
                           Text(
@@ -315,13 +332,17 @@ class _SensorPageState extends State<SensorPage> {
                   nilai: tampil,
                   warna: def.warna,
                   tinggi: 150,
+                  deskripsi: tampil.isEmpty
+                      ? null
+                      : 'Grafik ${def.label}, ${tampil.length} titik, '
+                            'terakhir ${fmtAngka(tampil.last, desimal: def.desimal)} ${def.satuan}',
                 ),
                 const SizedBox(height: 6),
                 Text(
                   tampil.isEmpty
                       ? 'Menunggu data riwayat'
                       : 'Terakhir ${fmtAngka(tampil.last, desimal: def.desimal)} ${def.satuan}'
-                          ' · ${tampil.length} titik',
+                            ' · ${tampil.length} titik',
                   style: Tok.kecil,
                 ),
               ],

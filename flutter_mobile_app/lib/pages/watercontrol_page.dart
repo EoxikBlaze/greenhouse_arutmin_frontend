@@ -56,7 +56,9 @@ class _WaterControlPageState extends State<WaterControlPage> {
       if (!mounted) return;
       setState(() {
         _data = d is Map<String, dynamic> ? d : null;
-        _galat = _data == null ? 'Respons kontrol air tidak sesuai kontrak.' : null;
+        _galat = _data == null
+            ? 'Respons kontrol air tidak sesuai kontrak.'
+            : null;
         _memuat = false;
       });
     } on ApiException catch (e) {
@@ -90,7 +92,9 @@ class _WaterControlPageState extends State<WaterControlPage> {
       context: context,
       builder: (c) => AlertDialog(
         title: const Text('Buka katup pengisian?'),
-        content: const Text('Air akan mengalir ke penampung sampai dihentikan.'),
+        content: const Text(
+          'Air akan mengalir ke penampung sampai dihentikan.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c, false),
@@ -104,6 +108,21 @@ class _WaterControlPageState extends State<WaterControlPage> {
       ),
     );
     if (ok == true) await _aksi('/watercontrol/fill');
+  }
+
+  Future<void> _konfirmasiMode(bool otomatis) async {
+    final ok = await konfirmasi(
+      context,
+      judul: otomatis ? 'Ganti ke mode otomatis?' : 'Ganti ke mode manual?',
+      isi: otomatis
+          ? 'Sistem akan mengisi air sesuai level sensor.'
+          : 'Katup tidak lagi diatur otomatis; Anda mengendalikannya sendiri.',
+      labelYa: 'Ya, ganti',
+    );
+    if (!ok) return;
+    await _aksi('/watercontrol/setMode', {
+      'mode': otomatis ? 'AUTO' : 'MANUAL',
+    });
   }
 
   @override
@@ -165,7 +184,10 @@ class _WaterControlPageState extends State<WaterControlPage> {
               children: [
                 _Tetes(buka: buka),
                 const SizedBox(height: 10),
-                Text(buka ? 'Air sedang mengalir' : 'Katup tertutup', style: Tok.h2),
+                Text(
+                  buka ? 'Air sedang mengalir' : 'Katup tertutup',
+                  style: Tok.h2,
+                ),
                 const SizedBox(height: 2),
                 Text('Mode $mode', style: Tok.kecil),
               ],
@@ -213,12 +235,7 @@ class _WaterControlPageState extends State<WaterControlPage> {
                   value: otomatis,
                   activeThumbColor: Colors.white,
                   activeTrackColor: Tok.mossGelap,
-                  onChanged: _kerja
-                      ? null
-                      : (v) => _aksi(
-                            '/watercontrol/setMode',
-                            {'mode': v ? 'AUTO' : 'MANUAL'},
-                          ),
+                  onChanged: _kerja ? null : _konfirmasiMode,
                 ),
               ],
             ),
@@ -244,7 +261,9 @@ class _WaterControlPageState extends State<WaterControlPage> {
                 child: SizedBox(
                   height: 50,
                   child: OutlinedButton.icon(
-                    onPressed: _kerja ? null : () => _aksi('/watercontrol/stop'),
+                    onPressed: _kerja
+                        ? null
+                        : () => _aksi('/watercontrol/stop'),
                     icon: const Icon(Icons.stop_circle_outlined, size: 18),
                     label: const Text('Hentikan'),
                     style: OutlinedButton.styleFrom(

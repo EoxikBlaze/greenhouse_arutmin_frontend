@@ -62,6 +62,11 @@ String waktuRelatif(String? iso) {
   if (iso == null || iso.isEmpty) return '-';
   final d = DateTime.tryParse(iso)?.toLocal();
   if (d == null) return iso;
+  return waktuRelatifDari(d);
+}
+
+/// Sama seperti [waktuRelatif] tetapi dari [DateTime] yang sudah ada.
+String waktuRelatifDari(DateTime d) {
   final s = DateTime.now().difference(d).inSeconds;
   if (s < 5) return 'baru saja';
   if (s < 60) return '$s detik lalu';

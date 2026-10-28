@@ -478,6 +478,13 @@ class _SheetHasilState extends State<_SheetHasil> {
       setState(() => _galat = 'Tidak boleh lebih dari $_jumlah.');
       return;
     }
+    final lanjut = await konfirmasi(
+      context,
+      judul: 'Simpan hasil tahap ini?',
+      isi: 'Berhasil $b${_jumlah != null ? ' dari $_jumlah' : ''}.',
+      labelYa: 'Simpan',
+    );
+    if (!lanjut || !mounted) return;
     setState(() {
       _sibuk = true;
       _galat = null;
@@ -667,6 +674,13 @@ class _SheetMulaiState extends State<_SheetMulai> {
       setState(() => _galat = 'Pilih tanaman, meja, dan isi jumlah benih.');
       return;
     }
+    final lanjut = await konfirmasi(
+      context,
+      judul: 'Mulai semai?',
+      isi: 'Semai $n benih dimulai hari ini.',
+      labelYa: 'Mulai',
+    );
+    if (!lanjut || !mounted) return;
     setState(() {
       _sibuk = true;
       _galat = null;

@@ -345,7 +345,16 @@ class _ProfilPageState extends State<ProfilPage> {
                   width: double.infinity,
                   height: 50,
                   child: OutlinedButton.icon(
-                    onPressed: widget.onLogout,
+                    onPressed: () async {
+                      final ok = await konfirmasi(
+                        context,
+                        judul: 'Keluar dari akun?',
+                        isi: 'Anda perlu masuk lagi untuk memakai aplikasi.',
+                        labelYa: 'Ya, keluar',
+                        bahaya: true,
+                      );
+                      if (ok) widget.onLogout();
+                    },
                     icon: const Icon(Icons.logout_rounded, size: 18),
                     label: const Text('Keluar'),
                     style: OutlinedButton.styleFrom(

@@ -11,6 +11,7 @@ class LineChart extends StatelessWidget {
     this.tinggi = 140,
     this.min,
     this.max,
+    this.deskripsi,
   });
 
   /// Deret nilai (kosong / null dilewati oleh pemanggil).
@@ -19,6 +20,9 @@ class LineChart extends StatelessWidget {
   final double tinggi;
   final double? min;
   final double? max;
+
+  /// Teks untuk pembaca layar (grafik digambar di kanvas, tanpa teks sendiri).
+  final String? deskripsi;
 
   List<double> _ringkas(List<double> d) {
     const batas = 120;
@@ -33,22 +37,27 @@ class LineChart extends StatelessWidget {
     if (data.length < 2) {
       return SizedBox(
         height: tinggi,
-        child: const Center(
-          child: Text('Belum cukup data', style: Tok.kecil),
-        ),
+        child: const Center(child: Text('Belum cukup data', style: Tok.kecil)),
       );
     }
-    return SizedBox(
+    final grafik = SizedBox(
       height: tinggi,
       width: double.infinity,
       child: TweenAnimationBuilder<double>(
         tween: Tween<double>(begin: 0, end: 1),
         duration: const Duration(milliseconds: 1100),
         curve: Tok.ease,
-        builder: (context, t, _) => CustomPaint(
-          painter: _LinePainter(data, warna, t, min, max),
-        ),
+        builder: (context, t, _) =>
+            CustomPaint(painter: _LinePainter(data, warna, t, min, max)),
       ),
+    );
+    final d = deskripsi;
+    if (d == null) return grafik;
+    return Semantics(
+      label: d,
+      image: true,
+      excludeSemantics: true,
+      child: grafik,
     );
   }
 }
@@ -118,10 +127,7 @@ class _LinePainter extends CustomPainter {
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            warna.withValues(alpha: 0.28),
-            warna.withValues(alpha: 0.0),
-          ],
+          colors: [warna.withValues(alpha: 0.28), warna.withValues(alpha: 0.0)],
         ).createShader(Rect.fromLTWH(0, 0, size.width, size.height)),
     );
 
@@ -189,49 +195,54 @@ class RingGauge extends StatelessWidget {
         ? 0.0
         : ((v - min) / (max - min)).clamp(0.0, 1.0).toDouble();
     final aksen = bahaya ? Tok.error : warna;
+    final angka = v == null ? 'tidak ada data' : v.toStringAsFixed(desimal);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          width: ukuran,
-          height: ukuran,
-          child: TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0, end: frac),
-            duration: const Duration(milliseconds: 1000),
-            curve: Tok.ease,
-            builder: (context, f, _) => CustomPaint(
-              painter: _RingPainter(f, aksen),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      v == null ? '-' : v.toStringAsFixed(desimal),
-                      style: TextStyle(
-                        fontSize: ukuran * 0.21,
-                        fontWeight: FontWeight.w700,
-                        color: bahaya ? Tok.error : Tok.tinta,
-                        letterSpacing: -0.4,
+    return Semantics(
+      excludeSemantics: true,
+      label: '$label: $angka $satuan${bahaya ? ', di luar batas aman' : ''}',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: ukuran,
+            height: ukuran,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0, end: frac),
+              duration: const Duration(milliseconds: 1000),
+              curve: Tok.ease,
+              builder: (context, f, _) => CustomPaint(
+                painter: _RingPainter(f, aksen),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        v == null ? '-' : v.toStringAsFixed(desimal),
+                        style: TextStyle(
+                          fontSize: ukuran * 0.21,
+                          fontWeight: FontWeight.w700,
+                          color: bahaya ? Tok.error : Tok.tinta,
+                          letterSpacing: -0.4,
+                        ),
                       ),
-                    ),
-                    Text(satuan, style: Tok.kecil.copyWith(fontSize: 11)),
-                  ],
+                      Text(satuan, style: Tok.kecil.copyWith(fontSize: 11)),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-            color: Tok.tinta,
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: Tok.tinta,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

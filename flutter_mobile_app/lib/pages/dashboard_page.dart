@@ -25,6 +25,10 @@ class _DashboardPageState extends State<DashboardPage> {
   bool _memuat = true;
   late final PollTimer _poll;
 
+  /// Waktu fetch sukses terakhir; [_putus] = fetch terbaru gagal, data lama ditampilkan.
+  DateTime? _sukses;
+  bool _putus = false;
+
   @override
   void initState() {
     super.initState();
@@ -59,11 +63,16 @@ class _DashboardPageState extends State<DashboardPage> {
             ? 'Respons dashboard tidak sesuai kontrak.'
             : null;
         _memuat = false;
+        if (_data != null) {
+          _sukses = DateTime.now();
+          _putus = false;
+        }
       });
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() {
         if (!senyap || _data == null) _galat = e.message;
+        if (_data != null) _putus = true;
         _memuat = false;
       });
     }
@@ -153,6 +162,10 @@ class _DashboardPageState extends State<DashboardPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (_putus && _sukses != null) ...[
+          BannerBasi(sejak: _sukses!),
+          const SizedBox(height: 14),
+        ],
         GridView.count(
           crossAxisCount: 2,
           shrinkWrap: true,
