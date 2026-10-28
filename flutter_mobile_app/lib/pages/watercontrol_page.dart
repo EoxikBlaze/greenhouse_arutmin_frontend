@@ -23,6 +23,10 @@ class _WaterControlPageState extends State<WaterControlPage> {
   bool _memuat = true;
   bool _kerja = false;
   late final PollTimer _poll;
+
+  /// Waktu fetch status sukses terakhir; [_putus] = fetch terbaru gagal, data lama tampil.
+  DateTime? _sukses;
+  bool _putus = false;
   final _penampung = GlobalKey<StatusPenampungPanelState>();
 
   @override
@@ -63,11 +67,16 @@ class _WaterControlPageState extends State<WaterControlPage> {
             ? 'Respons kontrol air tidak sesuai kontrak.'
             : null;
         _memuat = false;
+        if (_data != null) {
+          _sukses = DateTime.now();
+          _putus = false;
+        }
       });
     } on ApiException catch (e) {
       if (!mounted) return;
       setState(() {
         if (!senyap || _data == null) _galat = e.message;
+        if (_data != null) _putus = true;
         _memuat = false;
       });
     }
@@ -181,6 +190,10 @@ class _WaterControlPageState extends State<WaterControlPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (_putus && _sukses != null) ...[
+          BannerBasi(sejak: _sukses!),
+          const SizedBox(height: 14),
+        ],
         FadeUp(
           child: Panel(
             child: Column(

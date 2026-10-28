@@ -48,4 +48,40 @@ void main() {
     await kunci.currentState!.muat();
     expect(dipanggil.where((p) => p == '/meja'), hasLength(2));
   });
+
+  testWidgets('muat gagal setelah sukses: daftar tetap + banner koneksi', (
+    tester,
+  ) async {
+    var gagal = false;
+    final api = ApiService(
+      client: MockClient((req) async {
+        if (gagal) return http.Response('x', 503);
+        return req.url.path == '/meja'
+            ? _json([
+                {'id_meja': '1', 'meja': 'Meja A1'},
+              ])
+            : _json([
+                {'id_meja': '1', 'status_lock': false},
+              ]);
+      }),
+    );
+    final kunci = GlobalKey<StatusPenampungPanelState>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: StatusPenampungPanel(key: kunci, api: api, bolehBuka: false),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Koneksi terputus'), findsNothing);
+
+    gagal = true;
+    await kunci.currentState!.muat();
+    await tester.pumpAndSettle();
+    expect(find.text('Meja A1'), findsOneWidget);
+    expect(find.textContaining('Koneksi terputus'), findsOneWidget);
+  });
 }

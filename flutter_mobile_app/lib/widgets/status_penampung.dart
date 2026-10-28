@@ -29,6 +29,9 @@ class StatusPenampungPanelState extends State<StatusPenampungPanel> {
   String? _galat;
   String? _membuka;
 
+  /// Waktu muat sukses terakhir; dipakai banner bila muat berikutnya gagal.
+  DateTime? _sukses;
+
   @override
   void initState() {
     super.initState();
@@ -59,6 +62,7 @@ class StatusPenampungPanelState extends State<StatusPenampungPanel> {
           _meja ?? const [],
         );
         _galat = null;
+        _sukses = DateTime.now();
       });
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -121,6 +125,10 @@ class StatusPenampungPanelState extends State<StatusPenampungPanel> {
     }
     return Column(
       children: [
+        if (_galat != null && _sukses != null) ...[
+          BannerBasi(sejak: _sukses!),
+          const SizedBox(height: 10),
+        ],
         for (final p in daftar) ...[
           _Baris(
             p: p,
