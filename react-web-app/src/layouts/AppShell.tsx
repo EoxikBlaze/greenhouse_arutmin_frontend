@@ -470,7 +470,7 @@ export function AppShell() {
               <div
                 role="status"
                 aria-live="polite"
-                className="vsf-banner mb-4 flex items-center gap-3 rounded-std border border-amber-600/40 bg-amber-50 px-3 py-2 text-[13px] text-amber-800"
+                className="vsf-banner mb-4 flex items-center gap-3 rounded-std vsf-tone-warn px-3 py-2 text-[13px]"
               >
                 <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
                   <path d="M12 3 1.8 20.5h20.4z" />

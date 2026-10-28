@@ -39,7 +39,7 @@ function tgl(iso?: string | null): string {
 function statusTone(status?: string | null): string {
   const s = String(status ?? '').toLowerCase()
   if (s === 'aktif') return 'border-arutmin-moss/50 bg-arutmin-mint/25 text-arutmin-forest'
-  if (s === 'proses') return 'border-amber-500/60 bg-amber-50 text-amber-800'
+  if (s === 'proses') return 'vsf-tone-warn'
   return 'border-arutmin-border2 bg-slate-50 text-slate-600'
 }
 
@@ -177,7 +177,7 @@ function DialogMulaiSemai({
         {formError && (
           <div
             role="alert"
-            className="vsf-banner mt-3 rounded-std border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700"
+            className="vsf-banner mt-3 rounded-std vsf-tone-error px-3 py-2 text-[13px]"
           >
             {formError}
           </div>
@@ -369,7 +369,7 @@ export default function TanamSayaPage() {
         ) : error ? (
           <div
             role="alert"
-            className="vsf-banner mt-3 rounded-input border border-red-600/50 bg-red-50 px-3 py-3 text-[13px] text-red-700 flex flex-wrap items-center gap-3"
+            className="vsf-banner mt-3 rounded-input vsf-tone-error px-3 py-3 text-[13px] flex flex-wrap items-center gap-3"
           >
             <span className="inline-flex items-center gap-1.5"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="shrink-0"><path d="M8 1.8 14.8 13.8H1.2L8 1.8Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M8 6.4v3.1M8 11.5v.1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> {error}</span>
             <button type="button" className="vsf-input rounded-full font-semibold" onClick={reload}>

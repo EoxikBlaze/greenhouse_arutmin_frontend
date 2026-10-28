@@ -172,7 +172,7 @@ export default function LoginPage() {
               key={serverError}
               role="alert"
               aria-live="assertive"
-              className="vsf-banner-danger mt-5 flex items-start gap-2 rounded-std border border-red-600/50 bg-red-50 px-3 py-2.5 text-[13px] font-medium text-red-700"
+              className="vsf-banner-danger mt-5 flex items-start gap-2 rounded-std vsf-tone-error px-3 py-2.5 text-[13px] font-medium"
             >
               <IconAlert />
               <span>{serverError}</span>

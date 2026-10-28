@@ -62,7 +62,7 @@ const OPSI_AKSI = [
 const TONE_AKSI: Record<string, string> = {
   create: 'border-arutmin-moss/45 bg-arutmin-mint/60 text-arutmin-forest',
   update: 'border-navy/30 bg-navy/[.07] text-navy',
-  delete: 'border-red-600/35 bg-red-50 text-red-700',
+  delete: 'vsf-tone-error',
   login: 'border-emas/70 bg-emas/20 text-[#7A6410]',
 }
 

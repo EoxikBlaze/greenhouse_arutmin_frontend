@@ -160,6 +160,11 @@
   }
   .vsf-input:disabled { @apply bg-slate-50 text-slate-500 cursor-not-allowed; }
 
+  /* Nada status bersama untuk banner & lencana (satu sumber; tata letak tetap di tiap pemakai). */
+  .vsf-tone-error { @apply border border-red-600/50 bg-red-50 text-red-700; }
+  .vsf-tone-warn { @apply border border-amber-500/50 bg-amber-50 text-amber-800; }
+  .vsf-field-error { @apply mt-1 text-[12px] text-red-700; }
+
   /* ── (2) Eyebrow global — satu varian: 11px uppercase, tracking .14em, bold ── */
   .vsf-eyebrow {
     @apply text-[11px] uppercase tracking-[.14em] font-bold;

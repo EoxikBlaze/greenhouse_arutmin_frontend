@@ -36,8 +36,8 @@ const ALASAN_FALLBACK: Record<string, string> = {
 }
 
 const GAYA_PRIORITAS: Record<Prioritas, string> = {
-  tinggi: 'border-red-500/60 bg-red-50 text-red-700',
-  sedang: 'border-amber-500/60 bg-amber-50 text-amber-800',
+  tinggi: 'vsf-tone-error',
+  sedang: 'vsf-tone-warn',
   rendah: 'border-arutmin-moss/50 bg-arutmin-mint/40 text-arutmin-forest',
 }
 
@@ -172,7 +172,7 @@ export default function AsistenAiPage() {
           {galat && (
             <div
               role="alert"
-              className="vsf-banner mt-3 rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700"
+              className="vsf-banner mt-3 rounded-input vsf-tone-error px-3 py-2 text-[13px]"
             >
               {galat}
             </div>

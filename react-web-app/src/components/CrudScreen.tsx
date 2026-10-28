@@ -332,7 +332,7 @@ export function CrudScreen<T>({
             {formError && (
               <div
                 role="alert"
-                className="vsf-banner mt-3 rounded-std border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700"
+                className="vsf-banner mt-3 rounded-std vsf-tone-error px-3 py-2 text-[13px]"
               >
                 {formError}
               </div>
@@ -392,7 +392,7 @@ export function CrudScreen<T>({
             {deleteError && (
               <div
                 role="alert"
-                className="vsf-banner mt-3 rounded-std border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700"
+                className="vsf-banner mt-3 rounded-std vsf-tone-error px-3 py-2 text-[13px]"
               >
                 {deleteError}
               </div>
@@ -461,7 +461,7 @@ export function BtnHapus({
   return (
     <button
       type="button"
-      className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-red-600/35 bg-red-50 px-3 text-[12px] font-semibold text-red-700 transition-colors hover:border-red-600 hover:bg-red-100"
+      className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full vsf-tone-error px-3 text-[12px] font-semibold transition-colors hover:border-red-600 hover:bg-red-100"
       onClick={() => onPick(label, id)}
       aria-label={`Hapus ${label}`}
     >
@@ -508,7 +508,7 @@ export function Field({ label, children }: { label: string; children: ReactNode 
 export function FieldError({ message }: { message?: string }) {
   if (!message) return null
   return (
-    <div className="mt-1 text-[12px] text-red-700" role="alert">
+    <div className="vsf-field-error" role="alert">
       {message}
     </div>
   )

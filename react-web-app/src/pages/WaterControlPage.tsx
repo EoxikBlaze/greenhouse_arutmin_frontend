@@ -159,7 +159,7 @@ export default function WaterControlPage() {
       {error && (
         <div
           role="alert"
-          className="vsf-banner rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700 flex flex-wrap items-center gap-3"
+          className="vsf-banner rounded-input vsf-tone-error px-3 py-2 text-[13px] flex flex-wrap items-center gap-3"
         >
           <span className="flex items-center gap-2">
             <IkonSalah className="shrink-0" />
@@ -178,7 +178,7 @@ export default function WaterControlPage() {
             'vsf-banner rounded-input border px-3 py-2 text-[13px] flex items-start gap-2',
             pesan.ok
               ? 'border-arutmin-moss bg-arutmin-mint/50 text-arutmin-forest'
-              : 'border-red-600/50 bg-red-50 text-red-700',
+              : 'vsf-tone-error',
           )}
         >
           {pesan.ok ? <IkonOk className="mt-[2px] shrink-0" /> : <IkonSalah className="mt-[2px] shrink-0" />}
@@ -274,13 +274,13 @@ export default function WaterControlPage() {
           <span className="text-[12px] text-slate-500">status polling tiap 5 dtk, tombol nonaktif saat perintah diproses</span>
         </div>
         {mode === 'MANUAL' && (
-          <div className="mt-2 flex items-start gap-2 text-[12px] text-amber-800 bg-amber-50 border border-amber-500/40 rounded-input px-3 py-2">
+          <div className="mt-2 flex items-start gap-2 text-[12px] vsf-tone-warn rounded-input px-3 py-2">
             <IkonPeringatan className="mt-[1px] shrink-0" />
             <span>Mode MANUAL aktif — sistem tidak akan mengisi air otomatis.</span>
           </div>
         )}
         {!terjangkau && (
-          <div className="mt-2 flex items-start gap-2 text-[12px] text-red-700 bg-red-50 border border-red-600/40 rounded-input px-3 py-2">
+          <div className="mt-2 flex items-start gap-2 text-[12px] vsf-tone-error rounded-input px-3 py-2">
             <IkonSalah className="mt-[1px] shrink-0" />
             <span>Status tidak terjangkau — aksi dinonaktifkan sampai koneksi pulih.</span>
           </div>

@@ -280,7 +280,7 @@ export default function CctvPage() {
             role={pesan.ok ? 'status' : 'alert'}
             className={clsx(
               'vsf-banner mt-3 rounded-input border px-3 py-2 text-[13px]',
-              pesan.ok ? 'border-arutmin-moss/50 bg-arutmin-mint/40 text-arutmin-forest' : 'border-red-600/50 bg-red-50 text-red-700',
+              pesan.ok ? 'border-arutmin-moss/50 bg-arutmin-mint/40 text-arutmin-forest' : 'vsf-tone-error',
             )}
           >
             {pesan.teks}

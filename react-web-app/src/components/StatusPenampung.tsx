@@ -103,7 +103,7 @@ export function StatusPenampung({ onPesan }: { onPesan: (teks: string, ok: boole
     <section className="vsf-card p-4">
       <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Status penampung</div>
       {error && !states ? (
-        <div role="alert" className="mt-3 rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700">
+        <div role="alert" className="mt-3 rounded-input vsf-tone-error px-3 py-2 text-[13px]">
           {error}
         </div>
       ) : loading && !states ? (

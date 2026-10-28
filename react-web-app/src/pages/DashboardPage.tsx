@@ -194,7 +194,7 @@ export default function DashboardPage() {
       {error && (
         <div
           role="alert"
-          className="vsf-banner rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700 flex flex-wrap items-center gap-3"
+          className="vsf-banner rounded-input vsf-tone-error px-3 py-2 text-[13px] flex flex-wrap items-center gap-3"
         >
           <span className="flex items-center gap-2">
             <IkonSalah className="shrink-0" />

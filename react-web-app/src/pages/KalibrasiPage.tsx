@@ -56,8 +56,8 @@ type Terkini = {
 }
 
 const STATUS: Record<Alat['status'], { label: string; kelas: string }> = {
-  terlambat: { label: 'Terlambat', kelas: 'border-red-600/40 bg-red-50 text-red-700' },
-  segera: { label: 'Segera', kelas: 'border-amber-500/50 bg-amber-50 text-amber-800' },
+  terlambat: { label: 'Terlambat', kelas: 'vsf-tone-error' },
+  segera: { label: 'Segera', kelas: 'vsf-tone-warn' },
   aman: { label: 'Aman', kelas: 'border-arutmin-moss bg-arutmin-mint/50 text-arutmin-forest' },
   belum: { label: 'Belum pernah', kelas: 'border-navy/25 bg-navy/[.05] text-navy' },
   tanpa_jadwal: { label: 'Sesuai kebutuhan', kelas: 'border-slate-300 bg-slate-50 text-slate-600' },
@@ -136,7 +136,7 @@ function Isian({ label, value, onChange, galat, contoh, aksi }: { label: string;
         <input className="vsf-input w-full" inputMode="decimal" value={value} placeholder={contoh} onChange={(e) => onChange(e.target.value)} />
         {aksi}
       </span>
-      {galat && <span className="mt-1 block text-[12px] font-normal text-red-700">{galat}</span>}
+      {galat && <span className="vsf-field-error block font-normal">{galat}</span>}
     </label>
   )
 }
@@ -248,7 +248,7 @@ function CatatKalibrasi({ alat, terkini, onSelesai, onTutup }: { alat: Alat; ter
           Catatan (opsional)
           <input className="vsf-input mt-1 w-full" value={f.catatan ?? ''} onChange={(ev) => ubah('catatan')(ev.target.value)} placeholder="mis. buffer baru dibuka, suhu larutan 26 °C" />
         </label>
-        {errs.umum && <div role="alert" className="rounded-std border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700">{errs.umum[0]}</div>}
+        {errs.umum && <div role="alert" className="rounded-std vsf-tone-error px-3 py-2 text-[13px]">{errs.umum[0]}</div>}
         <div className="flex justify-end gap-2">
           <button type="button" className="vsf-btn-secondary" onClick={onTutup} disabled={sibuk}>Batal</button>
           <button type="submit" className="vsf-btn-primary" disabled={sibuk}>{sibuk ? 'Menyimpan…' : alat.sensor === 'ph' || alat.sensor === 'ec' ? 'Hitung & simpan' : 'Simpan'}</button>
@@ -389,7 +389,7 @@ export default function KalibrasiPage() {
       <Kartu>
         <div className="flex flex-wrap items-center gap-3">
           <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Bacaan sensor saat ini</div>
-          <span className={clsx('vsf-pill', online ? 'border-arutmin-moss bg-arutmin-mint/50 text-arutmin-forest' : 'border-amber-500/50 bg-amber-50 text-amber-800')}>
+          <span className={clsx('vsf-pill', online ? 'border-arutmin-moss bg-arutmin-mint/50 text-arutmin-forest' : 'vsf-tone-warn')}>
             {online ? 'Perangkat online · diperbarui tiap 5 detik' : 'Perangkat offline — bacaan bisa sudah lama'}
           </span>
         </div>
@@ -408,7 +408,7 @@ export default function KalibrasiPage() {
       </Kartu>
 
       {pesan && <div role="status" className="vsf-banner rounded-input border border-arutmin-moss/50 bg-arutmin-mint/40 px-3 py-2 text-[13px] text-arutmin-forest">{pesan}</div>}
-      {error && !loading && <div role="alert" className="rounded-card border border-red-600/40 bg-red-50 px-4 py-3 text-[13px] text-red-700">{error}</div>}
+      {error && !loading && <div role="alert" className="rounded-card vsf-tone-error px-4 py-3 text-[13px]">{error}</div>}
 
       <div className="grid gap-4 md:grid-cols-2">
         {loading && rows.length === 0

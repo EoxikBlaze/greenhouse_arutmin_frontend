@@ -73,7 +73,7 @@ function Banner({ jenis, children, onTutup }: { jenis: 'ok' | 'galat'; children:
       role={jenis === 'galat' ? 'alert' : 'status'}
       className={clsx(
         'vsf-banner mt-3 flex flex-wrap items-center gap-3 rounded-input border px-3 py-2 text-[13px]',
-        jenis === 'galat' ? 'border-red-600/50 bg-red-50 text-red-700' : 'border-arutmin-moss/50 bg-arutmin-mint/40 text-arutmin-forest',
+        jenis === 'galat' ? 'vsf-tone-error' : 'border-arutmin-moss/50 bg-arutmin-mint/40 text-arutmin-forest',
       )}
     >
       <span className="flex-1">{children}</span>
@@ -211,7 +211,7 @@ export function TargetPenampung({ versi, onUbah }: { versi: number; onUbah: () =
                 <tr key={String(r.id_meja)} className="even:bg-navy/[.03]">
                   <td className="px-4 py-2.5 font-semibold text-slate-900">
                     {r.meja}
-                    {r.status_lock && <span className="ml-2 vsf-pill border-red-600/40 bg-red-50 text-red-700">LOCK</span>}
+                    {r.status_lock && <span className="ml-2 vsf-pill vsf-tone-error">LOCK</span>}
                   </td>
                   <td className="px-4 py-2.5 text-slate-700">
                     {r.batch ? (
@@ -274,12 +274,12 @@ export function TargetPenampung({ versi, onUbah }: { versi: number; onUbah: () =
               Target EC (ppm)
               <input className="vsf-input mt-1 w-full" inputMode="decimal" value={ec} autoFocus onChange={(e) => setEc(e.target.value)} placeholder="800" />
             </label>
-            {fieldError(errs, 'target_ec_ppm') && <div className="mt-1 text-[12px] text-red-700">{fieldError(errs, 'target_ec_ppm')}</div>}
+            {fieldError(errs, 'target_ec_ppm') && <div className="vsf-field-error">{fieldError(errs, 'target_ec_ppm')}</div>}
             <label className="mt-3 block text-[13px] font-semibold text-slate-700">
               Target pH
               <input className="vsf-input mt-1 w-full" inputMode="decimal" value={ph} onChange={(e) => setPh(e.target.value)} placeholder="6,0" />
             </label>
-            {fieldError(errs, 'target_ph') && <div className="mt-1 text-[12px] text-red-700">{fieldError(errs, 'target_ph')}</div>}
+            {fieldError(errs, 'target_ph') && <div className="vsf-field-error">{fieldError(errs, 'target_ph')}</div>}
             <div className="mt-4 flex justify-end gap-2">
               <button type="button" className="vsf-btn-secondary" onClick={() => setManual(null)} disabled={sibuk !== null}>Batal</button>
               <button type="submit" className="vsf-btn-primary" disabled={sibuk !== null}>{sibuk === 'manual' ? 'Menyimpan…' : 'Simpan manual'}</button>
@@ -387,7 +387,7 @@ export function PresetNutrisi({ onUbah }: { onUbah: () => void }) {
         placeholder={contoh}
         onChange={(e) => setForm((f) => (f ? { ...f, [k]: e.target.value } : f))}
       />
-      {fieldError(errs, k) && <span className="mt-1 block text-[12px] font-normal text-red-700">{fieldError(errs, k)}</span>}
+      {fieldError(errs, k) && <span className="vsf-field-error block font-normal">{fieldError(errs, k)}</span>}
     </label>
   )
 
@@ -443,7 +443,7 @@ export function PresetNutrisi({ onUbah }: { onUbah: () => void }) {
                   <td className="px-4 py-2.5">
                     <span className={clsx('vsf-pill', p.status === 'aktif'
                       ? 'border-arutmin-moss bg-arutmin-mint/50 text-arutmin-forest'
-                      : 'border-amber-500/50 bg-amber-50 text-amber-800')}>
+                      : 'vsf-tone-warn')}>
                       {STATUS_LABEL[p.status] ?? p.status}
                     </span>
                   </td>
@@ -482,14 +482,14 @@ export function PresetNutrisi({ onUbah }: { onUbah: () => void }) {
                   <option value="">Semua tanaman</option>
                   {tanaman.map((t) => <option key={String(t.id_tanaman)} value={String(t.id_tanaman)}>{t.nama_tanaman}</option>)}
                 </select>
-                {fieldError(errs, 'id_tanaman') && <span className="mt-1 block text-[12px] font-normal text-red-700">{fieldError(errs, 'id_tanaman')}</span>}
+                {fieldError(errs, 'id_tanaman') && <span className="vsf-field-error block font-normal">{fieldError(errs, 'id_tanaman')}</span>}
               </label>
               <label className="col-span-2 block text-[13px] font-semibold text-slate-700 sm:col-span-1">
                 Tahap
                 <select className="vsf-input mt-1 w-full" value={form.tahap} onChange={(e) => setForm({ ...form, tahap: e.target.value })}>
                   {TAHAP.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
-                {fieldError(errs, 'tahap') && <span className="mt-1 block text-[12px] font-normal text-red-700">{fieldError(errs, 'tahap')}</span>}
+                {fieldError(errs, 'tahap') && <span className="vsf-field-error block font-normal">{fieldError(errs, 'tahap')}</span>}
               </label>
               {Isian({ k: 'umur_min_hari', label: 'Umur dari (hari, opsional)', ph: '0' })}
               {Isian({ k: 'umur_max_hari', label: 'Umur sampai (hari, opsional)', ph: '14' })}

@@ -95,7 +95,7 @@ export function NaikHarian() {
       </div>
 
       {pesan && <div role="status" className="vsf-banner mt-3 rounded-input border border-arutmin-moss/50 bg-arutmin-mint/40 px-3 py-2 text-[13px] text-arutmin-forest">{pesan}</div>}
-      {(galat || (error && !loading)) && <div role="alert" className="vsf-banner mt-3 rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700">{galat ?? error}</div>}
+      {(galat || (error && !loading)) && <div role="alert" className="vsf-banner mt-3 rounded-input vsf-tone-error px-3 py-2 text-[13px]">{galat ?? error}</div>}
 
       <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {loading && rows.length === 0 && <li className="vsf-skeleton h-[88px] rounded-card" />}
@@ -150,17 +150,17 @@ export function NaikHarian() {
               Target akhir (ppm)
               <input className="vsf-input mt-1 w-full" inputMode="numeric" value={target} autoFocus onChange={(e) => setTarget(e.target.value)} placeholder="2400" />
             </label>
-            {fieldError(errs, 'ppm_target') && <div className="mt-1 text-[12px] text-red-700">{fieldError(errs, 'ppm_target')}</div>}
+            {fieldError(errs, 'ppm_target') && <div className="vsf-field-error">{fieldError(errs, 'ppm_target')}</div>}
             <label className="mt-3 block text-[13px] font-semibold text-slate-700">
               Dicapai dalam (hari sejak pindah netpot)
               <input className="vsf-input mt-1 w-full" inputMode="numeric" value={hari} onChange={(e) => setHari(e.target.value)} placeholder="60" />
             </label>
-            {fieldError(errs, 'hari_capai') && <div className="mt-1 text-[12px] text-red-700">{fieldError(errs, 'hari_capai')}</div>}
+            {fieldError(errs, 'hari_capai') && <div className="vsf-field-error">{fieldError(errs, 'hari_capai')}</div>}
             <label className="mt-3 block text-[13px] font-semibold text-slate-700">
               ppm awal saat pindah netpot
               <input className="vsf-input mt-1 w-full" inputMode="numeric" value={awal} onChange={(e) => setAwal(e.target.value)} placeholder="400" />
             </label>
-            {fieldError(errs, 'ppm_awal') && <div className="mt-1 text-[12px] text-red-700">{fieldError(errs, 'ppm_awal')}</div>}
+            {fieldError(errs, 'ppm_awal') && <div className="vsf-field-error">{fieldError(errs, 'ppm_awal')}</div>}
             <p className="mt-3 rounded-input bg-navy/[.04] px-3 py-2 text-[13px] text-slate-700" aria-live="polite">
               {perHari == null ? 'Isi ketiga angka untuk melihat kenaikan per hari.'
                 : `Naik ±${tampil(perHari)} ppm per hari.`}

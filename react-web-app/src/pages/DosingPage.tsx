@@ -91,7 +91,7 @@ function Galat({ pesan, onTutup }: { pesan: string; onTutup: () => void }) {
   return (
     <div
       role="alert"
-      className="vsf-banner mb-3 rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700 flex flex-wrap items-center gap-3"
+      className="vsf-banner mb-3 rounded-input vsf-tone-error px-3 py-2 text-[13px] flex flex-wrap items-center gap-3"
     >
       <span className="inline-flex items-center gap-1.5">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="shrink-0">
@@ -213,7 +213,7 @@ function TabelParameter({
       {error && !loading ? (
         <div
           role="alert"
-          className="mt-3 rounded-card border border-red-600/40 bg-red-50 px-4 py-3 text-[13px] text-red-700"
+          className="mt-3 rounded-card vsf-tone-error px-4 py-3 text-[13px]"
         >
           {error}
         </div>
@@ -389,7 +389,7 @@ export default function DosingPage() {
           </span>
         </div>
         {failSafe.error && !failSafe.loading ? (
-          <div role="alert" className="mt-3 rounded-card border border-red-600/40 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+          <div role="alert" className="mt-3 rounded-card vsf-tone-error px-4 py-3 text-[13px]">
             {failSafe.error}
           </div>
         ) : (
@@ -463,7 +463,7 @@ export default function DosingPage() {
           </span>
         </div>
         {jadwal.error && !jadwal.loading ? (
-          <div role="alert" className="mt-3 rounded-card border border-red-600/40 bg-red-50 px-4 py-3 text-[13px] text-red-700">
+          <div role="alert" className="mt-3 rounded-card vsf-tone-error px-4 py-3 text-[13px]">
             {jadwal.error}
           </div>
         ) : (
@@ -543,7 +543,7 @@ export default function DosingPage() {
         ) : error ? (
           <div
             role="alert"
-            className="vsf-banner mt-3 rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700 flex flex-wrap items-center gap-3"
+            className="vsf-banner mt-3 rounded-input vsf-tone-error px-3 py-2 text-[13px] flex flex-wrap items-center gap-3"
           >
             <span className="inline-flex items-center gap-1.5"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" className="shrink-0"><path d="M8 1.8 14.8 13.8H1.2L8 1.8Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M8 6.4v3.1M8 11.5v.1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> {error}</span>
             <button type="button" className="vsf-input rounded-full font-semibold" onClick={reload}>

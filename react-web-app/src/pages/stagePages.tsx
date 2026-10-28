@@ -60,7 +60,7 @@ function PillStatus({ nilai }: { nilai: string }) {
   const tone = v.includes('selesai') || v.includes('panen')
     ? 'border-arutmin-moss bg-arutmin-mint/50 text-arutmin-forest'
     : v.includes('gagal') || v.includes('batal')
-      ? 'border-red-600/40 bg-red-50 text-red-700'
+      ? 'vsf-tone-error'
       : 'border-navy/25 bg-navy/[.05] text-navy'
   return (
     <span className={clsx('inline-flex items-center rounded-full border px-2.5 py-0.5 text-[12px] font-semibold', tone)}>
@@ -165,7 +165,7 @@ function IsianBerhasil({
               : null}
       </div>
       {(salah || error) && (
-        <div role="alert" className="vsf-banner mt-2 rounded-std border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700">
+        <div role="alert" className="vsf-banner mt-2 rounded-std vsf-tone-error px-3 py-2 text-[13px]">
           {salah || error}
         </div>
       )}
@@ -506,7 +506,7 @@ export function SemaiPage() {
             {!detailLoading && detailError && (
               <div
                 role="alert"
-                className="vsf-banner mt-3 rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700 flex items-start gap-2"
+                className="vsf-banner mt-3 rounded-input vsf-tone-error px-3 py-2 text-[13px] flex items-start gap-2"
               >
                 <IkonSalah className="mt-[2px] shrink-0" />
                 <span>{detailError}</span>

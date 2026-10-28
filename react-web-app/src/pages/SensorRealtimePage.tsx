@@ -331,7 +331,7 @@ export default function SensorRealtimePage() {
         {basi && (
           <div
             role="status"
-            className="mt-2 vsf-banner rounded-input border border-amber-500/40 bg-amber-50 px-3 py-2 text-[12px] text-amber-800 flex items-start gap-2"
+            className="mt-2 vsf-banner rounded-input vsf-tone-warn px-3 py-2 text-[12px] flex items-start gap-2"
           >
             <IkonPeringatan className="mt-[2px] shrink-0" />
             <span>
@@ -348,7 +348,7 @@ export default function SensorRealtimePage() {
         {error && (
           <div
             role="alert"
-            className="mt-3 vsf-banner rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700 flex flex-wrap items-center gap-3"
+            className="mt-3 vsf-banner rounded-input vsf-tone-error px-3 py-2 text-[13px] flex flex-wrap items-center gap-3"
           >
             <span className="flex items-center gap-2">
               <IkonSalah className="shrink-0" />
@@ -449,7 +449,7 @@ export default function SensorRealtimePage() {
           {tarikError && (
             <div
               role="alert"
-              className="mt-3 vsf-banner rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700 flex items-start gap-2"
+              className="mt-3 vsf-banner rounded-input vsf-tone-error px-3 py-2 text-[13px] flex items-start gap-2"
             >
               <IkonSalah className="mt-[2px] shrink-0" />
               <span>{tarikError}</span>

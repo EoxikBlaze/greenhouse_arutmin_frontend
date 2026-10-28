@@ -9,8 +9,8 @@ export type StatusTone = 'online' | 'offline' | 'warning'
 export function StatusBadge({ tone, label }: { tone: StatusTone; label: string }) {
   const styles = {
     online: 'border-arutmin-moss bg-arutmin-mint/40 text-arutmin-forest',
-    offline: 'border-red-600/50 bg-red-50 text-red-700',
-    warning: 'border-amber-500/60 bg-amber-50 text-amber-800',
+    offline: 'vsf-tone-error',
+    warning: 'vsf-tone-warn',
   }[tone]
 
   const dot = {

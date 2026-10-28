@@ -226,7 +226,7 @@ export function ChatAsisten() {
                   p.tabel && p.tabel.length > 0 ? 'w-full max-w-full' : 'max-w-[88%]',
                   p.peran === 'user' && 'bg-arutmin-forest text-white',
                   p.peran === 'ai' && !p.galat && 'border border-arutmin-border bg-white text-tinta',
-                  p.galat && 'border border-red-600/40 bg-red-50 text-red-700',
+                  p.galat && 'vsf-tone-error',
                 )}
               >
                 {p.status && (
