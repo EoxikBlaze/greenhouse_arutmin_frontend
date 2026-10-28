@@ -18,7 +18,7 @@ export function PillNav({ items, label, className = '' }: { items: PillItem[]; l
     const el = wrap.current
     const p = pil.current
     if (!el || !p) return
-    const ukur = () => {
+    const ukur = (gulir: boolean) => {
       const a = el.querySelector<HTMLElement>('[data-aktif="true"]')
       if (!a) {
         p.style.opacity = '0'
@@ -27,11 +27,14 @@ export function PillNav({ items, label, className = '' }: { items: PillItem[]; l
       p.style.opacity = '1'
       p.style.width = `${a.offsetWidth}px`
       p.style.transform = `translateX(${a.offsetLeft}px)`
-      // geser item aktif ke tengah bila daftar bisa digulir (layar sempit)
-      a.scrollIntoView({ block: 'nearest', inline: 'center' })
+      // Geser item aktif ke tengah HANYA di dalam daftar pil (bukan scrollIntoView):
+      // scrollIntoView pada elemen di header sticky ikut menggulung halaman ke atas.
+      if (gulir && el.scrollWidth > el.clientWidth) {
+        el.scrollTo({ left: a.offsetLeft - (el.clientWidth - a.offsetWidth) / 2 })
+      }
     }
-    ukur()
-    const ro = new ResizeObserver(ukur)
+    ukur(true)
+    const ro = new ResizeObserver(() => ukur(false))
     ro.observe(el)
     return () => ro.disconnect()
   }, [pathname, items])
