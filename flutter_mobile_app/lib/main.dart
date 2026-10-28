@@ -208,7 +208,7 @@ class _MainShellState extends State<_MainShell>
       _Tab(
         'Beranda',
         Ikon.beranda,
-        (a) => DashboardPage(api: apiService, aktif: a),
+        (a) => DashboardPage(api: apiService, aktif: a, onBukaTab: _bukaTab),
       ),
       _Tab('Sensor', Ikon.sensor, (a) => SensorPage(api: apiService, aktif: a)),
       if (kontrol)
@@ -235,6 +235,12 @@ class _MainShellState extends State<_MainShell>
   void dispose() {
     _pudar.dispose();
     super.dispose();
+  }
+
+  /// Dipakai Beranda (menu dan tombol aksi) untuk pindah ke tab lain berdasarkan labelnya.
+  void _bukaTab(String label) {
+    final i = _tab.indexWhere((t) => t.label == label);
+    if (i >= 0) _pilih(i);
   }
 
   void _pilih(int i) {
