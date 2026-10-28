@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../theme/tokens.dart';
+
 /// Permukaan "Liquid Glass" untuk Flutter.
 ///
 /// Flutter tidak punya API kaca native seperti `.glassEffect()` di SwiftUI,
@@ -60,11 +62,9 @@ class _KacaCairState extends State<KacaCair> {
       // Cadangan: permukaan solid, tanpa blur.
       kaca = DecoratedBox(
         decoration: BoxDecoration(
-          color: gelap ? const Color(0xFF0A1F38) : Colors.white,
+          color: gelap ? Tok.navy : Colors.white,
           borderRadius: r,
-          border: Border.all(
-            color: gelap ? Colors.white70 : const Color(0xFF0A1F38),
-          ),
+          border: Border.all(color: gelap ? Colors.white70 : Tok.navy),
         ),
         child: isi,
       );
@@ -72,10 +72,10 @@ class _KacaCairState extends State<KacaCair> {
       // tanpa blur, tint dipertebal agar teks tetap terbaca di atas latar berwarna
       final tebal = widget.blur ? 0.0 : 0.16;
       final warnaA = gelap
-          ? const Color(0xFF0A1F38).withValues(alpha: 0.66 + tebal)
+          ? Tok.navy.withValues(alpha: 0.66 + tebal)
           : Colors.white.withValues(alpha: 0.66 + tebal);
       final warnaB = gelap
-          ? const Color(0xFF0A1F38).withValues(alpha: 0.40 + tebal)
+          ? Tok.navy.withValues(alpha: 0.40 + tebal)
           : Colors.white.withValues(alpha: 0.36 + tebal);
       final permukaan = DecoratedBox(
         decoration: BoxDecoration(
@@ -185,7 +185,7 @@ class LatarCair extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFDCEBFA), Color(0xFFF4F7F2), Color(0xFFFFF6DC)],
+            colors: [Color(0xFFDCEBFA), Tok.page, Color(0xFFFFF6DC)],
           ),
         ),
         child: Stack(

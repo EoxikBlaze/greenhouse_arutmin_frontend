@@ -81,6 +81,10 @@ class Tok {
     ),
   ];
 
+  // Literal yang SENGAJA tetap di luar token (dipakai sekali, tanpa padanan web):
+  // warna seri kelembapan 0xFF3A86A8 (sensor_page), titik live 0xFFE5484D (cctv),
+  // blob kaca (kaca.dart), ukuran font 10.5/12.5/13/15 di beberapa halaman.
+
   // ── Tipografi (tanpa font tambahan: memakai font sistem) ─────────────
   static const TextStyle h1 = TextStyle(
     fontSize: 26,
