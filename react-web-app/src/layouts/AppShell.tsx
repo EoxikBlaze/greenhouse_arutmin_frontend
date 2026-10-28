@@ -313,7 +313,9 @@ export function AppShell() {
   } = useDialog({ open: confirmKeluar, onClose: () => setConfirmKeluar(false) })
 
   return (
-    <div className="min-h-dvh bg-arutmin-page">
+    <div className="relative isolate min-h-dvh">
+      {/* Desain v2: lapisan latar palet di belakang chrome glass. */}
+      <div className="app-latar" aria-hidden />
       <DemoBanner demo={demo} />
       {/* R4 — skip-link ke konten utama (sembunyi sampai difokus keyboard). */}
       <a
