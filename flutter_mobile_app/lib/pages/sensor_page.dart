@@ -8,6 +8,8 @@ import '../widgets/brand.dart';
 import '../widgets/ikon.dart';
 import '../widgets/dock.dart';
 import '../widgets/charts.dart';
+import '../widgets/halaman.dart';
+import '../widgets/kpi.dart';
 import '../widgets/motion.dart';
 
 /// Sensor realtime — polling /api/latest-sensor (5 detik) dan riwayat grafik.
@@ -132,7 +134,6 @@ class _SensorPageState extends State<SensorPage> {
   Widget build(BuildContext context) {
     final t = _terbaru;
     final online = t?['is_online'] == true;
-    final ago = keDouble(t?['seconds_ago']);
 
     return RefreshIndicator(
       color: Tok.moss,
@@ -141,22 +142,20 @@ class _SensorPageState extends State<SensorPage> {
         padding: EdgeInsets.zero,
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          HeroHeader(
+          PageTop(
+            eyebrow: 'Kebun & sensor',
             judul: 'Sensor realtime',
-            subjudul: 'Diperbarui otomatis tiap 5 detik',
-            bawah: t == null
+            status: t == null
                 ? null
                 : StatusPill(
                     terang: true,
                     berdenyut: online,
                     warna: online ? Tok.moss : Tok.warning,
-                    teks:
-                        '${online ? 'Online' : 'Offline'}'
-                        '${ago == null ? '' : ' · ${_lalu(ago)}'}',
+                    teks: online ? 'Online' : 'Offline',
                   ),
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(16, 18, 16, DockNav.ruang(context)),
+            padding: EdgeInsets.fromLTRB(16, 16, 16, DockNav.ruang(context)),
             child: _isi(),
           ),
         ],
@@ -169,15 +168,23 @@ class _SensorPageState extends State<SensorPage> {
     DateTime.now().subtract(Duration(seconds: detik.round())),
   );
 
+  static const _ikon = <String, IconData>{
+    'ph': Ikon.tetes,
+    'waterTemp': Ikon.kalibrasi,
+    'tds': Ikon.dosing,
+    'airTemp': Ikon.sensor,
+    'humidity': Ikon.air,
+  };
+
   Widget _isi() {
     if (_memuat && _terbaru == null) {
       return const Column(
         children: [
-          SkeletonBox(height: 150, radius: 14),
+          SkeletonBox(height: 128, radius: 24),
           SizedBox(height: 12),
-          SkeletonBox(height: 150, radius: 14),
+          SkeletonBox(height: 128, radius: 24),
           SizedBox(height: 12),
-          SkeletonBox(height: 190, radius: 14),
+          SkeletonBox(height: 240, radius: 24),
         ],
       );
     }
@@ -192,6 +199,8 @@ class _SensorPageState extends State<SensorPage> {
     }
 
     final t = _terbaru!;
+    final online = t['is_online'] == true;
+    final ago = keDouble(t['seconds_ago']);
     final s = t['sensor'] is Map ? t['sensor'] as Map : const {};
     final anom = t['anomalies'] is List ? t['anomalies'] as List : const [];
     final bermasalah = <String>{
@@ -207,6 +216,37 @@ class _SensorPageState extends State<SensorPage> {
         if (_ambil(e, def.kunci) != null) _ambil(e, def.kunci)!,
     ];
     final tampil = deret.length > 96 ? deret.sublist(deret.length - 96) : deret;
+    final terakhir = tampil.isEmpty
+        ? '—'
+        : '${fmtAngka(tampil.last, desimal: def.desimal)}'
+              '${def.satuan.isEmpty ? '' : ' ${def.satuan}'}';
+
+    final kpi = <Kpi>[
+      for (final d in _sensor)
+        Kpi(
+          d.label,
+          _ikon[d.kunci] ?? Ikon.sensor,
+          keDouble(s[d.kunci]),
+          d.desimal,
+          d.satuan.isEmpty ? '' : ' ${d.satuan}',
+          bermasalah.contains(d.kunci) ? 'di luar batas' : 'normal',
+          d.kunci == 'ph'
+              ? Sorot.hijau
+              : d.kunci == 'tds'
+              ? Sorot.emas
+              : Sorot.kaca,
+        ),
+      Kpi(
+        'Perangkat',
+        online ? Ikon.online : Ikon.offline,
+        null,
+        0,
+        '',
+        ago == null ? '' : _lalu(ago),
+        Sorot.kaca,
+        teks: online ? 'Online' : 'Offline',
+      ),
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,100 +290,77 @@ class _SensorPageState extends State<SensorPage> {
         ],
         FadeUp(
           delay: FadeUp.urutan(1),
-          child: Panel(
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    for (final d in _sensor.take(3))
-                      RingGauge(
-                        nilai: keDouble(s[d.kunci]),
-                        min: d.min,
-                        max: d.max,
-                        label: d.label,
-                        satuan: d.satuan.isEmpty ? 'pH' : d.satuan,
-                        warna: d.warna,
-                        desimal: d.desimal,
-                        ukuran: 92,
-                        bahaya: bermasalah.contains(d.kunci),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: Tok.sp6),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    for (final d in _sensor.skip(3))
-                      RingGauge(
-                        nilai: keDouble(s[d.kunci]),
-                        min: d.min,
-                        max: d.max,
-                        label: d.label,
-                        satuan: d.satuan,
-                        warna: d.warna,
-                        desimal: d.desimal,
-                        ukuran: 92,
-                        bahaya: bermasalah.contains(d.kunci),
-                      ),
-                  ],
-                ),
-              ],
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              mainAxisExtent: 128,
+            ),
+            itemCount: kpi.length,
+            itemBuilder: (_, i) => KartuKpi(
+              kpi[i],
+              terpilih: i < _sensor.length && _sensor[i].kunci == _pilih,
+              onTap: i < _sensor.length
+                  ? () => setState(() => _pilih = _sensor[i].kunci)
+                  : null,
             ),
           ),
         ),
-        const SizedBox(height: Tok.sp6),
-        FadeUp(delay: FadeUp.urutan(2), child: const Eyebrow('Grafik riwayat')),
-        const SizedBox(height: Tok.sp3),
+        const SizedBox(height: Tok.sp2),
+        const Text('Ketuk kartu untuk melihat grafiknya.', style: Tok.kecil),
+        const SizedBox(height: Tok.sp4),
         FadeUp(
-          delay: FadeUp.urutan(3),
+          delay: FadeUp.urutan(2),
           child: Panel(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      for (final d in _sensor)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: ChoiceChip(
-                            label: Text(d.label),
-                            selected: d.kunci == _pilih,
-                            showCheckmark: false,
-                            selectedColor: Tok.mossGelap,
-                            labelStyle: TextStyle(
-                              color: d.kunci == _pilih
-                                  ? Colors.white
-                                  : Tok.tinta,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12.5,
-                            ),
-                            onSelected: (_) => setState(() => _pilih = d.kunci),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Eyebrow('Grafik riwayat'),
+                          Text(
+                            '${def.label} · ${tampil.length} titik',
+                            style: Tok.kecil,
                           ),
-                        ),
-                    ],
-                  ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      terakhir,
+                      style: const TextStyle(
+                        fontFamily: Tok.fontJudul,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700,
+                        color: Tok.forest,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: Tok.sp3),
+                PilPilih(
+                  gulir: true,
+                  label: [for (final d in _sensor) d.label],
+                  pilih: _sensor.indexWhere((d) => d.kunci == _pilih),
+                  onPilih: (i) => setState(() => _pilih = _sensor[i].kunci),
                 ),
                 const SizedBox(height: Tok.sp3),
                 LineChart(
                   key: ValueKey('${def.kunci}-${tampil.length}'),
                   nilai: tampil,
                   warna: def.warna,
-                  tinggi: 150,
+                  tinggi: 170,
                   deskripsi: tampil.isEmpty
                       ? null
-                      : 'Grafik ${def.label}, ${tampil.length} titik, '
-                            'terakhir ${fmtAngka(tampil.last, desimal: def.desimal)} ${def.satuan}',
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  tampil.isEmpty
-                      ? 'Menunggu data riwayat'
-                      : 'Terakhir ${fmtAngka(tampil.last, desimal: def.desimal)} ${def.satuan}'
-                            ' · ${tampil.length} titik',
-                  style: Tok.kecil,
+                      : 'Grafik ${def.label}, ${tampil.length} titik, terakhir $terakhir',
                 ),
               ],
             ),

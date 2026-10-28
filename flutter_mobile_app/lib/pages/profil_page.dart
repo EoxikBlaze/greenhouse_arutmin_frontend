@@ -6,6 +6,7 @@ import '../util/format.dart';
 import '../widgets/brand.dart';
 import '../widgets/ikon.dart';
 import '../widgets/dock.dart';
+import '../widgets/halaman.dart';
 import '../widgets/motion.dart';
 import '../widgets/rute.dart';
 import 'asisten_page.dart';
@@ -128,10 +129,10 @@ class _ProfilPageState extends State<ProfilPage> {
     return ListView(
       padding: EdgeInsets.zero,
       children: [
-        HeroHeader(
-          judul: nama,
-          subjudul: _surel.text.isEmpty ? 'Akun GARAP' : _surel.text,
-          bawah: StatusPill(
+        PageTop(
+          eyebrow: 'Sistem',
+          judul: 'Akun',
+          status: StatusPill(
             terang: true,
             warna: Tok.emas,
             teks: role == 'admin'
@@ -142,10 +143,64 @@ class _ProfilPageState extends State<ProfilPage> {
           ),
         ),
         Padding(
-          padding: EdgeInsets.fromLTRB(16, 18, 16, DockNav.ruang(context)),
+          padding: EdgeInsets.fromLTRB(16, 16, 16, DockNav.ruang(context)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              FadeUp(
+                child: HeroKartu(
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Tok.emas,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            width: 3,
+                          ),
+                        ),
+                        child: Text(
+                          nama
+                              .substring(0, nama.length < 2 ? nama.length : 2)
+                              .toUpperCase(),
+                          style: const TextStyle(
+                            fontFamily: Tok.fontJudul,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: Tok.navy,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              nama,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Tok.h2,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _surel.text.isEmpty ? 'Akun GARAP' : _surel.text,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Tok.kecil,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: Tok.sp6),
               if (_galat != null) ...[
                 Text(_galat!, style: Tok.kecil.copyWith(color: Tok.error)),
                 const SizedBox(height: 12),
@@ -357,10 +412,9 @@ class _ProfilPageState extends State<ProfilPage> {
                     label: const Text('Keluar'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Tok.error,
+                      backgroundColor: Colors.white.withValues(alpha: 0.6),
                       side: const BorderSide(color: Tok.error),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(Tok.rSm),
-                      ),
+                      shape: const StadiumBorder(),
                     ),
                   ),
                 ),
@@ -382,11 +436,39 @@ class _Pintas extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(ikon, color: Tok.mossGelap),
-      title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-      trailing: const Icon(Ikon.kanan, color: Tok.abu),
+    return Pressable(
       onTap: onTap,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 56),
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.95)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Tok.moss.withValues(alpha: 0.16),
+              ),
+              child: Icon(ikon, size: 18, color: Tok.forest),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+            const Icon(Ikon.kanan, size: 18, color: Tok.abu),
+          ],
+        ),
+      ),
     );
   }
 }

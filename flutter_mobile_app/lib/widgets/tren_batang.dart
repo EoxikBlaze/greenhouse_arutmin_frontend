@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
 import 'brand.dart';
+import 'halaman.dart';
 import 'motion.dart';
 
 /// Grafik batang tren sensor (padanan `TrenBatang` di web): GET /monitoring/chart-data,
@@ -93,7 +94,7 @@ class _TrenBatangState extends State<TrenBatang> {
           Row(
             children: [
               const Expanded(child: Eyebrow('Tren sensor')),
-              _Tab(
+              PilPilih(
                 label: [for (final x in _param) x.label],
                 pilih: _pilih,
                 onPilih: (i) => setState(() => _pilih = i),
@@ -116,57 +117,6 @@ class _TrenBatangState extends State<TrenBatang> {
             )
           else
             _Batang(key: ValueKey(_pilih), batang: batang, param: p),
-        ],
-      ),
-    );
-  }
-}
-
-class _Tab extends StatelessWidget {
-  const _Tab({required this.label, required this.pilih, required this.onPilih});
-
-  final List<String> label;
-  final int pilih;
-  final ValueChanged<int> onPilih;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.85)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var i = 0; i < label.length; i++)
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => onPilih(i),
-              child: AnimatedContainer(
-                duration: Tok.dNormal,
-                curve: Tok.ease,
-                constraints: const BoxConstraints(minHeight: 34),
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(horizontal: 11),
-                decoration: BoxDecoration(
-                  gradient: i == pilih ? Tok.activePill : null,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  label[i],
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: i == pilih
-                        ? Colors.white
-                        : Tok.tinta.withValues(alpha: 0.7),
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
     );

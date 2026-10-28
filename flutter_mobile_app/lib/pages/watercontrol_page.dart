@@ -5,6 +5,7 @@ import '../theme/tokens.dart';
 import '../widgets/brand.dart';
 import '../widgets/ikon.dart';
 import '../widgets/dock.dart';
+import '../widgets/halaman.dart';
 import '../widgets/motion.dart';
 import '../widgets/status_penampung.dart';
 
@@ -153,10 +154,10 @@ class _WaterControlPageState extends State<WaterControlPage> {
         padding: EdgeInsets.zero,
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          HeroHeader(
+          PageTop(
+            eyebrow: 'Kebun & sensor',
             judul: 'Kontrol air',
-            subjudul: 'Atur pengisian penampung dan mode otomatis',
-            bawah: d == null
+            status: d == null
                 ? null
                 : StatusPill(
                     terang: true,
@@ -166,7 +167,7 @@ class _WaterControlPageState extends State<WaterControlPage> {
                   ),
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(16, 18, 16, DockNav.ruang(context)),
+            padding: EdgeInsets.fromLTRB(16, 16, 16, DockNav.ruang(context)),
             child: _isi(mode, buka),
           ),
         ],
@@ -178,9 +179,9 @@ class _WaterControlPageState extends State<WaterControlPage> {
     if (_memuat && _data == null) {
       return const Column(
         children: [
-          SkeletonBox(height: 180, radius: 14),
+          SkeletonBox(height: 330, radius: 28),
           SizedBox(height: 12),
-          SkeletonBox(height: 120, radius: 14),
+          SkeletonBox(height: 120, radius: 24),
         ],
       );
     }
@@ -197,7 +198,7 @@ class _WaterControlPageState extends State<WaterControlPage> {
           const SizedBox(height: Tok.sp3),
         ],
         FadeUp(
-          child: Panel(
+          child: HeroKartu(
             child: Column(
               children: [
                 _Tetes(buka: buka),
@@ -207,10 +208,66 @@ class _WaterControlPageState extends State<WaterControlPage> {
                   style: Tok.h2,
                 ),
                 const SizedBox(height: 2),
-                Text('Mode $mode', style: Tok.kecil),
+                Text(
+                  otomatis
+                      ? 'Sistem mengisi air sesuai level sensor.'
+                      : 'Anda mengendalikan katup sendiri.',
+                  textAlign: TextAlign.center,
+                  style: Tok.kecil,
+                ),
+                const SizedBox(height: Tok.sp4),
+                PilPilih(
+                  rata: true,
+                  label: const ['Otomatis', 'Manual'],
+                  pilih: otomatis ? 0 : 1,
+                  onPilih: _kerja
+                      ? null
+                      : (i) {
+                          if ((i == 0) != otomatis) _konfirmasiMode(i == 0);
+                        },
+                ),
+                const SizedBox(height: Tok.sp4),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TombolGradasi(
+                        label: 'Isi air',
+                        ikon: Ikon.tetes,
+                        sibuk: _kerja,
+                        onTap: _konfirmasiIsi,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: OutlinedButton.icon(
+                          onPressed: _kerja
+                              ? null
+                              : () => _aksi('/watercontrol/stop'),
+                          icon: const Icon(Ikon.berhenti, size: 18),
+                          label: const Text('Hentikan'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Tok.error,
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.55,
+                            ),
+                            side: const BorderSide(color: Tok.error),
+                            shape: const StadiumBorder(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
+        ),
+        const SizedBox(height: Tok.sp4),
+        Text(
+          'Akun demo hanya dapat melihat status; perintah akan ditolak server.',
+          style: Tok.kecil,
         ),
         const SizedBox(height: Tok.sp6),
         FadeUp(
@@ -219,88 +276,12 @@ class _WaterControlPageState extends State<WaterControlPage> {
         ),
         const SizedBox(height: Tok.sp3),
         FadeUp(
-          delay: FadeUp.urutan(1),
+          delay: FadeUp.urutan(2),
           child: StatusPenampungPanel(
             key: _penampung,
             api: widget.api,
             bolehBuka: widget.api.role == 'admin',
           ),
-        ),
-        const SizedBox(height: Tok.sp6),
-        FadeUp(delay: FadeUp.urutan(1), child: const Eyebrow('Mode kerja')),
-        const SizedBox(height: Tok.sp3),
-        FadeUp(
-          delay: FadeUp.urutan(2),
-          child: Panel(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(otomatis ? 'Otomatis' : 'Manual', style: Tok.h3),
-                      const SizedBox(height: 2),
-                      Text(
-                        otomatis
-                            ? 'Sistem mengisi air sesuai level sensor.'
-                            : 'Anda mengendalikan katup sendiri.',
-                        style: Tok.kecil,
-                      ),
-                    ],
-                  ),
-                ),
-                Switch(
-                  value: otomatis,
-                  activeThumbColor: Colors.white,
-                  activeTrackColor: Tok.mossGelap,
-                  onChanged: _kerja ? null : _konfirmasiMode,
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: Tok.sp6),
-        FadeUp(delay: FadeUp.urutan(3), child: const Eyebrow('Kendali manual')),
-        const SizedBox(height: Tok.sp3),
-        FadeUp(
-          delay: FadeUp.urutan(4),
-          child: Row(
-            children: [
-              Expanded(
-                child: TombolGradasi(
-                  label: 'Isi air',
-                  ikon: Ikon.tetes,
-                  sibuk: _kerja,
-                  onTap: _konfirmasiIsi,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: SizedBox(
-                  height: 50,
-                  child: OutlinedButton.icon(
-                    onPressed: _kerja
-                        ? null
-                        : () => _aksi('/watercontrol/stop'),
-                    icon: const Icon(Ikon.berhenti, size: 18),
-                    label: const Text('Hentikan'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Tok.error,
-                      side: const BorderSide(color: Tok.error),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(Tok.rSm),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          'Akun demo hanya dapat melihat status; perintah akan ditolak server.',
-          style: Tok.kecil,
         ),
       ],
     );

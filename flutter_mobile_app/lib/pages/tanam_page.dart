@@ -8,6 +8,7 @@ import '../widgets/brand.dart';
 import '../widgets/ikon.dart';
 import '../widgets/kaca.dart';
 import '../widgets/dock.dart';
+import '../widgets/halaman.dart';
 import '../widgets/motion.dart';
 import '../widgets/rute.dart';
 import 'naik_harian_page.dart';
@@ -82,7 +83,9 @@ class _TanamPageState extends State<TanamPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       showDragHandle: true,
-      builder: (_) => SheetKaca(child: _SheetHasil(api: widget.api, item: item)),
+      builder: (_) => SheetKaca(
+        child: _SheetHasil(api: widget.api, item: item),
+      ),
     );
     if (pesan == null || !mounted) return;
     tampilkanPesan(context, pesan);
@@ -124,48 +127,29 @@ class _TanamPageState extends State<TanamPage> {
         padding: EdgeInsets.zero,
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          HeroHeader(
+          PageTop(
+            eyebrow: 'Kebun & sensor',
             judul: 'Tanam saya',
-            subjudul:
-                '${_list.length} batch berjalan${siap > 0 ? ' · $siap siap dipindah' : ''}',
-            bawah: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  for (final f in _filters)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ChoiceChip(
-                        label: Text(f.$2),
-                        selected: _filter == f.$1,
-                        showCheckmark: false,
-                        // warna latar opak: dulu chip tak terpilih tampil putih dengan teks putih
-                        // (tak terbaca) di atas header gelap
-                        color: WidgetStatePropertyAll(
-                          _filter == f.$1
-                              ? Tok.emas
-                              : Colors.white.withValues(alpha: 0.7),
-                        ),
-                        side: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.95),
-                        ),
-                        labelStyle: TextStyle(
-                          color: Tok.tinta,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12.5,
-                        ),
-                        onSelected: (_) => setState(() => _filter = f.$1),
-                      ),
-                    ),
-                ],
-              ),
+            status: StatusPill(
+              terang: true,
+              warna: siap > 0 ? Tok.mossGelap : Tok.abu,
+              teks: siap > 0
+                  ? '${_list.length} batch · $siap siap'
+                  : '${_list.length} batch',
             ),
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(16, 18, 16, DockNav.ruang(context)),
+            padding: EdgeInsets.fromLTRB(16, 16, 16, DockNav.ruang(context)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                PilPilih(
+                  gulir: true,
+                  label: [for (final f in _filters) f.$2],
+                  pilih: _filters.indexWhere((f) => f.$1 == _filter),
+                  onPilih: (i) => setState(() => _filter = _filters[i].$1),
+                ),
+                const SizedBox(height: Tok.sp3),
                 if (bisaUbah) ...[
                   TombolGradasi(
                     label: 'Mulai tanam baru',
@@ -178,6 +162,15 @@ class _TanamPageState extends State<TanamPage> {
                 OutlinedButton.icon(
                   icon: const Icon(Ikon.naik),
                   label: const Text('Target nutrisi naik harian'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50),
+                    foregroundColor: Tok.tinta,
+                    backgroundColor: Colors.white.withValues(alpha: 0.6),
+                    side: BorderSide(
+                      color: Colors.white.withValues(alpha: 0.95),
+                    ),
+                    shape: const StadiumBorder(),
+                  ),
                   onPressed: () => Navigator.of(context).push(
                     RuteHalus<void>(
                       builder: (_) => NaikHarianPage(api: widget.api),
@@ -291,116 +284,87 @@ class _KartuTanam extends StatelessWidget {
     );
     final siap = item['siap'] == true;
     return Panel(
-      padding: EdgeInsets.zero,
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              width: 5,
-              decoration: BoxDecoration(
-                color: warna,
-                borderRadius: const BorderRadius.horizontal(
-                  left: Radius.circular(Tok.rLg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${item['varietas'] ?? 'Tanpa nama tanaman'}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Tok.h3,
                 ),
               ),
+              StatusPill(teks: judulKata(tipe), warna: warna),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 14,
+            runSpacing: 4,
+            children: [
+              _Info(Ikon.meja, '${item['meja'] ?? '-'}'),
+              _Info(Ikon.kalender, tanggalPendek(item['mulai']?.toString())),
+              if (jumlah != null) _Info(Ikon.angka, '$jumlah tanaman'),
+            ],
+          ),
+          if (hari != null) ...[
+            const SizedBox(height: Tok.sp3),
+            Row(
+              children: [
+                Text(
+                  durasi != null
+                      ? 'Hari ke-$hari dari $durasi'
+                      : 'Hari ke-$hari',
+                  style: Tok.kecil.copyWith(
+                    color: Tok.tinta,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                if (siap)
+                  const StatusPill(teks: 'Siap dipindah', warna: Tok.mossGelap),
+              ],
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(Tok.sp4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${item['varietas'] ?? 'Tanpa nama tanaman'}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Tok.h3,
-                          ),
-                        ),
-                        StatusPill(teks: judulKata(tipe), warna: warna),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 14,
-                      runSpacing: 4,
-                      children: [
-                        _Info(Ikon.meja, '${item['meja'] ?? '-'}'),
-                        _Info(
-                          Ikon.kalender,
-                          tanggalPendek(item['mulai']?.toString()),
-                        ),
-                        if (jumlah != null)
-                          _Info(Ikon.angka, '$jumlah tanaman'),
-                      ],
-                    ),
-                    if (hari != null) ...[
-                      const SizedBox(height: Tok.sp3),
-                      Row(
-                        children: [
-                          Text(
-                            durasi != null
-                                ? 'Hari ke-$hari dari $durasi'
-                                : 'Hari ke-$hari',
-                            style: Tok.kecil.copyWith(
-                              color: Tok.tinta,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const Spacer(),
-                          if (siap)
-                            const StatusPill(
-                              teks: 'Siap dipindah',
-                              warna: Tok.mossGelap,
-                            ),
-                        ],
-                      ),
-                      if (durasi != null && durasi > 0) ...[
-                        const SizedBox(height: 6),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: (hari / durasi).clamp(0.0, 1.0),
-                            minHeight: 6,
-                            color: siap ? Tok.mossGelap : warna,
-                            backgroundColor: Tok.garis,
-                          ),
-                        ),
-                      ],
-                    ],
-                    if (bisaUbah) ...[
-                      const SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: siap
-                            ? FilledButton.icon(
-                                onPressed: onSelesai,
-                                icon: const Icon(Ikon.panah, size: 18),
-                                label: Text(_labelAksi(tipe)),
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: Tok.mossGelap,
-                                ),
-                              )
-                            : TextButton.icon(
-                                onPressed: onSelesai,
-                                icon: const Icon(Ikon.panah, size: 18),
-                                label: Text(_labelAksi(tipe)),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Tok.mossGelap,
-                                ),
-                              ),
-                      ),
-                    ],
-                  ],
+            if (durasi != null && durasi > 0) ...[
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: (hari / durasi).clamp(0.0, 1.0),
+                  minHeight: 6,
+                  color: siap ? Tok.mossGelap : warna,
+                  backgroundColor: Tok.garis,
                 ),
               ),
+            ],
+          ],
+          if (bisaUbah) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: siap
+                  ? FilledButton.icon(
+                      onPressed: onSelesai,
+                      icon: const Icon(Ikon.panah, size: 18),
+                      label: Text(_labelAksi(tipe)),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Tok.mossGelap,
+                      ),
+                    )
+                  : TextButton.icon(
+                      onPressed: onSelesai,
+                      icon: const Icon(Ikon.panah, size: 18),
+                      label: Text(_labelAksi(tipe)),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Tok.mossGelap,
+                      ),
+                    ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }

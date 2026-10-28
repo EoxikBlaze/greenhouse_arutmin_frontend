@@ -5,7 +5,9 @@ import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/brand.dart';
 import '../widgets/dock.dart';
+import '../widgets/halaman.dart';
 import '../widgets/ikon.dart';
+import '../widgets/kpi.dart';
 import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
 import '../widgets/rute.dart';
@@ -86,7 +88,6 @@ class _DashboardPageState extends State<DashboardPage> {
         if (_data != null) {
           _sukses = DateTime.now();
           _putus = false;
-          _versi++;
         }
       });
     } on ApiException catch (e) {
@@ -139,16 +140,29 @@ class _DashboardPageState extends State<DashboardPage> {
                     () => pilih(() => dorong(CctvPage(api: widget.api))),
                   ),
                   const _GrupMenu('Kebun & sensor'),
-                  _ItemMenu(Ikon.sensor, 'Sensor realtime', () => pilih(() => tab('Sensor'))),
-                  if (kontrol)
-                    _ItemMenu(Ikon.air, 'Kontrol air', () => pilih(() => tab('Kontrol'))),
-                  _ItemMenu(Ikon.tanam, 'Tanam saya', () => pilih(() => tab('Tanam'))),
-                  const _GrupMenu('Data'),
                   _ItemMenu(
-                    Ikon.meja,
-                    'Meja tanaman',
-                    () => pilih(() => dorong(MejaPage(api: widget.api))),
+                    Ikon.sensor,
+                    'Sensor realtime',
+                    () => pilih(() => tab('Sensor')),
                   ),
+                  if (kontrol)
+                    _ItemMenu(
+                      Ikon.air,
+                      'Kontrol air',
+                      () => pilih(() => tab('Kontrol')),
+                    ),
+                  _ItemMenu(
+                    Ikon.tanam,
+                    'Tanam saya',
+                    () => pilih(() => tab('Tanam')),
+                  ),
+                  const _GrupMenu('Data'),
+                  if (role == 'admin')
+                    _ItemMenu(
+                      Ikon.meja,
+                      'Meja tanaman',
+                      () => pilih(() => dorong(MejaPage(api: widget.api))),
+                    ),
                   _ItemMenu(
                     Ikon.laporan,
                     'Riwayat monitoring',
@@ -157,7 +171,11 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ),
                   const _GrupMenu('Sistem'),
-                  _ItemMenu(Ikon.profil, 'Akun', () => pilih(() => tab('Akun'))),
+                  _ItemMenu(
+                    Ikon.profil,
+                    'Akun',
+                    () => pilih(() => tab('Akun')),
+                  ),
                   _ItemMenu(
                     Ikon.info,
                     'Tentang kami',
@@ -181,7 +199,10 @@ class _DashboardPageState extends State<DashboardPage> {
       children: [
         RefreshIndicator(
           color: Tok.moss,
-          onRefresh: () => _muat(senyap: true),
+          onRefresh: () {
+            setState(() => _versi++);
+            return _muat(senyap: true);
+          },
           child: ListView(
             padding: EdgeInsets.zero,
             physics: const AlwaysScrollableScrollPhysics(),
@@ -245,20 +266,69 @@ class _DashboardPageState extends State<DashboardPage> {
     final modeAir = wc is Map ? 'Mode ${wc['mode'] ?? '—'}' : '';
     final ket = online ? 'perangkat online' : 'perangkat offline';
 
-    final kpi = <_Kpi>[
-      _Kpi('pH', Ikon.tetes, keDouble(s['ph']), 2, '', ket, _Sorot.hijau),
-      _Kpi('Suhu air', Ikon.kalibrasi, keDouble(s['waterTemp']), 1, ' °C', ket, _Sorot.kaca),
-      _Kpi('TDS', Ikon.dosing, keDouble(s['tds']), 0, ' ppm', ket, _Sorot.emas),
-      _Kpi('Suhu udara', Ikon.sensor, keDouble(s['airTemp']), 1, ' °C', ket, _Sorot.kaca),
-      _Kpi('Kelembapan', Ikon.air, keDouble(s['humidity']), 0, ' %', ket, _Sorot.kaca),
-      _Kpi('Katup air', Ikon.tetes, null, 0, '', modeAir, _Sorot.kaca, teks: katup),
+    final kpi = <Kpi>[
+      Kpi('pH', Ikon.tetes, keDouble(s['ph']), 2, '', ket, Sorot.hijau),
+      Kpi(
+        'Suhu air',
+        Ikon.kalibrasi,
+        keDouble(s['waterTemp']),
+        1,
+        ' °C',
+        ket,
+        Sorot.kaca,
+      ),
+      Kpi('TDS', Ikon.dosing, keDouble(s['tds']), 0, ' ppm', ket, Sorot.emas),
+      Kpi(
+        'Suhu udara',
+        Ikon.sensor,
+        keDouble(s['airTemp']),
+        1,
+        ' °C',
+        ket,
+        Sorot.kaca,
+      ),
+      Kpi(
+        'Kelembapan',
+        Ikon.air,
+        keDouble(s['humidity']),
+        0,
+        ' %',
+        ket,
+        Sorot.kaca,
+      ),
+      Kpi(
+        'Katup air',
+        Ikon.tetes,
+        null,
+        0,
+        '',
+        modeAir,
+        Sorot.kaca,
+        teks: katup,
+      ),
     ];
 
     final tahap = <_Tahap>[
       _Tahap('Semai', n('semai_aktif'), n('total_semai'), 'berjalan'),
-      _Tahap('Peremajaan', n('peremajaan_aktif'), n('total_peremajaan'), 'berjalan'),
-      _Tahap('Pendewasaan', n('pendewasaan_aktif'), n('total_pendewasaan'), 'berjalan'),
-      _Tahap('Panen', n('total_panen_qty'), n('total_panen'), 'tanaman dipanen', penuh: true),
+      _Tahap(
+        'Peremajaan',
+        n('peremajaan_aktif'),
+        n('total_peremajaan'),
+        'berjalan',
+      ),
+      _Tahap(
+        'Pendewasaan',
+        n('pendewasaan_aktif'),
+        n('total_pendewasaan'),
+        'berjalan',
+      ),
+      _Tahap(
+        'Panen',
+        n('total_panen_qty'),
+        n('total_panen'),
+        'tanaman dipanen',
+        penuh: true,
+      ),
     ];
 
     var i = 0;
@@ -295,7 +365,7 @@ class _DashboardPageState extends State<DashboardPage> {
               mainAxisExtent: 128,
             ),
             itemCount: kpi.length,
-            itemBuilder: (_, k) => _KartuKpi(kpi[k]),
+            itemBuilder: (_, k) => KartuKpi(kpi[k]),
           ),
         ),
         if (sensor is Map) ...[
@@ -311,15 +381,27 @@ class _DashboardPageState extends State<DashboardPage> {
           child: TrenBatang(api: widget.api, versi: _versi),
         ),
         const SizedBox(height: Tok.sp4),
-        FadeUp(delay: FadeUp.urutan(i++), child: _AlurTanam(tahap: tahap)),
+        FadeUp(
+          delay: FadeUp.urutan(i++),
+          child: _AlurTanam(tahap: tahap),
+        ),
         if (wc is Map) ...[
           const SizedBox(height: Tok.sp6),
-          FadeUp(delay: FadeUp.urutan(i++), child: const Eyebrow('Kontrol air')),
+          FadeUp(
+            delay: FadeUp.urutan(i++),
+            child: const Eyebrow('Kontrol air'),
+          ),
           const SizedBox(height: Tok.sp3),
-          FadeUp(delay: FadeUp.urutan(i++), child: _RingkasAir(wc: wc)),
+          FadeUp(
+            delay: FadeUp.urutan(i++),
+            child: _RingkasAir(wc: wc),
+          ),
         ],
         const SizedBox(height: Tok.sp6),
-        FadeUp(delay: FadeUp.urutan(i++), child: const Eyebrow('Peringatan terbaru')),
+        FadeUp(
+          delay: FadeUp.urutan(i++),
+          child: const Eyebrow('Peringatan terbaru'),
+        ),
         const SizedBox(height: Tok.sp3),
         FadeUp(
           delay: FadeUp.urutan(i++),
@@ -342,7 +424,10 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ),
         const SizedBox(height: Tok.sp6),
-        FadeUp(delay: FadeUp.urutan(i++), child: const Eyebrow('Panen terbaru')),
+        FadeUp(
+          delay: FadeUp.urutan(i++),
+          child: const Eyebrow('Panen terbaru'),
+        ),
         const SizedBox(height: Tok.sp3),
         FadeUp(
           delay: FadeUp.urutan(i++),
@@ -509,98 +594,73 @@ class _HeroStatus extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const radius = BorderRadius.all(Radius.circular(28));
-    return RepaintBoundary(
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          borderRadius: radius,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white.withValues(alpha: 0.72),
-              const Color(0xFFD7E8F8).withValues(alpha: 0.6),
-              const Color(0xFFF6EDBE).withValues(alpha: 0.62),
-            ],
-          ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x402A5080),
-              blurRadius: 34,
-              spreadRadius: -12,
-              offset: Offset(0, 16),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Expanded(
-                  child: Text(
-                    'STATUS GREENHOUSE',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.4,
-                      color: Tok.olive,
-                    ),
+    return HeroKartu(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'STATUS GREENHOUSE',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.4,
+                    color: Tok.olive,
                   ),
                 ),
-                StatusPill(
-                  terang: true,
-                  berdenyut: online,
-                  warna: online ? Tok.moss : Tok.warning,
-                  teks: online ? 'Alat terhubung' : 'Alat terputus',
-                ),
-              ],
-            ),
-            const SizedBox(height: Tok.sp4),
-            Text('Batch tanam berjalan', style: Tok.kecil),
-            CountUp(
-              nilai: batchAktif.toDouble(),
-              style: const TextStyle(
-                fontFamily: Tok.fontJudul,
-                fontSize: 52,
-                height: 1.05,
-                fontWeight: FontWeight.w700,
-                color: Tok.tinta,
               ),
-            ),
-            if (!online)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text('Bacaan terakhir: $diff', style: Tok.kecil),
+              StatusPill(
+                terang: true,
+                berdenyut: online,
+                warna: online ? Tok.moss : Tok.warning,
+                teks: online ? 'Alat terhubung' : 'Alat terputus',
               ),
-            const SizedBox(height: Tok.sp4),
-            Row(
-              children: [
-                _mini('Tanaman dipanen', panenQty),
-                const SizedBox(width: 10),
-                _mini('Total batch', totalBatch),
-              ],
+            ],
+          ),
+          const SizedBox(height: Tok.sp4),
+          Text('Batch tanam berjalan', style: Tok.kecil),
+          CountUp(
+            nilai: batchAktif.toDouble(),
+            style: const TextStyle(
+              fontFamily: Tok.fontJudul,
+              fontSize: 52,
+              height: 1.05,
+              fontWeight: FontWeight.w700,
+              color: Tok.tinta,
             ),
-            const SizedBox(height: Tok.sp4),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _Tombol(
-                  'Grafik sensor',
-                  Ikon.sensor,
-                  true,
-                  () => onTab('Sensor'),
-                ),
-                if (kontrol)
-                  _Tombol('Kontrol air', Ikon.air, false, () => onTab('Kontrol')),
-                _Tombol('Tanam saya', Ikon.tanam, false, () => onTab('Tanam')),
-              ],
+          ),
+          if (!online)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text('Bacaan terakhir: $diff', style: Tok.kecil),
             ),
-          ],
-        ),
+          const SizedBox(height: Tok.sp4),
+          Row(
+            children: [
+              _mini('Tanaman dipanen', panenQty),
+              const SizedBox(width: 10),
+              _mini('Total batch', totalBatch),
+            ],
+          ),
+          const SizedBox(height: Tok.sp4),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _Tombol(
+                'Grafik sensor',
+                Ikon.sensor,
+                true,
+                () => onTab('Sensor'),
+              ),
+              if (kontrol)
+                _Tombol('Kontrol air', Ikon.air, false, () => onTab('Kontrol')),
+              _Tombol('Tanam saya', Ikon.tanam, false, () => onTab('Tanam')),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -661,159 +721,16 @@ class _Tombol extends StatelessWidget {
   }
 }
 
-// ── KPI sensor ──────────────────────────────────────────────────────────
-
-enum _Sorot { kaca, hijau, emas }
-
-class _Kpi {
-  const _Kpi(
-    this.label,
-    this.ikon,
-    this.nilai,
-    this.desimal,
-    this.satuan,
-    this.ket,
-    this.sorot, {
-    this.teks,
-  });
-
-  final String label;
-  final IconData ikon;
-  final double? nilai;
-  final int desimal;
-  final String satuan;
-  final String ket;
-  final _Sorot sorot;
-
-  /// Isi tampil bila bukan angka (mis. status katup).
-  final String? teks;
-}
-
-class _KartuKpi extends StatelessWidget {
-  const _KartuKpi(this.k);
-
-  final _Kpi k;
-
-  @override
-  Widget build(BuildContext context) {
-    final hijau = k.sorot == _Sorot.hijau;
-    final emas = k.sorot == _Sorot.emas;
-    final warnaTeks = hijau ? Colors.white : (emas ? const Color(0xFF2A2208) : Tok.tinta);
-    final isi = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Text(
-                k.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: warnaTeks.withValues(alpha: 0.8),
-                ),
-              ),
-            ),
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: hijau
-                    ? Colors.white.withValues(alpha: 0.22)
-                    : emas
-                    ? Colors.white.withValues(alpha: 0.4)
-                    : Tok.moss.withValues(alpha: 0.16),
-              ),
-              child: Icon(
-                k.ikon,
-                size: 17,
-                color: hijau ? Colors.white : (emas ? warnaTeks : Tok.forest),
-              ),
-            ),
-          ],
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            k.nilai == null
-                ? Text(
-                    k.teks ?? '—',
-                    style: TextStyle(
-                      fontFamily: Tok.fontJudul,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: warnaTeks,
-                    ),
-                  )
-                : CountUp(
-                    nilai: k.nilai!,
-                    desimal: k.desimal,
-                    akhiran: k.satuan,
-                    style: TextStyle(
-                      fontFamily: Tok.fontJudul,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                      color: warnaTeks,
-                    ),
-                  ),
-            Text(
-              k.ket,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 11.5,
-                color: warnaTeks.withValues(alpha: 0.72),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-
-    if (!hijau && !emas) {
-      return KacaCair(padding: const EdgeInsets.all(14), child: isi);
-    }
-    return RepaintBoundary(
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(Tok.rKartu),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
-          gradient: hijau
-              ? const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xEB6B9D4A), Color(0xE62D452F)],
-                )
-              : const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xF2F0D660), Color(0xE6D6A828)],
-                ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x332A5080),
-              blurRadius: 30,
-              spreadRadius: -10,
-              offset: Offset(0, 14),
-            ),
-          ],
-        ),
-        child: isi,
-      ),
-    );
-  }
-}
-
 // ── Alur tanam ──────────────────────────────────────────────────────────
 
 class _Tahap {
-  const _Tahap(this.label, this.jalan, this.total, this.ket, {this.penuh = false});
+  const _Tahap(
+    this.label,
+    this.jalan,
+    this.total,
+    this.ket, {
+    this.penuh = false,
+  });
 
   final String label;
   final int jalan;
@@ -927,9 +844,7 @@ class _BarisTahap extends StatelessWidget {
                   widthFactor: v,
                   child: const DecoratedBox(
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Tok.moss, Tok.emas],
-                      ),
+                      gradient: LinearGradient(colors: [Tok.moss, Tok.emas]),
                     ),
                     child: SizedBox(height: 6),
                   ),

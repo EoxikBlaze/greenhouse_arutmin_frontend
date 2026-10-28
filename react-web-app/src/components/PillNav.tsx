@@ -37,7 +37,7 @@ export function PillNav({ items, label, className = '' }: { items: PillItem[]; l
     const ro = new ResizeObserver(() => ukur(false))
     ro.observe(el)
     return () => ro.disconnect()
-  }, [pathname, items])
+  }, [pathname, items.length])
 
   if (items.length === 0) return null
   return (
