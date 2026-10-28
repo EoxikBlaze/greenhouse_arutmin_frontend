@@ -65,14 +65,14 @@ function KartuHasil({ hasil, menonjol }: { hasil: Hasil; menonjol?: boolean }) {
       )}
     >
       <div className="flex flex-wrap items-center gap-2">
-        <span className={clsx('vsf-pill border px-2 py-0.5 text-[11px] font-bold uppercase tracking-[.1em]', GAYA_PRIORITAS[hasil.prioritas] ?? GAYA_PRIORITAS.rendah)}>
+        <span className={clsx('vsf-pill border px-2 py-0.5 text-[12px] font-bold uppercase tracking-[.1em]', GAYA_PRIORITAS[hasil.prioritas] ?? GAYA_PRIORITAS.rendah)}>
           Prioritas {hasil.prioritas}
         </span>
-        <span className="vsf-pill border-arutmin-border bg-white text-slate-600 text-[11px]">
+        <span className="vsf-pill border-arutmin-border bg-white text-slate-600 text-[12px]">
           {konsol ? `AI lokal (Ollama) · ${hasil.model ?? 'model tidak diketahui'}` : 'Aturan heuristik'}
         </span>
         <span className="flex-1" />
-        <span className="text-[11px] text-slate-500">{tgl(hasil.generated_at ?? null)}</span>
+        <span className="text-[12px] text-slate-500">{tgl(hasil.generated_at ?? null)}</span>
       </div>
 
       <h3 className={clsx('mt-3 font-bold text-slate-900', menonjol ? 'text-[16px] leading-snug' : 'text-[14px] leading-snug')}>
@@ -132,7 +132,7 @@ export default function AsistenAiPage() {
       {/* Kiri: chat sebagai fokus utama */}
       <div className="grid min-w-0 gap-3">
         <header className="px-1">
-          <h1 className="font-display text-[20px] font-bold leading-tight text-tinta">Asisten AI</h1>
+          <h2 className="font-display text-[20px] font-bold leading-tight text-tinta">Asisten AI</h2>
           <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
             Tanya soal kebun atau minta diagnosa menyeluruh. Jawaban dibaca dari data terbaru di server.
           </p>
@@ -143,7 +143,7 @@ export default function AsistenAiPage() {
       {/* Kanan: langkah berikutnya + data yang dibaca */}
       <aside className="grid min-w-0 gap-4">
         <section className="vsf-card w-full min-w-0 p-4">
-          <div className="text-[11px] font-bold uppercase tracking-[.14em] text-slate-500">Langkah berikutnya</div>
+          <div className="text-[12px] font-bold uppercase tracking-[.14em] text-slate-500">Langkah berikutnya</div>
           <p className="mt-1 text-[12.5px] leading-relaxed text-slate-600">
             Satu rekomendasi prioritas beserta alasannya, dari kondisi kebun saat ini.
           </p>
@@ -194,7 +194,7 @@ export default function AsistenAiPage() {
 
           {riwayat.length > 1 && (
             <div className="mt-4">
-              <div className="text-[11px] font-bold uppercase tracking-[.14em] text-slate-500">
+              <div className="text-[12px] font-bold uppercase tracking-[.14em] text-slate-500">
                 Sebelumnya ({riwayat.length - 1})
               </div>
               <div className="mt-2 grid gap-2">
@@ -207,7 +207,7 @@ export default function AsistenAiPage() {
         </section>
 
         <section className="vsf-card w-full min-w-0 p-4">
-          <div className="text-[11px] font-bold uppercase tracking-[.14em] text-slate-500">Data yang dibaca</div>
+          <div className="text-[12px] font-bold uppercase tracking-[.14em] text-slate-500">Data yang dibaca</div>
           <ul className="mt-2.5 flex flex-wrap gap-1.5">
             {SUMBER_DATA.map((k) => (
               <li
@@ -218,7 +218,7 @@ export default function AsistenAiPage() {
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-[11.5px] leading-relaxed text-slate-500">
+          <p className="mt-3 text-[12px] leading-relaxed text-slate-500">
             Bila AI lokal mati, jawaban memakai aturan tetap dan alasannya ditampilkan apa adanya.
           </p>
         </section>

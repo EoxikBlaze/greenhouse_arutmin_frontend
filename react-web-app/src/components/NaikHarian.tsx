@@ -86,7 +86,7 @@ export function NaikHarian() {
   return (
     <section className="vsf-card w-full min-w-0 p-4">
       <div className="min-w-0 max-w-[760px]">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Target nutrisi naik harian</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Target nutrisi naik harian</div>
         <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
           Cukup isi <b>target akhir</b> tiap tanaman. Mulai hari pindah netpot (tahap Peremajaan) target ppm penampung
           naik sedikit tiap hari dari ppm awal sampai target akhir, lalu ditahan sampai panen. Tahap Semai tetap
@@ -119,7 +119,7 @@ export function NaikHarian() {
                   )}
                 </div>
                 {bolehTulis && (
-                  <button type="button" className="vsf-btn-secondary min-h-[36px] px-3 py-1 text-[13px]" onClick={() => buka(r)}>
+                  <button type="button" className="vsf-btn-secondary min-h-[44px] sm:min-h-[36px] px-3 py-1 text-[13px]" onClick={() => buka(r)}>
                     {aktif ? 'Ubah' : 'Atur'}
                   </button>
                 )}
@@ -145,7 +145,7 @@ export function NaikHarian() {
             onSubmit={(e) => { e.preventDefault(); void simpan() }}
             onKeyDown={(e) => { if (e.key === 'Escape' && !sibuk) setUbah(null) }}
           >
-            <div id="vsf-naik-judul" className="text-[11px] uppercase tracking-[.14em] font-bold text-slate-500">Naik harian · {ubah.nama_tanaman}</div>
+            <div id="vsf-naik-judul" className="text-[12px] uppercase tracking-[.14em] font-bold text-slate-500">Naik harian · {ubah.nama_tanaman}</div>
             <label className="mt-3 block text-[13px] font-semibold text-slate-700">
               Target akhir (ppm)
               <input className="vsf-input mt-1 w-full" inputMode="numeric" value={target} autoFocus onChange={(e) => setTarget(e.target.value)} placeholder="2400" />

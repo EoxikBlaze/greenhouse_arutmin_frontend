@@ -765,7 +765,7 @@ export function AmbangSensorPage() {
             <div className="vsf-input w-full bg-slate-50 text-slate-600">
               {editing ? cell(editing.sensor) : '—'}
             </div>
-            <div className="mt-1 text-[11px] text-slate-500">
+            <div className="mt-1 text-[12px] text-slate-500">
               Nama sensor dipakai ESP32 — tidak diubah lewat layar ini.
             </div>
           </Field>

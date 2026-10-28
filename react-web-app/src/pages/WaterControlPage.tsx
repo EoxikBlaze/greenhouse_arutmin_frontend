@@ -188,10 +188,10 @@ export default function WaterControlPage() {
 
       {/* Status perangkat & tandon */}
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Status perangkat &amp; tandon</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Status perangkat &amp; tandon</div>
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 vsf-stagger">
           <div className="rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Status API</div>
+            <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Status API</div>
             <div className="mt-2">
               {loading && !status ? (
                 <span className="vsf-skeleton inline-block h-[24px] w-[130px]" />
@@ -205,17 +205,17 @@ export default function WaterControlPage() {
             <div className="mt-1 text-[12px] text-slate-600">pembaruan terakhir {tgl(status?.updated_at)}</div>
           </div>
           <div className="rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Perintah Terakhir</div>
+            <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Perintah Terakhir</div>
             <div className={`text-[15px] font-bold mt-1 tabular-nums ${statusFlash}`}>{status?.command ?? '—'}</div>
             <div className="text-[12px] text-slate-600">{tgl(status?.updated_at)}</div>
           </div>
           <div className="rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Katup</div>
+            <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Katup</div>
             <div className={`text-[15px] font-bold mt-1 ${statusFlash}`}>{status?.valve_state ?? '—'}</div>
             <div className="text-[12px] text-slate-600">status katup tandon</div>
           </div>
           <div className="rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Mode</div>
+            <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Mode</div>
             <div className={`text-[15px] font-bold mt-1 ${statusFlash}`}>{mode ?? '—'}</div>
             <div className="text-[12px] text-slate-600">berdasar ambang sensor</div>
           </div>
@@ -226,7 +226,7 @@ export default function WaterControlPage() {
 
       {/* Pengaturan mode */}
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Pengaturan mode</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Pengaturan mode</div>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           {(['AUTO', 'MANUAL'] as Mode[]).map((m) => (
             <button
@@ -235,7 +235,7 @@ export default function WaterControlPage() {
               disabled={busy !== null || !terjangkau || !mode}
               onClick={() => void sendMode(m)}
               className={clsx(
-                'inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-semibold transition disabled:opacity-60',
+                'inline-flex min-h-[44px] items-center rounded-full border px-3 py-1 text-[12px] font-semibold transition disabled:opacity-60 sm:min-h-0',
                 mode === m
                   ? 'border-arutmin-moss bg-activePill text-white'
                   : 'border-arutmin-border bg-white text-slate-700 hover:border-arutmin-moss/60 hover:shadow-sm',
@@ -251,7 +251,7 @@ export default function WaterControlPage() {
 
       {/* Aksi manual */}
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Aksi manual (hanya mode MANUAL)</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Aksi manual (hanya mode MANUAL)</div>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <button
             type="button"
@@ -266,7 +266,7 @@ export default function WaterControlPage() {
             type="button"
             disabled={busy !== null || !terjangkau || mode !== 'MANUAL'}
             onClick={() => void action('stop')}
-            className="vsf-input rounded-full font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            className="vsf-input min-h-[44px] rounded-full font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {busy === 'stop' && <span className="vsf-spinner vsf-spinner-dark" />}
             {busy === 'stop' ? 'Mengirim…' : 'Stop'}
@@ -289,7 +289,7 @@ export default function WaterControlPage() {
 
       {/* Riwayat perintah */}
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Riwayat perintah</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Riwayat perintah</div>
         <div className="mt-3 overflow-auto rounded-card border border-arutmin-border bg-white vsf-table">
           <table aria-label="Riwayat perintah" className="w-full text-[13px]">
             <thead>
@@ -298,7 +298,7 @@ export default function WaterControlPage() {
                   <th
                     key={h}
                     scope="col"
-                    className="border-b border-navy/25 px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-[.14em] text-navy"
+                    className="border-b border-navy/25 px-4 py-2.5 text-left text-[12px] font-bold uppercase tracking-[.14em] text-navy"
                   >
                     {h}
                   </th>
@@ -333,7 +333,7 @@ export default function WaterControlPage() {
       </section>
 
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Tentang layar ini</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Tentang layar ini</div>
         <ul className="mt-2 list-disc pl-5 text-[13px] text-slate-700 leading-relaxed">
           <li>
             Live: GET /watercontrol/status (polling 5 dtk) · POST /watercontrol/setMode · POST /watercontrol/fill|stop —

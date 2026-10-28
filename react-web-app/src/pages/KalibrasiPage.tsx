@@ -121,7 +121,7 @@ function Modal({ judul, onTutup, children, lebar = 'max-w-[520px]' }: { judul: s
     <ModalBackdrop onMouseDown={(e) => { if (e.target === e.currentTarget) onTutup() }}>
       <div role="dialog" aria-modal="true" aria-label={judul} onKeyDown={(e) => { if (e.key === 'Escape') onTutup() }}
         className={clsx('w-full rounded-card bg-white p-5 vsf-modal-card max-h-[90vh] overflow-auto', lebar)}>
-        <div className="text-[11px] uppercase tracking-[.14em] font-bold text-slate-500">{judul}</div>
+        <div className="text-[12px] uppercase tracking-[.14em] font-bold text-slate-500">{judul}</div>
         {children}
       </div>
     </ModalBackdrop>
@@ -155,7 +155,7 @@ function CatatKalibrasi({ alat, terkini, onSelesai, onTutup }: { alat: Alat; ter
   const ubah = (k: string) => (v: string) => setF((s) => ({ ...s, [k]: v }))
   const live = terkini?.sensor ?? null
   const ambilLive = (k: string, v: number | null | undefined) => (
-    <button type="button" className="vsf-btn-secondary min-h-[40px] shrink-0 px-3 text-[12.5px]" disabled={v == null}
+    <button type="button" className="vsf-btn-secondary min-h-[44px] sm:min-h-[40px] shrink-0 px-3 text-[12.5px]" disabled={v == null}
       onClick={() => setF((s) => ({ ...s, [k]: v == null ? '' : String(v) }))} title="Isi dengan bacaan sistem saat ini">
       Ambil bacaan
     </button>
@@ -266,7 +266,7 @@ function Riwayat({ alat, onTutup }: { alat: Alat; onTutup: () => void }) {
       {error && <div className="mt-3 text-[13px] text-red-700">{error}</div>}
       <div className="mt-3 overflow-x-auto rounded-card border border-arutmin-border">
         <table aria-label="Riwayat kalibrasi" className="w-full text-[13px]">
-          <thead><tr className="bg-navy/[.055] text-left text-[11px] uppercase tracking-[.12em] text-navy">
+          <thead><tr className="bg-navy/[.055] text-left text-[12px] uppercase tracking-[.12em] text-navy">
             <th className="px-3 py-2">Tanggal</th><th className="px-3 py-2">Ref</th><th className="px-3 py-2">Bacaan</th>
             <th className="px-3 py-2">Konstanta baru</th><th className="px-3 py-2">Hasil</th><th className="px-3 py-2">Oleh · catatan</th>
           </tr></thead>
@@ -371,7 +371,7 @@ export default function KalibrasiPage() {
       <Kartu>
         <div className="flex flex-wrap items-start gap-3">
           <div className="min-w-0 max-w-[680px]">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Kalibrasi alat IoT</div>
+            <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Kalibrasi alat IoT</div>
             <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
               Sensor yang tidak dikalibrasi tetap mengirim angka yang terlihat wajar tetapi salah, dan dosing otomatis akan
               mengikutinya. Ikuti jadwal di bawah, catat hasilnya, dan untuk pH/EC salin konstanta baru ke firmware.
@@ -388,7 +388,7 @@ export default function KalibrasiPage() {
 
       <Kartu>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Bacaan sensor saat ini</div>
+          <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Bacaan sensor saat ini</div>
           <span className={clsx('vsf-pill', online ? 'border-arutmin-moss bg-arutmin-mint/50 text-arutmin-forest' : 'vsf-tone-warn')}>
             {online ? 'Perangkat online · diperbarui tiap 5 detik' : 'Perangkat offline — bacaan bisa sudah lama'}
           </span>
@@ -400,7 +400,7 @@ export default function KalibrasiPage() {
             ['Kelembapan', s?.humidity != null ? `${n(s.humidity, 0)} %` : '—'],
           ].map(([k, v]) => (
             <div key={k} className="rounded-std border border-arutmin-border bg-white px-3 py-2">
-              <div className="text-[11px] uppercase tracking-[.12em] text-slate-500 font-bold">{k}</div>
+              <div className="text-[12px] uppercase tracking-[.12em] text-slate-500 font-bold">{k}</div>
               <div className="mt-0.5 text-[18px] font-bold tabular-nums text-slate-900">{v}</div>
             </div>
           ))}
@@ -440,9 +440,9 @@ export default function KalibrasiPage() {
                 {a.konstanta && <><dt className="text-slate-500">Firmware</dt><dd className="font-mono text-[12px] text-slate-800">{urutKonstanta(a.konstanta).map(([k, v]) => `${k} = ${v}`).join(' · ')}</dd></>}
               </dl>
               <div className="mt-3 flex flex-wrap gap-2">
-                {bolehTulis && <button type="button" className="vsf-btn-primary min-h-[38px] px-3 py-1 text-[13px]" onClick={() => setCatat(a)}>Catat kalibrasi</button>}
-                <button type="button" className="vsf-btn-secondary min-h-[38px] px-3 py-1 text-[13px]" onClick={() => setRiwayat(a)}>Riwayat</button>
-                {bolehTulis && <button type="button" className="vsf-btn-secondary min-h-[38px] px-3 py-1 text-[13px]" onClick={() => setAtur(a)}>Atur</button>}
+                {bolehTulis && <button type="button" className="vsf-btn-primary min-h-[44px] sm:min-h-[38px] px-3 py-1 text-[13px]" onClick={() => setCatat(a)}>Catat kalibrasi</button>}
+                <button type="button" className="vsf-btn-secondary min-h-[44px] sm:min-h-[38px] px-3 py-1 text-[13px]" onClick={() => setRiwayat(a)}>Riwayat</button>
+                {bolehTulis && <button type="button" className="vsf-btn-secondary min-h-[44px] sm:min-h-[38px] px-3 py-1 text-[13px]" onClick={() => setAtur(a)}>Atur</button>}
               </div>
             </Kartu>
           ))}

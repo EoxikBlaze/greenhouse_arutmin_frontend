@@ -169,13 +169,13 @@ function Ringkasan({ row }: { row: AuditRow }): ReactNode {
         <span
           key={t}
           title={t}
-          className="inline-block max-w-[260px] truncate rounded-full bg-navy/[.06] px-2 py-0.5 text-[11px] text-navy"
+          className="inline-block max-w-[260px] truncate rounded-full bg-navy/[.06] px-2 py-0.5 text-[12px] text-navy"
         >
           {t}
         </span>
       ))}
       {sisa > 0 && (
-        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">
+        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[12px] font-semibold text-slate-500">
           +{sisa} lainnya
         </span>
       )}
@@ -249,7 +249,7 @@ export function AuditPage() {
     <div className="mx-auto grid w-full max-w-[1180px] grid-cols-[minmax(0,1fr)] gap-4 vsf-stagger">
       {/* Filter — dua kontrol utama (tabel & aksi) + ukuran halaman */}
       <section className="vsf-card p-4">
-        <div className="text-[11px] font-bold uppercase tracking-[.14em] text-slate-500">
+        <div className="text-[12px] font-bold uppercase tracking-[.14em] text-slate-500">
           Filter riwayat
         </div>
         <div className="mt-3 flex flex-wrap items-end gap-3">
@@ -387,7 +387,7 @@ export function AuditPage() {
                       <div className="font-semibold text-slate-800">
                         {r.actor_label ?? (r.actor_tipe === 'anonymous' ? 'Tanpa akun' : r.actor_tipe)}
                       </div>
-                      <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
+                      <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[12px] text-slate-500">
                         {r.meta?.level && (
                           <span className="rounded-full bg-navy/[.07] px-1.5 py-0.5 font-semibold text-navy">
                             {r.meta.level}
@@ -398,7 +398,7 @@ export function AuditPage() {
                     </td>
                     <td className="px-4 py-2.5 align-top">
                       <span
-                        className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-bold tracking-[.08em] ${TONE_AKSI[r.aksi] ?? 'border-slate-300 bg-slate-50 text-slate-600'}`}
+                        className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[12px] font-bold tracking-[.08em] ${TONE_AKSI[r.aksi] ?? 'border-slate-300 bg-slate-50 text-slate-600'}`}
                       >
                         {LABEL_AKSI[r.aksi] ?? String(r.aksi).toUpperCase()}
                       </span>
@@ -406,7 +406,7 @@ export function AuditPage() {
                     <td className="px-4 py-2.5 align-top">
                       <div className="font-mono text-[12px] text-navy">{r.tabel ?? '—'}</div>
                       {r.row_id && (
-                        <div className="text-[11px] text-slate-500">#{r.row_id}</div>
+                        <div className="text-[12px] text-slate-500">#{r.row_id}</div>
                       )}
                     </td>
                     <td className="px-4 py-2.5 align-top">

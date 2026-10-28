@@ -326,7 +326,7 @@ export default function TanamSayaPage() {
       <section className="vsf-card p-4">
         <div className="flex flex-wrap items-start gap-3">
           <div className="min-w-0">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Tanam aktif</div>
+            <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Tanam aktif</div>
             <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
               Gabungan batch semai, peremajaan, dan pendewasaan yang sedang berjalan — segar dari server.
             </p>
@@ -358,7 +358,7 @@ export default function TanamSayaPage() {
 
       {/* Satu state per layar: loading → error → kosong → daftar */}
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Daftar tanam</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Daftar tanam</div>
 
         {loading ? (
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" role="status" aria-label="Memuat daftar tanam">
@@ -417,7 +417,7 @@ export default function TanamSayaPage() {
                     </div>
                     <span
                       className={clsx(
-                        'inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold',
+                        'inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[12px] font-semibold',
                         statusTone(t.status),
                       )}
                     >

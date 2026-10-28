@@ -141,7 +141,7 @@ export function InfoTekan() {
             ikuti(g.href!)
             tutup()
           }}
-          className="mt-3 inline-flex min-h-[36px] items-center rounded-full bg-white px-4 text-[12.5px] font-bold text-navy"
+          className="mt-3 inline-flex min-h-[44px] sm:min-h-[36px] items-center rounded-full bg-white px-4 text-[12.5px] font-bold text-navy"
         >
           Buka tautan →
         </button>

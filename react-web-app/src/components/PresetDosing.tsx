@@ -61,7 +61,7 @@ const rentang = (a: unknown, b: unknown, satuan = ''): string => {
 
 function Head({ children }: { children: ReactNode }) {
   return (
-    <th scope="col" className="border-b border-navy/25 px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-[.14em] text-navy">
+    <th scope="col" className="border-b border-navy/25 px-4 py-2.5 text-left text-[12px] font-bold uppercase tracking-[.14em] text-navy">
       {children}
     </th>
   )
@@ -169,7 +169,7 @@ export function TargetPenampung({ versi, onUbah }: { versi: number; onUbah: () =
     <section className="vsf-card w-full min-w-0 p-4">
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 max-w-[720px]">
-          <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Target tiap penampung</div>
+          <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Target tiap penampung</div>
           <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
             Mode <b>Otomatis</b>: target EC/pH diambil dari preset yang cocok dengan tanaman, tahap, dan umur batch
             yang sedang berjalan di meja itu, lalu ikut berganti saat tahap berpindah. Mode <b>Manual</b>: target
@@ -240,11 +240,11 @@ export function TargetPenampung({ versi, onUbah }: { versi: number; onUbah: () =
                   {bolehTulis && (
                     <td className="px-4 py-2.5">
                       <span className="flex flex-wrap gap-2">
-                        <button type="button" className="vsf-btn-secondary min-h-[36px] px-3 py-1 text-[13px]" onClick={() => bukaManual(r)} disabled={sibuk !== null}>
+                        <button type="button" className="vsf-btn-secondary min-h-[44px] sm:min-h-[36px] px-3 py-1 text-[13px]" onClick={() => bukaManual(r)} disabled={sibuk !== null}>
                           {r.target_mode === 'manual' ? 'Ubah manual' : 'Atur manual'}
                         </button>
                         {r.target_mode === 'manual' && (
-                          <button type="button" className="vsf-btn-primary min-h-[36px] px-3 py-1 text-[13px]" onClick={() => void keOtomatis(r)} disabled={sibuk !== null}>
+                          <button type="button" className="vsf-btn-primary min-h-[44px] sm:min-h-[36px] px-3 py-1 text-[13px]" onClick={() => void keOtomatis(r)} disabled={sibuk !== null}>
                             {sibuk === String(r.id_meja) ? 'Menyimpan…' : 'Kembali otomatis'}
                           </button>
                         )}
@@ -268,7 +268,7 @@ export function TargetPenampung({ versi, onUbah }: { versi: number; onUbah: () =
             onSubmit={(e) => { e.preventDefault(); void simpanManual() }}
             onKeyDown={(e) => { if (e.key === 'Escape' && sibuk === null) setManual(null) }}
           >
-            <div id="vsf-manual-judul" className="text-[11px] uppercase tracking-[.14em] font-bold text-slate-500">Target manual · {manual.meja}</div>
+            <div id="vsf-manual-judul" className="text-[12px] uppercase tracking-[.14em] font-bold text-slate-500">Target manual · {manual.meja}</div>
             <p className="mt-2 text-[13px] text-slate-600">Sistem tidak akan mengubah target ini sampai dikembalikan ke otomatis.</p>
             <label className="mt-3 block text-[13px] font-semibold text-slate-700">
               Target EC (ppm)
@@ -395,7 +395,7 @@ export function PresetNutrisi({ onUbah }: { onUbah: () => void }) {
     <section className="vsf-card w-full min-w-0 p-4">
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 max-w-[720px]">
-          <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Preset nutrisi (template)</div>
+          <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Preset nutrisi (template)</div>
           <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
             Satu preset = rentang EC dan pH untuk satu tahap, berlaku untuk satu tanaman atau semua tanaman, dan bisa
             dibatasi umur (hari sejak semai). Target penampung = titik tengah rentang. Hanya preset berstatus
@@ -450,8 +450,8 @@ export function PresetNutrisi({ onUbah }: { onUbah: () => void }) {
                   {bolehTulis && (
                     <td className="px-4 py-2.5">
                       <span className="flex flex-wrap gap-2">
-                        <button type="button" className="vsf-btn-secondary min-h-[36px] px-3 py-1 text-[13px]" onClick={() => buka(p)}>Ubah</button>
-                        <button type="button" className="vsf-btn-danger min-h-[36px] px-3 py-1 text-[13px]" onClick={() => setHapus(p)}>Hapus</button>
+                        <button type="button" className="vsf-btn-secondary min-h-[44px] sm:min-h-[36px] px-3 py-1 text-[13px]" onClick={() => buka(p)}>Ubah</button>
+                        <button type="button" className="vsf-btn-danger min-h-[44px] sm:min-h-[36px] px-3 py-1 text-[13px]" onClick={() => setHapus(p)}>Hapus</button>
                       </span>
                     </td>
                   )}
@@ -472,7 +472,7 @@ export function PresetNutrisi({ onUbah }: { onUbah: () => void }) {
             onSubmit={(e) => { e.preventDefault(); void simpan() }}
             onKeyDown={(e) => { if (e.key === 'Escape' && !sibuk) setForm(null) }}
           >
-            <div id="vsf-preset-judul" className="text-[11px] uppercase tracking-[.14em] font-bold text-slate-500">
+            <div id="vsf-preset-judul" className="text-[12px] uppercase tracking-[.14em] font-bold text-slate-500">
               {editId ? `Ubah preset #${editId}` : 'Tambah preset nutrisi'}
             </div>
             <div className="mt-3 grid grid-cols-2 gap-3">

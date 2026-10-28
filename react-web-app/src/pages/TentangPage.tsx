@@ -411,7 +411,7 @@ export function TentangPage() {
                   <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-navy to-[#14407a] text-[#E9CD53] shadow-md transition-transform duration-500 [transition-timing-function:var(--pegas)] group-hover:-rotate-6 group-hover:scale-110">
                     <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{f.ikon}</svg>
                   </span>
-                  <span className="rounded-full bg-white/70 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-navy ring-1 ring-white/80">{f.tag}</span>
+                  <span className="rounded-full bg-white/70 px-2.5 py-1 text-[12px] font-bold uppercase tracking-wide text-navy ring-1 ring-white/80">{f.tag}</span>
                 </div>
                 <div>
                   <h3 className="text-[16px] font-bold text-tinta">{f.judul}</h3>
@@ -459,7 +459,7 @@ export function TentangPage() {
                   <img src={m.src} alt={`Logo ${m.nama}`} className="max-h-full max-w-full object-contain" draggable={false} />
                 </div>
                 <figcaption className="mt-3 text-[12.5px] font-bold text-navy">{m.nama}</figcaption>
-                <span className="text-[11.5px] text-slate-600">{m.peran}</span>
+                <span className="text-[12px] text-slate-600">{m.peran}</span>
               </figure>
             ))}
           </div>

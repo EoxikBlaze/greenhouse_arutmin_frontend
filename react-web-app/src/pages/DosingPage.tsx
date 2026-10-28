@@ -79,7 +79,7 @@ function Head({ children }: { children: ReactNode }) {
   return (
     <th
       scope="col"
-      className="border-b border-navy/25 px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-[.14em] text-navy"
+      className="border-b border-navy/25 px-4 py-2.5 text-left text-[12px] font-bold uppercase tracking-[.14em] text-navy"
     >
       {children}
     </th>
@@ -185,7 +185,7 @@ function TabelParameter({
     <section className="vsf-card w-full min-w-0 p-4">
       <div className="flex flex-wrap items-center gap-3">
         <div className="min-w-0">
-          <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">{judul}</div>
+          <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">{judul}</div>
           <div className="mt-1 text-[12px] text-slate-500">
             <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET {path}</code>
             {' · '}
@@ -276,7 +276,7 @@ function TabelParameter({
                         <span className="flex items-center gap-2">
                           <button
                             type="button"
-                            className="vsf-btn-primary min-h-[36px] px-3 py-1 text-[13px]"
+                            className="vsf-btn-primary min-h-[44px] sm:min-h-[36px] px-3 py-1 text-[13px]"
                             onClick={() => void simpan()}
                             disabled={sedangSimpan}
                           >
@@ -284,7 +284,7 @@ function TabelParameter({
                           </button>
                           <button
                             type="button"
-                            className="vsf-btn-secondary min-h-[36px] px-3 py-1 text-[13px]"
+                            className="vsf-btn-secondary min-h-[44px] sm:min-h-[36px] px-3 py-1 text-[13px]"
                             onClick={() => setEdit(null)}
                             disabled={sedangSimpan}
                           >
@@ -294,7 +294,7 @@ function TabelParameter({
                       ) : (
                         <button
                           type="button"
-                          className="vsf-btn-secondary min-h-[36px] px-3 py-1 text-[13px]"
+                          className="vsf-btn-secondary min-h-[44px] sm:min-h-[36px] px-3 py-1 text-[13px]"
                           onClick={() => bukaEdit(r)}
                         >
                           Ubah
@@ -333,7 +333,7 @@ export default function DosingPage() {
       <section className="vsf-card w-full min-w-0 p-4">
         <div className="flex flex-wrap items-start gap-3">
           <div className="min-w-0">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Dosing otomatis</div>
+            <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Dosing otomatis</div>
             <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
               Injeksi nutrisi yang diatur sendiri: target EC/pH tiap penampung diambil otomatis dari
               <b> preset nutrisi</b> sesuai tanaman, tahap, dan umur batch di meja itu, lalu pompa dosing
@@ -377,7 +377,7 @@ export default function DosingPage() {
       <section className="vsf-card w-full min-w-0 p-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="min-w-0">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Aturan fail-safe</div>
+            <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Aturan fail-safe</div>
             <div className="mt-1 text-[12px] text-slate-500">
               <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET /aturan-fail-safe</code>
               {' — perlindungan darurat (E-STOP, ambang EC, jatah kejadian dosing). Baca saja.'}
@@ -431,7 +431,7 @@ export default function DosingPage() {
                       <td className="px-4 py-2.5">
                         <span
                           className={clsx(
-                            'vsf-pill border-arutmin-moss/50 px-2 py-0.5 text-[11px]',
+                            'vsf-pill border-arutmin-moss/50 px-2 py-0.5 text-[12px]',
                             r.aktif ? 'bg-arutmin-mint/40 text-arutmin-forest' : 'bg-slate-100 text-slate-600',
                           )}
                         >
@@ -451,7 +451,7 @@ export default function DosingPage() {
       <section className="vsf-card w-full min-w-0 p-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="min-w-0">
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Jadwal perawatan</div>
+            <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Jadwal perawatan</div>
             <div className="mt-1 text-[12px] text-slate-500">
               <code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET /jadwal-perawatan</code>
               {' — kegiatan kalibrasi & pembersihan berkala. Baca saja.'}
@@ -516,7 +516,7 @@ export default function DosingPage() {
       <section className="vsf-card w-full min-w-0 p-4">
         <div className="flex flex-wrap items-center gap-3">
           <div>
-            <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">
+            <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">
               Status terkait · Water Control
             </div>
             <div className="mt-1 text-[12px] text-slate-500">
@@ -561,7 +561,7 @@ export default function DosingPage() {
         ) : (
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 vsf-stagger">
             <div className="rounded-card border border-arutmin-border bg-white p-4">
-              <div className="text-[11px] uppercase tracking-[.12em] text-slate-500">Katup</div>
+              <div className="text-[12px] uppercase tracking-[.12em] text-slate-500">Katup</div>
               <div
                 className={clsx(
                   'mt-1 text-[15px] font-bold',
@@ -570,22 +570,22 @@ export default function DosingPage() {
               >
                 {data.valve_state ?? '—'}
               </div>
-              <div className="text-[11px] text-slate-500">state katup tandon</div>
+              <div className="text-[12px] text-slate-500">state katup tandon</div>
             </div>
             <div className="rounded-card border border-arutmin-border bg-white p-4">
-              <div className="text-[11px] uppercase tracking-[.12em] text-slate-500">Mode</div>
+              <div className="text-[12px] uppercase tracking-[.12em] text-slate-500">Mode</div>
               <div className="mt-1 text-[15px] font-bold text-slate-900">{data.mode ?? '—'}</div>
-              <div className="text-[11px] text-slate-500">AUTO mengikuti ambang sensor</div>
+              <div className="text-[12px] text-slate-500">AUTO mengikuti ambang sensor</div>
             </div>
             <div className="rounded-card border border-arutmin-border bg-white p-4">
-              <div className="text-[11px] uppercase tracking-[.12em] text-slate-500">Perintah terakhir</div>
+              <div className="text-[12px] uppercase tracking-[.12em] text-slate-500">Perintah terakhir</div>
               <div className="mt-1 text-[15px] font-bold text-slate-900">{data.command ?? '—'}</div>
-              <div className="text-[11px] text-slate-500">tersimpan di server</div>
+              <div className="text-[12px] text-slate-500">tersimpan di server</div>
             </div>
             <div className="rounded-card border border-arutmin-border bg-white p-4">
-              <div className="text-[11px] uppercase tracking-[.12em] text-slate-500">Diperbarui</div>
+              <div className="text-[12px] uppercase tracking-[.12em] text-slate-500">Diperbarui</div>
               <div className="mt-1 text-[15px] font-bold text-slate-900">{tgl(data.updated_at)}</div>
-              <div className="text-[11px] text-slate-500">waktu server</div>
+              <div className="text-[12px] text-slate-500">waktu server</div>
             </div>
           </div>
         )}
@@ -593,7 +593,7 @@ export default function DosingPage() {
 
       {/* Sumber data — transparan */}
       <section className="vsf-card w-full min-w-0 p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Sumber data layar ini</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Sumber data layar ini</div>
         <ul className="mt-2 grid gap-1.5 text-[13px] leading-relaxed text-slate-700">
           <li><code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET/PUT /konfigurasi-dosis</code> — parameter dosing (bisa diubah admin).</li>
           <li><code className="rounded bg-arutmin-mint/60 px-1 py-0.5 text-[12px] text-slate-700">GET/PUT /timing-operasi</code> — timing operasi (bisa diubah admin).</li>

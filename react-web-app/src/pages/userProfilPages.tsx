@@ -391,7 +391,7 @@ export function ProfilPage() {
 
       {/* Kartu identitas */}
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Kartu identitas</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Kartu identitas</div>
         <div className="mt-3 flex flex-wrap items-center gap-4">
           <div className="h-[64px] w-[64px] rounded-full border border-arutmin-moss bg-arutmin-mint/40 grid place-items-center text-arutmin-forest font-bold uppercase">
             {loading && !user ? '…' : (user?.username ?? '?').slice(0, 2) || '—'}
@@ -415,7 +415,7 @@ export function ProfilPage() {
 
       {/* Edit profil */}
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Edit profil</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Edit profil</div>
         {editError && (
           <div
             role="alert"
@@ -454,7 +454,7 @@ export function ProfilPage() {
 
       {/* Ganti password */}
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Ganti password</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Ganti password</div>
         <div className="mt-1 text-[12px] text-slate-500">Kata sandi lama diperiksa sebelum diganti.</div>
         {sandiError && (
           <div
@@ -501,7 +501,7 @@ export function ProfilPage() {
       </section>
 
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Tentang layar ini</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Tentang layar ini</div>
         <ul className="mt-2 list-disc pl-5 text-[13px] text-slate-700 leading-relaxed">
           <li>Live: GET /profil (identitas sesuai role) · POST /profil/update · POST /profil/password — Bearer JWT.</li>
           <li>Daftar user (GET /user) hanya untuk pengelola; role yang ditolak mendapat pesan ramah tanpa data.</li>

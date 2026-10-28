@@ -211,7 +211,7 @@ export default function DashboardPage() {
         <div className="bg-[linear-gradient(135deg,#1B2E4A_0%,#223A24_58%,#2D452F_100%)] p-5 sm:p-6">
           <div className="flex flex-wrap items-start gap-5">
             <div className="flex-1 min-w-[260px]">
-              <div className="text-[11px] uppercase tracking-[.14em] text-white/70 font-bold">Selamat datang</div>
+              <div className="text-[12px] uppercase tracking-[.14em] text-white/70 font-bold">Selamat datang</div>
               <div className="mt-2 text-[20px] sm:text-[24px] font-extrabold text-white leading-snug">
                 Selamat Datang di GARAP — PT Arutmin Indonesia
               </div>
@@ -254,7 +254,7 @@ export default function DashboardPage() {
 
             {/* Panel status IoT (mengganti kotak placeholder) */}
             <div className="w-full sm:w-[240px] rounded-card border border-white/60 bg-white p-4">
-              <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Bacaan IoT</div>
+              <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Bacaan IoT</div>
               <div className="mt-2 text-[12px] text-slate-600">
                 {loading && !data ? (
                   <div className="vsf-skeleton h-[24px] w-[130px]" />
@@ -271,7 +271,7 @@ export default function DashboardPage() {
 
       {/* Kondisi air & tanaman — enam kartu ringkas */}
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Kondisi Air &amp; Tanaman Terkini</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Kondisi Air &amp; Tanaman Terkini</div>
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {loading && !data
             ? Array.from({ length: 6 }, (_, i) => <div key={i} className="vsf-skeleton h-[112px]" />)
@@ -281,7 +281,7 @@ export default function DashboardPage() {
                   className="group rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">{m.label}</div>
+                    <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">{m.label}</div>
                     <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-arutmin-mint/40 text-arutmin-olive transition group-hover:bg-arutmin-mint/70">
                       <IkonMetrik kind={m.k} />
                     </span>
@@ -306,7 +306,7 @@ export default function DashboardPage() {
 
       {/* Alur tanam 4 tahap */}
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Alur Tanam — 4 Tahap</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Alur Tanam — 4 Tahap</div>
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {loading && !data
             ? Array.from({ length: 4 }, (_, i) => <div key={i} className="vsf-skeleton h-[104px]" />)
@@ -316,8 +316,8 @@ export default function DashboardPage() {
                   className="group rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">{p.label}</div>
-                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-arutmin-forest text-[11px] font-bold text-white tabular-nums">
+                    <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">{p.label}</div>
+                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-arutmin-forest text-[12px] font-bold text-white tabular-nums">
                       {i + 1}
                     </span>
                   </div>

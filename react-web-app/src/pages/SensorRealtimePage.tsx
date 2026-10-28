@@ -288,7 +288,7 @@ export default function SensorRealtimePage() {
     <div className="mx-auto w-full max-w-[1180px] grid grid-cols-[minmax(0,1fr)] gap-4 vsf-stagger">
       {/* Kendali grafik: pilihan parameter & rentang */}
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Parameter &amp; Rentang</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Parameter &amp; Rentang</div>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           {(Object.keys(PARAM_DEFS) as Param[]).map((p) => (
             <Pill key={p} active={param === p} onClick={() => setParam(p)}>
@@ -343,7 +343,7 @@ export default function SensorRealtimePage() {
 
       {/* Grafik sensor (chart live) */}
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Grafik Sensor</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Grafik Sensor</div>
 
         {error && (
           <div
@@ -418,7 +418,7 @@ export default function SensorRealtimePage() {
       {/* Riwayat data historis — hanya role pengelola (petani: lihat grafik saja) */}
       {role !== 'petani' && (
         <section className="vsf-card p-4">
-          <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Riwayat Data Historis</div>
+          <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Riwayat Data Historis</div>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <input
               type="date"
@@ -471,7 +471,7 @@ export default function SensorRealtimePage() {
                     <th
                       key={c.h}
                       scope="col"
-                      className={`border-b border-navy/25 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[.14em] text-navy ${
+                      className={`border-b border-navy/25 px-4 py-2.5 text-[12px] font-bold uppercase tracking-[.14em] text-navy ${
                         c.right ? 'text-right' : 'text-left'
                       }`}
                     >
@@ -511,7 +511,7 @@ export default function SensorRealtimePage() {
       )}
 
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Tentang layar ini</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Tentang layar ini</div>
         <ul className="mt-2 list-disc pl-5 text-[13px] text-slate-700 leading-relaxed">
           <li>Live: GET /monitoring/chart-data (polling 15 dtk) · GET /monitoring/tarik (riwayat manual) — Bearer JWT.</li>
           <li>Rentang difilter di klien dari titik terakhir yang tersedia; bacaan basi ditandai banner peringatan.</li>

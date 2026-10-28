@@ -58,7 +58,7 @@ function warnaSel(v: string): string {
 function TabelAi({ t }: { t: Tabel }) {
   return (
     <figure className="mt-2.5 min-w-0">
-      <figcaption className="mb-1 text-[11px] font-bold uppercase tracking-[.1em] text-slate-500">{t.judul}</figcaption>
+      <figcaption className="mb-1 text-[12px] font-bold uppercase tracking-[.1em] text-slate-500">{t.judul}</figcaption>
       <div className="max-w-full overflow-x-auto overscroll-x-contain rounded-card border border-arutmin-border">
         <table className="w-full min-w-max border-collapse text-left text-[12px]">
           <thead>
@@ -176,12 +176,12 @@ export function ChatAsisten() {
   return (
     <section className="vsf-card w-full min-w-0 p-4" aria-labelledby="vsf-chat-title">
       <div className="flex flex-wrap items-center gap-2">
-        <div id="vsf-chat-title" className="text-[11px] font-bold uppercase tracking-[.14em] text-slate-500">
+        <div id="vsf-chat-title" className="text-[12px] font-bold uppercase tracking-[.14em] text-slate-500">
           Tanya asisten
         </div>
         <span className="flex-1" />
         {pesan.length > 0 && (
-          <button type="button" className="vsf-btn-secondary !min-h-[36px] !text-[12px]" onClick={hapus}>
+          <button type="button" className="vsf-btn-secondary !min-h-[44px] sm:!min-h-[36px] !text-[12px]" onClick={hapus}>
             Hapus percakapan
           </button>
         )}
@@ -206,7 +206,7 @@ export function ChatAsisten() {
                   <button
                     key={s}
                     type="button"
-                    className="rounded-full border border-arutmin-moss/50 bg-white px-3 py-1.5 text-[12px] font-semibold text-arutmin-forest transition-colors hover:bg-arutmin-mint/50"
+                    className="inline-flex min-h-[44px] items-center rounded-full border border-arutmin-moss/50 bg-white px-3 py-1.5 text-[12px] sm:min-h-0 font-semibold text-arutmin-forest transition-colors hover:bg-arutmin-mint/50"
                     onClick={() => void kirim(s)}
                   >
                     {s}
@@ -232,7 +232,7 @@ export function ChatAsisten() {
                 {p.status && (
                   <span
                     className={clsx(
-                      'mb-1.5 mr-2 inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold',
+                      'mb-1.5 mr-2 inline-block rounded-full px-2.5 py-0.5 text-[12px] font-bold',
                       p.status === 'OK' && 'bg-arutmin-mint/60 text-arutmin-forest',
                       p.status === 'PERHATIAN' && 'bg-amber-100 text-amber-800',
                       p.status === 'KRITIS' && 'bg-red-100 text-red-700',
@@ -244,7 +244,7 @@ export function ChatAsisten() {
                 {p.teks}
                 {p.tabel?.map((t, i) => <TabelAi key={i} t={t} />)}
                 {p.peran === 'ai' && !p.galat && p.sumber && SUMBER[p.sumber] && (
-                  <div className="mt-1.5 text-[11px] text-slate-500">{SUMBER[p.sumber]}</div>
+                  <div className="mt-1.5 text-[12px] text-slate-500">{SUMBER[p.sumber]}</div>
                 )}
               </div>
             </li>
@@ -267,7 +267,7 @@ export function ChatAsisten() {
             key={x.label}
             type="button"
             disabled={memuat}
-            className="rounded-full border border-arutmin-border2 bg-white px-2.5 py-1 text-[11.5px] font-semibold text-slate-700 transition-colors hover:border-arutmin-moss hover:bg-arutmin-mint/40 disabled:opacity-50"
+            className="inline-flex min-h-[44px] items-center rounded-full border border-arutmin-border2 bg-white px-2.5 py-1 text-[12px] sm:min-h-0 font-semibold text-slate-700 transition-colors hover:border-arutmin-moss hover:bg-arutmin-mint/40 disabled:opacity-50"
             onClick={() => void kirim(x.pesan)}
           >
             {x.label}
@@ -292,7 +292,7 @@ export function ChatAsisten() {
           Kirim
         </button>
       </form>
-      <div className="mt-1 text-right text-[11px] text-slate-500">{isi.length}/{BATAS}</div>
+      <div className="mt-1 text-right text-[12px] text-slate-500">{isi.length}/{BATAS}</div>
     </section>
   )
 }

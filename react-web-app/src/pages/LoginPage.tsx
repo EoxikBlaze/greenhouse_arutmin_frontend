@@ -105,7 +105,7 @@ export default function LoginPage() {
           </span>
         </Link>
         <span className="flex-1" />
-        <Link to="/" className="vsf-bilah-tombol-kaca inline-flex min-h-[40px] items-center gap-1.5 rounded-full px-4 text-[13px] font-semibold text-white">
+        <Link to="/" className="vsf-bilah-tombol-kaca inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-4 sm:min-h-[40px] text-[13px] font-semibold text-white">
           <span aria-hidden>←</span> Beranda
         </Link>
       </header>

@@ -134,7 +134,7 @@ function Ubin({ k, onPerbesar }: { k: Kamera; onPerbesar: (k: Kamera) => void })
         )}
         <span
           className={clsx(
-            'absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold',
+            'absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-bold',
             status === 'tayang' ? 'bg-black/55 text-white' : 'bg-black/45 text-white/80',
           )}
         >
@@ -157,7 +157,7 @@ function Ubin({ k, onPerbesar }: { k: Kamera; onPerbesar: (k: Kamera) => void })
         </div>
         <button
           type="button"
-          className="vsf-btn-secondary !min-h-[36px] !text-[12px]"
+          className="vsf-btn-secondary !min-h-[44px] sm:!min-h-[36px] !text-[12px]"
           disabled={!k.aktif}
           onClick={() => onPerbesar(k)}
         >
@@ -259,7 +259,7 @@ export default function CctvPage() {
       <section className="vsf-card w-full min-w-0 p-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="min-w-0">
-            <div className="text-[11px] font-bold uppercase tracking-[.14em] text-slate-500">CCTV greenhouse</div>
+            <div className="text-[12px] font-bold uppercase tracking-[.14em] text-slate-500">CCTV greenhouse</div>
             <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
               Pantau greenhouse, nursery, dan area tandon. Kamera RTSP (EZVIZ) diambil lewat server; snapshot dan MJPEG
               ditarik langsung dari kamera di jaringan Anda.

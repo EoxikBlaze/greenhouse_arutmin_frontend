@@ -232,7 +232,7 @@ function ModalDetailBaris({
           id="vsf-baris-detail-title"
           data-dialog-title
           tabIndex={-1}
-          className="text-[11px] uppercase tracking-[.14em] font-bold text-slate-500 outline-none"
+          className="text-[12px] uppercase tracking-[.14em] font-bold text-slate-500 outline-none"
         >
           {data.judul}
         </div>
@@ -421,7 +421,7 @@ export function SemaiPage() {
     <>
       {/* Tab baca: /semai (semua) · /semai/selesai (hanya yang status selesai). */}
       <div className="mx-auto max-w-[1180px] vsf-card p-4 flex flex-wrap items-center gap-3">
-        <span className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Tampilan</span>
+        <span className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Tampilan</span>
         <button
           type="button"
           className={tab === 'semua' ? 'vsf-btn-primary' : 'vsf-input rounded-full'}
@@ -491,7 +491,7 @@ export function SemaiPage() {
               id="vsf-detail-title"
               data-dialog-title
               tabIndex={-1}
-              className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold outline-none"
+              className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold outline-none"
             >
               Detail semai #{detailId}
             </div>
@@ -531,7 +531,7 @@ export function SemaiPage() {
                   <b>Keterangan</b>: {cell(d?.keterangan)}
                 </div>
 
-                <div className="mt-2 border-t border-arutmin-border pt-2 text-[11px] uppercase tracking-[.14em] font-bold text-slate-500">
+                <div className="mt-2 border-t border-arutmin-border pt-2 text-[12px] uppercase tracking-[.14em] font-bold text-slate-500">
                   Riwayat tahap berikutnya
                 </div>
                 {daftarTahap('Peremajaan', detail.peremajaan, 'tgl_awal_peremajaan')}

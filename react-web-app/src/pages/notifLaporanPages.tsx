@@ -95,7 +95,7 @@ export function LaporanPage() {
     <div className="mx-auto w-full max-w-[1180px] grid grid-cols-[minmax(0,1fr)] gap-4 vsf-stagger">
       {/* Filter */}
       <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Filter laporan</div>
+        <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Filter laporan</div>
         <form className="mt-3 flex flex-wrap items-start gap-2" onSubmit={terapkan}>
           <label className="block">
             <span className="sr-only">Dari tanggal</span>
@@ -106,7 +106,7 @@ export function LaporanPage() {
               onChange={(e) => setDari(e.target.value)}
               aria-label="Dari tanggal"
             />
-            {errDari && <span className="mt-1 block text-[11px] text-red-700">{errDari}</span>}
+            {errDari && <span className="mt-1 block text-[12px] text-red-700">{errDari}</span>}
           </label>
           <label className="block">
             <span className="sr-only">Sampai tanggal</span>
@@ -117,7 +117,7 @@ export function LaporanPage() {
               onChange={(e) => setSampai(e.target.value)}
               aria-label="Sampai tanggal"
             />
-            {errSampai && <span className="mt-1 block text-[11px] text-red-700">{errSampai}</span>}
+            {errSampai && <span className="mt-1 block text-[12px] text-red-700">{errSampai}</span>}
           </label>
           <button type="submit" className="vsf-btn-primary">
             Terapkan
@@ -131,7 +131,7 @@ export function LaporanPage() {
       {/* Satu state per layar */}
       <section className="vsf-card p-4">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Matriks laporan</div>
+          <div className="text-[12px] uppercase tracking-[.14em] text-slate-500 font-bold">Matriks laporan</div>
           <span className="flex-1" />
           <button type="button" className="vsf-btn-secondary" onClick={() => void unduhCsv()} disabled={loading}>
             Unduh CSV
@@ -146,7 +146,7 @@ export function LaporanPage() {
           </div>
         ) : ditolak ? (
           <div className="mt-3 rounded-card border border-amber-500/50 bg-amber-50 px-4 py-5">
-            <div className="text-[11px] uppercase tracking-[.14em] text-amber-800 font-bold">Akses terbatas</div>
+            <div className="text-[12px] uppercase tracking-[.14em] text-amber-800 font-bold">Akses terbatas</div>
             <p className="mt-2 text-[13px] leading-relaxed text-amber-900">
               Laporan hanya tersedia untuk <b>admin</b> dan <b>akun demo</b>. Peran petani dapat melihat
               progres tanam lewat menu “Tanam Saya”.
@@ -191,7 +191,7 @@ export function LaporanPage() {
                   {KOLOM.map((h) => (
                     <th
                       key={h}
-                      className="text-left px-3 py-2 text-[11px] uppercase tracking-[.12em] text-arutmin-forest border-b-2 border-arutmin-moss"
+                      className="text-left px-3 py-2 text-[12px] uppercase tracking-[.12em] text-arutmin-forest border-b-2 border-arutmin-moss"
                     >
                       {h}
                     </th>

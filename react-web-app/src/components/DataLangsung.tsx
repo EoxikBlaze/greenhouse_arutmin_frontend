@@ -56,7 +56,7 @@ export function DataLangsung() {
             <div className="text-[12px] font-semibold uppercase tracking-wide text-slate-500">{c.k}</div>
             <div className="font-display text-[24px] font-bold leading-tight text-tinta">{c.v}</div>
             <Garis nilai={c.seri} warna={c.w} />
-            <div className="text-[11.5px] text-slate-500">{c.ket}</div>
+            <div className="text-[12px] text-slate-500">{c.ket}</div>
           </div>
         ))}
       </div>
@@ -69,7 +69,7 @@ export function DataLangsung() {
           </div>
         ))}
       </div>
-      <p className="vsf-judul-latar mt-3 text-center text-[11.5px] !text-white/85">
+      <p className="vsf-judul-latar mt-3 text-center text-[12px] !text-white/85">
         Rata-rata 6 jam terakhir dari {fmt(r?.jumlah)} pembacaan sensor{data ? ` · diperbarui ${new Date(data.diperbarui).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}` : ''}
       </p>
     </section>

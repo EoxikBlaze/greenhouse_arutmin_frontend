@@ -167,7 +167,7 @@
 
   /* ── (2) Eyebrow global — satu varian: 11px uppercase, tracking .14em, bold ── */
   .vsf-eyebrow {
-    @apply text-[11px] uppercase tracking-[.14em] font-bold;
+    @apply text-[12px] uppercase tracking-[.14em] font-bold;
     color: var(--abu);
   }
   .vsf-eyebrow-light { color: rgba(255, 255, 255, 0.62); }

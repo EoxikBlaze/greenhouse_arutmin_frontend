@@ -432,7 +432,7 @@ export function BtnEdit({ onClick, name }: { onClick?: () => void; name?: string
   return (
     <button
       type="button"
-      className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-arutmin-moss/45 bg-arutmin-mint/35 px-3 text-[12px] font-semibold text-arutmin-forest transition-colors hover:border-arutmin-moss hover:bg-arutmin-mint/70"
+      className="inline-flex min-h-[44px] sm:min-h-[36px] items-center gap-1.5 rounded-full border border-arutmin-moss/45 bg-arutmin-mint/35 px-3 text-[12px] font-semibold text-arutmin-forest transition-colors hover:border-arutmin-moss hover:bg-arutmin-mint/70"
       onClick={onClick}
       aria-label={name ? `Ubah ${name}` : undefined}
     >
@@ -461,7 +461,7 @@ export function BtnHapus({
   return (
     <button
       type="button"
-      className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full vsf-tone-error px-3 text-[12px] font-semibold transition-colors hover:border-red-600 hover:bg-red-100"
+      className="inline-flex min-h-[44px] sm:min-h-[36px] items-center gap-1.5 rounded-full vsf-tone-error px-3 text-[12px] font-semibold transition-colors hover:border-red-600 hover:bg-red-100"
       onClick={() => onPick(label, id)}
       aria-label={`Hapus ${label}`}
     >
@@ -481,7 +481,7 @@ export function BtnDetail({ name, onClick }: { name: string; onClick?: () => voi
   return (
     <button
       type="button"
-      className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-navy/25 bg-white px-3 text-[12px] font-semibold text-navy transition-colors hover:border-navy/50 hover:bg-navy/[.06]"
+      className="inline-flex min-h-[44px] sm:min-h-[36px] items-center gap-1.5 rounded-full border border-navy/25 bg-white px-3 text-[12px] font-semibold text-navy transition-colors hover:border-navy/50 hover:bg-navy/[.06]"
       onClick={onClick}
       aria-label={`Detail ${name}`}
     >
