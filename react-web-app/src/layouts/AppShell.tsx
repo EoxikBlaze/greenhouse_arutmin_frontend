@@ -146,7 +146,7 @@ function SideItem({ item, ciut }: { item: NavItem; ciut: boolean }) {
           // Desain v2: aktif = pil hijau SOLID (penanda tegas di atas glass); lain = teks putih + sorot halus.
           isActive
             ? 'bg-activePill font-semibold text-white shadow-[0_8px_18px_-10px_rgba(78,119,51,.9)]'
-            : 'text-white/80 hover:bg-white/[.1] hover:text-white',
+            : 'text-tinta/80 hover:bg-white/70 hover:text-tinta',
         ].join(' ')
       }
     >
@@ -155,7 +155,7 @@ function SideItem({ item, ciut }: { item: NavItem; ciut: boolean }) {
           {item.langkah ? (
             <span
               aria-hidden
-              className={`grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full border text-[12px] font-bold ${isActive ? 'border-emas bg-emas text-navy' : 'border-white/45 text-white/80'}`}
+              className={`grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full border text-[12px] font-bold ${isActive ? 'border-emas bg-emas text-navy' : 'border-tinta/30 text-tinta/70'}`}
             >
               {item.langkah}
             </span>
@@ -171,13 +171,13 @@ function SideItem({ item, ciut }: { item: NavItem; ciut: boolean }) {
 
 /** Judul grup yang bisa dilipat (desktop & mobile); saat sidebar diciutkan diganti garis pemisah. */
 function GroupLabel({ label, buka, onToggle, ciut }: { label: string; buka: boolean; onToggle: () => void; ciut: boolean }) {
-  if (ciut) return <div aria-hidden className="mx-auto mb-1 mt-4 hidden h-px w-6 bg-white/20 lg:block" />
+  if (ciut) return <div aria-hidden className="mx-auto mb-1 mt-4 hidden h-px w-6 bg-tinta/15 lg:block" />
   return (
     <button
       type="button"
       onClick={onToggle}
       aria-expanded={buka}
-      className="vsf-eyebrow vsf-eyebrow-light mt-4 mb-1 flex w-full items-center gap-2 rounded px-1 py-1 text-left hover:text-white"
+      className="vsf-eyebrow vsf-eyebrow-chrome mt-4 mb-1 flex w-full items-center gap-2 rounded px-1 py-1 text-left hover:text-tinta"
     >
       <span aria-hidden className="h-px w-3 bg-emas/70" />
       <span className="flex-1">{label}</span>
@@ -309,11 +309,11 @@ export function AppShell() {
         >
           {/* Kepala sidebar — brand + tombol ciutkan (desktop). */}
           <div className={`flex items-center gap-3 px-4 pt-4 ${ciut ? 'lg:flex-col lg:px-2' : ''}`}>
-            <div className={`flex min-w-0 flex-1 items-center gap-3 rounded-lg border border-white/10 bg-white/[.06] p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,.08)] ${ciut ? 'lg:flex-none lg:p-1.5' : ''}`}>
+            <div className={`flex min-w-0 flex-1 items-center gap-3 rounded-lg border border-white/80 bg-white/55 p-2.5 shadow-[inset_0_1px_0_#fff,0_6px_18px_-12px_rgba(40,80,130,.35)] ${ciut ? 'lg:flex-none lg:p-1.5' : ''}`}>
               <Monogram className={`shrink-0 ${ciut ? 'h-9 w-11' : 'h-10 w-14'}`} />
               <div className={`min-w-0 ${ciut ? 'lg:hidden' : ''}`}>
-                <div className="truncate font-display text-[16px] font-bold leading-tight text-white">Vertonik</div>
-                <div className="vsf-eyebrow vsf-eyebrow-emas mt-0.5 truncate">Smart Farm</div>
+                <div className="truncate font-display text-[16px] font-bold leading-tight text-tinta">Vertonik</div>
+                <div className="vsf-eyebrow vsf-eyebrow-gold mt-0.5 truncate">Smart Farm</div>
               </div>
             </div>
             <button
@@ -321,7 +321,7 @@ export function AppShell() {
               onClick={() => ubahPref({ ...pref, ciut: !pref.ciut })}
               aria-label={ciut ? 'Lebarkan sidebar' : 'Ciutkan sidebar'}
               title={ciut ? 'Lebarkan sidebar' : 'Ciutkan sidebar'}
-              className="hidden h-9 w-9 shrink-0 place-items-center rounded-full text-white/70 hover:bg-white/10 hover:text-white lg:grid"
+              className="hidden h-9 w-9 shrink-0 place-items-center rounded-full text-tinta/60 hover:bg-white/75 hover:text-tinta lg:grid"
             >
               <Ikon nama="kiri" className={`h-4 w-4 transition-transform duration-[var(--dur-normal)] ${ciut ? 'rotate-180' : ''}`} />
             </button>
@@ -354,21 +354,21 @@ export function AppShell() {
           </div>
 
           {/* Kartu pengguna + Keluar — selalu terlihat di dasar sidebar. */}
-          <div className={`border-t border-white/10 p-3 ${ciut ? 'lg:px-2' : ''}`}>
-            <div className={`flex items-center gap-2.5 rounded-lg bg-white/[.06] p-2 ${ciut ? 'lg:flex-col lg:bg-transparent lg:p-0' : ''}`}>
+          <div className={`border-t border-white/60 p-3 ${ciut ? 'lg:px-2' : ''}`}>
+            <div className={`flex items-center gap-2.5 rounded-lg bg-white/55 p-2 ${ciut ? 'lg:flex-col lg:bg-transparent lg:p-0' : ''}`}>
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emas text-[12px] font-bold uppercase text-navy" aria-hidden>
                 {inisial}
               </span>
               <div className={`min-w-0 flex-1 ${ciut ? 'lg:hidden' : ''}`}>
-                <div className="truncate text-[13.5px] font-semibold text-white">{namaUser || role}</div>
-                <div className="truncate text-[12px] capitalize text-white/75">{role}</div>
+                <div className="truncate text-[13.5px] font-semibold text-tinta">{namaUser || role}</div>
+                <div className="truncate text-[12px] capitalize text-abu">{role}</div>
               </div>
               <button
                 type="button"
                 onClick={() => setConfirmKeluar(true)}
                 aria-label="Keluar"
                 title="Keluar"
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-white/75 hover:bg-white/10 hover:text-white"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-tinta/70 hover:bg-white/75 hover:text-tinta"
               >
                 <Ikon nama="keluar" />
               </button>
@@ -394,7 +394,7 @@ export function AppShell() {
             <div className="glass-chrome flex min-h-[60px] items-center gap-3 py-2 pl-2 pr-2 sm:pl-5">
               <button
                 type="button"
-                className="vsf-bilah-tautan !min-h-[44px] !min-w-[44px] justify-center !px-0 lg:!hidden"
+                className="vsf-chrome-tautan !min-h-[44px] !min-w-[44px] justify-center !px-0 lg:!hidden"
                 aria-expanded={navOpen}
                 aria-controls="vsf-sidebar"
                 aria-label={navOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'}
@@ -403,30 +403,30 @@ export function AppShell() {
                 <Ikon nama={navOpen ? 'tutup' : 'menu'} className="h-5 w-5" />
               </button>
               <div className="min-w-0">
-                <h1 className="truncate text-[19px] font-bold leading-tight text-white sm:text-[22px]">{title}</h1>
-                <div className="hidden text-[12px] text-white/70 sm:block">GARAP · greenhouse hidroponik</div>
+                <h1 className="truncate text-[19px] font-bold leading-tight text-tinta sm:text-[22px]">{title}</h1>
+                <div className="hidden text-[12px] text-abu sm:block">GARAP · greenhouse hidroponik</div>
               </div>
               <div className="ml-auto flex items-center gap-2 sm:gap-3">
                 {/* S6 — status IoT dari data live /dashboard (lihat useApiObject di atas). */}
                 {dash && (
                   <span className="hidden md:inline-flex">
-                    <span className="vsf-bilah-chip" role="status">
+                    <span className="vsf-chip-terang" role="status">
                       <span className={`h-2 w-2 rounded-full ${iotOnline ? 'bg-moss' : 'bg-arutmin-error'}`} aria-hidden />
                       {iotOnline ? 'Alat terhubung' : 'Alat terputus'}
                     </span>
                   </span>
                 )}
-                <span className="hidden text-[14px] font-semibold tabular-nums text-white/85 sm:block">{clock}</span>
+                <span className="hidden text-[14px] font-semibold tabular-nums text-tinta/85 sm:block">{clock}</span>
                 {/* Avatar inisial user (bukan emoji) + nama & role. */}
-                <div className="vsf-bilah-chip !gap-2 !py-1 !pl-1">
+                <div className="vsf-chip-terang !gap-2 !py-1 !pl-1">
                   <span
                     className="grid h-8 w-8 place-items-center rounded-full bg-emas text-[12px] font-bold uppercase leading-none text-navy [text-shadow:none]"
                     aria-hidden
                   >
                     {inisial}
                   </span>
-                  <span className="text-[14px] font-semibold text-white">{namaUser || role}</span>
-                  <span className="hidden text-[12px] text-white/75 lg:block">{role}</span>
+                  <span className="text-[14px] font-semibold text-tinta">{namaUser || role}</span>
+                  <span className="hidden text-[12px] text-abu lg:block">{role}</span>
                 </div>
               </div>
             </div>

@@ -160,17 +160,17 @@ export default function DashboardPage() {
         <div className="p-5 sm:p-6">
           <div className="flex flex-wrap items-start gap-5">
             <div className="flex-1 min-w-[260px]">
-              <div className="text-[12px] uppercase tracking-[.14em] text-white/70 font-bold">Selamat datang</div>
-              <div className="mt-2 text-[20px] sm:text-[24px] font-extrabold text-white leading-snug">
+              <div className="text-[12px] uppercase tracking-[.14em] text-arutmin-forest/70 font-bold">Selamat datang</div>
+              <div className="mt-2 text-[20px] sm:text-[24px] font-extrabold text-tinta leading-snug">
                 Selamat Datang di GARAP — PT Arutmin Indonesia
               </div>
-              <div className="mt-1 text-[13px] text-white/75">
+              <div className="mt-1 text-[13px] text-slate-600">
                 Pantau kondisi air nutrisi, suhu tanaman, dan jadwal panen hidroponik.
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
                 <Link
                   to="/sensor-realtime"
-                  className="inline-flex min-h-[44px] basis-full items-center justify-center rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-arutmin-forest transition hover:bg-arutmin-mint sm:basis-auto"
+                  className="inline-flex min-h-[44px] basis-full items-center justify-center rounded-full bg-activePill px-4 py-2 text-[13px] font-semibold text-white shadow-[0_8px_18px_-10px_rgba(78,119,51,.9)] transition hover:brightness-110 sm:basis-auto"
                 >
                   Lihat Grafik Sensor
                 </Link>
@@ -179,13 +179,13 @@ export default function DashboardPage() {
                     <Link
                       to="/tanam"
                       state={{ mulaiBaru: true }}
-                      className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/40 px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-white/10 sm:flex-none"
+                      className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[13px] font-semibold text-tinta shadow-[inset_0_1px_0_#fff] transition hover:bg-white/85 sm:flex-none"
                     >
                       Mulai Semai Baru
                     </Link>
                     <Link
                       to="/watercontrol"
-                      className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/40 px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-white/10 sm:flex-none"
+                      className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[13px] font-semibold text-tinta shadow-[inset_0_1px_0_#fff] transition hover:bg-white/85 sm:flex-none"
                     >
                       Water Control
                     </Link>
@@ -193,7 +193,7 @@ export default function DashboardPage() {
                 ) : (
                   <Link
                     to="/tanam"
-                    className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/40 px-4 py-2 text-[13px] font-semibold text-white transition hover:bg-white/10 sm:flex-none"
+                    className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[13px] font-semibold text-tinta shadow-[inset_0_1px_0_#fff] transition hover:bg-white/85 sm:flex-none"
                   >
                     Tanam Saya
                   </Link>
@@ -202,7 +202,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Panel status IoT (mengganti kotak placeholder) */}
-            <div className="w-full sm:w-[240px] rounded-card border border-white/60 bg-white p-4">
+            <div className="w-full sm:w-[240px] rounded-card border border-white/90 bg-white/65 p-4 shadow-[inset_0_1px_0_#fff] backdrop-blur-md">
               <div className="vsf-label">Bacaan IoT</div>
               <div className="mt-2 text-[12px] text-slate-600">
                 {loading && !data ? (

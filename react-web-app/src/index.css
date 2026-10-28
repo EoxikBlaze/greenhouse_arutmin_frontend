@@ -35,11 +35,11 @@
     --glass-tint: rgba(255, 255, 255, 0.62);   /* kaca terang: kartu, panel */
     --glass-tint-hi: rgba(255, 255, 255, 0.82);/* kaca terang saat hover/aktif */
     --glass-navy: rgba(10, 31, 56, 0.8);       /* kaca gelap: chrome (sidebar, topbar) */
-    --glass-edge: rgba(255, 255, 255, 0.78);   /* tepi terang (inner light) */
-    --glass-blur: 18px;                        /* blur kaca statis */
-    --glass-blur-chrome: 20px;                 /* blur chrome (sidebar, topbar) */
+    --glass-edge: rgba(255, 255, 255, 0.85);   /* tepi terang (inner light) */
+    --glass-blur: 16px;                        /* blur kaca statis (kartu, hero) */
+    --glass-blur-chrome: 26px;                 /* blur chrome (sidebar, topbar) */
     --glass-light: inset 0 1px 0 rgba(255, 255, 255, 0.95);
-    --glass-lift: 0 1px 2px rgba(10, 31, 56, 0.05), 0 18px 36px -24px rgba(10, 31, 56, 0.5);
+    --glass-lift: 0 1px 2px rgba(40, 80, 130, 0.06), 0 14px 38px -16px rgba(40, 80, 130, 0.28);
     --glass-blur-kaca: 22px;                   /* blur .vsf-kaca (kartu kaca tebal) */
     --glass-blur-bilah: 22px;                  /* blur .vsf-bilah (header/footer landing) */
     --glass-blur-hover: 14px;                  /* blur kartu saat hover (perangkat pointer) */
@@ -90,7 +90,7 @@
   button):focus-visible,
   .vsf-topbar :where(a,
   button):focus-visible {
-    outline-color: var(--emas);
+    outline-color: var(--moss);
   }}
 
 /* ============================================================
@@ -148,10 +148,12 @@
   /* Permukaan standar: radius token + shadow halus (150ms transisi) */
   /* Desain v2: glass ringan (transparan di atas .app-latar, TANPA blur). */
   .vsf-card {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.66));
-    border: 1px solid rgba(255, 255, 255, 0.85);
-    border-radius: var(--r-lg);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), var(--shadow-soft);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.44));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+    border: 1px solid var(--glass-edge);
+    border-radius: 24px;
+    box-shadow: var(--glass-light), var(--glass-lift);
     transition: border-color var(--dur-normal) ease, box-shadow var(--dur-normal) ease;
   }
   .vsf-card:hover {
@@ -195,6 +197,30 @@
   .vsf-eyebrow-light { color: rgba(255, 255, 255, 0.62); }
   .vsf-eyebrow-navy { color: var(--navy); }
   .vsf-eyebrow-emas { color: var(--emas); }
+  .vsf-eyebrow-gold { color: #7a6410; }
+  .vsf-eyebrow-chrome { color: #5b6b7e; }
+  /* Kontrol di atas chrome kaca terang (sidebar, topbar). */
+  .vsf-chrome-tautan {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    color: var(--tinta);
+    transition: background-color 150ms ease;
+  }
+  .vsf-chrome-tautan:hover { background: rgba(255, 255, 255, 0.75); }
+  .vsf-chip-terang {
+    display: inline-flex;
+    min-height: 36px;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--tinta);
+    background: rgba(255, 255, 255, 0.62);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.9), 0 4px 14px -8px rgba(40, 80, 130, 0.3);
+  }
   /* QW2 — target sentuh ≥44px untuk tombol utama/sekunder. */
   .vsf-btn-primary {
     @apply min-h-[44px] text-white font-semibold rounded-full px-4 py-2 inline-flex items-center justify-center gap-2;
@@ -807,6 +833,12 @@
   text-shadow: inherit;
 }
   .vsf-bilah-tombol-kaca:hover { background: rgba(255, 255, 255, 0.22); }
+  .vsf-bilah-tombol-terang {
+  color: #fff;
+  background: linear-gradient(135deg, #4e7733, #42662b);
+  box-shadow: 0 8px 18px -10px rgba(78, 119, 51, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+  .vsf-bilah-tombol-terang:hover { background: linear-gradient(135deg, #55823a, #4a7230); }
 @media (max-width: 640px) {
   .vsf-bilah { border-radius: 18px; -webkit-backdrop-filter: blur(16px) saturate(1.8); backdrop-filter: blur(16px) saturate(1.8); }}
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
@@ -848,28 +880,32 @@
     z-index: -1;
     pointer-events: none;
     background:
-      radial-gradient(60rem 38rem at 6% -8%, rgba(107, 157, 74, 0.3), transparent 62%),
-      radial-gradient(48rem 32rem at 98% 2%, rgba(233, 205, 83, 0.24), transparent 64%),
-      radial-gradient(56rem 40rem at 72% 108%, rgba(45, 69, 47, 0.24), transparent 62%),
-      linear-gradient(180deg, #eef3ea 0%, #f4f7f2 48%, #eaf0e6 100%);
+      radial-gradient(46rem 34rem at 8% -6%, rgba(112, 168, 236, 0.55), transparent 64%),
+      radial-gradient(40rem 30rem at 96% 4%, rgba(168, 154, 238, 0.4), transparent 62%),
+      radial-gradient(44rem 34rem at 4% 104%, rgba(107, 157, 74, 0.4), transparent 62%),
+      radial-gradient(46rem 32rem at 100% 100%, rgba(233, 205, 83, 0.42), transparent 64%),
+      linear-gradient(135deg, #e6f0fb 0%, #ecf4ee 48%, #faf4de 100%);
   }
   /* Chrome: topbar, sidebar, dock, dropdown. Satu-satunya yang memakai blur. */
   .glass-chrome {
-    background: linear-gradient(160deg, rgba(14, 40, 70, 0.86), rgba(7, 21, 39, 0.8));
-    -webkit-backdrop-filter: blur(var(--glass-blur-chrome)) saturate(1.5);
-    backdrop-filter: blur(var(--glass-blur-chrome)) saturate(1.5);
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: linear-gradient(150deg, rgba(255, 255, 255, 0.66), rgba(255, 255, 255, 0.4));
+    -webkit-backdrop-filter: blur(var(--glass-blur-chrome)) saturate(1.8);
+    backdrop-filter: blur(var(--glass-blur-chrome)) saturate(1.8);
+    border: 1px solid rgba(255, 255, 255, 0.85);
     border-radius: var(--rad-lg);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.18),
-      0 18px 40px -22px rgba(7, 21, 39, 0.65);
-    color: #fff;
+      inset 0 1px 0 #fff,
+      inset 0 -1px 0 rgba(255, 255, 255, 0.35),
+      0 14px 44px -16px rgba(40, 80, 130, 0.32);
+    color: var(--tinta);
   }
   /* Glass ringan: kartu/ringkasan. Tanpa blur (hemat GPU, aman saat scroll). */
   .glass-card {
-    background: linear-gradient(145deg, var(--glass-tint-hi), var(--glass-tint));
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.44));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
     border: 1px solid var(--glass-edge);
-    border-radius: var(--rad-md);
+    border-radius: 24px;
     box-shadow: var(--glass-light), var(--glass-lift);
     color: var(--tinta);
   }
@@ -894,22 +930,22 @@
 
 /* Tanpa dukungan blur → chrome tetap terbaca. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .glass-chrome { background: rgba(10, 31, 56, 0.94); }}
+  .glass-chrome { background: rgba(255, 255, 255, 0.94); }}
 
 /* Preferensi pengguna: kurangi transparansi / kontras tinggi → semuanya solid. */
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
   .glass-chrome {
-    background: #0a1f38;
+    background: #f4f8fb;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    border-color: rgba(255, 255, 255, 0.4);
+    border-color: var(--garis);
   }
-  .glass-card { background: #fff; border-color: var(--garis); }
+  .glass-card { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; border-color: var(--garis); }
   .glass-dark { background: #0a1f38; border-color: rgba(255, 255, 255, 0.4); }}
 
 /* Desain v2 — kartu/modal tetap terbaca bila pengguna meminta transparansi dikurangi. */
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-  .vsf-card { background: #fff; border-color: var(--garis); }
+  .vsf-card { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; border-color: var(--garis); }
   .vsf-modal-backdrop { background: rgba(10, 31, 56, 0.7); -webkit-backdrop-filter: none; backdrop-filter: none; }}
 
 /* Desain v2 — tipografi bagian + ritme halaman (satu sumber untuk semua halaman). */
@@ -939,17 +975,20 @@
   /* Hero halaman: glass gelap pekat (navy → forest) dengan satu sorot emas halus. Tanpa blur. */
   .glass-hero {
     background:
-      radial-gradient(28rem 14rem at 100% 0%, rgba(233, 205, 83, 0.2), transparent 70%),
-      linear-gradient(135deg, rgba(27, 46, 74, 0.96) 0%, rgba(34, 58, 36, 0.94) 58%, rgba(45, 69, 47, 0.92) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: var(--rad-md);
+      radial-gradient(26rem 14rem at 100% 0%, rgba(233, 205, 83, 0.42), transparent 70%),
+      radial-gradient(30rem 16rem at 0% 100%, rgba(112, 168, 236, 0.4), transparent 70%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.74), rgba(207, 226, 206, 0.5));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.7);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.7);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 28px;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.16),
-      0 18px 36px -24px rgba(7, 21, 39, 0.7);
-    color: #fff;
+      inset 0 1px 0 #fff,
+      0 18px 48px -20px rgba(40, 80, 130, 0.34);
+    color: var(--tinta);
   }}
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-  .glass-hero { background: #1b2e4a; }}
+  .glass-hero { background: #f1f6ef; -webkit-backdrop-filter: none; backdrop-filter: none; }}
 
 /* Target sentuh 44px untuk kolom isian di layar kecil. */
 @media (max-width: 639px) {
