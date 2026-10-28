@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import '../services/api_service.dart';
 import '../theme/tokens.dart';
+import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
 import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
@@ -62,7 +63,7 @@ class _CctvPageState extends State<CctvPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('CCTV greenhouse')),
+      appBar: const AppBarGlass(judul: 'CCTV greenhouse'),
       body: LatarHalaman(
         child: RefreshIndicator(
           color: Tok.moss,

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../services/api_service.dart';
 import '../theme/tokens.dart';
+import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
+import '../widgets/ikon.dart';
 import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
 
@@ -267,13 +269,13 @@ class _AsistenPageState extends State<AsistenPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Asisten AI'),
-        actions: [
+      appBar: AppBarGlass(
+        judul: 'Asisten AI',
+        aksi: [
           if (_pesan.isNotEmpty)
             IconButton(
               tooltip: 'Hapus percakapan',
-              icon: const Icon(Icons.delete_outline_rounded),
+              icon: const Icon(Ikon.hapus, color: Colors.white),
               onPressed: _memuat ? null : () => setState(_pesan.clear),
             ),
         ],

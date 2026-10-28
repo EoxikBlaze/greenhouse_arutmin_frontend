@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../theme/tokens.dart';
+import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
 import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
@@ -141,7 +142,7 @@ class TentangPage extends StatelessWidget {
     final kolomMitra = lebar >= 600 ? 4 : 2;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Tentang Kami')),
+      appBar: const AppBarGlass(judul: 'Tentang Kami'),
       body: LatarHalaman(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),

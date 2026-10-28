@@ -175,7 +175,7 @@ class HeroHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const radius = BorderRadius.vertical(bottom: Radius.circular(30));
+    const radius = BorderRadius.vertical(bottom: Radius.circular(Tok.rChrome));
     return Container(
       decoration: const BoxDecoration(
         gradient: Tok.brandPanel,
@@ -310,7 +310,7 @@ class Panel extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(Tok.rLg),
+        borderRadius: BorderRadius.circular(Tok.rKartu),
         border: Border.all(color: warnaTepi ?? Tok.garis),
         boxShadow: Tok.soft,
       ),

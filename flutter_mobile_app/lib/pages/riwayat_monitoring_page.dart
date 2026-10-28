@@ -4,6 +4,7 @@ import '../models/monitoring_entry.dart';
 import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
+import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
 import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
@@ -175,7 +176,7 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Riwayat Monitoring')),
+      appBar: const AppBarGlass(judul: 'Riwayat Monitoring'),
       body: LatarHalaman(child: body),
     );
   }

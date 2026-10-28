@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/meja.dart';
 import '../services/api_service.dart';
 import '../theme/tokens.dart';
+import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
 import '../util/format.dart';
 import '../widgets/kaca.dart';
@@ -180,7 +181,7 @@ class _MejaPageState extends State<MejaPage>
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Daftar Meja')),
+      appBar: const AppBarGlass(judul: 'Daftar Meja'),
       body: LatarHalaman(child: body),
     );
   }

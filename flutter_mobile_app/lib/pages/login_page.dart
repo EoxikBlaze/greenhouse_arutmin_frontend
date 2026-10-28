@@ -354,12 +354,12 @@ class _LoginPageState extends State<LoginPage>
                 decoration: const BoxDecoration(
                   gradient: Tok.brandPanel,
                   borderRadius: BorderRadius.vertical(
-                    bottom: Radius.circular(32),
+                    bottom: Radius.circular(Tok.rChrome),
                   ),
                 ),
                 child: ClipRRect(
                   borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(32),
+                    bottom: Radius.circular(Tok.rChrome),
                   ),
                   child: SizedBox(
                     width: double.infinity,

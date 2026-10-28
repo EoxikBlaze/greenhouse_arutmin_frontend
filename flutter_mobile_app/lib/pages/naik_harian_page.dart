@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../services/api_service.dart';
 import '../theme/tokens.dart';
+import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
 import '../widgets/motion.dart';
 
@@ -99,7 +100,7 @@ class _NaikHarianPageState extends State<NaikHarianPage> {
   Widget build(BuildContext context) {
     final bisaUbah = widget.api.role != 'demo';
     return Scaffold(
-      appBar: AppBar(title: const Text('Target nutrisi')),
+      appBar: const AppBarGlass(judul: 'Target nutrisi'),
       body: RefreshIndicator(
         color: Tok.moss,
         onRefresh: _muat,
