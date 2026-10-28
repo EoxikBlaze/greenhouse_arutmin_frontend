@@ -380,7 +380,7 @@ export function AppShell() {
         {navOpen && (
           <div
             aria-hidden
-            className="fixed inset-0 z-30 bg-black/40 lg:hidden vsf-backdrop"
+            className="fixed inset-0 z-30 bg-[rgba(10,31,56,0.32)] backdrop-blur-[3px] lg:hidden vsf-backdrop"
             onClick={() => setNavOpen(false)}
           />
         )}
