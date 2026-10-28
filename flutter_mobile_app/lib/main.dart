@@ -43,6 +43,7 @@ ThemeData _buatTema() {
 
   return ThemeData(
     useMaterial3: true,
+    fontFamily: Tok.fontIsi,
     colorScheme: skema,
     scaffoldBackgroundColor: Tok.page,
     appBarTheme: const AppBarTheme(

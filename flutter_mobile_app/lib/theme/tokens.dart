@@ -102,7 +102,11 @@ class Tok {
   // blob kaca (kaca.dart), ukuran font 10.5/12.5/13/15 di beberapa halaman.
 
   // ── Tipografi (tanpa font tambahan: memakai font sistem) ─────────────
+  static const String fontIsi = 'Inter';
+  static const String fontJudul = 'SpaceGrotesk';
+
   static const TextStyle h1 = TextStyle(
+    fontFamily: fontJudul,
     fontSize: 26,
     height: 1.25,
     fontWeight: FontWeight.w700,
@@ -111,6 +115,7 @@ class Tok {
   );
 
   static const TextStyle h2 = TextStyle(
+    fontFamily: fontJudul,
     fontSize: 19,
     height: 1.3,
     fontWeight: FontWeight.w700,
@@ -119,6 +124,7 @@ class Tok {
   );
 
   static const TextStyle h3 = TextStyle(
+    fontFamily: fontJudul,
     fontSize: 16,
     height: 1.35,
     fontWeight: FontWeight.w600,
