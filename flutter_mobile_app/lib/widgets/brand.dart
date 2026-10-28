@@ -237,6 +237,7 @@ class HeroHeader extends StatelessWidget {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
+                                  fontFamily: Tok.fontJudul,
                                   color: Colors.white,
                                   fontSize: 22,
                                   height: 1.2,
@@ -321,7 +322,8 @@ class Panel extends StatelessWidget {
   }
 }
 
-/// Label kecil kapital dengan garis emas (padanan `vsf-eyebrow`).
+/// Judul bagian (desain v2): kalimat biasa Space Grotesk 16 — padanan `.vsf-judul-bagian`
+/// di web. Nama kelas dipertahankan agar semua pemakai ikut berubah sekaligus.
 class Eyebrow extends StatelessWidget {
   const Eyebrow(this.teks, {super.key});
 
@@ -329,18 +331,14 @@ class Eyebrow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(width: 12, height: 1.5, color: Tok.emas),
-        const SizedBox(width: 8),
-        Flexible(
-          child: Text(
-            teks.toUpperCase(),
-            overflow: TextOverflow.ellipsis,
-            style: Tok.eyebrow,
-          ),
-        ),
-      ],
+    return Semantics(
+      header: true,
+      child: Text(
+        teks,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: Tok.h3,
+      ),
     );
   }
 }

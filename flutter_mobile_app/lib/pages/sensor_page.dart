@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/brand.dart';
+import '../widgets/ikon.dart';
 import '../widgets/dock.dart';
 import '../widgets/charts.dart';
 import '../widgets/motion.dart';
@@ -221,7 +222,7 @@ class _SensorPageState extends State<SensorPage> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.warning_amber_rounded, color: Tok.warning),
+                  const Icon(Ikon.peringatan, color: Tok.warning),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -269,7 +270,7 @@ class _SensorPageState extends State<SensorPage> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: Tok.sp6),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -291,9 +292,9 @@ class _SensorPageState extends State<SensorPage> {
             ),
           ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: Tok.sp6),
         FadeUp(delay: FadeUp.urutan(2), child: const Eyebrow('Grafik riwayat')),
-        const SizedBox(height: 10),
+        const SizedBox(height: Tok.sp3),
         FadeUp(
           delay: FadeUp.urutan(3),
           child: Panel(
@@ -325,7 +326,7 @@ class _SensorPageState extends State<SensorPage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: Tok.sp3),
                 LineChart(
                   key: ValueKey('${def.kunci}-${tampil.length}'),
                   nilai: tampil,

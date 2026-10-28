@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
 import 'brand.dart';
+import 'ikon.dart';
 import 'motion.dart';
 
 /// Status LOCK tiap penampung (GET /penampung-states + nama dari GET /meja).
@@ -195,7 +196,7 @@ class _Baris extends StatelessWidget {
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(Icons.lock_open_outlined, size: 18),
+                  : const Icon(Ikon.bukaKunci, size: 18),
               label: const Text('Buka kunci'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Tok.mossGelap,

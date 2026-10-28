@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/brand.dart';
+import '../widgets/ikon.dart';
 import '../widgets/dock.dart';
 import '../widgets/motion.dart';
 import 'asisten_page.dart';
@@ -153,15 +154,10 @@ class _DashboardPageState extends State<DashboardPage> {
     int n(String k) => (keDouble(d[k]) ?? 0).round();
 
     final stat = <_Stat>[
-      _Stat('Tanaman', n('total_tanaman'), Icons.eco_outlined, Tok.moss),
-      _Stat('Meja', n('total_meja'), Icons.grid_view_rounded, Tok.navy3),
-      _Stat('Siklus', n('total_siklus'), Icons.autorenew_rounded, Tok.olive),
-      _Stat(
-        'Total panen',
-        n('total_panen_qty'),
-        Icons.shopping_basket_outlined,
-        Tok.warning,
-      ),
+      _Stat('Tanaman', n('total_tanaman'), Ikon.daun, Tok.moss),
+      _Stat('Meja', n('total_meja'), Ikon.meja, Tok.navy3),
+      _Stat('Siklus', n('total_siklus'), Ikon.siklus, Tok.olive),
+      _Stat('Total panen', n('total_panen_qty'), Ikon.keranjang, Tok.warning),
     ];
 
     var i = 0;
@@ -170,7 +166,7 @@ class _DashboardPageState extends State<DashboardPage> {
       children: [
         if (_putus && _sukses != null) ...[
           BannerBasi(sejak: _sukses!),
-          const SizedBox(height: 14),
+          const SizedBox(height: Tok.sp3),
         ],
         GridView.count(
           crossAxisCount: 2,
@@ -186,7 +182,7 @@ class _DashboardPageState extends State<DashboardPage> {
               FadeUp(delay: FadeUp.urutan(i++), child: _KartuStat(s)),
           ],
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: Tok.sp3),
         FadeUp(
           delay: FadeUp.urutan(4),
           child: Row(
@@ -194,7 +190,7 @@ class _DashboardPageState extends State<DashboardPage> {
               if (widget.api.role != 'demo') ...[
                 Expanded(
                   child: _Cepat(
-                    ikon: Icons.smart_toy_outlined,
+                    ikon: Ikon.ai,
                     label: 'Asisten AI',
                     tujuan: AsistenPage(api: widget.api),
                   ),
@@ -203,7 +199,7 @@ class _DashboardPageState extends State<DashboardPage> {
               ],
               Expanded(
                 child: _Cepat(
-                  ikon: Icons.videocam_outlined,
+                  ikon: Ikon.cctv,
                   label: 'CCTV',
                   tujuan: CctvPage(api: widget.api),
                 ),
@@ -211,9 +207,9 @@ class _DashboardPageState extends State<DashboardPage> {
             ],
           ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: Tok.sp6),
         FadeUp(delay: FadeUp.urutan(4), child: const Eyebrow('Siklus tanam')),
-        const SizedBox(height: 10),
+        const SizedBox(height: Tok.sp3),
         FadeUp(
           delay: FadeUp.urutan(5),
           child: Panel(
@@ -235,32 +231,32 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ),
         if (sensor is Map) ...[
-          const SizedBox(height: 22),
+          const SizedBox(height: Tok.sp6),
           FadeUp(
             delay: FadeUp.urutan(6),
             child: const Eyebrow('Sensor terakhir'),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: Tok.sp3),
           FadeUp(
             delay: FadeUp.urutan(7),
             child: _RingkasSensor(sensor: sensor),
           ),
         ],
         if (wc is Map) ...[
-          const SizedBox(height: 22),
+          const SizedBox(height: Tok.sp6),
           FadeUp(delay: FadeUp.urutan(8), child: const Eyebrow('Kontrol air')),
-          const SizedBox(height: 10),
+          const SizedBox(height: Tok.sp3),
           FadeUp(
             delay: FadeUp.urutan(9),
             child: _RingkasAir(wc: wc),
           ),
         ],
-        const SizedBox(height: 22),
+        const SizedBox(height: Tok.sp6),
         FadeUp(
           delay: FadeUp.urutan(10),
           child: const Eyebrow('Peringatan terbaru'),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: Tok.sp3),
         FadeUp(
           delay: FadeUp.urutan(11),
           child: Panel(
@@ -271,7 +267,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     children: [
                       for (final a in alerts.whereType<Map>())
                         _BarisInfo(
-                          ikon: Icons.warning_amber_rounded,
+                          ikon: Ikon.peringatan,
                           warna: Tok.warning,
                           judul: '${a['type'] ?? '-'}',
                           sub: '${a['value'] ?? ''}',
@@ -281,9 +277,9 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
           ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: Tok.sp6),
         FadeUp(delay: FadeUp.urutan(12), child: const Eyebrow('Panen terbaru')),
-        const SizedBox(height: 10),
+        const SizedBox(height: Tok.sp3),
         FadeUp(
           delay: FadeUp.urutan(13),
           child: Panel(
@@ -294,7 +290,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     children: [
                       for (final p in panen.whereType<Map>())
                         _BarisInfo(
-                          ikon: Icons.agriculture_outlined,
+                          ikon: Ikon.panen,
                           warna: Tok.moss,
                           judul: '${p['nama_tanaman'] ?? 'Panen'}',
                           sub: '${p['panen_berhasil'] ?? 0} berhasil',
@@ -333,7 +329,7 @@ class _Cepat extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.w700),
             ),
           ),
-          const Icon(Icons.chevron_right_rounded, color: Tok.abu, size: 20),
+          const Icon(Ikon.kanan, color: Tok.abu, size: 20),
         ],
       ),
     );
@@ -356,7 +352,7 @@ class _KartuStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Panel(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(Tok.sp4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -506,7 +502,7 @@ class _RingkasSensor extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: Tok.sp3),
           Text(
             'Diperbarui ${waktuRelatif(sensor['created_at']?.toString())}',
             style: Tok.kecil,
@@ -537,10 +533,7 @@ class _RingkasAir extends StatelessWidget {
               color: (buka ? Tok.moss : Tok.abu).withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              Icons.water_drop_outlined,
-              color: buka ? Tok.moss : Tok.abu,
-            ),
+            child: Icon(Ikon.tetes, color: buka ? Tok.moss : Tok.abu),
           ),
           const SizedBox(width: 12),
           Expanded(

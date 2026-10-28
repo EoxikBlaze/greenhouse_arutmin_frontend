@@ -46,4 +46,8 @@ class Ikon {
   static const IconData offline = LucideIcons.wifiOff;
   static const IconData salin = LucideIcons.copy;
   static const IconData kamera = LucideIcons.camera;
+  static const IconData panen = LucideIcons.wheat;
+  static const IconData keranjang = LucideIcons.shoppingBasket;
+  static const IconData berhenti = LucideIcons.circleStop;
+  static const IconData bukaKunci = LucideIcons.lockOpen;
 }

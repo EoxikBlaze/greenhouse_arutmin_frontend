@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../widgets/brand.dart';
+import '../widgets/ikon.dart';
 import '../widgets/dock.dart';
 import '../widgets/motion.dart';
 import '../widgets/status_penampung.dart';
@@ -193,14 +194,14 @@ class _WaterControlPageState extends State<WaterControlPage> {
       children: [
         if (_putus && _sukses != null) ...[
           BannerBasi(sejak: _sukses!),
-          const SizedBox(height: 14),
+          const SizedBox(height: Tok.sp3),
         ],
         FadeUp(
           child: Panel(
             child: Column(
               children: [
                 _Tetes(buka: buka),
-                const SizedBox(height: 10),
+                const SizedBox(height: Tok.sp3),
                 Text(
                   buka ? 'Air sedang mengalir' : 'Katup tertutup',
                   style: Tok.h2,
@@ -211,12 +212,12 @@ class _WaterControlPageState extends State<WaterControlPage> {
             ),
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: Tok.sp6),
         FadeUp(
           delay: FadeUp.urutan(1),
           child: const Eyebrow('Status penampung'),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: Tok.sp3),
         FadeUp(
           delay: FadeUp.urutan(1),
           child: StatusPenampungPanel(
@@ -225,9 +226,9 @@ class _WaterControlPageState extends State<WaterControlPage> {
             bolehBuka: widget.api.role == 'admin',
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: Tok.sp6),
         FadeUp(delay: FadeUp.urutan(1), child: const Eyebrow('Mode kerja')),
-        const SizedBox(height: 10),
+        const SizedBox(height: Tok.sp3),
         FadeUp(
           delay: FadeUp.urutan(2),
           child: Panel(
@@ -258,9 +259,9 @@ class _WaterControlPageState extends State<WaterControlPage> {
             ),
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: Tok.sp6),
         FadeUp(delay: FadeUp.urutan(3), child: const Eyebrow('Kendali manual')),
-        const SizedBox(height: 10),
+        const SizedBox(height: Tok.sp3),
         FadeUp(
           delay: FadeUp.urutan(4),
           child: Row(
@@ -268,7 +269,7 @@ class _WaterControlPageState extends State<WaterControlPage> {
               Expanded(
                 child: TombolGradasi(
                   label: 'Isi air',
-                  ikon: Icons.water_drop_outlined,
+                  ikon: Ikon.tetes,
                   sibuk: _kerja,
                   onTap: _konfirmasiIsi,
                 ),
@@ -281,7 +282,7 @@ class _WaterControlPageState extends State<WaterControlPage> {
                     onPressed: _kerja
                         ? null
                         : () => _aksi('/watercontrol/stop'),
-                    icon: const Icon(Icons.stop_circle_outlined, size: 18),
+                    icon: const Icon(Ikon.berhenti, size: 18),
                     label: const Text('Hentikan'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Tok.error,
@@ -360,7 +361,7 @@ class _TetesState extends State<_Tetes> with SingleTickerProviderStateMixin {
                   ]
                 : null,
           ),
-          child: Icon(Icons.water_drop, size: 40, color: warna),
+          child: Icon(Ikon.tetes, size: 40, color: warna),
         ),
       );
     }
