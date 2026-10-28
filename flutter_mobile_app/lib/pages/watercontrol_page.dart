@@ -28,7 +28,10 @@ class _WaterControlPageState extends State<WaterControlPage> {
   @override
   void initState() {
     super.initState();
-    _poll = PollTimer(const Duration(seconds: 5), () => _muat(senyap: true));
+    _poll = PollTimer(
+      const Duration(seconds: 5),
+      () => _muat(senyap: true, segarkanMeja: false),
+    );
     _poll.atur(widget.aktif);
     _muat();
   }
@@ -48,9 +51,9 @@ class _WaterControlPageState extends State<WaterControlPage> {
     super.dispose();
   }
 
-  Future<void> _muat({bool senyap = false}) async {
+  Future<void> _muat({bool senyap = false, bool segarkanMeja = true}) async {
     if (!senyap) setState(() => _memuat = true);
-    _penampung.currentState?.muat();
+    _penampung.currentState?.muat(segarkanMeja: segarkanMeja);
     try {
       final d = await widget.api.getJson('/watercontrol/status');
       if (!mounted) return;

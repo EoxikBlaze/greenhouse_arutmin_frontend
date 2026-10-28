@@ -6,6 +6,7 @@ import '../theme/tokens.dart';
 import '../widgets/brand.dart';
 import '../util/format.dart';
 import '../widgets/kaca.dart';
+import '../widgets/motion.dart';
 
 /// Daftar meja — GET /meja (13 kolom, butuh token admin).
 class MejaPage extends StatefulWidget {
@@ -62,21 +63,40 @@ class _MejaPageState extends State<MejaPage>
     super.build(context);
     final scheme = Theme.of(context).colorScheme;
 
+    Widget tarikRefresh(List<Widget> anak) => RefreshIndicator(
+      color: Tok.moss,
+      onRefresh: _load,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        children: anak,
+      ),
+    );
+
     Widget body;
     if (_loading && _items == null && _error == null) {
-      body = const Center(child: CircularProgressIndicator());
-    } else if (_error != null) {
       body = ListView(
         padding: const EdgeInsets.all(16),
-        children: [ErrorPanel(pesan: _error!, onCoba: _load)],
+        children: const [
+          SkeletonBox(height: 120, radius: 14),
+          SizedBox(height: 12),
+          SkeletonBox(height: 120, radius: 14),
+          SizedBox(height: 12),
+          SkeletonBox(height: 120, radius: 14),
+        ],
       );
+    } else if (_error != null) {
+      body = tarikRefresh([ErrorPanel(pesan: _error!, onCoba: _load)]);
     } else if (_items == null || _items!.isEmpty) {
-      body = const Center(child: Text('Belum ada data meja.'));
+      body = tarikRefresh(const [
+        Panel(child: Text('Belum ada data meja.', style: Tok.kecil)),
+      ]);
     } else {
       body = RefreshIndicator(
-        color: scheme.secondary,
+        color: Tok.moss,
         onRefresh: _load,
         child: ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(16),
           itemCount: _items!.length + 1,
           itemBuilder: (context, i) {
@@ -85,7 +105,7 @@ class _MejaPageState extends State<MejaPage>
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Text(
                   '${_items!.length} meja terdaftar',
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: Tok.kecil,
                 ),
               );
             }
@@ -147,7 +167,7 @@ class _MejaPageState extends State<MejaPage>
                       const SizedBox(height: 8),
                       Text(
                         'Dibuat ${tanggalPendek(m.createdAt)}',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: Tok.kecil,
                       ),
                     ],
                   ],

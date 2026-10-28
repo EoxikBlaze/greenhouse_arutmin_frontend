@@ -35,20 +35,28 @@ class StatusPenampungPanelState extends State<StatusPenampungPanel> {
     muat();
   }
 
+  /// Daftar meja jarang berubah: disimpan agar polling tak memanggil /meja lagi.
+  List<dynamic>? _meja;
+
   /// Muat ulang (dipanggil juga oleh polling & tarik-segarkan halaman induk).
-  Future<void> muat() async {
+  /// [segarkanMeja] false = pakai daftar meja yang sudah ada (bila ada).
+  Future<void> muat({bool segarkanMeja = true}) async {
     try {
+      final perluMeja = segarkanMeja || _meja == null;
       final hasil = await Future.wait([
         widget.api.getJson('/penampung-states'),
-        widget.api.getJson('/meja'),
+        if (perluMeja) widget.api.getJson('/meja'),
       ]);
       if (!mounted) return;
       final states = hasil[0];
-      final meja = hasil[1];
+      if (perluMeja) {
+        final meja = hasil[1];
+        _meja = meja is List ? meja : const [];
+      }
       setState(() {
         _daftar = gabungPenampung(
           states is List ? states : const [],
-          meja is List ? meja : const [],
+          _meja ?? const [],
         );
         _galat = null;
       });

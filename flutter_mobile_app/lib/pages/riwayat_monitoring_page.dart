@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import '../models/monitoring_entry.dart';
 import '../services/api_service.dart';
 import '../theme/tokens.dart';
+import '../util/format.dart';
 import '../widgets/brand.dart';
 import '../widgets/kaca.dart';
+import '../widgets/motion.dart';
 
 /// Riwayat monitoring — GET /monitoring/chart-data (butuh token).
 class RiwayatMonitoringPage extends StatefulWidget {
@@ -18,9 +20,13 @@ class RiwayatMonitoringPage extends StatefulWidget {
 
 class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
     with AutomaticKeepAliveClientMixin {
+  /// Server mengirim sampai 288 baris sekaligus; tampilkan bertahap.
+  static const _halaman = 30;
+
   List<MonitoringEntry>? _items;
   String? _error;
   bool _loading = false;
+  int _tampil = _halaman;
 
   @override
   bool get wantKeepAlive => true;
@@ -40,6 +46,7 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
         _items = items;
         _error = null;
         _loading = false;
+        _tampil = _halaman;
       });
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -55,14 +62,16 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
     return v is int ? v.toString() : v.toStringAsFixed(desimal);
   }
 
-  String _waktu(String? iso) {
-    if (iso == null || iso.isEmpty) return '-';
-    final d = DateTime.tryParse(iso)?.toLocal();
-    if (d == null) return iso;
-    String two(int n) => n.toString().padLeft(2, '0');
-    return '${d.year}-${two(d.month)}-${two(d.day)} '
-        '${two(d.hour)}:${two(d.minute)}';
-  }
+  /// Daftar yang bisa ditarik untuk refresh walau isinya pendek / kosong.
+  Widget _tarikRefresh(List<Widget> anak) => RefreshIndicator(
+    color: Tok.moss,
+    onRefresh: _load,
+    child: ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      children: anak,
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -71,32 +80,54 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
 
     Widget body;
     if (_loading && _items == null && _error == null) {
-      body = const Center(child: CircularProgressIndicator());
-    } else if (_error != null) {
       body = ListView(
         padding: const EdgeInsets.all(16),
-        children: [ErrorPanel(pesan: _error!, onCoba: _load)],
+        children: const [
+          SkeletonBox(height: 96, radius: 14),
+          SizedBox(height: 10),
+          SkeletonBox(height: 96, radius: 14),
+          SizedBox(height: 10),
+          SkeletonBox(height: 96, radius: 14),
+        ],
       );
+    } else if (_error != null) {
+      body = _tarikRefresh([ErrorPanel(pesan: _error!, onCoba: _load)]);
     } else if (_items == null || _items!.isEmpty) {
-      body = const Center(child: Text('Belum ada data monitoring.'));
+      body = _tarikRefresh(const [
+        Panel(child: Text('Belum ada data monitoring.', style: Tok.kecil)),
+      ]);
     } else {
+      final semua = _items!;
+      final tampil = semua.length < _tampil ? semua.length : _tampil;
+      final adaLagi = semua.length > tampil;
       body = RefreshIndicator(
-        color: scheme.secondary,
+        color: Tok.moss,
         onRefresh: _load,
         child: ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(16),
-          itemCount: _items!.length + 1,
+          itemCount: tampil + 1 + (adaLagi ? 1 : 0),
           itemBuilder: (context, i) {
             if (i == 0) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Text(
-                  '${_items!.length} catatan sensor terbaru',
-                  style: Theme.of(context).textTheme.bodySmall,
+                  'Menampilkan $tampil dari ${semua.length} catatan sensor terbaru',
+                  style: Tok.kecil,
                 ),
               );
             }
-            final e = _items![i - 1];
+            if (i > tampil) {
+              final sisa = semua.length - tampil;
+              final tambah = sisa < _halaman ? sisa : _halaman;
+              return Center(
+                child: TextButton(
+                  onPressed: () => setState(() => _tampil += _halaman),
+                  child: Text('Tampilkan $tambah lagi'),
+                ),
+              );
+            }
+            final e = semua[i - 1];
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: Panel(
@@ -114,15 +145,12 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            _waktu(e.createdAt),
+                            waktuPendek(e.createdAt),
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ),
                         if (e.idMeja != null)
-                          Text(
-                            'Meja ${e.idMeja}',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
+                          Text('Meja ${e.idMeja}', style: Tok.kecil),
                       ],
                     ),
                     const SizedBox(height: 8),
