@@ -131,8 +131,6 @@ const NAV: NavGroup[] = [
       // Riwayat Audit — baca saja; guard setara backend (requireRole admin).
       { to: '/audit', label: 'Riwayat Audit', ikon: 'audit', allow: ADMIN_DEMO },
       { to: '/profil', label: 'Profil', ikon: 'profil' },
-      // Halaman publik (/tentang) — rutenya di luar RequireAuth.
-      { to: '/', label: 'Tentang Kami', ikon: 'info' },
     ],
   },
 ]
@@ -377,6 +375,11 @@ export function AppShell() {
               )
             })}
           </nav>
+
+          {/* Halaman publik (/) — rutenya di luar RequireAuth, jadi bukan bagian grup menu. */}
+          <div className={`px-4 pb-2 ${ciut ? 'lg:px-3' : ''}`}>
+            <SideItem item={{ to: '/', label: 'Tentang Kami', ikon: 'info' }} ciut={ciut} />
+          </div>
 
           {/* Kartu pengguna + Keluar — selalu terlihat di dasar sidebar. */}
           <div className={`border-t border-white/10 p-3 ${ciut ? 'lg:px-2' : ''}`}>
