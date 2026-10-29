@@ -1,12 +1,37 @@
-import { useEffect, useRef, type PointerEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Monogram } from '../components/Monogram'
 import { SiteFooter } from '../components/SiteFooter'
 import { useAuth } from '../lib/authContext'
 import { useReveal } from '../lib/useReveal'
+import { useSplash } from '../lib/useSplash'
+import { usePudarTepi } from '../lib/usePudarTepi'
 import { InfoTekan } from '../components/InfoTekan'
 import { info } from '../lib/info'
 import { DataLangsung } from '../components/DataLangsung'
+import { FONT_SKRIP, Percikan } from '../components/tentang/BannerKKN'
+import { GrupMerek, PilSosial } from '../components/tentang/GrupMerek'
+import { SplashTentang } from '../components/tentang/SplashTentang'
+
+const BAGIAN = ['sistem', 'cara-kerja', 'data', 'aplikasi', 'mitra', 'tim']
+
+/** Bagian yang sedang di tengah layar — untuk menandai tautan header (aria-current). */
+function useScrollspy(ids: string[]) {
+  const [aktif, setAktif] = useState('')
+  useEffect(() => {
+    const els = ids.map((i) => document.getElementById(i)).filter((e): e is HTMLElement => !!e)
+    if (typeof IntersectionObserver === 'undefined') return undefined
+    const io = new IntersectionObserver(
+      (es) => {
+        for (const e of es) if (e.isIntersecting) setAktif(e.target.id)
+      },
+      { rootMargin: '-35% 0px -55% 0px' },
+    )
+    els.forEach((e) => io.observe(e))
+    return () => io.disconnect()
+  }, [ids])
+  return aktif
+}
 
 /**
  * TENTANG KAMI (/tentang) — halaman publik, TANPA login (rute berdiri sendiri
@@ -154,7 +179,7 @@ function Siluet({ warna }: { warna: string }) {
   return (
     <svg
       viewBox="0 0 200 336"
-      className="vsf-keluar pointer-events-none absolute left-1/2 top-[-71px] z-20 h-[339px] w-auto -translate-x-1/2"
+      className="pointer-events-none absolute left-1/2 top-[-71px] z-20 h-[339px] w-auto -translate-x-1/2"
       aria-hidden="true"
       focusable="false"
     >
@@ -174,40 +199,7 @@ function Siluet({ warna }: { warna: string }) {
   )
 }
 
-const FONT_POSTER = "'Oswald','Anton',Impact,'Arial Narrow',sans-serif"
-const FONT_SKRIP = "'Kaushan Script','Brush Script MT',cursive"
 const MAROON = '#8F1D2C'
-
-/** Percikan emas di sisi judul skrip — berkedip pelan. */
-function Percikan({ kiri }: { kiri?: boolean }) {
-  return (
-    <svg viewBox="0 0 40 40" className={`h-10 w-10 shrink-0 sm:h-12 sm:w-12 ${kiri ? '' : '-scale-x-100'}`} aria-hidden="true" focusable="false">
-      <g stroke="#F5A81C" strokeWidth="4" strokeLinecap="round">
-        <path className="vsf-kedip" style={{ ['--d' as string]: '0s' }} d="M6 20h14" />
-        <path className="vsf-kedip" style={{ ['--d' as string]: '.3s' }} d="M10 9l11 6" />
-        <path className="vsf-kedip" style={{ ['--d' as string]: '.6s' }} d="M10 31l11-6" />
-      </g>
-    </svg>
-  )
-}
-
-function IkonInstagram() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-      <rect x="3" y="3" width="18" height="18" rx="5" />
-      <circle cx="12" cy="12" r="4" />
-      <circle cx="17.3" cy="6.7" r=".6" fill="currentColor" />
-    </svg>
-  )
-}
-function IkonTiktok() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5" />
-      <path d="M14 3c.3 2.6 2 4.4 4.5 4.8" />
-    </svg>
-  )
-}
 
 export function TentangPage() {
   const { isAuthenticated } = useAuth()
@@ -233,15 +225,40 @@ export function TentangPage() {
     })
   }
 
-  // muat & decode semua foto/logo di awal agar tidak "kosong" saat scroll cepat
+  const { awal, fase, keluar, selesai } = useSplash()
+  const akar = useRef<HTMLDivElement>(null)
+  const heroGrup = useRef<HTMLDivElement>(null)
+  const aktif = useScrollspy(BAGIAN)
+  usePudarTepi(fase === 'selesai')
+
+  // selama splash: halaman diam (tanpa gulir) dan tidak bisa difokus/ditekan
   useEffect(() => {
+    document.documentElement.classList.toggle('vsf-splash-aktif', fase !== 'selesai')
+    return () => document.documentElement.classList.remove('vsf-splash-aktif')
+  }, [fase])
+  useEffect(() => {
+    akar.current?.toggleAttribute('inert', fase === 'tampil')
+  }, [fase])
+
+  // muat & decode foto/logo SETELAH splash (tidak berebut bandwidth dengan latar & font splash)
+  useEffect(() => {
+    if (fase !== 'selesai') return undefined
     const daftar = [...PERAN.map((p) => p.foto), ...MITRA.map((m) => m.src)].filter((u): u is string => Boolean(u))
-    for (const u of daftar) {
-      const im = new Image()
-      im.src = u
-      void im.decode?.().catch(() => undefined)
+    const muat = () => {
+      for (const u of daftar) {
+        const im = new Image()
+        im.src = u
+        void im.decode?.().catch(() => undefined)
+      }
     }
-  }, [])
+    const ric = window.requestIdleCallback
+    if (ric) {
+      const id = ric(muat, { timeout: 2000 })
+      return () => window.cancelIdleCallback(id)
+    }
+    const t = window.setTimeout(muat, 300)
+    return () => window.clearTimeout(t)
+  }, [fase])
 
   // React Router tidak menggulir ke #anchor sendiri — lakukan setelah render.
   useEffect(() => {
@@ -254,11 +271,12 @@ export function TentangPage() {
   }, [hash])
 
   return (
-    <div className="relative isolate flex min-h-dvh flex-col text-tinta">
+    <div ref={akar} data-splash={fase === 'selesai' ? undefined : fase} className="vsf-tentang relative isolate flex min-h-dvh flex-col text-tinta">
       <div className="vsf-latar" aria-hidden />
       <div className="vsf-kabut" aria-hidden />
+      {fase !== 'selesai' && <SplashTentang target={() => heroGrup.current} onKeluar={keluar} onSelesai={selesai} />}
       {/* Header — bilah liquid glass melayang di atas foto langit */}
-      <header className="vsf-topbar sticky top-0 z-30 px-3 pt-3 sm:px-5 sm:pt-4">
+      <header className="vsf-sp vsf-topbar sticky top-0 z-30 px-3 pt-3 sm:px-5 sm:pt-4" style={{ ['--sd' as string]: '.35s' }}>
         <div className="vsf-bilah mx-auto flex min-h-[60px] max-w-[1180px] items-center gap-3 py-2 pl-3 pr-2 sm:pl-4">
           <Link to="/" className="flex min-w-0 items-center gap-3" aria-label="Vertonik Smart Farm">
             <Monogram className="h-10 w-14 shrink-0" />
@@ -268,12 +286,16 @@ export function TentangPage() {
             </span>
           </Link>
           <nav className="ml-auto hidden items-center gap-1 text-[14px] font-medium lg:flex" aria-label="Bagian halaman">
-            <a href="#sistem" className="vsf-bilah-tautan">Sistem</a>
-            <a href="#cara-kerja" className="vsf-bilah-tautan">Cara kerja</a>
-            <a href="#data" className="vsf-bilah-tautan">Data</a>
-            <a href="#aplikasi" className="vsf-bilah-tautan">Aplikasi</a>
-            <a href="#mitra" className="vsf-bilah-tautan">Mitra</a>
-            <a href="#tim" className="vsf-bilah-tautan">Tim</a>
+            {[
+              ['sistem', 'Sistem'],
+              ['cara-kerja', 'Cara kerja'],
+              ['data', 'Data'],
+              ['aplikasi', 'Aplikasi'],
+              ['mitra', 'Mitra'],
+              ['tim', 'Tim'],
+            ].map(([id, label]) => (
+              <a key={id} href={`#${id}`} className="vsf-bilah-tautan" aria-current={aktif === id ? 'true' : undefined}>{label}</a>
+            ))}
           </nav>
           <Link to={isAuthenticated ? '/dashboard' : '/login'} className="vsf-bilah-tombol ml-auto shrink-0 lg:ml-2">
             {isAuthenticated ? 'Dashboard' : 'Login'}
@@ -281,114 +303,52 @@ export function TentangPage() {
         </div>
       </header>
 
-      <main ref={refMuncul} onPointerMove={kilau} className="vsf-page vsf-satu mx-auto w-full max-w-[1180px] flex-1 px-4 py-6 sm:px-6">
-        {/* Hero — gaya poster: langit, gunung, kuas navy, judul emas, skrip "Our Team" */}
+      <main ref={refMuncul} onPointerMove={kilau} className="vsf-satu mx-auto w-full max-w-[1180px] flex-1 px-4 py-6 sm:px-6">
+        {/* Hero — grup merek (tujuan terbang splash) + ajakan; tombol ada di halaman, bukan di splash */}
         <section className="flex min-h-[calc(100dvh-150px)] flex-col items-center justify-center py-8 text-center" aria-labelledby="vsf-hero-title">
-            <div className="flex flex-col items-center text-center">
-              {/* pil logo */}
-              <div {...info("Vertonik Smart Farm (GARAP)", "Sistem IoT hidroponik hasil KKN Industri Arutmin Asik 2026 di PT Arutmin Indonesia. GARAP adalah nama aplikasinya.")} className="vsf-pop vsf-kaca inline-flex max-w-full items-center gap-3 rounded-full px-5 py-2.5">
-                <Monogram className="h-10 w-16 shrink-0" />
-                <span className="text-[12.5px] font-extrabold uppercase tracking-[.08em] text-navy">PT Arutmin Indonesia</span>
-                <span className="hidden h-5 w-px bg-slate-300 sm:block" aria-hidden />
-                <span className="hidden truncate text-[12.5px] font-semibold text-slate-600 sm:inline">Vertonik Smart Farm</span>
-              </div>
-
-              {/* plakat splash art — percikan cat navy + tetesan + butiran */}
-              <div className="relative mt-8 w-full max-w-[780px] -rotate-2">
-                <svg viewBox="0 0 780 224" preserveAspectRatio="none" className="vsf-splash absolute -inset-x-3 -inset-y-4 h-[calc(100%+2rem)] w-[calc(100%+1.5rem)] drop-shadow-[0_14px_18px_rgba(7,21,39,.35)]" aria-hidden="true" focusable="false">
-                  <g className="vsf-splash-badan" fill="#14295E">
-                    <path d="M729.7 112.0 C731.1 114.7 738.8 117.5 739.0 120.2 C739.2 122.9 732.3 125.4 730.7 128.1 C729.1 130.9 723.5 132.8 729.6 136.6 C735.7 140.4 771.9 148.5 767.2 151.0 C762.6 153.5 716.6 150.7 701.7 151.8 C686.9 152.9 685.7 155.7 678.2 157.7 C670.7 159.6 662.7 161.2 656.7 163.7 C650.8 166.3 650.8 171.0 642.6 172.8 C634.4 174.5 617.5 173.0 607.7 174.4 C597.9 175.7 592.2 178.7 583.9 180.9 C575.7 183.1 565.3 183.5 558.2 187.8 C551.1 192.1 552.1 205.6 541.4 206.7 C530.7 207.9 507.8 196.8 494.0 194.9 C480.3 193.0 470.7 195.1 459.1 195.3 C447.5 195.5 436.2 196.1 424.6 196.2 C413.1 196.2 401.4 196.3 390.0 195.8 C378.6 195.2 367.4 193.5 356.1 192.9 C344.8 192.4 334.0 192.1 322.3 192.5 C310.5 192.9 296.3 196.3 285.7 195.3 C275.1 194.2 274.7 183.3 258.9 186.1 C243.1 189.0 201.6 213.3 191.1 212.5 C180.5 211.7 200.7 186.6 195.6 181.1 C190.6 175.7 169.8 181.3 160.6 179.7 C151.5 178.1 146.6 174.3 140.7 171.5 C134.9 168.8 133.2 165.1 125.6 163.1 C118.0 161.0 104.4 160.8 95.1 159.2 C85.7 157.6 74.0 155.9 69.6 153.3 C65.2 150.7 73.7 146.3 68.9 143.6 C64.1 141.0 58.0 139.3 40.7 137.5 C23.5 135.7 -31.1 135.6 -34.4 132.8 C-37.8 130.0 7.3 124.2 20.7 120.7 C34.2 117.2 44.3 114.9 46.2 112.0 C48.1 109.1 34.4 106.4 32.3 103.6 C30.3 100.8 31.4 97.8 33.9 95.0 C36.5 92.3 45.0 90.0 47.7 87.1 C50.4 84.3 52.6 81.8 50.2 78.0 C47.7 74.1 26.5 66.5 32.9 64.0 C39.2 61.6 75.5 64.6 88.3 63.3 C101.0 62.0 101.5 58.3 109.3 56.2 C117.1 54.1 125.4 51.8 135.3 50.5 C145.3 49.1 160.0 50.0 169.0 48.1 C178.0 46.2 179.2 40.2 189.3 39.2 C199.5 38.2 219.1 43.2 229.9 42.2 C240.6 41.1 246.3 37.9 253.7 32.9 C261.1 27.9 264.0 14.9 274.2 12.2 C284.5 9.5 301.8 14.3 315.2 16.4 C328.6 18.5 342.2 22.7 354.6 24.8 C367.1 26.8 378.2 28.8 390.0 28.7 C401.8 28.6 413.7 24.7 425.5 24.0 C437.4 23.3 450.0 23.2 461.1 24.6 C472.1 25.9 480.4 31.4 491.6 32.3 C502.9 33.3 514.8 31.9 528.8 30.3 C542.8 28.7 566.1 20.7 575.6 22.6 C585.2 24.5 580.8 37.3 586.1 41.8 C591.4 46.4 598.8 47.9 607.2 49.8 C615.6 51.8 627.0 52.1 636.3 53.5 C645.6 55.0 655.8 56.4 663.1 58.4 C670.4 60.5 673.7 63.6 680.2 65.9 C686.6 68.2 688.5 70.8 701.5 72.2 C714.4 73.6 751.3 71.9 757.8 74.3 C764.3 76.6 742.4 83.0 740.4 86.4 C738.3 89.9 747.2 92.1 745.5 95.1 C743.9 98.0 733.1 101.2 730.5 104.0 C727.8 106.8 728.3 109.3 729.7 112.0 Z" />
-                    {/* tetesan yang menetes ke bawah */}
-                    <path d="M214 184 C212 196 210 206 213 213 C216 220 226 220 228 212 C230 204 226 194 224 184 Z" />
-                    <path d="M508 186 C507 194 506 200 508 204 C510 208 516 208 517 203 C518 198 516 192 515 186 Z" />
-                    <path d="M618 178 C616 192 614 200 617 206 C620 212 628 211 629 205 C630 199 627 190 626 178 Z" />
-                  </g>
-                  {/* butiran cipratan di sekeliling */}
-                  <g className="vsf-splash-tetes" fill="#14295E">
-                    <circle cx="22" cy="58" r="7" /><circle cx="8" cy="84" r="3.5" /><circle cx="44" cy="30" r="4" />
-                    <circle cx="760" cy="62" r="6" /><circle cx="774" cy="96" r="3" /><circle cx="736" cy="196" r="5" />
-                    <circle cx="300" cy="8" r="4.5" /><circle cx="470" cy="12" r="3" /><circle cx="96" cy="200" r="4" />
-                  </g>
-                  <g className="vsf-splash-tetes vsf-splash-tetes-2" fill="#F5B833">
-                    <circle cx="58" cy="182" r="5" /><circle cx="742" cy="30" r="4.5" /><circle cx="404" cy="214" r="3.5" /><circle cx="168" cy="14" r="3" />
-                  </g>
-                </svg>
-                <h1
-                  id="vsf-hero-title"
-                  className="relative px-8 py-9 sm:px-14 sm:py-12"
-                  style={{ fontFamily: FONT_POSTER }}
-                >
-                  <span className="block -skew-x-6 text-[34px] font-bold uppercase leading-none tracking-[.01em] text-white sm:text-[56px]">
-                    KKN Industri
-                  </span>
-                  <span className="mt-2 block -skew-x-6 text-[22px] font-bold uppercase leading-[1.05] tracking-[.01em] text-[#F5B833] sm:text-[38px]">
-                    Politeknik Negeri Tanah Laut
-                  </span>
-                </h1>
-              </div>
-
-              {/* pil perusahaan */}
-              <div
-                className="vsf-pop vsf-kaca vsf-kaca-gelap vsf-kaca-hidup mt-2 -rotate-2 rounded-full px-7 py-2.5 text-[13px] font-extrabold uppercase tracking-[.06em] sm:text-[15px]"
-                style={{ ['--d' as string]: '.55s' }}
-              >
-                PT. Arutmin Indonesia
-              </div>
-
-              {/* skrip */}
-              <div className="vsf-pop mt-5 flex items-center gap-2" style={{ ['--d' as string]: '.75s' }}>
-                <Percikan kiri />
-                <span className="text-[46px] leading-none text-white [text-shadow:0_3px_20px_rgba(7,21,39,.6)] sm:text-[68px]" style={{ fontFamily: FONT_SKRIP }}>
-                  Our Team
-                </span>
-                <Percikan />
-              </div>
-
-              <div className="vsf-pop mt-6 flex flex-wrap justify-center gap-2" style={{ ['--d' as string]: '.95s' }}>
-                <Link to={isAuthenticated ? '/dashboard' : '/login'} className="vsf-btn-primary">
-                  Login
-                </Link>
-                <a href="#cara-kerja" className="vsf-kaca vsf-kaca-hidup inline-flex min-h-[44px] items-center rounded-full px-5 text-[13px] font-semibold text-navy">
-                  Cara kerja sistem
-                </a>
-                <a href="#tim" className="vsf-kaca vsf-kaca-hidup inline-flex min-h-[44px] items-center rounded-full px-5 text-[13px] font-semibold text-navy">
-                  Kenali tim
-                </a>
-              </div>
-            </div>
-
-          {/* bilah bawah ala poster */}
-          <div className="vsf-pop vsf-kaca vsf-kaca-gelap mt-8 inline-flex flex-wrap items-center justify-center gap-x-8 gap-y-2 rounded-full px-6 py-3 text-[14px] font-bold sm:text-[16px]" style={{ ['--d' as string]: '1.15s' }}>
-            <span {...info("Instagram KKN", "Ikuti dokumentasi kegiatan KKN Industri di Instagram.", "https://instagram.com/kkn.arutminidn2026")} className="inline-flex items-center gap-2"><IkonInstagram /> @kkn.arutminidn2026</span>
-            <span {...info("TikTok KKN", "Video singkat kegiatan dan proses pembuatan Vertonik Smart Farm.", "https://www.tiktok.com/@kkn.arutminidn2026")} className="inline-flex items-center gap-2"><IkonTiktok /> @kkn.arutminidn2026</span>
+          <div className="vsf-hero-grup flex w-full justify-center">
+            <GrupMerek ref={heroGrup} animasi={!awal} interaktif judul />
+          </div>
+          <p className="vsf-sp mt-5 max-w-[560px] text-[15px] leading-relaxed text-white [text-shadow:0_2px_12px_rgba(7,21,39,.7)]" style={{ ['--sd' as string]: '.5s' }}>
+            Merawat nutrisi tanaman, tanpa petani harus menakar sendiri.
+          </p>
+          <div className="vsf-sp mt-5 flex flex-wrap justify-center gap-2" style={{ ['--sd' as string]: '.6s' }}>
+            <Link to={isAuthenticated ? '/dashboard' : '/login'} className="vsf-btn-primary">
+              {isAuthenticated ? 'Dashboard' : 'Login'}
+            </Link>
+            <a href="#cara-kerja" className="vsf-kaca vsf-kaca-hidup inline-flex min-h-[44px] items-center rounded-full px-5 text-[13px] font-semibold text-navy">
+              Cara kerja sistem
+            </a>
+            <a href="#tim" className="vsf-kaca vsf-kaca-hidup inline-flex min-h-[44px] items-center rounded-full px-5 text-[13px] font-semibold text-navy">
+              Kenali tim
+            </a>
           </div>
         </section>
 
-        {/* Pengantar GARAP */}
-        <section className="vsf-card vsf-muncul mt-6 p-5 sm:p-7" aria-labelledby="vsf-intro-title">
-          <div className="vsf-eyebrow">Tentang Kami</div>
-          <p className="mt-1 text-[12px] text-slate-500">Tip: tekan kartu untuk membuka tautan, tahan untuk membaca penjelasannya.</p>
-          <h2 id="vsf-intro-title" className="mt-2 max-w-[760px] text-[22px] leading-snug sm:text-[28px]">
-            Merawat nutrisi tanaman, tanpa petani harus menakar sendiri.
-          </h2>
-          <p className="mt-3 max-w-[760px] text-[14.5px] leading-relaxed text-slate-600">
-            Vertonik Smart Farm (GARAP) adalah sistem IoT untuk greenhouse hidroponik multi-penampung. Satu alat kontrol
-            menjaga kadar nutrisi dan pH tiap meja, lalu mengabarkan semua kejadian ke aplikasi petani.
-          </p>
-        </section>
+        {/* Pengantar GARAP + angka sistem (bento) */}
+        <div className="mt-6 grid gap-4 lg:grid-cols-[1.15fr_1fr]">
+          <section className="vsf-card vsf-muncul flex flex-col justify-center p-6 sm:p-8" aria-labelledby="vsf-intro-title">
+            <div className="vsf-eyebrow">Tentang Kami</div>
+            <h2 id="vsf-intro-title" className="mt-2 max-w-[760px] text-[22px] leading-snug sm:text-[28px]">
+              Merawat nutrisi tanaman, tanpa petani harus menakar sendiri.
+            </h2>
+            <p className="mt-3 max-w-[760px] text-[14.5px] leading-relaxed text-slate-600">
+              Vertonik Smart Farm (GARAP) adalah sistem IoT untuk greenhouse hidroponik multi-penampung. Satu alat kontrol
+              menjaga kadar nutrisi dan pH tiap meja, lalu mengabarkan semua kejadian ke aplikasi petani.
+            </p>
+            <p className="mt-4 text-[12px] text-slate-500">Tekan kartu untuk membuka tautan, tahan untuk membaca penjelasannya.</p>
+          </section>
 
-        {/* Angka sistem */}
-        <section id="sistem" className="mt-6 scroll-mt-24" aria-label="Angka sistem">
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {ANGKA.map((a) => (
-              <div key={a.label} {...info(a.label, a.info)} className="vsf-card vsf-muncul p-4" style={{ ['--d' as string]: `${ANGKA.indexOf(a) * 0.08}s` }}>
-                <div className="font-display text-[26px] font-bold leading-none text-arutmin-forest">{a.nilai}</div>
+          <section id="sistem" className="grid scroll-mt-24 grid-cols-2 gap-3" aria-label="Angka sistem">
+            {ANGKA.map((a, i) => (
+              <div key={a.label} {...info(a.label, a.info)} className="vsf-card vsf-muncul flex flex-col justify-center p-4" style={{ ['--d' as string]: `${i * 0.08}s` }}>
+                <div className="font-display text-[28px] font-bold leading-none text-arutmin-forest">{a.nilai}</div>
                 <div className="mt-2 text-[13px] font-semibold text-tinta">{a.label}</div>
                 <div className="mt-0.5 text-[12px] text-slate-500">{a.ket}</div>
               </div>
             ))}
-          </div>
-        </section>
+          </section>
+        </div>
 
         <DataLangsung />
 
@@ -511,7 +471,9 @@ export function TentangPage() {
                             src={p.foto}
                             alt=""
                             draggable={false}
-                            className="vsf-keluar pointer-events-none absolute left-1/2 top-[-71px] z-20 h-[339px] w-auto max-w-none -translate-x-1/2 select-none object-contain object-bottom transition-transform duration-500 [transition-timing-function:var(--pegas)] group-hover:-translate-y-[5px] group-hover:scale-[1.04]"
+                            loading="lazy"
+                            decoding="async"
+                            className="pointer-events-none absolute left-1/2 top-[-71px] z-20 h-[339px] w-auto max-w-none -translate-x-1/2 select-none object-contain object-bottom transition-transform duration-500 [transition-timing-function:var(--pegas)] group-hover:-translate-y-[5px] group-hover:scale-[1.04]"
                           />
                         ) : (
                           <Siluet warna={pal.x} />
@@ -526,10 +488,11 @@ export function TentangPage() {
         </section>
 
         {/* Ajakan penutup */}
-        <section className="vsf-muncul vsf-kaca vsf-kaca-gelap mt-16 flex flex-col items-center gap-4 rounded-[32px] px-6 py-10 text-center" aria-labelledby="vsf-cta-title">
+        <section className="vsf-muncul vsf-kaca vsf-kaca-netral mt-16 flex flex-col items-center gap-4 rounded-[32px] px-6 py-10 text-center" aria-labelledby="vsf-cta-title">
           <h2 id="vsf-cta-title" className="font-display text-[24px] font-bold text-white sm:text-[30px]">Siap memantau kebun Anda?</h2>
           <p className="max-w-[520px] text-[14px] leading-relaxed text-white/80">Login untuk melihat sensor, mengatur dosing, dan bertanya pada asisten AI.</p>
-          <Link to={isAuthenticated ? '/dashboard' : '/login'} className="vsf-btn-primary">Login</Link>
+          <Link to={isAuthenticated ? '/dashboard' : '/login'} className="vsf-btn-primary">{isAuthenticated ? 'Dashboard' : 'Login'}</Link>
+          <PilSosial interaktif netral />
         </section>
       </main>
       <InfoTekan />

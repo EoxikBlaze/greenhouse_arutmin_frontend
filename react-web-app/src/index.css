@@ -1824,3 +1824,63 @@ button.vsf-stat[aria-pressed='true'] { border-color: rgb(78 119 51 / 0.85); box-
   .vsf-kal-chip, .vsf-kal-blok, button.vsf-stat:hover { background: #fff; box-shadow: 0 1px 3px rgb(7 21 39 / 0.2); }
 }
 
+/* ══ Tentang Kami — splash pembuka + halaman ══════════════════════════════════
+   Splash: overlay transparan di atas .vsf-latar (tanpa backdrop-filter layar penuh).
+   Animasi masuk memakai fill 'backwards' (bukan 'both') agar tidak mengunci backdrop-filter.
+   Keluar: grup merek diterbangkan lewat WAAPI (transform saja); selama bergerak kaca pil
+   dibuat tanpa blur (tint + rim) — aturan "tanpa kaca di atas kaca". */
+html.vsf-splash-aktif { overflow: hidden; }
+.vsf-splash-overlay {
+  position: fixed; inset: 0; z-index: 90;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px 16px; cursor: pointer; overflow: hidden;
+}
+.vsf-splash-overlay[data-pergi='1'] { pointer-events: none; }
+.vsf-splash-isi { display: flex; width: 100%; max-width: 820px; flex-direction: column; align-items: center; }
+/* tunggu latar + font siap: semua animasi di splash menahan diri */
+.vsf-splash-overlay[data-siap='0'] * { animation-play-state: paused !important; }
+@keyframes vsf-sp-in { from { opacity: 0; transform: translateY(18px) scale(0.9); } to { opacity: 1; transform: none; } }
+@keyframes vsf-sp-tulis { from { clip-path: inset(-25% 100% -25% -5%); } to { clip-path: inset(-25% -5% -25% -5%); } }
+.vsf-sp-item { animation: vsf-sp-in 0.65s var(--d, 0s) cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+.vsf-sp-teks { animation: vsf-sp-in 0.55s 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.vsf-sp-tulis { display: inline-block; animation: vsf-sp-tulis 0.9s var(--d, 0.85s) cubic-bezier(0.4, 0, 0.2, 1) backwards; }
+.vsf-splash-overlay[data-pergi='1'] .vsf-sp-sosial,
+.vsf-splash-overlay[data-pergi='1'] .vsf-sp-lewati { opacity: 0; transition: opacity 0.25s ease; }
+.vsf-splash-overlay[data-pergi='1'] .vsf-kaca {
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+.vsf-splash-overlay[data-pergi='1'] .vsf-kaca:not(.vsf-kaca-gelap) { background: rgb(255 255 255 / 0.78); }
+/* hero setelah splash: statis (tujuan terbang), tak memutar ulang animasi masuk */
+.vsf-statis .vsf-splash-badan, .vsf-statis .vsf-splash-tetes, .vsf-statis .vsf-sp-teks { animation: none !important; }
+/* fase halaman: tersembunyi selama splash lalu naik bertahap saat splash keluar */
+.vsf-sp {
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1) var(--sd, 0s), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1) var(--sd, 0s);
+}
+.vsf-tentang[data-splash='tampil'] .vsf-sp { opacity: 0; transform: translateY(14px); }
+.vsf-tentang[data-splash] .vsf-hero-grup { visibility: hidden; }
+/* konten di bawah hero jangan mengintip lewat splash yang transparan */
+.vsf-tentang[data-splash] main > :not(:first-child),
+.vsf-tentang[data-splash] > footer { visibility: hidden; }
+.vsf-tentang[data-splash] .vsf-latar { animation-play-state: paused; }
+/* kaca netral gelap (tanpa biru) untuk pil/CTA di badan halaman */
+.vsf-kaca-netral {
+  background: linear-gradient(135deg, rgb(24 28 32 / 0.58), rgb(24 28 32 / 0.34)) !important;
+  border-color: rgb(255 255 255 / 0.28) !important;
+  color: #fff;
+}
+.vsf-bilah-tautan[aria-current='true'] { background: rgba(255, 255, 255, 0.2); color: #fff; }
+/* pudar tepi: elemen yang menyentuh zona bawah-header / dasar layar memudar bertahap (mask per elemen,
+   batas --p1..--p4 diisi lib/usePudarTepi). Kotak mask dilebarkan 40px agar bayangan kartu tak terpotong. */
+.vsf-pudar {
+  -webkit-mask-image: linear-gradient(to bottom, transparent var(--p1), #000 var(--p2), #000 var(--p3), transparent var(--p4));
+  mask-image: linear-gradient(to bottom, transparent var(--p1), #000 var(--p2), #000 var(--p3), transparent var(--p4));
+  -webkit-mask-size: calc(100% + 80px) calc(100% + 80px); mask-size: calc(100% + 80px) calc(100% + 80px);
+  -webkit-mask-position: -40px -40px; mask-position: -40px -40px;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+}
+@media (prefers-reduced-motion: reduce) {
+  .vsf-sp { transition: none; }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-kaca-netral { background: #20262c !important; }
+}
