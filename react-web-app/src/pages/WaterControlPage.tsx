@@ -7,6 +7,9 @@ import { useApiObject, useFlashOnChange } from '../lib/useApiObject'
 import { StatusBadge } from '../components/StatusBadge'
 import { StatusPenampung } from '../components/StatusPenampung'
 import { Ikon } from '../components/Ikon'
+import { Segmen } from '../components/sensor/FilterBar'
+import { RiwayatPerintah, type Riwayat } from '../components/watercontrol/RiwayatPerintah'
+import { DialogKonfirmasiAksi } from '../components/watercontrol/DialogKonfirmasiAksi'
 
 type Mode = 'AUTO' | 'MANUAL'
 
@@ -18,16 +21,6 @@ type Status = {
   mode?: string | null
   valve_state?: string | null
   updated_at?: string | null
-}
-
-/** Satu baris riwayat perintah: baris server + perintah yang dikirim sesi ini. */
-type Riwayat = {
-  key: string
-  waktu: string
-  perintah: string
-  sumber: string
-  hasil: string
-  ok: boolean
 }
 
 const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
@@ -58,6 +51,7 @@ export default function WaterControlPage() {
   const [busy, setBusy] = useState<null | 'fill' | 'stop' | 'mode'>(null)
   const [pesan, setPesan] = useState<{ teks: string; ok: boolean } | null>(null)
   const [riwayat, setRiwayat] = useState<Riwayat[]>([])
+  const [konfirmasi, setKonfirmasi] = useState<null | 'fill' | 'stop'>(null)
 
   // Auto-hilang (5 dtk) — sama dengan pola flash di halaman master.
   useEffect(() => {
@@ -130,6 +124,26 @@ export default function WaterControlPage() {
     : null
   const barisRiwayat: Riwayat[] = serverRow ? [serverRow, ...riwayat] : riwayat
 
+  const alasanNonaktif = !KONTROL_AKTIF
+    ? 'Kontrol air nonaktif sementara.'
+    : !terjangkau
+      ? 'Status tidak terjangkau — aksi dinonaktifkan sampai koneksi pulih.'
+      : mode !== 'MANUAL'
+        ? 'Pindah ke mode MANUAL dulu untuk Isi Air atau Stop.'
+        : null
+  const aksiOff = alasanNonaktif !== null || busy !== null
+
+  const stat: Array<{ label: string; nilai: string; ket: string; flash?: boolean }> = [
+    { label: 'Perintah terakhir', nilai: status?.command ?? '—', ket: 'dikirim ke perangkat', flash: true },
+    { label: 'Katup', nilai: status?.valve_state ?? '—', ket: 'status katup tandon', flash: true },
+    {
+      label: 'Mode',
+      nilai: mode ?? '—',
+      ket: mode === 'MANUAL' ? 'pengisian air dikendalikan manual' : 'sistem mengisi sesuai ambang sensor',
+      flash: true,
+    },
+  ]
+
   return (
     <div className="vsf-halaman vsf-stagger">
       {error && (
@@ -141,7 +155,7 @@ export default function WaterControlPage() {
             <Ikon nama="salah" className="h-4 w-4 shrink-0" />
             <span>{error}</span>
           </span>
-          <button type="button" className="vsf-input rounded-full font-semibold" onClick={reload}>
+          <button type="button" className="vsf-btn-secondary" onClick={reload}>
             Coba lagi
           </button>
         </div>
@@ -152,184 +166,124 @@ export default function WaterControlPage() {
           role={pesan.ok ? 'status' : 'alert'}
           className={clsx(
             'vsf-banner rounded-input border px-3 py-2 text-[13px] flex items-start gap-2',
-            pesan.ok
-              ? 'border-arutmin-moss bg-arutmin-mint/50 text-arutmin-forest'
-              : 'vsf-tone-error',
+            pesan.ok ? 'border-arutmin-moss bg-arutmin-mint/50 text-arutmin-forest' : 'vsf-tone-error',
           )}
         >
-          {pesan.ok ? <Ikon nama="ok" className="h-4 w-4 mt-[2px] shrink-0" /> : <Ikon nama="salah" className="h-4 w-4 mt-[2px] shrink-0" />}
+          <Ikon nama={pesan.ok ? 'ok' : 'salah'} className="h-4 w-4 mt-[2px] shrink-0" />
           <span>{pesan.teks}</span>
         </div>
       )}
 
-      {/* Status perangkat & tandon */}
-      <section className="vsf-card p-4 sm:p-5">
-        <div className="vsf-judul-bagian">Status perangkat &amp; tandon</div>
-        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 vsf-stagger">
-          <div className="rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm">
-            <div className="vsf-label">Status API</div>
-            <div className="mt-2">
+      {/* Status perangkat */}
+      <section aria-label="Status perangkat" className="vsf-card p-4 sm:p-5">
+        <div className="flex flex-wrap items-start gap-3">
+          <div className="min-w-0">
+            <div className="vsf-judul-bagian">Status perangkat &amp; tandon</div>
+            <p className="mt-0.5 text-[13px] text-abu">Diperbarui otomatis tiap 5 detik.</p>
+          </div>
+          <button type="button" className="vsf-btn-secondary w-full sm:ml-auto sm:w-auto" onClick={reload}>
+            <Ikon nama="siklus" />
+            Muat ulang
+          </button>
+        </div>
+        <dl className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+          <div className="vsf-stat">
+            <dt className="vsf-label !text-tinta">Status API</dt>
+            <dd className="mt-2">
               {loading && !status ? (
                 <span className="vsf-skeleton inline-block h-[24px] w-[130px]" />
               ) : (
-                <StatusBadge
-                  tone={terjangkau ? 'online' : 'offline'}
-                  label={terjangkau ? 'Terhubung' : 'Terputus'}
-                />
+                <StatusBadge tone={terjangkau ? 'online' : 'offline'} label={terjangkau ? 'Terhubung' : 'Terputus'} />
               )}
+            </dd>
+            <dd className="mt-1 text-[12px] text-abu">terakhir {tgl(status?.updated_at)}</dd>
+          </div>
+          {stat.map((s) => (
+            <div key={s.label} className="vsf-stat">
+              <dt className="vsf-label !text-tinta">{s.label}</dt>
+              <dd className={clsx('mt-1 font-heading text-[20px] font-bold leading-tight tabular-nums text-tinta', s.flash && statusFlash)}>
+                {s.nilai}
+              </dd>
+              <dd className="mt-1 text-[12px] text-abu">{s.ket}</dd>
             </div>
-            <div className="mt-1 text-[12px] text-slate-600">pembaruan terakhir {tgl(status?.updated_at)}</div>
+          ))}
+        </dl>
+      </section>
+
+      {/* Kontrol air: mode + aksi manual */}
+      <section aria-label="Kontrol air" className="vsf-card p-4 sm:p-5">
+        <div className="vsf-judul-bagian">Kontrol air</div>
+
+        {!KONTROL_AKTIF && (
+          <div role="status" className="vsf-tone-warn mt-3 flex items-start gap-2 rounded-input px-3 py-2 text-[13px]">
+            <Ikon nama="peringatan" className="mt-[1px] h-4 w-4 shrink-0" />
+            <span>
+              Kontrol air dinonaktifkan sementara. Perangkat belum menerima maupun mengonfirmasi perintah dari aplikasi.
+              Gunakan katup atau saklar fisik. Status tetap ditampilkan.
+            </span>
           </div>
-          <div className="rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm">
-            <div className="vsf-label">Perintah Terakhir</div>
-            <div className={`text-[15px] font-bold mt-1 tabular-nums ${statusFlash}`}>{status?.command ?? '—'}</div>
-            <div className="text-[12px] text-slate-600">{tgl(status?.updated_at)}</div>
+        )}
+
+        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          <div className="vsf-blok">
+            <div className="vsf-label !text-tinta">Mode</div>
+            <div className="mt-2">
+              <fieldset
+                disabled={!KONTROL_AKTIF || busy !== null || !terjangkau || !mode}
+                className="m-0 min-w-0 border-0 p-0 disabled:opacity-60"
+              >
+                <Segmen label="Mode kontrol air" pilihan={['AUTO', 'MANUAL'] as const} nilai={mode as Mode} onPilih={(m) => void sendMode(m)} />
+              </fieldset>
+            </div>
+            <p className="mt-2 text-[12px] text-abu">
+              AUTO: sistem mengisi air sesuai ambang sensor. MANUAL: Anda yang mengisi dan menghentikan air.
+            </p>
+            {mode === 'MANUAL' && (
+              <div className="vsf-tone-warn mt-2 flex items-start gap-2 rounded-input px-3 py-2 text-[12px]">
+                <Ikon nama="peringatan" className="mt-[1px] h-4 w-4 shrink-0" />
+                <span>Mode MANUAL aktif — sistem tidak akan mengisi air otomatis.</span>
+              </div>
+            )}
           </div>
-          <div className="rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm">
-            <div className="vsf-label">Katup</div>
-            <div className={`text-[15px] font-bold mt-1 ${statusFlash}`}>{status?.valve_state ?? '—'}</div>
-            <div className="text-[12px] text-slate-600">status katup tandon</div>
-          </div>
-          <div className="rounded-card border border-arutmin-border bg-white p-4 transition hover:border-arutmin-moss/60 hover:shadow-sm">
-            <div className="vsf-label">Mode</div>
-            <div className={`text-[15px] font-bold mt-1 ${statusFlash}`}>{mode ?? '—'}</div>
-            <div className="text-[12px] text-slate-600">berdasar ambang sensor</div>
+
+          <div className="vsf-blok">
+            <div className="vsf-label !text-tinta">Aksi manual</div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <button type="button" disabled={aksiOff} onClick={() => setKonfirmasi('fill')} className="vsf-btn-primary">
+                {busy === 'fill' ? <span className="vsf-spinner" /> : <Ikon nama="tetes" />}
+                {busy === 'fill' ? 'Mengirim…' : 'Isi Air (Fill)'}
+              </button>
+              <button type="button" disabled={aksiOff} onClick={() => setKonfirmasi('stop')} className="vsf-btn-secondary">
+                {busy === 'stop' && <span className="vsf-spinner vsf-spinner-dark" />}
+                {busy === 'stop' ? 'Mengirim…' : 'Stop'}
+              </button>
+            </div>
+            <p className="mt-2 text-[12px] text-abu">{alasanNonaktif ?? 'Isi Air membuka katup tandon, Stop menutupnya.'}</p>
+            {!terjangkau && (
+              <div className="vsf-tone-error mt-2 flex items-start gap-2 rounded-input px-3 py-2 text-[12px]">
+                <Ikon nama="salah" className="mt-[1px] h-4 w-4 shrink-0" />
+                <span>Status tidak terjangkau — aksi dinonaktifkan sampai koneksi pulih.</span>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
       <StatusPenampung onPesan={(teks, ok) => setPesan({ teks, ok })} />
 
-      {!KONTROL_AKTIF && (
-        <div role="status" className="vsf-card flex items-start gap-2 p-4 text-[13px] vsf-tone-warn">
-          <Ikon nama="peringatan" className="mt-[1px] h-4 w-4 shrink-0" />
-          <span>
-            Kontrol air dinonaktifkan sementara. Perangkat belum menerima maupun mengonfirmasi perintah dari aplikasi.
-            Gunakan katup atau saklar fisik. Status di bawah tetap ditampilkan.
-          </span>
-        </div>
+      <RiwayatPerintah rows={barisRiwayat} tgl={tgl} />
+
+      {konfirmasi && (
+        <DialogKonfirmasiAksi
+          aksi={konfirmasi}
+          onBatal={() => setKonfirmasi(null)}
+          onYa={() => {
+            const k = konfirmasi
+            setKonfirmasi(null)
+            void action(k)
+          }}
+        />
       )}
-
-      {/* Pengaturan mode */}
-      <section className="vsf-card p-4 sm:p-5">
-        <div className="vsf-judul-bagian">Pengaturan mode</div>
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-          {(['AUTO', 'MANUAL'] as Mode[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              disabled={!KONTROL_AKTIF || busy !== null || !terjangkau || !mode}
-              onClick={() => void sendMode(m)}
-              className={clsx(
-                'inline-flex min-h-[44px] items-center rounded-full border px-3 py-1 text-[12px] font-semibold transition disabled:opacity-60 sm:min-h-0',
-                mode === m
-                  ? 'border-arutmin-moss bg-activePill text-white'
-                  : 'border-arutmin-border bg-white text-slate-700 hover:border-arutmin-moss/60 hover:shadow-sm',
-              )}
-            >
-              {busy === 'mode' && mode !== m && <span className="vsf-spinner vsf-spinner-dark mr-2" />}
-              {m === 'AUTO' ? 'AUTO (otomatis)' : 'MANUAL'}
-            </button>
-          ))}
-          <span className="text-[12px] text-slate-500">balik ke AUTO = kontrol kembali ke sistem sesuai ambang</span>
-        </div>
-      </section>
-
-      {/* Aksi manual */}
-      <section className="vsf-card p-4 sm:p-5">
-        <div className="vsf-judul-bagian">Aksi manual (hanya mode MANUAL)</div>
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            disabled={!KONTROL_AKTIF || busy !== null || !terjangkau || mode !== 'MANUAL'}
-            onClick={() => void action('fill')}
-            className="vsf-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {busy === 'fill' && <span className="vsf-spinner" />}
-            {busy === 'fill' ? 'Mengirim…' : 'Isi Air (Fill)'}
-          </button>
-          <button
-            type="button"
-            disabled={!KONTROL_AKTIF || busy !== null || !terjangkau || mode !== 'MANUAL'}
-            onClick={() => void action('stop')}
-            className="vsf-input min-h-[44px] rounded-full font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {busy === 'stop' && <span className="vsf-spinner vsf-spinner-dark" />}
-            {busy === 'stop' ? 'Mengirim…' : 'Stop'}
-          </button>
-          <span className="text-[12px] text-slate-500">status polling tiap 5 dtk, tombol nonaktif saat perintah diproses</span>
-        </div>
-        {mode === 'MANUAL' && (
-          <div className="mt-2 flex items-start gap-2 text-[12px] vsf-tone-warn rounded-input px-3 py-2">
-            <Ikon nama="peringatan" className="h-4 w-4 mt-[1px] shrink-0" />
-            <span>Mode MANUAL aktif — sistem tidak akan mengisi air otomatis.</span>
-          </div>
-        )}
-        {!terjangkau && (
-          <div className="mt-2 flex items-start gap-2 text-[12px] vsf-tone-error rounded-input px-3 py-2">
-            <Ikon nama="salah" className="h-4 w-4 mt-[1px] shrink-0" />
-            <span>Status tidak terjangkau — aksi dinonaktifkan sampai koneksi pulih.</span>
-          </div>
-        )}
-      </section>
-
-      {/* Riwayat perintah */}
-      <section className="vsf-card p-4 sm:p-5">
-        <div className="vsf-judul-bagian">Riwayat perintah</div>
-        <div className="mt-3 overflow-auto rounded-card border border-arutmin-border bg-white vsf-table">
-          <table aria-label="Riwayat perintah" className="w-full text-[13px]">
-            <thead>
-              <tr className="bg-navy/[.055]">
-                {['Waktu', 'Perintah', 'Sumber', 'Hasil'].map((h) => (
-                  <th
-                    key={h}
-                    scope="col"
-                    className="border-b border-navy/25 px-4 py-2.5 text-left text-[12px] font-bold uppercase tracking-[.14em] text-navy"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {barisRiwayat.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-3 py-8 text-center text-slate-500">
-                    Belum ada perintah — perintah terakhir dari server akan tampil di sini.
-                  </td>
-                </tr>
-              ) : (
-                barisRiwayat.map((r) => (
-                  <tr key={r.key} className="even:bg-navy/[.03] hover:bg-navy/[.06] transition-colors">
-                    <td className="px-4 py-2.5 font-semibold text-slate-900 tabular-nums">{tgl(r.waktu)}</td>
-                    <td className="px-4 py-2.5 text-slate-700">{r.perintah}</td>
-                    <td className="px-4 py-2.5 text-slate-700">{r.sumber}</td>
-                    <td className={clsx('px-4 py-2.5', r.ok ? 'text-arutmin-forest' : 'text-red-700')}>
-                      <span className="flex items-start gap-2">
-                        {r.ok ? <Ikon nama="ok" className="h-4 w-4 mt-[2px] shrink-0" /> : <Ikon nama="salah" className="h-4 w-4 mt-[2px] shrink-0" />}
-                        <span>{r.hasil}</span>
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="vsf-card p-4 sm:p-5">
-        <div className="vsf-judul-bagian">Tentang layar ini</div>
-        <ul className="mt-2 list-disc pl-5 text-[13px] text-slate-700 leading-relaxed">
-          <li>
-            Live: GET /watercontrol/status (polling 5 dtk) · POST /watercontrol/setMode · POST /watercontrol/fill|stop —
-            Bearer JWT.
-          </li>
-          <li>Error kontrak aktif: 401 → redirect login · 403 mode demo → pesan ramah dari server · offline → banner +
-            aksi dinonaktifkan.</li>
-          <li>State: perintah terkirim → spinner di tombol sampai status terbaru masuk (polling).</li>
-        </ul>
-      </section>
     </div>
   )
 }

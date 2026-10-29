@@ -4,6 +4,7 @@ import { useApiError, useApiList } from '../lib/crudApi'
 import { useAuth } from '../lib/authContext'
 import { useApiObject } from '../lib/useApiObject'
 import { useDialog } from '../lib/useDialog'
+import { Ikon } from './Ikon'
 import { ModalBackdrop } from './ModalBackdrop'
 import { StatusBadge } from './StatusBadge'
 
@@ -101,7 +102,14 @@ export function StatusPenampung({ onPesan }: { onPesan: (teks: string, ok: boole
 
   return (
     <section className="vsf-card p-4 sm:p-5">
-      <div className="vsf-judul-bagian">Status penampung</div>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div className="vsf-judul-bagian">Status penampung</div>
+        {daftar.length > 0 && (
+          <span className="text-[12px] text-abu">
+            {daftar.length} penampung · {daftar.filter((p) => p.terkunci).length} terkunci
+          </span>
+        )}
+      </div>
       {error && !states ? (
         <div role="alert" className="mt-3 rounded-input vsf-tone-error px-3 py-2 text-[13px]">
           {error}
@@ -116,36 +124,38 @@ export function StatusPenampung({ onPesan }: { onPesan: (teks: string, ok: boole
       ) : (
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 vsf-stagger">
           {daftar.map((p) => (
-            <div
-              key={p.id}
-              className={`rounded-card border bg-white p-4 transition hover:shadow-sm ${
-                p.terkunci ? 'border-red-600/40' : 'border-arutmin-border hover:border-arutmin-moss/60'
-              }`}
-            >
+            <article key={p.id} className={`vsf-penampung${p.terkunci ? ' is-lock' : ''}`}>
               <div className="flex items-start justify-between gap-2">
-                <div className="text-[15px] font-bold text-slate-900">{p.nama}</div>
+                <div className="min-w-0 truncate text-[16px] font-bold text-tinta">{p.nama}</div>
                 <StatusBadge tone={p.terkunci ? 'offline' : 'online'} label={p.terkunci ? 'LOCK' : 'Aman'} />
               </div>
               {p.terkunci && (
-                <div className="mt-2 text-[12px] text-red-700">
+                <div className="mt-2 text-[12px] font-semibold text-red-700">
                   {p.alasan || 'Tanpa alasan'} · sejak {tgl(p.sejak)}
                 </div>
               )}
-              <div className="mt-1 text-[12px] text-slate-600 tabular-nums">
-                Hari ini: {p.kejadian} kejadian · AB {p.ab.toFixed(1)} mL · pH {p.ph.toFixed(1)} mL
-                {p.pemeliharaan ? ' · pemeliharaan' : ''}
-              </div>
+              {p.pemeliharaan && <span className="vsf-chip-nilai is-luar mt-2">pemeliharaan</span>}
+              <dl className="vsf-penampung-angka tabular-nums">
+                <div>
+                  <dt>Kejadian hari ini</dt>
+                  <dd>{p.kejadian}</dd>
+                </div>
+                <div>
+                  <dt>AB (mL)</dt>
+                  <dd>{p.ab.toFixed(1)}</dd>
+                </div>
+                <div>
+                  <dt>pH (mL)</dt>
+                  <dd>{p.ph.toFixed(1)}</dd>
+                </div>
+              </dl>
               {p.terkunci && bolehBuka && (
-                <button
-                  type="button"
-                  className="vsf-input mt-3 rounded-full font-semibold disabled:opacity-50"
-                  disabled={membuka}
-                  onClick={() => setKonfirmasi(p)}
-                >
+                <button type="button" className="vsf-btn-secondary mt-3" disabled={membuka} onClick={() => setKonfirmasi(p)}>
+                  <Ikon nama="kunci" />
                   Buka kunci
                 </button>
               )}
-            </div>
+            </article>
           ))}
         </div>
       )}
