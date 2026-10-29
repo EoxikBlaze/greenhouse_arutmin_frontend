@@ -231,29 +231,18 @@ export function AppShell() {
     mulaiKaca()
     const henti = akar.current ? pantauKaca(akar.current) : undefined
     // Scroll edge: topbar makin pekat saat halaman digulir (atribut langsung, tanpa render ulang).
-    // Selama menggulung, html.lg-gulir mengganti lensa refraksi (mahal) dengan blur biasa agar tetap 60fps;
-    // lensa kembali 160ms setelah berhenti.
-    const html = document.documentElement
     let menggulung = false
-    let henti160 = 0
     const onScroll = () => {
-      const bar = topbar.current
       const turun = window.scrollY > 8
-      if (bar && turun !== menggulung) {
-        menggulung = turun
-        bar.toggleAttribute('data-menggulung', turun)
-      }
-      if (!html.classList.contains('lg-gulir')) html.classList.add('lg-gulir')
-      window.clearTimeout(henti160)
-      henti160 = window.setTimeout(() => html.classList.remove('lg-gulir'), 160)
+      if (turun === menggulung) return
+      menggulung = turun
+      topbar.current?.toggleAttribute('data-menggulung', turun)
     }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => {
       henti?.()
       window.removeEventListener('scroll', onScroll)
-      window.clearTimeout(henti160)
-      html.classList.remove('lg-gulir')
     }
   }, [])
 

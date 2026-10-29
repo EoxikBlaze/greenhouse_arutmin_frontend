@@ -63,32 +63,6 @@ describe('preferensi transparansi', () => {
   })
 })
 
-describe('lensa refraksi', () => {
-  it('aktif hanya di Chromium yang mendukung backdrop-filter: url()', () => {
-    vi.stubGlobal('CSS', { supports: () => true })
-    vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 Chrome/130.0 Safari/537.36')
-    mulaiKaca()
-    expect(document.documentElement.classList.contains('lg-lensa')).toBe(true)
-    vi.unstubAllGlobals()
-  })
-
-  it('mati di browser tanpa Chrome (Firefox/Safari memakai kaca buram)', () => {
-    vi.stubGlobal('CSS', { supports: () => true })
-    vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 Gecko/20100101 Firefox/130.0')
-    mulaiKaca()
-    expect(document.documentElement.classList.contains('lg-lensa')).toBe(false)
-    vi.unstubAllGlobals()
-  })
-
-  it('mati bila browser tidak mendukung filter url()', () => {
-    vi.stubGlobal('CSS', { supports: () => false })
-    vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 Chrome/130.0 Safari/537.36')
-    mulaiKaca()
-    expect(document.documentElement.classList.contains('lg-lensa')).toBe(false)
-    vi.unstubAllGlobals()
-  })
-})
-
 describe('pantauKaca', () => {
   type Cb = (es: Partial<IntersectionObserverEntry>[]) => void
   let picu: Cb
@@ -104,16 +78,7 @@ describe('pantauKaca', () => {
         disconnect() {}
       },
     )
-    vi.stubGlobal(
-      'ResizeObserver',
-      class {
-        observe() {}
-        unobserve() {}
-        disconnect() {}
-      },
-    )
   })
-  afterEach(() => vi.unstubAllGlobals())
 
   it('kartu di luar layar diberi .vsf-di-luar dan dilepas saat terlihat', () => {
     const root = document.createElement('div')
@@ -130,29 +95,27 @@ describe('pantauKaca', () => {
     henti()
   })
 
-  it('tanpa lensa aktif, tidak ada filter SVG yang dibuat', () => {
-    const root = document.createElement('div')
-    root.innerHTML = '<section class="glass-chrome"></section>'
-    document.body.appendChild(root)
-    const henti = pantauKaca(root)
-    expect(document.querySelectorAll('filter').length).toBe(0)
-    henti()
-  })
-
-  it('dengan lensa aktif, elemen kaca utama dapat filter dan dibersihkan saat berhenti', () => {
-    document.documentElement.classList.add('lg-lensa')
+  it('semua jenis permukaan kaca dipantau, elemen biasa tidak', () => {
     const root = document.createElement('div')
     root.innerHTML =
       '<section class="glass-chrome"></section><section class="glass-hero"></section>' +
-      '<section class="vsf-card"></section><section class="vsf-kpi-kaca"></section><section class="glass-card"></section>' +
-      '<footer><div class="glass-chrome"></div></footer>'
+      '<section class="glass-card"></section><section class="vsf-kpi-kaca"></section>' +
+      '<section class="biasa"></section>'
     document.body.appendChild(root)
 
+    const diamati: Element[] = []
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        observe(e: Element) {
+          diamati.push(e)
+        }
+        disconnect() {}
+      },
+    )
     const henti = pantauKaca(root)
-    // hanya chrome dan hero (di luar footer) berlensa; kartu, KPI, kartu sapaan, dan chrome di footer memakai blur biasa
-    expect(root.querySelectorAll('[data-lg]').length).toBe(2)
-    expect(document.querySelectorAll('filter').length).toBe(2)
+    expect(diamati.length).toBe(4)
+    expect(diamati.some((e) => e.classList.contains('biasa'))).toBe(false)
     henti()
-    expect(document.querySelectorAll('filter').length).toBe(0)
   })
 })

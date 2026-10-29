@@ -33,8 +33,8 @@
 
     /* ── Desain v3 · token kaca (satu sumber untuk semua permukaan glass) ── */
     /* Material utama ada di blok "Liquid Glass v5" (akhir berkas); token --lg-*. */
-    --glass-blur: 24px;                        /* blur kaca statis (kartu, hero) */
-    --glass-blur-chrome: 28px;                 /* blur chrome (sidebar, topbar) */
+    --glass-blur: 18px;                        /* blur kaca statis (kartu, hero) */
+    --glass-blur-chrome: 24px;                 /* blur chrome (sidebar, topbar) */
     --glass-blur-kaca: 22px;                   /* blur .vsf-kaca (kartu kaca tebal) */
     --glass-blur-bilah: 22px;                  /* blur .vsf-bilah (header/footer landing) */
     --glass-blur-hover: 14px;                  /* blur kartu saat hover (perangkat pointer) */
@@ -142,8 +142,8 @@
 @layer components {
   /* Kartu kaca (material "clear"): blur + rim. Nilai akhir (background, rim, transisi) ada di blok "Liquid Glass v5". */
   .vsf-card {
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
-    backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
+    backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
     border: 1px solid rgba(255, 255, 255, 0.6);
     border-radius: 24px;
     box-shadow:
@@ -622,7 +622,7 @@
 /* layar kecil/perangkat lemah: kurangi blur & matikan bola cair */
 @media (max-width: 640px) {
   .vsf-satu .vsf-card,
-  .vsf-kaca { -webkit-backdrop-filter: blur(10px) saturate(1.6); backdrop-filter: blur(10px) saturate(1.6); }}
+  .vsf-kaca { -webkit-backdrop-filter: blur(10px) ; backdrop-filter: blur(10px) ; }}
   /* foto tim yang "keluar" dari kartu: melayang pelan, patuh Reduce Motion */
   .vsf-keluar { animation: vsf-keluar 6s ease-in-out infinite; }
 @keyframes vsf-keluar { 0%, 100% { translate: 0 0; } 50% { translate: 0 -5px; } }
@@ -634,8 +634,8 @@
   .vsf-latar { animation: none; will-change: auto; transform: none; }
   .vsf-satu .vsf-card,
   .vsf-kaca {
-  -webkit-backdrop-filter: blur(12px) saturate(1.8) brightness(1.08);
-  backdrop-filter: blur(12px) saturate(1.8) brightness(1.08);
+  -webkit-backdrop-filter: blur(12px) brightness(1.08);
+  backdrop-filter: blur(12px) brightness(1.08);
 }
   /* animasi tak berujung hanya pakai transform/opacity & dipromosikan ke layer sendiri */
   .vsf-keluar { will-change: translate; animation-duration: 7s; }
@@ -688,8 +688,8 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .vsf-satu .vsf-card:hover {
-    -webkit-backdrop-filter: blur(var(--glass-blur-hover)) saturate(1.8) !important;
-    backdrop-filter: blur(var(--glass-blur-hover)) saturate(1.8) !important;
+    -webkit-backdrop-filter: blur(var(--glass-blur-hover)) !important;
+    backdrop-filter: blur(var(--glass-blur-hover)) !important;
   }}
   /* foto tim: tanpa animasi melayang terus-menerus (lapisan komposit tetap = berat); efek hover tetap ada */
   .vsf-keluar { animation: none !important; will-change: auto !important; }
@@ -702,8 +702,8 @@
   border-radius: 22px;
   color: #fff;
   background: rgba(10, 31, 56, 0.42);
-  -webkit-backdrop-filter: blur(var(--glass-blur-bilah)) saturate(1.9) brightness(0.96);
-  backdrop-filter: blur(var(--glass-blur-bilah)) saturate(1.9) brightness(0.96);
+  -webkit-backdrop-filter: blur(var(--glass-blur-bilah)) brightness(0.96);
+  backdrop-filter: blur(var(--glass-blur-bilah)) brightness(0.96);
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.55),
@@ -755,7 +755,7 @@
 }
   .vsf-bilah-tombol-terang:hover { background: linear-gradient(135deg, #55823a, #4a7230); }
 @media (max-width: 640px) {
-  .vsf-bilah { border-radius: 18px; -webkit-backdrop-filter: blur(16px) saturate(1.8); backdrop-filter: blur(16px) saturate(1.8); }}
+  .vsf-bilah { border-radius: 18px; -webkit-backdrop-filter: blur(16px) ; backdrop-filter: blur(16px) ; }}
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
   .vsf-bilah { -webkit-backdrop-filter: none; backdrop-filter: none; background: #0a1f38; }
 }
@@ -802,8 +802,8 @@
   /* Chrome (material "regular"): rail, topbar, laci, footer. */
   .glass-chrome {
     background: linear-gradient(155deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.46));
-    -webkit-backdrop-filter: blur(var(--glass-blur-chrome)) saturate(1.9) brightness(1.06);
-    backdrop-filter: blur(var(--glass-blur-chrome)) saturate(1.9) brightness(1.06);
+    -webkit-backdrop-filter: blur(var(--glass-blur-chrome)) brightness(1.06);
+    backdrop-filter: blur(var(--glass-blur-chrome)) brightness(1.06);
     border: 1px solid rgba(255, 255, 255, 0.6);
     border-radius: var(--rad-lg);
     box-shadow:
@@ -817,8 +817,8 @@
   /* Kartu/ringkasan kaca (material "clear"). */
   .glass-card {
     background: linear-gradient(155deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
-    backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
+    backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
     border: 1px solid rgba(255, 255, 255, 0.6);
     border-radius: 24px;
     box-shadow:
@@ -874,14 +874,14 @@
   }}
 
 @layer components {
-  /* Hero halaman: kaca terang dengan sorot emas (kanan atas) dan biru (kiri bawah). */
+  /* Hero halaman: kaca bening-buram dengan sorot emas (kanan atas) dan mint (kiri bawah). */
   .glass-hero {
     background:
-      radial-gradient(26rem 14rem at 100% 0%, rgba(233, 205, 83, 0.5), transparent 70%),
-      radial-gradient(30rem 16rem at 0% 100%, rgba(96, 160, 240, 0.46), transparent 70%),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(207, 226, 206, 0.48));
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.9) brightness(1.06);
-    backdrop-filter: blur(var(--glass-blur)) saturate(1.9) brightness(1.06);
+      radial-gradient(26rem 14rem at 100% 0%, rgba(233, 205, 83, 0.34), transparent 70%),
+      radial-gradient(30rem 16rem at 0% 100%, rgba(207, 226, 206, 0.4), transparent 70%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.26));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
+    backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
     border: 1px solid rgba(255, 255, 255, 0.7);
     border-radius: 28px;
     box-shadow:
@@ -960,8 +960,8 @@
 .vsf-kpi:hover { transform: translateY(-3px); }
 .vsf-kpi-kaca {
   color: var(--tinta);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
-  backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
+  backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
 }
 .vsf-kpi-kaca .vsf-kpi-ikon { background: rgba(107, 157, 74, 0.16); color: #2d452f; }
 .vsf-kpi-hijau {
@@ -969,8 +969,8 @@
   background:
     radial-gradient(14rem 8rem at 100% 0%, rgba(233, 205, 83, 0.38), transparent 70%),
     linear-gradient(145deg, rgba(107, 157, 74, 0.92), rgba(45, 69, 47, 0.9));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
-  backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) ;
+  backdrop-filter: blur(var(--glass-blur)) ;
 }
 .vsf-kpi-hijau .vsf-kpi-ikon { background: rgba(255, 255, 255, 0.22); color: #fff; }
 .vsf-kpi-emas {
@@ -978,8 +978,8 @@
   background:
     radial-gradient(14rem 8rem at 0% 100%, rgba(255, 255, 255, 0.42), transparent 70%),
     linear-gradient(145deg, rgba(240, 214, 96, 0.95), rgba(214, 168, 40, 0.9));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
-  backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) ;
+  backdrop-filter: blur(var(--glass-blur)) ;
 }
 .vsf-kpi-emas .vsf-kpi-ikon { background: rgba(255, 255, 255, 0.4); color: #2a2208; }
 
@@ -1040,8 +1040,8 @@
 /* ══════════════════════════════════════════════════════════════════════════
    Liquid Glass v5 — satu sistem material (acuan: liquid-glass.md)
    • regular = chrome (rail, topbar, laci, footer, modal): tint lebih tinggi.
-   • clear   = kartu/hero/KPI di atas foto: lebih tembus, teks tetap ≥4.5:1.
-   • Rim terarah (terang kiri-atas, redup kanan-bawah) + fringe biru/hangat di tepi.
+   • clear   = kartu/hero/KPI di atas foto: bening-buram (tint tipis + blur sedang), teks tetap ≥4.5:1.
+   • Rim terarah putih (terang kiri-atas, redup kanan-bawah); tanpa pendar warna dan tanpa saturate (tidak menguatkan biru foto).
    • Tanpa kaca di atas kaca: tombol/input/blok dalam kartu = tint + rim, tanpa blur.
    • --k menskalakan alpha (html[data-kaca]: jernih .72 · standar 1 · pekat 1.3).
    Blok ini sengaja di akhir: menang atas definisi lama di atas.
@@ -1049,23 +1049,21 @@
 @property --lg-naik { syntax: '<number>'; inherits: true; initial-value: 0; }
 :root {
   --k: 1;
-  --lg-clr-a: min(1, calc(0.7 * var(--k)));
-  --lg-clr-b: min(1, calc(0.46 * var(--k)));
+  --lg-clr-a: min(1, calc(0.5 * var(--k)));
+  --lg-clr-b: min(1, calc(0.32 * var(--k)));
   --lg-blur-kpi: 16px;
-  /* rim terarah + fringe tepi (dispersi cahaya) + glow dalam */
+  /* rim terarah putih (tanpa pendar warna) + glow dalam */
   --lg-rim:
     inset 1.5px 1.5px 0 -0.5px rgb(255 255 255 / 0.95),
     inset -1px -1px 0 -0.5px rgb(255 255 255 / 0.4),
     inset 0 0 0 1px rgb(255 255 255 / 0.14),
-    inset 3px 0 9px -5px rgb(110 185 255 / 0.5),
-    inset -3px 0 9px -5px rgb(255 205 130 / 0.4),
     inset 0 0 26px rgb(255 255 255 / 0.15);
   --lg-rim-kecil:
     inset 1px 1px 0 -0.5px rgb(255 255 255 / 0.9),
     inset -1px -1px 0 -0.5px rgb(255 255 255 / 0.35),
     inset 0 0 0 1px rgb(255 255 255 / 0.18);
-  --lg-drop-chrome: 0 1px 2px rgb(40 80 130 / 0.08), 0 18px 46px -16px rgb(40 80 130 / 0.38);
-  --lg-drop-kartu: 0 1px 2px rgb(40 80 130 / 0.06), 0 12px 36px -14px rgb(40 80 130 / 0.3);
+  --lg-drop-chrome: 0 1px 2px rgb(20 30 40 / 0.08), 0 18px 46px -16px rgb(20 30 40 / 0.38);
+  --lg-drop-kartu: 0 1px 2px rgb(20 30 40 / 0.06), 0 12px 36px -14px rgb(20 30 40 / 0.3);
   --lg-spec: radial-gradient(130% 70% at 14% 0%, rgb(255 255 255 / 0.5), transparent 60%);
 }
 html[data-kaca='jernih'] { --k: 0.72; }
@@ -1074,14 +1072,14 @@ html[data-kaca='pekat'] { --k: 1.3; }
 /* ── regular: chrome ── */
 .glass-chrome {
   /* dihitung per elemen (bukan di :root) supaya --lg-naik dari scroll edge ikut terbaca */
-  --lg-reg-a: min(1, calc((0.74 + 0.16 * var(--lg-naik)) * var(--k)));
-  --lg-reg-b: min(1, calc((0.5 + 0.12 * var(--lg-naik)) * var(--k)));
+  --lg-reg-a: min(1, calc((0.56 + 0.2 * var(--lg-naik)) * var(--k)));
+  --lg-reg-b: min(1, calc((0.36 + 0.16 * var(--lg-naik)) * var(--k)));
   background:
     radial-gradient(240px circle at var(--mx) var(--my), rgb(255 255 255 / var(--sheen)), transparent 70%),
     var(--lg-spec),
     linear-gradient(155deg, rgb(255 255 255 / var(--lg-reg-a)), rgb(255 255 255 / var(--lg-reg-b)));
-  -webkit-backdrop-filter: blur(var(--glass-blur-chrome)) saturate(1.9) brightness(1.06);
-  backdrop-filter: blur(var(--glass-blur-chrome)) saturate(1.9) brightness(1.06);
+  -webkit-backdrop-filter: blur(var(--glass-blur-chrome)) brightness(1.06);
+  backdrop-filter: blur(var(--glass-blur-chrome)) brightness(1.06);
   border: 1px solid rgb(255 255 255 / 0.3);
   box-shadow: var(--lg-rim), var(--lg-drop-chrome);
   transition: --lg-naik 0.3s ease, --sheen 0.35s ease;
@@ -1102,8 +1100,8 @@ html[data-kaca='pekat'] { --k: 1.3; }
   box-shadow: var(--lg-rim), var(--lg-drop-kartu);
 }
 .glass-card {
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
-  backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(1.06);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
+  backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
   transition: border-color var(--dur-normal) ease, box-shadow var(--dur-normal) ease, --sheen 0.35s ease;
 }
 .vsf-card:hover {
@@ -1113,13 +1111,13 @@ html[data-kaca='pekat'] { --k: 1.3; }
 .vsf-kpi-kaca,
 .vsf-kpi-hijau,
 .vsf-kpi-emas {
-  -webkit-backdrop-filter: blur(var(--lg-blur-kpi)) saturate(1.7) brightness(1.05);
-  backdrop-filter: blur(var(--lg-blur-kpi)) saturate(1.7) brightness(1.05);
+  -webkit-backdrop-filter: blur(var(--lg-blur-kpi)) brightness(1.05);
+  backdrop-filter: blur(var(--lg-blur-kpi)) brightness(1.05);
 }
 .vsf-kpi { border-color: rgb(255 255 255 / 0.34); box-shadow: var(--lg-rim), var(--lg-drop-kartu); }
 .glass-hero {
   border-color: rgb(255 255 255 / 0.36);
-  box-shadow: var(--lg-rim), 0 18px 48px -20px rgb(40 80 130 / 0.36);
+  box-shadow: var(--lg-rim), 0 18px 48px -20px rgb(20 30 40 / 0.36);
 }
 @media (hover: hover) and (pointer: fine) {
   .glass-card:hover { --sheen: 0.5; }
@@ -1156,7 +1154,7 @@ html[data-kaca='pekat'] { --k: 1.3; }
     var(--lg-spec),
     linear-gradient(155deg, rgb(255 255 255 / 0.74), rgb(255 255 255 / 0.46));
   border-color: rgb(255 255 255 / 0.7);
-  box-shadow: var(--lg-rim-kecil), 0 6px 16px -10px rgb(40 80 130 / 0.35);
+  box-shadow: var(--lg-rim-kecil), 0 6px 16px -10px rgb(20 30 40 / 0.35);
 }
 .vsf-btn-secondary:hover:not(:disabled) {
   background:
@@ -1176,7 +1174,7 @@ html[data-kaca='pekat'] { --k: 1.3; }
 .vsf-input {
   background-color: rgb(255 255 255 / 0.8);
   border-color: rgb(215 224 210 / 0.9);
-  box-shadow: inset 0 1px 2px rgb(40 80 130 / 0.08), inset 0 0 0 1px rgb(255 255 255 / 0.6);
+  box-shadow: inset 0 1px 2px rgb(20 30 40 / 0.08), inset 0 0 0 1px rgb(255 255 255 / 0.6);
 }
 .vsf-input:focus { background-color: rgb(255 255 255 / 0.94); box-shadow: 0 0 0 3px rgb(107 157 74 / 0.22); }
 .vsf-input:disabled { background-color: rgb(241 245 249 / 0.8); }
@@ -1191,8 +1189,8 @@ html[data-kaca='pekat'] { --k: 1.3; }
   background:
     var(--lg-spec),
     linear-gradient(155deg, rgb(255 255 255 / min(1, calc(0.94 * var(--k)))), rgb(255 255 255 / min(1, calc(0.86 * var(--k)))));
-  -webkit-backdrop-filter: blur(24px) saturate(1.6);
-  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) ;
+  backdrop-filter: blur(24px) ;
   border: 1px solid rgb(255 255 255 / 0.6);
   box-shadow: var(--lg-rim), 0 0 0 6px rgb(255 255 255 / 0.22), 0 28px 64px -22px rgb(10 31 56 / 0.55);
 }
@@ -1239,75 +1237,15 @@ html[data-kaca='pekat'] { --k: 1.3; }
   .vsf-topbar::before { transition: none; }
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   Liquid Glass v6 — refraksi sungguhan (Chromium; kelas html.lg-lensa dari lib/kaca.ts)
-   Kaca hampir bening: tint tipis, blur kecil, tepi membiaskan isi di belakangnya
-   (filter SVG per elemen: peta displacement tepi + dispersi warna di chrome/hero),
-   rim cahaya tebal, bayangan dalam untuk ketebalan. Browser lain tetap memakai v5 (kaca buram).
-   "Pekat" (data-kaca) dan transparansi-dikurangi mematikan lensa.
-   ══════════════════════════════════════════════════════════════════════════ */
-html.lg-lensa:not([data-kaca='pekat']) {
-  /* kartu konten = "regular": cukup pekat + blur sedang agar teks panjang terbaca */
-  --lg-clr-a: min(1, calc(0.58 * var(--k)));
-  --lg-clr-b: min(1, calc(0.44 * var(--k)));
-  --lg-rim:
-    inset 2px 2px 1px -1px rgb(255 255 255 / 0.95),
-    inset -1.5px -1.5px 1px -1px rgb(255 255 255 / 0.7),
-    inset 0 0 0 1px rgb(255 255 255 / 0.2),
-    inset 5px 5px 16px -9px rgb(255 255 255 / 0.75),
-    inset -5px -5px 16px -9px rgb(255 255 255 / 0.4),
-    inset 0 -16px 26px -16px rgb(30 70 120 / 0.22),
-    inset 3px 0 9px -5px rgb(110 185 255 / 0.5),
-    inset -3px 0 9px -5px rgb(255 205 130 / 0.4);
-}
-html.lg-lensa:not([data-kaca='pekat']) [data-lg] {
-  -webkit-backdrop-filter: var(--lg-url) blur(4px) saturate(1.9) brightness(1.1);
-  backdrop-filter: var(--lg-url) blur(4px) saturate(1.9) brightness(1.1);
-  border-color: rgb(255 255 255 / 0.5);
-}
-/* selama menggulung: tanpa filter SVG (mahal) supaya 60fps; lensa kembali setelah berhenti */
-html.lg-gulir:not([data-kaca='pekat']) [data-lg]:not(.vsf-di-luar) {
-  -webkit-backdrop-filter: blur(4px) saturate(1.8) brightness(1.08) !important;
-  backdrop-filter: blur(4px) saturate(1.8) brightness(1.08) !important;
-}
-/* kartu konten: kaca "regular" (tanpa lensa), blur sedang */
-html.lg-lensa:not([data-kaca='pekat']) .vsf-card {
-  -webkit-backdrop-filter: blur(14px) saturate(1.7) brightness(1.08);
-  backdrop-filter: blur(14px) saturate(1.7) brightness(1.08);
-  border-color: rgb(255 255 255 / 0.5);
-}
-/* KPI + hero berisi angka besar: lebih bening dari kartu konten, tetap terbaca */
-html.lg-lensa:not([data-kaca='pekat']) .vsf-kpi-kaca {
-  --lg-clr-a: min(1, calc(0.44 * var(--k)));
-  --lg-clr-b: min(1, calc(0.24 * var(--k)));
-}
-html.lg-lensa:not([data-kaca='pekat']) .glass-chrome {
-  --lg-reg-a: min(1, calc((0.4 + 0.3 * var(--lg-naik)) * var(--k)));
-  --lg-reg-b: min(1, calc((0.24 + 0.2 * var(--lg-naik)) * var(--k)));
-}
-html.lg-lensa:not([data-kaca='pekat']) .glass-hero {
-  background:
-    radial-gradient(26rem 14rem at 100% 0%, rgb(233 205 83 / 0.34), transparent 70%),
-    radial-gradient(30rem 16rem at 0% 100%, rgb(96 160 240 / 0.3), transparent 70%),
-    var(--lg-spec),
-    linear-gradient(135deg, rgb(255 255 255 / min(1, calc(0.54 * var(--k)))), rgb(207 226 206 / min(1, calc(0.34 * var(--k)))));
-}
 /* Kontras teks di atas kaca: slate-400/500/600 bawaan Tailwind (#94a3b8/#64748b/#475569) dan text-abu (#4f6075) diukur
    2.3–4.4:1 di atas foto (target 4.5:1). Digelapkan hanya di dalam permukaan kaca; di luar kaca tidak berubah.
    Ancestor lewat :where() (spesifisitas 0) + kelas utilitas (0,1,0) = sama dengan utilitas Tailwind, menang karena urutan. */
 :where(.vsf-card, .glass-card, .glass-hero, .vsf-kpi-kaca, .glass-chrome, .vsf-kaca:not(.vsf-kaca-gelap)) .text-slate-400,
 :where(.vsf-card, .glass-card, .glass-hero, .vsf-kpi-kaca, .glass-chrome, .vsf-kaca:not(.vsf-kaca-gelap)) .text-slate-500,
-:where(.vsf-card, .glass-card, .glass-hero, .vsf-kpi-kaca, .glass-chrome, .vsf-kaca:not(.vsf-kaca-gelap)) .text-abu { color: #2c3b50; }
+:where(.vsf-card, .glass-card, .glass-hero, .vsf-kpi-kaca, .glass-chrome, .vsf-kaca:not(.vsf-kaca-gelap)) .text-abu { color: #1f2d42; }
 :where(.vsf-card, .glass-card, .glass-hero, .vsf-kpi-kaca, .glass-chrome, .vsf-kaca:not(.vsf-kaca-gelap)) .text-slate-600,
 :where(.vsf-card, .glass-card, .glass-hero, .vsf-kpi-kaca, .glass-chrome, .vsf-kaca:not(.vsf-kaca-gelap)) .text-slate-700,
-:where(.vsf-card, .glass-card, .glass-hero, .vsf-kpi-kaca, .glass-chrome, .vsf-kaca:not(.vsf-kaca-gelap)) .vsf-label { color: #223148; }
-
-@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-  html.lg-lensa [data-lg] {
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-  }
-}
+:where(.vsf-card, .glass-card, .glass-hero, .vsf-kpi-kaca, .glass-chrome, .vsf-kaca:not(.vsf-kaca-gelap)) .vsf-label { color: #1a2740; }
 
 /* ══════════════════════════════════════════════════════════════════════════
    Liquid Glass v7 — halaman landing (Login, Tentang) memakai material yang sama dengan app
@@ -1322,8 +1260,7 @@ html.lg-lensa:not([data-kaca='pekat']) .glass-hero {
     inset 1.5px 1.5px 0 -0.5px rgb(255 255 255 / 0.55),
     inset -1px -1px 0 -0.5px rgb(255 255 255 / 0.18),
     inset 0 0 0 1px rgb(255 255 255 / 0.12),
-    inset 4px 4px 14px -9px rgb(255 255 255 / 0.35),
-    inset 0 -14px 22px -14px rgb(120 190 255 / 0.2);
+    inset 4px 4px 14px -9px rgb(255 255 255 / 0.35);
   --lg-drop-landing: 0 2px 6px rgb(7 21 39 / 0.14), 0 24px 56px -22px rgb(7 21 39 / 0.55);
 }
 
@@ -1388,17 +1325,4 @@ html.lg-lensa:not([data-kaca='pekat']) .glass-hero {
   .vsf-bilah { background: #0a1f38; box-shadow: none; }
   .vsf-kaca,
   .vsf-satu .vsf-card { background: rgb(255 255 255 / 0.97); box-shadow: 0 1px 3px rgb(7 21 39 / 0.2); }
-}
-
-/* ══ Performa (P2): kaca tanpa lensa untuk KPI + kartu sapaan ══
-   Lensa SVG hanya di rail, topbar, hero (lib/kaca.ts). Elemen berikut tetap bening tapi memakai blur kecil biasa:
-   radius blur 8px jauh lebih murah dari 16–24px, dan tidak ada filter SVG yang dihitung per piksel. */
-html.lg-lensa:not([data-kaca='pekat']) :is(.vsf-kpi-kaca, .vsf-kpi-hijau, .vsf-kpi-emas, .glass-card) {
-  -webkit-backdrop-filter: blur(8px) saturate(1.8) brightness(1.08);
-  backdrop-filter: blur(8px) saturate(1.8) brightness(1.08);
-  border-color: rgb(255 255 255 / 0.5);
-}
-html.lg-lensa:not([data-kaca='pekat']) :is(.glass-card, .vsf-kpi-kaca) {
-  --lg-clr-a: min(1, calc(0.46 * var(--k)));
-  --lg-clr-b: min(1, calc(0.26 * var(--k)));
 }

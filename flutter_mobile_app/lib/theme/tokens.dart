@@ -24,7 +24,7 @@ class Tok {
 
   /// Abu untuk TEKS kecil; [abu] untuk ikon/dekorasi. Digelapkan dari 0xFF556277 karena
   /// teks ini sering berada di atas kaca bening (foto di belakang): target ≥4,5:1.
-  static const Color abuTeks = Color(0xFF3E4C60);
+  static const Color abuTeks = Color(0xFF2F3D52);
   static const Color error = Color(0xFFC0392B);
   static const Color warning = Color(0xFFE0A42B);
 

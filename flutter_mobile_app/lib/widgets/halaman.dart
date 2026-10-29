@@ -30,8 +30,8 @@ class PageTop extends StatelessWidget {
           radius: 24,
           padding: const EdgeInsets.fromLTRB(18, 12, 12, 12),
           warna: [
-            Colors.white.withValues(alpha: 0.7),
-            const Color(0xFFD7E8F8).withValues(alpha: 0.52),
+            Colors.white.withValues(alpha: 0.56),
+            Colors.white.withValues(alpha: 0.38),
           ],
           child: Row(
             children: [
@@ -180,9 +180,9 @@ class HeroKartu extends StatelessWidget {
         radius: 28,
         padding: EdgeInsets.all(padding),
         warna: [
-          Colors.white.withValues(alpha: 0.64),
-          const Color(0xFFD7E8F8).withValues(alpha: 0.5),
-          const Color(0xFFF6EDBE).withValues(alpha: 0.54),
+          Colors.white.withValues(alpha: 0.5),
+          const Color(0xFFCFE2CE).withValues(alpha: 0.34),
+          const Color(0xFFF6EDBE).withValues(alpha: 0.38),
         ],
         child: child,
       ),

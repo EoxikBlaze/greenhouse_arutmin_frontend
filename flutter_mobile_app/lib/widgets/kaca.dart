@@ -11,8 +11,8 @@ import '../theme/tokens.dart';
 /// dengan prinsip yang sama (lihat liquid-glass.md):
 ///  * dua tingkat material: [KacaVarian.chrome] ("regular", lapisan navigasi yang
 ///    mengambang: dock, app bar) dan kaca konten ([panel] / [bening]) yang lebih tembus;
-///  * rim cahaya terarah ([RimKaca]): terang kiri-atas, redup kanan-bawah, pendar biru/hangat
-///    di tepi, bayangan dalam di bawah untuk kesan tebal;
+///  * rim cahaya terarah ([RimKaca]): terang kiri-atas, redup kanan-bawah, pendar putih
+///    di tepi, bayangan dalam di bawah untuk kesan tebal (netral, tanpa warna);
 ///  * kaca konten memakai [BackdropFilter.grouped]: semua panel di bawah satu [BackdropGroup]
 ///    berbagi SATU blur latar (padanan `GlassEffectContainer`), jauh lebih ringan dari
 ///    puluhan blur terpisah. Chrome tidak ikut grup karena menimpa konten (aturan engine:
@@ -178,11 +178,12 @@ class _KacaCairState extends State<KacaCair> {
       );
     } else {
       // (alpha atas, alpha bawah) per tingkat; nilai sama dengan token --lg-* web
+      // bening-buram: tint putih tipis + blur sedang (nilai sama dengan token --lg-* web)
       final (double a, double b) = chrome
-          ? (0.74, 0.50)
+          ? (0.56, 0.36)
           : widget.varian == KacaVarian.bening
-          ? (0.46, 0.26)
-          : (0.62, 0.46);
+          ? (0.5, 0.32)
+          : (0.5, 0.32);
       final List<Color> tint =
           widget.warna ??
           (gelap
@@ -240,12 +241,12 @@ class _KacaCairState extends State<KacaCair> {
         borderRadius: r,
         boxShadow: [
           const BoxShadow(
-            color: Color(0x142A5080),
+            color: Color(0x14141E28),
             blurRadius: 2,
             offset: Offset(0, 1),
           ),
           BoxShadow(
-            color: Color(chrome ? 0x612A5080 : 0x4D2A5080),
+            color: Color(chrome ? 0x52141E28 : 0x40141E28),
             blurRadius: chrome ? 46 : 36,
             spreadRadius: chrome ? -16 : -14,
             offset: Offset(0, chrome ? 18 : 12),
@@ -277,8 +278,8 @@ class _KacaCairState extends State<KacaCair> {
 /// Rim cahaya kaca (padanan --lg-rim web, yang di CSS memakai inset box-shadow):
 ///  1. garis tepi bergradasi: terang di kiri-atas, hampir hilang di tengah, sedang di kanan-bawah;
 ///  2. pendar dalam putih di sepanjang tepi (kesan tepi kaca yang membulat);
-///  3. pendar biru di kiri dan hangat di kanan (dispersi cahaya);
-///  4. bayangan dalam tipis di bawah (ketebalan).
+///  3. bayangan dalam tipis di bawah (ketebalan).
+/// Semua netral (putih/abu-gelap): tanpa pendar warna agar kaca tidak berwarna biru.
 /// Dipakai juga oleh elemen kecil tanpa blur ([kecil] = garis lebih tipis, tanpa pendar warna).
 class RimKaca extends CustomPainter {
   const RimKaca({required this.radius, this.gelap = false, this.kecil = false});
@@ -305,21 +306,6 @@ class RimKaca extends CustomPainter {
           ..color = Colors.white.withValues(alpha: 0.38 * f)
           ..maskFilter = const MaskFilter.blur(BlurStyle.inner, 7),
       );
-      // dispersi: biru di kiri, hangat di kanan
-      canvas.drawRRect(
-        rr,
-        Paint()
-          ..shader = LinearGradient(
-            colors: [
-              const Color(0xFF6EB9FF).withValues(alpha: 0.55 * f),
-              const Color(0x006EB9FF),
-              const Color(0x00FFCD82),
-              const Color(0xFFFFCD82).withValues(alpha: 0.45 * f),
-            ],
-            stops: const [0, 0.32, 0.68, 1],
-          ).createShader(rect)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.inner, 5),
-      );
       // ketebalan: bayangan dalam di bagian bawah
       canvas.drawRRect(
         rr,
@@ -327,7 +313,7 @@ class RimKaca extends CustomPainter {
           ..shader = const LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0x001E4678), Color(0x381E4678)],
+            colors: [Color(0x00141E28), Color(0x26141E28)],
             stops: [0.55, 1],
           ).createShader(rect)
           ..maskFilter = const MaskFilter.blur(BlurStyle.inner, 10),

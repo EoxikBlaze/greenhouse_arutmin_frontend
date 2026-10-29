@@ -198,16 +198,16 @@ class HeroHeader extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.white.withValues(alpha: 0.72),
-              const Color(0xFFD7E8F8).withValues(alpha: 0.58),
-              const Color(0xFFE2F0D8).withValues(alpha: 0.56),
+              Colors.white.withValues(alpha: 0.56),
+              const Color(0xFFCFE2CE).withValues(alpha: 0.4),
+              const Color(0xFFE2F0D8).withValues(alpha: 0.4),
             ],
           ),
           borderRadius: radius,
           border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x402A5080),
+              color: Color(0x40141E28),
               blurRadius: 34,
               spreadRadius: -12,
               offset: Offset(0, 16),
