@@ -20,6 +20,9 @@ class WaterControlPage extends StatefulWidget {
   State<WaterControlPage> createState() => _WaterControlPageState();
 }
 
+/// Backend menolak semua perintah kontrol air (503 kontrol_air_nonaktif) sampai jalur antrean aktif.
+const bool _kontrolAktif = false;
+
 class _WaterControlPageState extends State<WaterControlPage> {
   Map<String, dynamic>? _data;
   String? _galat;
@@ -86,7 +89,7 @@ class _WaterControlPageState extends State<WaterControlPage> {
   }
 
   Future<void> _aksi(String path, [Map<String, dynamic>? body]) async {
-    if (_kerja) return;
+    if (!_kontrolAktif || _kerja) return;
     setState(() => _kerja = true);
     try {
       await widget.api.postJson(path, body);
@@ -103,6 +106,7 @@ class _WaterControlPageState extends State<WaterControlPage> {
   }
 
   Future<void> _konfirmasiIsi() async {
+    if (!_kontrolAktif) return;
     final ok = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
@@ -126,6 +130,7 @@ class _WaterControlPageState extends State<WaterControlPage> {
   }
 
   Future<void> _konfirmasiMode(bool otomatis) async {
+    if (!_kontrolAktif) return;
     final ok = await konfirmasi(
       context,
       judul: otomatis ? 'Ganti ke mode otomatis?' : 'Ganti ke mode manual?',
@@ -193,6 +198,13 @@ class _WaterControlPageState extends State<WaterControlPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (!_kontrolAktif) ...[
+          const BannerNonaktif(
+            'Kontrol air dinonaktifkan sementara. Perangkat belum menerima maupun mengonfirmasi perintah dari aplikasi. '
+            'Gunakan katup atau saklar fisik. Status di bawah tetap ditampilkan.',
+          ),
+          const SizedBox(height: Tok.sp3),
+        ],
         if (_putus && _sukses != null) ...[
           BannerBasi(sejak: _sukses!),
           const SizedBox(height: Tok.sp3),
@@ -220,7 +232,7 @@ class _WaterControlPageState extends State<WaterControlPage> {
                   rata: true,
                   label: const ['Otomatis', 'Manual'],
                   pilih: otomatis ? 0 : 1,
-                  onPilih: _kerja
+                  onPilih: _kerja || !_kontrolAktif
                       ? null
                       : (i) {
                           if ((i == 0) != otomatis) _konfirmasiMode(i == 0);
@@ -234,7 +246,7 @@ class _WaterControlPageState extends State<WaterControlPage> {
                         label: 'Isi air',
                         ikon: Ikon.tetes,
                         sibuk: _kerja,
-                        onTap: _konfirmasiIsi,
+                        onTap: _kontrolAktif ? _konfirmasiIsi : null,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -242,7 +254,7 @@ class _WaterControlPageState extends State<WaterControlPage> {
                       child: SizedBox(
                         height: 50,
                         child: OutlinedButton.icon(
-                          onPressed: _kerja
+                          onPressed: _kerja || !_kontrolAktif
                               ? null
                               : () => _aksi('/watercontrol/stop'),
                           icon: const Icon(Ikon.berhenti, size: 18),

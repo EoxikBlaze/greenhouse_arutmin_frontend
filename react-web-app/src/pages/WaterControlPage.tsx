@@ -40,6 +40,9 @@ function tgl(iso?: string | null): string {
   return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()} ${jam}`
 }
 
+/** Backend menolak semua perintah kontrol air (503 kontrol_air_nonaktif) sampai jalur antrean aktif. */
+const KONTROL_AKTIF = false
+
 export default function WaterControlPage() {
   const { username } = useAuth()
   const handleApiError = useApiError()
@@ -78,7 +81,7 @@ export default function WaterControlPage() {
   }
 
   async function sendMode(next: Mode) {
-    if (busy || next === mode) return
+    if (!KONTROL_AKTIF || busy || next === mode) return
     setBusy('mode')
     try {
       const res = await api.post('/watercontrol/setMode', { mode: next })
@@ -96,7 +99,7 @@ export default function WaterControlPage() {
   }
 
   async function action(kind: 'fill' | 'stop') {
-    if (busy || !terjangkau || mode !== 'MANUAL') return
+    if (!KONTROL_AKTIF || busy || !terjangkau || mode !== 'MANUAL') return
     setBusy(kind)
     const path = kind === 'fill' ? '/watercontrol/fill' : '/watercontrol/stop'
     const label = kind === 'fill' ? 'FILL' : 'STOP'
@@ -197,6 +200,16 @@ export default function WaterControlPage() {
 
       <StatusPenampung onPesan={(teks, ok) => setPesan({ teks, ok })} />
 
+      {!KONTROL_AKTIF && (
+        <div role="status" className="vsf-card flex items-start gap-2 p-4 text-[13px] vsf-tone-warn">
+          <Ikon nama="peringatan" className="mt-[1px] h-4 w-4 shrink-0" />
+          <span>
+            Kontrol air dinonaktifkan sementara. Perangkat belum menerima maupun mengonfirmasi perintah dari aplikasi.
+            Gunakan katup atau saklar fisik. Status di bawah tetap ditampilkan.
+          </span>
+        </div>
+      )}
+
       {/* Pengaturan mode */}
       <section className="vsf-card p-4 sm:p-5">
         <div className="vsf-judul-bagian">Pengaturan mode</div>
@@ -205,7 +218,7 @@ export default function WaterControlPage() {
             <button
               key={m}
               type="button"
-              disabled={busy !== null || !terjangkau || !mode}
+              disabled={!KONTROL_AKTIF || busy !== null || !terjangkau || !mode}
               onClick={() => void sendMode(m)}
               className={clsx(
                 'inline-flex min-h-[44px] items-center rounded-full border px-3 py-1 text-[12px] font-semibold transition disabled:opacity-60 sm:min-h-0',
@@ -228,7 +241,7 @@ export default function WaterControlPage() {
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <button
             type="button"
-            disabled={busy !== null || !terjangkau || mode !== 'MANUAL'}
+            disabled={!KONTROL_AKTIF || busy !== null || !terjangkau || mode !== 'MANUAL'}
             onClick={() => void action('fill')}
             className="vsf-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -237,7 +250,7 @@ export default function WaterControlPage() {
           </button>
           <button
             type="button"
-            disabled={busy !== null || !terjangkau || mode !== 'MANUAL'}
+            disabled={!KONTROL_AKTIF || busy !== null || !terjangkau || mode !== 'MANUAL'}
             onClick={() => void action('stop')}
             className="vsf-input min-h-[44px] rounded-full font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >

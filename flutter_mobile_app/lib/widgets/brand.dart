@@ -490,6 +490,30 @@ class ErrorPanel extends StatelessWidget {
 }
 
 /// Banner bila polling gagal tetapi data terakhir masih ditampilkan.
+/// Keterangan fitur yang sedang dinonaktifkan (bukan galat jaringan).
+class BannerNonaktif extends StatelessWidget {
+  const BannerNonaktif(this.teks, {super.key});
+
+  final String teks;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    liveRegion: true,
+    label: teks,
+    excludeSemantics: true,
+    child: Panel(
+      warnaTepi: Tok.warning,
+      child: Row(
+        children: [
+          const Icon(Ikon.peringatan, color: Tok.warning),
+          const SizedBox(width: 10),
+          Expanded(child: Text(teks, style: Tok.body)),
+        ],
+      ),
+    ),
+  );
+}
+
 class BannerBasi extends StatelessWidget {
   const BannerBasi({super.key, required this.sejak});
 
