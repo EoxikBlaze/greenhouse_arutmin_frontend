@@ -174,7 +174,7 @@ export function ChatAsisten() {
   }
 
   return (
-    <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-labelledby="vsf-chat-title">
+    <section className="vsf-card flex h-full w-full min-w-0 flex-col p-4 sm:p-5" aria-labelledby="vsf-chat-title">
       <div className="flex flex-wrap items-center gap-2">
         <div id="vsf-chat-title" className="vsf-judul-bagian">
           Tanya asisten
@@ -189,7 +189,7 @@ export function ChatAsisten() {
 
       <div
         ref={gulirRef}
-        className="mt-3 max-h-[min(60vh,560px)] min-h-[280px] overflow-y-auto overscroll-contain rounded-card border border-arutmin-border bg-arutmin-page p-3"
+        className="mt-3 max-h-[min(70vh,640px)] min-h-[280px] flex-1 overflow-y-auto overscroll-contain rounded-card border border-arutmin-border bg-arutmin-page p-3"
         role="log"
         aria-live="polite"
         aria-label="Percakapan dengan asisten AI"

@@ -129,9 +129,9 @@ export default function AsistenAiPage() {
   }, [galat])
 
   return (
-    <div className="mx-auto grid w-full max-w-[1180px] grid-cols-[minmax(0,1fr)] items-start gap-4 vsf-stagger lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
+    <div className="mx-auto grid w-full max-w-[1180px] grid-cols-[minmax(0,1fr)] gap-4 vsf-stagger lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
       {/* Kiri: chat sebagai fokus utama */}
-      <div className="grid min-w-0 gap-3">
+      <div className="grid min-w-0 grid-rows-[auto_minmax(0,1fr)] gap-3">
         <header className="px-1">
           <h2 className="font-display text-[20px] font-bold leading-tight text-tinta">Asisten AI</h2>
           <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
@@ -142,7 +142,7 @@ export default function AsistenAiPage() {
       </div>
 
       {/* Kanan: langkah berikutnya + data yang dibaca */}
-      <aside className="grid min-w-0 gap-4">
+      <aside className="grid min-w-0 grid-rows-[auto_1fr] gap-4">
         <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
           <div className="vsf-judul-bagian">Langkah berikutnya</div>
           <p className="mt-1 text-[12.5px] leading-relaxed text-slate-600">
