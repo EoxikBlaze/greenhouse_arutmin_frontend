@@ -1,171 +1,67 @@
 import { useEffect, useMemo, useState } from 'react'
-import clsx from 'clsx'
 import { api } from '../lib/api'
 import { useApiError, useApiList } from '../lib/crudApi'
+import { useApiObject } from '../lib/useApiObject'
 import { useAuth } from '../lib/authContext'
-import { StatusBadge } from '../components/StatusBadge'
-import { relatif, waktuBasi } from '../lib/waktu'
 import { Ikon } from '../components/Ikon'
+import { StripStatus } from '../components/sensor/StripStatus'
+import { KartuNilai } from '../components/sensor/KartuNilai'
+import { FilterBar, type Rentang } from '../components/sensor/FilterBar'
+import { PanelGrafik } from '../components/sensor/PanelGrafik'
+import { TabelRiwayat } from '../components/sensor/TabelRiwayat'
+import {
+  PARAMS,
+  formatJam,
+  formatTanggal,
+  hapusDuplikat,
+  nilaiAngka,
+  seriParam,
+  tanggalIso,
+  terakhirPerParam,
+  unduhLaporan,
+  waktuMs,
+  type Ambang,
+  type KunciSensor,
+  type Titik,
+} from '../lib/sensorLaporan'
 
-type Param = 'pH' | 'Suhu Air' | 'TDS' | 'Suhu Udara' | 'Kelembapan'
-type Range = '6 Jam' | '24 Jam' | '7 Hari'
-
-/** Satu titik GET /monitoring/chart-data (kolom tabel `monitorings`). */
-type TitikData = {
-  id?: string | number
-  /** Waktu bacaan — nama kolom backend (alias `waktu` diterima bila ada). */
-  created_at?: string | null
-  waktu?: string | null
-  ph?: number | null
-  waterTemp?: number | null
-  tds?: number | null
-  airTemp?: number | null
-  humidity?: number | null
-}
-
-const PARAM_DEFS: Record<Param, { field: keyof TitikData; unit: string; kategorikal?: boolean }> = {
-  pH: { field: 'ph', unit: '' },
-  'Suhu Air': { field: 'waterTemp', unit: '°C' },
-  TDS: { field: 'tds', unit: 'ppm' },
-  'Suhu Udara': { field: 'airTemp', unit: '°C' },
-  Kelembapan: { field: 'humidity', unit: '%' },
-}
-
-const RANGE_MS: Record<Range, number> = {
+const RANGE_MS: Record<Exclude<Rentang, 'Kustom'>, number> = {
   '6 Jam': 6 * 3_600_000,
   '24 Jam': 24 * 3_600_000,
   '7 Hari': 7 * 24 * 3_600_000,
 }
 
-const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+const HALAMAN = 100
+const BATAS_UNDUH = 1000
+const TAMBAH_BARIS = 50
 
-function jam(iso: number): string {
-  const d = new Date(iso)
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-}
+type Kustom = { rows: Titik[]; total: number; page: number }
 
-function tgl(iso?: string | null): string {
-  if (!iso) return '—'
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return '—'
-  return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()} ${jam(d.getTime())}`
-}
+const rentangTeks = (a: number, b: number) =>
+  `${formatTanggal(a)} ${formatJam(a).slice(0, 5)} – ${formatTanggal(b)} ${formatJam(b).slice(0, 5)}`
 
-function waktu(t: TitikData): string | null {
-  return t.waktu ?? t.created_at ?? null
-}
-
-function Pill({ active, children, onClick }: { active?: boolean; children: string; onClick?: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={clsx(
-        'inline-flex min-h-[44px] items-center rounded-full border px-3 py-1 text-[12px] font-semibold transition sm:min-h-0',
-        active
-          ? 'border-arutmin-moss bg-activePill text-white'
-          : 'border-arutmin-border bg-white text-slate-700 hover:border-arutmin-moss/60',
-      )}
-    >
-      {children}
-    </button>
-  )
-}
-
-/* ── Ikon SVG inline (R3): pengganti emoji ikon kotak/jam/peringatan — aria-hidden, 16px ── */
-/** Ilustrasi kotak kosong — empty state "belum ada data" (44px). */
-function IlustrasiKotakKosong() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <rect x="7" y="14" width="34" height="24" rx="4" stroke="#6B9D4A" strokeWidth="2" fill="#CFE2CE" fillOpacity="0.45" />
-      <path d="M7 26h9l3 5h10l3-5h9" stroke="#6B9D4A" strokeWidth="2" strokeLinejoin="round" fill="none" />
-      <path d="M17 10.5h14M20 6.5h8" stroke="#6B9D4A" strokeWidth="2" strokeLinecap="round" opacity="0.55" />
-    </svg>
-  )
-}
-
-/** Ilustrasi jam — empty state "rentang kosong" (44px). */
-function IlustrasiJam() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <circle cx="24" cy="25" r="15" stroke="#6B9D4A" strokeWidth="2" fill="#CFE2CE" fillOpacity="0.45" />
-      <path d="M24 17v8.5l5.5 3.5" stroke="#2D452F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M18 6.5h12" stroke="#6B9D4A" strokeWidth="2" strokeLinecap="round" opacity="0.55" />
-    </svg>
-  )
-}
-
-/* ── Grafik SVG (tanpa pustaka eksternal): garis + area + titik akhir ── */
-const W = 800
-const H = 260
-const PL = 56
-const PR = 14
-const PT = 16
-const PB = 30
-
-function Grafik({ points, unit }: { points: Array<{ t: number; y: number; teks: string }>; unit: string }) {
-  const min = Math.min(...points.map((p) => p.y))
-  const max = Math.max(...points.map((p) => p.y))
-  const span = max - min || 1
-  const lo = min - span * 0.12
-  const hi = max + span * 0.12
-  const x = (t: number) => {
-    const t0 = points[0].t
-    const t1 = points[points.length - 1].t
-    const r = t1 === t0 ? 0.5 : (t - t0) / (t1 - t0)
-    return PL + r * (W - PL - PR)
-  }
-  const y = (v: number) => PT + (1 - (v - lo) / (hi - lo)) * (H - PT - PB)
-
-  const garis = points.map((p) => `${x(p.t).toFixed(1)},${y(p.y).toFixed(1)}`).join(' ')
-  const area = `${PL},${H - PB} ${garis} ${W - PR},${H - PB}`
-  const ticks = Array.from({ length: 4 }, (_, i) => lo + ((hi - lo) * i) / 3)
-  const digit = span >= 100 ? 0 : span >= 10 ? 1 : 2
-  const akhir = points[points.length - 1]
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="vsf-chart w-full h-auto" role="img" aria-label={`Grafik ${unit || 'nilai sensor'} terhadap waktu`}>
-      {ticks.map((v, i) => (
-        <g key={i}>
-          <line x1={PL} x2={W - PR} y1={y(v)} y2={y(v)} stroke="#E2E8DD" strokeWidth={1} />
-          <text x={PL - 8} y={y(v) + 4} textAnchor="end" fontSize={12} fill="#34445a">
-            {v.toFixed(digit)}
-          </text>
-        </g>
-      ))}
-      <polygon points={area} fill="rgba(107,157,74,0.14)" />
-      <polyline points={garis} fill="none" stroke="#6B9D4A" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
-      {points.length <= 60 &&
-        points.map((p, i) => (
-          <circle key={i} cx={x(p.t)} cy={y(p.y)} r={2.5} fill="#4C6A4B">
-            <title>{`${tgl(new Date(p.t).toISOString())} — ${p.teks}`}</title>
-          </circle>
-        ))}
-      <circle cx={x(akhir.t)} cy={y(akhir.y)} r={5} fill="#6B9D4A" stroke="#fff" strokeWidth={2}>
-        <title>{`${tgl(new Date(akhir.t).toISOString())} — ${akhir.teks}`}</title>
-      </circle>
-
-      <text x={PL} y={H - 8} fontSize={12} fill="#34445a">
-        {tgl(new Date(points[0].t).toISOString())}
-      </text>
-      <text x={W - PR} y={H - 8} fontSize={12} fill="#34445a" textAnchor="end">
-        {tgl(new Date(akhir.t).toISOString())}
-      </text>
-    </svg>
-  )
+function dariAxios(err: unknown): boolean {
+  const e = err as { response?: unknown; request?: unknown } | null
+  return Boolean(e?.response || e?.request)
 }
 
 export default function SensorRealtimePage() {
   const { role } = useAuth()
+  const pengelola = role !== 'petani'
   const handleApiError = useApiError()
-  const [param, setParam] = useState<Param>('pH')
-  const [range, setRange] = useState<Range>('6 Jam')
 
-  // Data live: GET /monitoring/chart-data → array titik (urut waktu naik).
-  const { rows, loading, error, reload } = useApiList<TitikData>('/monitoring/chart-data')
+  // Batas aman per sensor — sumber yang sama dengan Dashboard (tabel sensor_thresholds).
+  const { data: dash } = useApiObject<{ ambang?: Ambang }>('/dashboard', { pollMs: 60_000 })
+  const ambang: Ambang = dash?.ambang ?? null
 
-  // Auto-refresh senyap tiap 15 dtk — tanpa reload halaman, tanpa kedip skeleton.
-  // `kini` diisi lewat effect (bukan Date.now() di dalam render — aturan purity oxlint).
+  const [rentang, setRentang] = useState<Rentang>('6 Jam')
+  const [terpilih, setTerpilih] = useState<KunciSensor[]>(['ph'])
+  const [batasTabel, setBatasTabel] = useState(TAMBAH_BARIS)
+
+  // Data live: GET /monitoring/chart-data → 288 titik terakhir (urut waktu naik).
+  const { rows: live, loading, error, reload } = useApiList<Titik>('/monitoring/chart-data')
+
+  // Refresh senyap tiap 15 dtk. `kini` diisi lewat effect (bukan Date.now() di render — aturan purity oxlint).
   const [kini, setKini] = useState(0)
   useEffect(() => {
     const tick = () => {
@@ -177,330 +73,239 @@ export default function SensorRealtimePage() {
     return () => clearInterval(id)
   }, [reload])
 
-  // Waktu bacaan paling baru → jangkauan rentang dihitung dari titik terakhir
-  // (bukan jam sistem), supaya riwayat yang tersedia tetap terbaca apa adanya.
-  const waktuTerbaru = useMemo(() => {
-    const all = rows.map((r) => Date.parse(waktu(r) ?? '')).filter((n) => !Number.isNaN(n))
-    return all.length ? Math.max(...all) : null
-  }, [rows])
-
-  const terlihat = useMemo(() => {
-    if (waktuTerbaru === null) return []
-    const batas = waktuTerbaru - RANGE_MS[range]
-    return rows.filter((r) => {
-      const t = Date.parse(waktu(r) ?? '')
-      return !Number.isNaN(t) && t >= batas
-    })
-  }, [rows, waktuTerbaru, range])
-
-  const basi = waktuTerbaru !== null && kini > 0 && kini - waktuTerbaru > 10 * 60_000
-
-  const def = PARAM_DEFS[param]
-  const kategori = useMemo(() => {
-    if (!def.kategorikal) return []
-    return Array.from(new Set(terlihat.map((r) => String(r[def.field] ?? '').trim()).filter(Boolean))).sort()
-  }, [terlihat, def])
-
-  const titik = useMemo(() => {
-    const out: Array<{ t: number; y: number; teks: string }> = []
-    for (const r of terlihat) {
-      const t = Date.parse(waktu(r) ?? '')
-      if (Number.isNaN(t)) continue
-      const raw = r[def.field]
-      if (def.kategorikal) {
-        const s = raw === null || raw === undefined ? '' : String(raw).trim()
-        const i = kategori.indexOf(s)
-        if (i < 0) continue
-        out.push({ t, y: i, teks: s || '—' })
-      } else {
-        if (raw === null || raw === undefined || String(raw).trim() === '') continue
-        const n = Number(raw)
-        if (Number.isNaN(n)) continue
-        out.push({ t, y: n, teks: `${n}${def.unit ? ` ${def.unit}` : ''}` })
-      }
-    }
-    return out
-  }, [terlihat, def, kategori])
-
-  const nilaiAkhir = titik.length ? titik[titik.length - 1] : null
-
-  /* ── Riwayat manual (petani: tanpa tombol tarik — sesuai catatan mockup) ── */
+  // Rentang kustom: GET /monitoring/tarik per halaman.
   const [dari, setDari] = useState('')
   const [sampai, setSampai] = useState('')
-  const [tarikRows, setTarikRows] = useState<TitikData[]>([])
-  const [tarikLoading, setTarikLoading] = useState(false)
-  const [tarikError, setTarikError] = useState<string | null>(null)
-  const [tarikPernah, setTarikPernah] = useState(false)
+  const [kustom, setKustom] = useState<Kustom | null>(null)
+  const [kustomMuat, setKustomMuat] = useState(false)
+  const [kustomGalat, setKustomGalat] = useState<string | null>(null)
 
-  async function tarik() {
-    if (tarikLoading) return
-    setTarikLoading(true)
-    setTarikError(null)
+  const [mengunduh, setMengunduh] = useState(false)
+  const [galatUnduh, setGalatUnduh] = useState<string | null>(null)
+
+  const liveBersih = useMemo(() => hapusDuplikat(live), [live])
+  const kustomBersih = useMemo(() => hapusDuplikat(kustom?.rows ?? []), [kustom])
+  const bersih = rentang === 'Kustom' ? kustomBersih.rows : liveBersih.rows
+
+  // Jangkauan rentang dihitung dari bacaan terakhir (bukan jam sistem) agar riwayat yang tersedia tetap terbaca.
+  const waktuTerbaru = useMemo(() => {
+    const all = live.map(waktuMs).filter((n): n is number => n !== null)
+    return all.length ? Math.max(...all) : null
+  }, [live])
+
+  const terlihat = useMemo(() => {
+    if (rentang === 'Kustom') return bersih
+    if (waktuTerbaru === null) return []
+    const batas = waktuTerbaru - RANGE_MS[rentang]
+    return bersih.filter((r) => {
+      const t = waktuMs(r)
+      return t !== null && t >= batas
+    })
+  }, [rentang, bersih, waktuTerbaru])
+
+  const terakhir = useMemo(() => terakhirPerParam(live), [live])
+  const seri = useMemo(
+    () => Object.fromEntries(PARAMS.map((p) => [p.kunci, seriParam(terlihat, p.kunci)])) as Record<KunciSensor, ReturnType<typeof seriParam>>,
+    [terlihat],
+  )
+
+  const turun = useMemo(() => [...terlihat].sort((a, b) => (waktuMs(b) ?? 0) - (waktuMs(a) ?? 0)), [terlihat])
+  const barisTabel = rentang === 'Kustom' ? turun : turun.slice(0, batasTabel)
+  const adaLagi = rentang === 'Kustom' ? (kustom ? kustom.rows.length < kustom.total : false) : batasTabel < turun.length
+
+  function toggle(k: KunciSensor) {
+    setTerpilih((t) => (t.includes(k) ? (t.length > 1 ? t.filter((x) => x !== k) : t) : [...t, k]))
+  }
+
+  async function tarik(halaman: number, dr = dari, sp = sampai) {
+    if (kustomMuat) return
+    if (dr && sp && dr > sp) {
+      setKustomGalat('Tanggal "dari" harus sebelum atau sama dengan tanggal "sampai".')
+      return
+    }
+    setKustomMuat(true)
+    setKustomGalat(null)
     try {
-      const res = await api.get('/monitoring/tarik', {
-        params: { dari: dari || undefined, sampai: sampai || undefined, per_page: 50 },
-      })
-      const d = (res.data ?? {}) as { data?: unknown }
-      setTarikRows(Array.isArray(d.data) ? (d.data as TitikData[]) : [])
-      setTarikPernah(true)
+      const res = await api.get('/monitoring/tarik', { params: paramKustom(dr, sp, HALAMAN, halaman) })
+      const d = (res.data ?? {}) as { data?: Titik[]; total?: number }
+      const baru = Array.isArray(d.data) ? d.data : []
+      setKustom((k) => ({
+        rows: halaman === 1 ? baru : [...(k?.rows ?? []), ...baru],
+        total: Number(d.total) || baru.length,
+        page: halaman,
+      }))
     } catch (err) {
-      setTarikError(handleApiError(err).message)
+      setKustomGalat(handleApiError(err).message)
     } finally {
-      setTarikLoading(false)
+      setKustomMuat(false)
     }
   }
 
-  function unduhCsv() {
-    const header = ['waktu', 'ph', 'suhu_air', 'tds', 'suhu_udara', 'kelembapan']
-    const baris = terlihat.map((r) =>
-      [waktu(r) ?? '', r.ph ?? '', r.waterTemp ?? '', r.tds ?? '', r.airTemp ?? '', r.humidity ?? ''].join(
-        ',',
-      ),
-    )
-    const blob = new Blob(['\uFEFF' + [header.join(','), ...baris].join('\n')], { type: 'text/csv;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `sensor-${range.toLowerCase().replace(/\s+/g, '-')}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+  function pilihRentang(r: Rentang) {
+    setRentang(r)
+    setBatasTabel(TAMBAH_BARIS)
+    // Pertama kali masuk Kustom: isi 7 hari terakhir dan langsung muat, supaya tidak mulai dari layar kosong.
+    if (r === 'Kustom' && !kustom && !kustomMuat) {
+      const sp = tanggalIso(Date.now())
+      const dr = tanggalIso(Date.now() - 6 * 24 * 3_600_000)
+      setDari(dr)
+      setSampai(sp)
+      void tarik(1, dr, sp)
+    }
   }
+
+  function muatLagi() {
+    if (rentang === 'Kustom') {
+      if (kustom) void tarik(kustom.page + 1)
+    } else {
+      setBatasTabel((b) => b + TAMBAH_BARIS)
+    }
+  }
+
+  async function unduh() {
+    if (mengunduh) return
+    setMengunduh(true)
+    setGalatUnduh(null)
+    try {
+      let rows: Titik[] = terlihat
+      let terpotong = false
+      if (rentang === 'Kustom') {
+        const res = await api.get('/monitoring/tarik', { params: paramKustom(dari, sampai, BATAS_UNDUH, 1) })
+        const d = (res.data ?? {}) as { data?: Titik[]; total?: number }
+        rows = Array.isArray(d.data) ? d.data : []
+        terpotong = (Number(d.total) || 0) > rows.length
+      }
+      const waktu = rows.map(waktuMs).filter((n): n is number => n !== null)
+      if (!waktu.length) {
+        setGalatUnduh('Tidak ada bacaan pada rentang ini, jadi belum ada yang bisa dilaporkan.')
+        return
+      }
+      const awal = rentang === 'Kustom' && dari ? Date.parse(`${dari}T00:00:00`) : Math.min(...waktu)
+      const akhir = rentang === 'Kustom' && sampai ? Date.parse(`${sampai}T23:59:59`) : Math.max(...waktu)
+      await unduhLaporan({
+        rows,
+        ambang,
+        periode: rentang === 'Kustom' ? rentangTeks(awal, akhir) : `${rentang} terakhir (${rentangTeks(awal, akhir)})`,
+        dibuat: Date.now(),
+        terpotong,
+        dari: awal,
+        sampai: akhir,
+      })
+    } catch (err) {
+      setGalatUnduh(dariAxios(err) ? handleApiError(err).message : 'Laporan gagal dibuat. Coba lagi.')
+    } finally {
+      setMengunduh(false)
+    }
+  }
+
+  const bisaUnduh = rentang === 'Kustom' ? Boolean(kustom?.rows.length) : terlihat.length > 0
+  const semuaKosong = !loading && live.length === 0 && rentang !== 'Kustom'
+  const rentangKosong = rentang !== 'Kustom' ? !semuaKosong && !loading && terlihat.length === 0 : false
 
   return (
     <div className="vsf-halaman vsf-stagger">
-      {/* Kendali grafik: pilihan parameter & rentang */}
-      <section className="vsf-card p-4 sm:p-5">
-        <div className="vsf-judul-bagian">Parameter &amp; Rentang</div>
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-          {(Object.keys(PARAM_DEFS) as Param[]).map((p) => (
-            <Pill key={p} active={param === p} onClick={() => setParam(p)}>
-              {p}
-            </Pill>
-          ))}
+      <StripStatus
+        waktuTerbaru={waktuTerbaru}
+        kini={kini}
+        memuat={loading}
+        jumlah={liveBersih.rows.length}
+        kembar={liveBersih.dibuang}
+      />
 
-          <div className="w-px h-6 bg-arutmin-border mx-1" />
+      <KartuNilai terakhir={terakhir} ambang={ambang} terpilih={terpilih} onToggle={toggle} kini={kini} memuat={loading} />
 
-          {(Object.keys(RANGE_MS) as Range[]).map((r) => (
-            <Pill key={r} active={range === r} onClick={() => setRange(r)}>
-              {r}
-            </Pill>
-          ))}
+      <FilterBar
+        rentang={rentang}
+        onRentang={pilihRentang}
+        bolehKustom={pengelola}
+        dari={dari}
+        sampai={sampai}
+        onDari={setDari}
+        onSampai={setSampai}
+        onTerapkan={() => void tarik(1)}
+        memuatKustom={kustomMuat}
+        galatKustom={kustomGalat}
+        bolehUnduh={pengelola}
+        bisaUnduh={bisaUnduh}
+        mengunduh={mengunduh}
+        onUnduh={() => void unduh()}
+        galatUnduh={galatUnduh}
+        meta={
+          rentang === 'Kustom'
+            ? kustom && `${kustom.rows.length} dari ${kustom.total} bacaan dimuat`
+            : `${terlihat.length} titik pada rentang ini · diperbarui otomatis tiap 15 detik`
+        }
+      />
 
-          <span className="flex-1" />
-          {role !== 'petani' && (
-            <button
-              type="button"
-              className="vsf-input rounded-full font-semibold transition hover:border-arutmin-moss/60"
-              disabled={terlihat.length === 0}
-              onClick={unduhCsv}
-            >
-              Unduh CSV
-            </button>
-          )}
-        </div>
-        <div className="mt-2 flex flex-wrap items-center gap-3 text-[12px] text-slate-500">
-          <span>
-            {rows.length} titik tersimpan
-            {waktuTerbaru !== null && <> • terakhir {tgl(new Date(waktuTerbaru).toISOString())}</>}
+      {error && rentang !== 'Kustom' && (
+        <div role="alert" className="vsf-banner vsf-tone-error flex flex-wrap items-center gap-3 rounded-input px-4 py-3 text-[13px]">
+          <span className="flex items-center gap-2">
+            <Ikon nama="salah" className="h-4 w-4" />
+            {error}
           </span>
-          {waktuTerbaru !== null && (
-            <StatusBadge
-              tone={basi ? 'warning' : 'online'}
-              label={basi ? `Bacaan ${relatif(kini - waktuTerbaru)}` : 'Bacaan segar'}
-            />
-          )}
+          <button type="button" className="vsf-btn-secondary !min-h-[36px] text-[13px]" onClick={reload}>
+            Coba lagi
+          </button>
         </div>
-        {basi && (
-          <div
-            role="status"
-            className="mt-2 vsf-banner rounded-input vsf-tone-warn px-3 py-2 text-[12px] flex items-start gap-2"
-          >
-            <Ikon nama="peringatan" className="h-4 w-4 mt-[2px] shrink-0" />
-            <span>
-              Bacaan terakhir {waktuBasi(kini - waktuTerbaru!, new Date(waktuTerbaru!).toISOString())} — grafik menampilkan riwayat terakhir yang tersedia di server.
-            </span>
-          </div>
-        )}
-      </section>
-
-      {/* Grafik sensor (chart live) */}
-      <section className="vsf-card p-4 sm:p-5">
-        <div className="vsf-judul-bagian">Grafik Sensor</div>
-
-        {error && (
-          <div
-            role="alert"
-            className="mt-3 vsf-banner rounded-input vsf-tone-error px-3 py-2 text-[13px] flex flex-wrap items-center gap-3"
-          >
-            <span className="flex items-center gap-2">
-              <Ikon nama="salah" className="h-4 w-4 shrink-0" />
-              <span>{error}</span>
-            </span>
-            <button type="button" className="vsf-input rounded-full font-semibold" onClick={reload}>
-              Coba lagi
-            </button>
-          </div>
-        )}
-
-        <div className="mt-3 rounded-card border border-dashed border-arutmin-border bg-white/60 p-4">
-          {loading && rows.length === 0 ? (
-            <div className="vsf-skeleton h-[250px]" />
-          ) : error && rows.length === 0 ? null : rows.length === 0 ? (
-            <div className="h-[250px] flex flex-col items-center justify-center gap-2 text-center text-[13px] text-slate-600">
-              <IlustrasiKotakKosong />
-              <b className="text-slate-700">Belum ada data sensor</b>
-              <span>Grafik akan terisi otomatis begitu perangkat mengirim bacaan.</span>
-              <button
-                type="button"
-                className="vsf-input rounded-full font-semibold mt-1 transition hover:border-arutmin-moss/60"
-                onClick={reload}
-              >
-                Muat ulang
-              </button>
-            </div>
-          ) : terlihat.length === 0 ? (
-            <div className="h-[250px] flex flex-col items-center justify-center gap-2 text-center text-[13px] text-slate-600">
-              <IlustrasiJam />
-              <b className="text-slate-700">Belum ada data pada rentang ini — coba pilih rentang lain.</b>
-              {range !== '7 Hari' && (
-                <button
-                  type="button"
-                  className="vsf-input rounded-full font-semibold mt-1 transition hover:border-arutmin-moss/60"
-                  onClick={() => setRange('7 Hari')}
-                >
-                  Lihat 7 Hari
-                </button>
-              )}
-            </div>
-          ) : titik.length === 0 ? (
-            <div className="h-[250px] flex flex-col items-center justify-center gap-2 text-center text-[13px] text-slate-600">
-              <IlustrasiKotakKosong />
-              <b className="text-slate-700">
-                Belum ada nilai {param} pada rentang {range}.
-              </b>
-            </div>
-          ) : (
-            <div>
-              <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
-                <div className="text-[13px] font-semibold text-slate-700">
-                  {param} • rentang {range} • {titik.length} titik
-                </div>
-                <div className="text-[13px] text-arutmin-forest font-bold">
-                  terakhir: {nilaiAkhir?.teks}{' '}
-                  <span className="font-normal text-slate-500">({tgl(new Date(nilaiAkhir!.t).toISOString())})</span>
-                </div>
-              </div>
-              {/* P5 — key: remount saat param/rentang berubah → fade-in 220ms. */}
-              <Grafik key={`${param}|${range}`} points={titik} unit={param} />
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Riwayat data historis — hanya role pengelola (petani: lihat grafik saja) */}
-      {role !== 'petani' && (
-        <section className="vsf-card p-4 sm:p-5">
-          <div className="vsf-judul-bagian">Riwayat Data Historis</div>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <input
-              type="date"
-              className="vsf-input w-[220px]"
-              aria-label="Dari tanggal"
-              value={dari}
-              onChange={(e) => setDari(e.target.value)}
-            />
-            <input
-              type="date"
-              className="vsf-input w-[220px]"
-              aria-label="Sampai tanggal"
-              value={sampai}
-              onChange={(e) => setSampai(e.target.value)}
-            />
-            <button
-              type="button"
-              className="vsf-input rounded-full font-semibold transition hover:border-arutmin-moss/60"
-              disabled={tarikLoading}
-              onClick={() => void tarik()}
-            >
-              {tarikLoading && <span className="vsf-spinner vsf-spinner-dark mr-2" />}
-              {tarikLoading ? 'Menarik…' : 'Tarik'}
-            </button>
-            <span className="text-[12px] text-slate-500">Maksimal 50 baris per tarikan.</span>
-          </div>
-
-          {tarikError && (
-            <div
-              role="alert"
-              className="mt-3 vsf-banner rounded-input vsf-tone-error px-3 py-2 text-[13px] flex items-start gap-2"
-            >
-              <Ikon nama="salah" className="h-4 w-4 mt-[2px] shrink-0" />
-              <span>{tarikError}</span>
-            </div>
-          )}
-
-          <div className="mt-3 overflow-auto rounded-card border border-arutmin-border bg-white vsf-table">
-            <table aria-label="Riwayat data sensor" className="w-full text-[13px]">
-              <thead>
-                <tr className="bg-navy/[.055]">
-                  {[
-                    { h: 'Waktu', right: false },
-                    { h: 'pH', right: true },
-                    { h: 'Suhu Air', right: true },
-                    { h: 'TDS', right: true },
-                    { h: 'Suhu Udara', right: true },
-                    { h: 'Kelembapan', right: true },
-                  ].map((c) => (
-                    <th
-                      key={c.h}
-                      scope="col"
-                      className={`border-b border-navy/25 px-4 py-2.5 text-[12px] font-bold uppercase tracking-[.14em] text-navy ${
-                        c.right ? 'text-right' : 'text-left'
-                      }`}
-                    >
-                      {c.h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {tarikRows.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-3 py-8 text-center text-slate-500">
-                      {tarikPernah
-                        ? 'Tidak ada bacaan pada rentang tanggal itu — coba rentang lain.'
-                        : 'Belum ada hasil — pilih rentang tanggal lalu tekan Tarik.'}
-                    </td>
-                  </tr>
-                ) : (
-                  tarikRows.map((r) => (
-                    <tr
-                      key={String(r.id ?? waktu(r))}
-                      className="even:bg-navy/[.03] hover:bg-navy/[.06] transition-colors"
-                    >
-                      <td className="px-4 py-2.5 font-semibold text-slate-900">{tgl(waktu(r))}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{r.ph ?? '—'}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{r.waterTemp ?? '—'}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{r.tds ?? '—'}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{r.airTemp ?? '—'}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-slate-700">{r.humidity ?? '—'}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
       )}
 
-      <section className="vsf-card p-4 sm:p-5">
-        <div className="vsf-judul-bagian">Tentang layar ini</div>
-        <ul className="mt-2 list-disc pl-5 text-[13px] text-slate-700 leading-relaxed">
-          <li>Live: GET /monitoring/chart-data (polling 15 dtk) · GET /monitoring/tarik (riwayat manual) — Bearer JWT.</li>
-          <li>Rentang difilter di klien dari titik terakhir yang tersedia; bacaan basi ditandai banner peringatan.</li>
-          <li>State kosong: “Belum ada data pada rentang ini” + tombol pindah rentang; error: pesan kontrak + Coba lagi.</li>
-          <li>Akses petani: lihat grafik saja, tanpa tombol tarik data &amp; unduh CSV.</li>
-        </ul>
-      </section>
+      {loading && live.length === 0 && rentang !== 'Kustom' ? (
+        <div className="vsf-skeleton h-[320px] rounded-card" role="status" aria-label="Memuat grafik" />
+      ) : semuaKosong && !error ? (
+        <section className="vsf-card flex flex-col items-center gap-2 p-8 text-center text-[13px] text-tinta">
+          <Ikon nama="kosong" className="h-9 w-9 text-arutmin-olive" />
+          <b className="text-[15px]">Belum ada data sensor</b>
+          <span>Grafik akan terisi otomatis begitu perangkat mengirim bacaan.</span>
+          <button type="button" className="vsf-btn-secondary mt-1" onClick={reload}>
+            Muat ulang
+          </button>
+        </section>
+      ) : rentangKosong ? (
+        <section className="vsf-card flex flex-col items-center gap-2 p-8 text-center text-[13px] text-tinta">
+          <Ikon nama="jam" className="h-9 w-9 text-arutmin-olive" />
+          <b className="text-[15px]">Belum ada data pada rentang ini</b>
+          {rentang !== '7 Hari' && (
+            <button type="button" className="vsf-btn-secondary mt-1" onClick={() => pilihRentang('7 Hari')}>
+              Lihat 7 Hari
+            </button>
+          )}
+        </section>
+      ) : (
+        PARAMS.filter((p) => terpilih.includes(p.kunci)).map((p) => (
+          <PanelGrafik
+            key={p.kunci}
+            def={p}
+            seri={seri[p.kunci]}
+            batas={{ min: nilaiAngka(ambang?.[p.kunci]?.min), max: nilaiAngka(ambang?.[p.kunci]?.max) }}
+          />
+        ))
+      )}
+
+      {pengelola && (
+        <TabelRiwayat
+          rows={barisTabel}
+          ambang={ambang}
+          memuat={rentang === 'Kustom' ? kustomMuat && !kustom : loading}
+          kosong={
+            rentang === 'Kustom'
+              ? 'Tidak ada bacaan pada rentang tanggal itu — coba rentang lain.'
+              : 'Belum ada bacaan pada rentang ini.'
+          }
+          adaLagi={adaLagi}
+          memuatLagi={kustomMuat}
+          onLagi={muatLagi}
+        />
+      )}
     </div>
   )
+}
+
+/** Tanggal <input type=date> → batas inklusif hari itu (awal 00:00, akhir 23:59:59 waktu lokal), dikirim sebagai ISO. */
+function paramKustom(dr: string, sp: string, perPage: number, page: number) {
+  return {
+    dari: dr ? new Date(`${dr}T00:00:00`).toISOString() : undefined,
+    sampai: sp ? new Date(`${sp}T23:59:59`).toISOString() : undefined,
+    per_page: perPage,
+    page,
+  }
 }
