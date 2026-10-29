@@ -85,7 +85,7 @@ export function TrenBatang() {
               const akhir = i === batang.length - 1
               return (
                 <div key={`${b.iso}-${i}`} className="group/bar flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
-                  <span className="text-[11px] font-semibold tabular-nums text-tinta opacity-0 transition-opacity group-hover/bar:opacity-100">
+                  <span className="text-[12px] font-semibold tabular-nums text-tinta opacity-0 transition-opacity group-hover/bar:opacity-100">
                     {b.y.toFixed(def.digit)}
                   </span>
                   <div
@@ -97,7 +97,7 @@ export function TrenBatang() {
               )
             })}
           </div>
-          <div className="mt-2 flex justify-between text-[11px] text-abu">
+          <div className="mt-2 flex justify-between text-[12px] text-abu">
             <span>{jam(batang[0].iso)}</span>
             <span>{jam(batang[batang.length - 1].iso)}</span>
           </div>
@@ -105,7 +105,10 @@ export function TrenBatang() {
             <span className="text-abu">
               Terbaru: <b className="tabular-nums text-tinta">{batang[batang.length - 1].y.toFixed(def.digit)}{def.unit}</b>
             </span>
-            <Link to="/sensor-realtime" className="font-semibold text-arutmin-forest underline underline-offset-2 hover:text-arutmin-moss">
+            <Link
+              to="/sensor-realtime"
+              className="-mr-1 inline-flex min-h-[32px] items-center px-1 font-semibold text-arutmin-forest underline underline-offset-2 hover:text-arutmin-moss"
+            >
               Grafik lengkap →
             </Link>
           </div>

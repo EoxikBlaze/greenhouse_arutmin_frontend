@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/authContext'
 import { useApiObject, useFlashOnChange } from '../lib/useApiObject'
@@ -140,7 +141,8 @@ export default function DashboardPage() {
   ]
 
   const batchAktif = (data?.semai_aktif ?? 0) + (data?.peremajaan_aktif ?? 0) + (data?.pendewasaan_aktif ?? 0)
-  const jamSekarang = new Date().getHours()
+  // jam diambil sekali saat halaman dibuka (render harus murni; sapaan tidak perlu berganti di tengah sesi)
+  const [jamSekarang] = useState(() => new Date().getHours())
   const sapaan = jamSekarang < 11 ? 'pagi' : jamSekarang < 15 ? 'siang' : jamSekarang < 18 ? 'sore' : 'malam'
   const nama = (username || role || '').trim()
 
@@ -308,7 +310,11 @@ export default function DashboardPage() {
                             <AngkaHidup nilai={total} />
                           </div>
                           {kelola && (
-                            <Link to={p.to} className="text-[12px] font-semibold text-arutmin-forest underline underline-offset-2 hover:text-arutmin-moss">
+                            <Link
+                              to={p.to}
+                              aria-label={`Buka ${p.label}`}
+                              className="-mr-1 inline-flex min-h-[28px] items-center px-1 text-[12px] font-semibold text-arutmin-forest underline underline-offset-2 hover:text-arutmin-moss"
+                            >
                               Buka →
                             </Link>
                           )}

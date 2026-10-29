@@ -257,14 +257,6 @@ export function TentangPage() {
     <div className="relative isolate flex min-h-dvh flex-col text-tinta">
       <div className="vsf-latar" aria-hidden />
       <div className="vsf-kabut" aria-hidden />
-      {/* filter biasan lensa untuk .vsf-kaca-lensa */}
-      <svg width="0" height="0" className="absolute" aria-hidden focusable="false">
-        <filter id="vsf-lensa" x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
-          <feTurbulence type="fractalNoise" baseFrequency="0.008 0.012" numOctaves="2" seed="7" result="noise" />
-          <feGaussianBlur in="noise" stdDeviation="2" result="halus" />
-          <feDisplacementMap in="SourceGraphic" in2="halus" scale="38" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-      </svg>
       {/* Header — bilah liquid glass melayang di atas foto langit */}
       <header className="vsf-topbar sticky top-0 z-30 px-3 pt-3 sm:px-5 sm:pt-4">
         <div className="vsf-bilah mx-auto flex min-h-[60px] max-w-[1180px] items-center gap-3 py-2 pl-3 pr-2 sm:pl-4">
@@ -294,7 +286,7 @@ export function TentangPage() {
         <section className="flex min-h-[calc(100dvh-150px)] flex-col items-center justify-center py-8 text-center" aria-labelledby="vsf-hero-title">
             <div className="flex flex-col items-center text-center">
               {/* pil logo */}
-              <div {...info("Vertonik Smart Farm (GARAP)", "Sistem IoT hidroponik hasil KKN Industri Arutmin Asik 2026 di PT Arutmin Indonesia. GARAP adalah nama aplikasinya.")} className="vsf-pop vsf-kaca vsf-kaca-lensa inline-flex max-w-full items-center gap-3 rounded-full px-5 py-2.5">
+              <div {...info("Vertonik Smart Farm (GARAP)", "Sistem IoT hidroponik hasil KKN Industri Arutmin Asik 2026 di PT Arutmin Indonesia. GARAP adalah nama aplikasinya.")} className="vsf-pop vsf-kaca inline-flex max-w-full items-center gap-3 rounded-full px-5 py-2.5">
                 <Monogram className="h-10 w-16 shrink-0" />
                 <span className="text-[12.5px] font-extrabold uppercase tracking-[.08em] text-navy">PT Arutmin Indonesia</span>
                 <span className="hidden h-5 w-px bg-slate-300 sm:block" aria-hidden />
