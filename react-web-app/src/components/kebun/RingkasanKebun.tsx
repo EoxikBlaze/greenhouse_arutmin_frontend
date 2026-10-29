@@ -47,7 +47,7 @@ export function RingkasanKebun({
       <dl className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
         {angka.map(([label, nilai, ket]) => (
           <div key={label} className="vsf-stat">
-            <dt className="vsf-label !text-tinta">{label}</dt>
+            <dt className="vsf-label vsf-label-tinta">{label}</dt>
             <dd className="mt-1 font-heading text-[26px] font-bold leading-none tabular-nums text-tinta">
               {memuat ? '–' : nilai}
             </dd>

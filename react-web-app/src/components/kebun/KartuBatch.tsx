@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { Ikon } from '../Ikon'
-import { TAHAP_LABEL, labelSiap, perkiraanSelesai, progres, tglPendek, type TanamRow } from '../../lib/kebun'
+import { TAHAP_LABEL, labelSiap, perkiraanSelesai, progres, type TanamRow } from '../../lib/kebun'
+import { tglPendek } from '../../lib/format'
 
 function statusLabel(status?: string | null): string {
   const s = String(status ?? '').trim().toLowerCase()

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { Daftar, JadwalRow } from '../../lib/dosing'
-import { Kosong, Pesan, Rangka } from './DialogKaca'
+import { Kosong, Pesan, Rangka } from '../kaca/DialogKaca'
 
 /** Panel Perawatan: jadwal kalibrasi & pembersihan berkala (baca saja), terpendek lebih dulu. */
 export function PanelPerawatan({ data }: { data: Daftar<JadwalRow> }) {

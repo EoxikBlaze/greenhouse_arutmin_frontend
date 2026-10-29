@@ -1,5 +1,5 @@
 import { labelTipe, type Kamera } from '../../lib/cctv'
-import { DialogKaca } from '../dosing/DialogKaca'
+import { DialogKaca } from '../kaca/DialogKaca'
 import { Pratinjau } from './Pratinjau'
 
 /** Popup tayangan besar satu kamera. */

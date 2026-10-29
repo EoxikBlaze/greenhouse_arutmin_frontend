@@ -1,4 +1,5 @@
 import type { FillPattern, Workbook, Worksheet } from 'exceljs'
+import { tanggalIso } from './format'
 
 /** Lima sensor kebun — kunci kolom tabel `monitorings`. */
 export type KunciSensor = 'ph' | 'waterTemp' | 'tds' | 'airTemp' | 'humidity'
@@ -130,11 +131,6 @@ export function terakhirPerParam(rows: Titik[]): Record<KunciSensor, TitikSeri |
   return hasil
 }
 
-/** Angka gaya Indonesia dengan jumlah desimal tetap: 6,20 · 1.250 */
-export function angkaId(v: number, digit: number): string {
-  return v.toLocaleString('id-ID', { minimumFractionDigits: digit, maximumFractionDigits: digit })
-}
-
 const dua = (n: number) => String(n).padStart(2, '0')
 
 /** "21/10/2026" — waktu lokal perangkat, bukan UTC. */
@@ -147,12 +143,6 @@ export function formatTanggal(ms: number): string {
 export function formatJam(ms: number): string {
   const d = new Date(ms)
   return `${dua(d.getHours())}:${dua(d.getMinutes())}:${dua(d.getSeconds())}`
-}
-
-/** "2026-10-21" (tanggal lokal) — format nilai <input type="date">. */
-export function tanggalIso(ms: number): string {
-  const d = new Date(ms)
-  return `${d.getFullYear()}-${dua(d.getMonth() + 1)}-${dua(d.getDate())}`
 }
 
 export function namaBerkas(dari: number, sampai: number): string {

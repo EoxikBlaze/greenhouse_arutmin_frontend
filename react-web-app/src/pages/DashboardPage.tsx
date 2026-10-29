@@ -6,6 +6,7 @@ import { waktuBasi } from '../lib/waktu'
 import { Ikon, type NamaIkon } from '../components/Ikon'
 import { AngkaHidup } from '../components/AngkaHidup'
 import { TrenBatang } from '../components/TrenBatang'
+import { tglJam } from '../lib/format'
 
 /**
  * Dashboard live — GET /dashboard (semua role).
@@ -48,16 +49,6 @@ type DashboardData = {
   total_panen_qty?: number | null
   /** Batas aman per sensor dari tabel sensor_thresholds (halaman Ambang Sensor). */
   ambang?: Record<string, { min: number | string | null; max: number | string | null }> | null
-}
-
-const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-
-function tgl(iso?: string | null): string {
-  if (!iso) return '—'
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return '—'
-  const jam = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-  return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()} • ${jam}`
 }
 
 /** Angka → teks tampil; null/kosong → "—", bukan angka bohong. */
@@ -192,7 +183,7 @@ export default function DashboardPage() {
               {loading && !data ? (
                 <span className="vsf-skeleton inline-block h-[16px] w-[200px]" />
               ) : iot?.last_seen ? (
-                <>Bacaan terakhir: {iot.seconds_ago != null ? waktuBasi(iot.seconds_ago * 1000, iot.last_seen) : tgl(iot.last_seen)}</>
+                <>Bacaan terakhir: {iot.seconds_ago != null ? waktuBasi(iot.seconds_ago * 1000, iot.last_seen) : tglJam(iot.last_seen)}</>
               ) : (
                 'Belum ada bacaan sensor.'
               )}

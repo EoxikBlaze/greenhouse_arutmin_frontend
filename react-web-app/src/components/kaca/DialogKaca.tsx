@@ -41,7 +41,7 @@ export function DialogKaca({
         </div>
         <button
           type="button"
-          className="vsf-chrome-tautan !min-h-[40px] !min-w-[40px] shrink-0 justify-center"
+          className="vsf-chrome-tautan shrink-0 vsf-ikon-btn"
           aria-label="Tutup"
           disabled={sibuk}
           onClick={handleClose}
@@ -80,7 +80,48 @@ export function DialogKaca({
   )
 }
 
-/** Banner galat/ok di dalam kartu (satu gaya untuk semua panel Dosing). */
+/**
+ * Konfirmasi tindakan (menggantikan window.confirm): judul, penjelasan, Batal + Ya.
+ * `bahaya` → tombol merah untuk tindakan yang tidak bisa dibatalkan.
+ */
+export function DialogKonfirmasi({
+  judul,
+  children,
+  ya,
+  sibukTeks = 'Memproses…',
+  bahaya = false,
+  sibuk = false,
+  galat,
+  onYa,
+  onBatal,
+}: {
+  judul: string
+  children: ReactNode
+  ya: string
+  sibukTeks?: string
+  bahaya?: boolean
+  sibuk?: boolean
+  galat?: string
+  onYa: () => void
+  onBatal: () => void
+}) {
+  return (
+    <DialogKaca judul={judul} onTutup={onBatal} sibuk={sibuk} lebar={420} onSubmit={onYa}>
+      <div className="mt-3 text-[13px] leading-relaxed text-slate-700">{children}</div>
+      {galat && <Pesan jenis="galat">{galat}</Pesan>}
+      <div className="mt-5 flex justify-end gap-2">
+        <button type="button" className="vsf-btn-secondary" onClick={onBatal} disabled={sibuk}>
+          Batal
+        </button>
+        <button type="submit" className={bahaya ? 'vsf-btn-danger' : 'vsf-btn-primary'} disabled={sibuk}>
+          {sibuk ? sibukTeks : ya}
+        </button>
+      </div>
+    </DialogKaca>
+  )
+}
+
+/** Banner galat/ok di dalam kartu (satu gaya untuk semua panel). */
 export function Pesan({ jenis, children, onTutup }: { jenis: 'ok' | 'galat'; children: ReactNode; onTutup?: () => void }) {
   return (
     <div
@@ -93,7 +134,7 @@ export function Pesan({ jenis, children, onTutup }: { jenis: 'ok' | 'galat'; chi
       <Ikon nama={jenis === 'galat' ? 'peringatan' : 'ok'} className="h-4 w-4 shrink-0" />
       <span className="min-w-0 flex-1">{children}</span>
       {onTutup && (
-        <button type="button" className="vsf-btn-secondary !min-h-[32px] !px-3 text-[12px]" onClick={onTutup}>
+        <button type="button" className="vsf-btn-secondary vsf-btn-kecil" onClick={onTutup}>
           Tutup
         </button>
       )}

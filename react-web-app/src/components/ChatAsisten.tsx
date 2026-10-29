@@ -204,7 +204,7 @@ export function ChatAsisten({ saran }: { saran: string[] }) {
       ) : (
         <>
           <div className="flex justify-end">
-            <button type="button" className="vsf-btn-secondary !min-h-[40px] !px-3 !text-[12px]" onClick={hapus}>
+            <button type="button" className="vsf-btn-secondary vsf-btn-kecil" onClick={hapus}>
               <Ikon nama="hapus" className="h-3.5 w-3.5" />
               Hapus percakapan
             </button>
@@ -251,7 +251,7 @@ export function ChatAsisten({ saran }: { saran: string[] }) {
                       <button
                         type="button"
                         disabled={memuat}
-                        className="vsf-btn-secondary !min-h-[36px] !px-3 !text-[12px]"
+                        className="vsf-btn-secondary vsf-btn-kecil"
                         onClick={() => cobaLagi(p.id)}
                       >
                         Coba lagi

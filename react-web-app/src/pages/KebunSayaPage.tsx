@@ -103,7 +103,7 @@ export default function KebunSayaPage() {
             <span className="inline-flex items-center gap-1.5">
               <Ikon nama="peringatan" className="h-4 w-4" /> {error}
             </span>
-            <button type="button" className="vsf-btn-secondary !min-h-[36px] text-[13px]" onClick={reload}>
+            <button type="button" className="vsf-btn-secondary vsf-btn-kecil" onClick={reload}>
               Muat ulang
             </button>
           </div>

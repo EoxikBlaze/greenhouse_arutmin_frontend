@@ -6,7 +6,7 @@ import { fieldError, useApiError, useApiList } from '../../lib/crudApi'
 import type { Daftar } from '../../lib/dosing'
 import { Ikon } from '../Ikon'
 import { Segmen } from '../sensor/FilterBar'
-import { DialogKaca, Kosong, Pesan, Rangka } from './DialogKaca'
+import { DialogKaca, Kosong, Pesan, Rangka } from '../kaca/DialogKaca'
 
 /**
  * Target tiap penampung + preset nutrisi — routes/preset.js:
@@ -227,12 +227,12 @@ export function TargetPenampung({ data, onUbah }: { data: Daftar<TargetMeja>; on
 
               {bolehTulis && (
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <button type="button" className="vsf-btn-secondary !min-h-[40px] !px-3 text-[13px]" onClick={() => bukaManual(r)} disabled={sibuk !== null}>
+                  <button type="button" className="vsf-btn-secondary vsf-btn-kecil" onClick={() => bukaManual(r)} disabled={sibuk !== null}>
                     <Ikon nama="ubah" className="h-4 w-4" />
                     {r.target_mode === 'manual' ? 'Ubah manual' : 'Atur manual'}
                   </button>
                   {r.target_mode === 'manual' && (
-                    <button type="button" className="vsf-btn-primary !min-h-[40px] !px-3 text-[13px]" onClick={() => void keOtomatis(r)} disabled={sibuk !== null}>
+                    <button type="button" className="vsf-btn-primary vsf-btn-kecil" onClick={() => void keOtomatis(r)} disabled={sibuk !== null}>
                       {sibuk === String(r.id_meja) ? 'Menyimpan…' : 'Kembali otomatis'}
                     </button>
                   )}
@@ -275,7 +275,7 @@ export function TargetPenampung({ data, onUbah }: { data: Daftar<TargetMeja>; on
             { k: 'target_ph', label: 'Target pH', satuan: 'pH', v: ph, set: setPh, ph: '6,0', fokus: false },
           ].map((f) => (
             <label key={f.k} className="mt-3 block">
-              <span className="vsf-label !text-tinta">{f.label}</span>
+              <span className="vsf-label vsf-label-tinta">{f.label}</span>
               <span className="relative mt-1 block">
                 <input
                   className="vsf-input w-full pr-14"
@@ -396,7 +396,7 @@ export function PresetNutrisi({ data, onUbah }: { data: Daftar<Preset>; onUbah: 
 
   const isian = (k: keyof FormPreset, label: string, contoh: string, satuan?: string) => (
     <label key={k} className="block">
-      <span className="vsf-label !text-tinta">{label}</span>
+      <span className="vsf-label vsf-label-tinta">{label}</span>
       <span className="relative mt-1 block">
         <input
           className={clsx('vsf-input w-full', satuan && 'pr-14')}
@@ -475,11 +475,11 @@ export function PresetNutrisi({ data, onUbah }: { data: Daftar<Preset>; onUbah: 
                 <span className={clsx('vsf-chip-nilai', p.status === 'aktif' ? 'is-normal' : 'is-luar')}>{STATUS_LABEL[p.status] ?? p.status}</span>
                 {bolehTulis && (
                   <>
-                    <button type="button" className="vsf-btn-secondary !min-h-[40px] !px-3 text-[13px]" aria-label="Ubah preset" onClick={() => buka(p)}>
+                    <button type="button" className="vsf-btn-secondary vsf-btn-kecil" aria-label="Ubah preset" onClick={() => buka(p)}>
                       <Ikon nama="ubah" className="h-4 w-4" />
                       Ubah
                     </button>
-                    <button type="button" className="vsf-btn-danger !min-h-[40px] !px-3 text-[13px]" aria-label="Hapus preset" onClick={() => setHapus(p)}>
+                    <button type="button" className="vsf-btn-danger vsf-btn-kecil" aria-label="Hapus preset" onClick={() => setHapus(p)}>
                       <Ikon nama="hapus" className="h-4 w-4" />
                     </button>
                   </>
@@ -506,7 +506,7 @@ export function PresetNutrisi({ data, onUbah }: { data: Daftar<Preset>; onUbah: 
           )}
           <div className="mt-4 grid grid-cols-2 gap-3">
             <label className="col-span-2 block sm:col-span-1">
-              <span className="vsf-label !text-tinta">Tanaman</span>
+              <span className="vsf-label vsf-label-tinta">Tanaman</span>
               <select className="vsf-input mt-1 w-full" value={form.id_tanaman} onChange={(e) => setForm({ ...form, id_tanaman: e.target.value })}>
                 <option value="">Semua tanaman</option>
                 {tanaman.map((t) => (
@@ -516,7 +516,7 @@ export function PresetNutrisi({ data, onUbah }: { data: Daftar<Preset>; onUbah: 
               {fieldError(errs, 'id_tanaman') && <span className="vsf-field-error block">{fieldError(errs, 'id_tanaman')}</span>}
             </label>
             <label className="col-span-2 block sm:col-span-1">
-              <span className="vsf-label !text-tinta">Tahap</span>
+              <span className="vsf-label vsf-label-tinta">Tahap</span>
               <select className="vsf-input mt-1 w-full" value={form.tahap} onChange={(e) => setForm({ ...form, tahap: e.target.value })}>
                 {TAHAP.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
@@ -529,13 +529,13 @@ export function PresetNutrisi({ data, onUbah }: { data: Daftar<Preset>; onUbah: 
             {isian('ph_min', 'pH minimal', '5,8')}
             {isian('ph_max', 'pH maksimal', '6,2')}
             <label className="col-span-2 block">
-              <span className="vsf-label !text-tinta">Status</span>
+              <span className="vsf-label vsf-label-tinta">Status</span>
               <select className="vsf-input mt-1 w-full" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
                 {Object.entries(STATUS_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
             </label>
             <label className="col-span-2 block">
-              <span className="vsf-label !text-tinta">Keterangan (opsional)</span>
+              <span className="vsf-label vsf-label-tinta">Keterangan (opsional)</span>
               <input className="vsf-input mt-1 w-full" value={form.keterangan} onChange={(e) => setForm({ ...form, keterangan: e.target.value })} placeholder="mis. hasil uji lab Okt 2026" />
             </label>
           </div>

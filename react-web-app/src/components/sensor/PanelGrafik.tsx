@@ -1,12 +1,12 @@
 import { useEffect, useId, useMemo, useState, type PointerEvent as PointerReact } from 'react'
 import {
-  angkaId,
   formatJam,
   formatTanggal,
   statusNilai,
   type DefParam,
   type TitikSeri,
 } from '../../lib/sensorLaporan'
+import { angkaId } from '../../lib/format'
 
 type Batas = { min: number | null; max: number | null }
 

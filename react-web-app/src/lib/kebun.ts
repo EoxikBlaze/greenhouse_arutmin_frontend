@@ -25,16 +25,6 @@ export const TAHAP_LABEL: Record<string, string> = {
 export const FILTER_TAHAP = ['Semua', 'Semai', 'Peremajaan', 'Pendewasaan'] as const
 export type FilterTahap = (typeof FILTER_TAHAP)[number]
 
-const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-
-/** "19 Agu 2026"; "—" bila tanggal tak valid. */
-export function tglPendek(ms: number | string | null | undefined): string {
-  if (ms === null || ms === undefined || ms === '') return '—'
-  const d = new Date(ms)
-  if (Number.isNaN(d.getTime())) return '—'
-  return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`
-}
-
 /** `lewat` = berapa hari melampaui durasi tahap (0 bila belum). */
 export type Progres = { hari: number; durasi: number | null; persen: number; label: string; lewat: number }
 

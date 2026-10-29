@@ -7,6 +7,7 @@ import { useDialog } from '../lib/useDialog'
 import { Ikon } from './Ikon'
 import { ModalBackdrop } from './ModalBackdrop'
 import { StatusBadge } from './StatusBadge'
+import { tglJam } from '../lib/format'
 
 /** Baris GET /penampung-states (bigint & numeric datang sebagai teks dari pg). */
 type StateRow = {
@@ -32,16 +33,6 @@ type Penampung = {
   ab: number
   ph: number
   pemeliharaan: boolean
-}
-
-const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-
-function tgl(iso?: string | null): string {
-  if (!iso) return '—'
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return '—'
-  const jam = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-  return `${d.getDate()} ${BULAN[d.getMonth()]} ${jam}`
 }
 
 function angka(v: unknown): number {
@@ -131,7 +122,7 @@ export function StatusPenampung({ onPesan }: { onPesan: (teks: string, ok: boole
               </div>
               {p.terkunci && (
                 <div className="mt-2 text-[12px] font-semibold text-red-700">
-                  {p.alasan || 'Tanpa alasan'} · sejak {tgl(p.sejak)}
+                  {p.alasan || 'Tanpa alasan'} · sejak {tglJam(p.sejak, { tahun: false })}
                 </div>
               )}
               {p.pemeliharaan && <span className="vsf-chip-nilai is-luar mt-2">pemeliharaan</span>}

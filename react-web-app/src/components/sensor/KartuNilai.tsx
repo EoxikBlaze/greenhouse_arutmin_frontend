@@ -3,7 +3,6 @@ import { Ikon, type NamaIkon } from '../Ikon'
 import { relatif } from '../../lib/waktu'
 import {
   PARAMS,
-  angkaId,
   nilaiAngka,
   statusNilai,
   type Ambang,
@@ -11,6 +10,7 @@ import {
   type StatusNilai,
   type TitikSeri,
 } from '../../lib/sensorLaporan'
+import { angkaId } from '../../lib/format'
 
 const IKON: Record<KunciSensor, NamaIkon> = {
   ph: 'ph',
@@ -65,7 +65,7 @@ export function KartuNilai({
             className={clsx('vsf-nilai vsf-kpi-kaca max-sm:last:col-span-2', aktif && 'is-aktif')}
           >
             <span className="flex items-center justify-between gap-2">
-              <span className="vsf-label flex items-center gap-1.5 !text-tinta">
+              <span className="vsf-label flex items-center gap-1.5 vsf-label-tinta">
                 <Ikon nama={IKON[p.kunci]} className="h-4 w-4" />
                 {p.label}
               </span>

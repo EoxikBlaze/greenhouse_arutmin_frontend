@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import clsx from 'clsx'
 import { Ikon } from '../Ikon'
-import { adalahSensor, jadwalTeks, n, STATUS, teksTenggat, tgl, urutKonstanta, type Alat, type Terkini } from '../../lib/kalibrasi'
+import { adalahSensor, jadwalTeks, n, STATUS, teksTenggat, urutKonstanta, type Alat, type Terkini } from '../../lib/kalibrasi'
+import { tglPendek } from '../../lib/format'
 
 function bacaanLive(a: Alat, t: Terkini | null): string | null {
   const s = t?.sensor
@@ -55,7 +56,7 @@ export function KartuAlat({
 
       <div className="mt-3 text-[14px] font-semibold text-tinta">{teksTenggat(a)}</div>
       <div className="text-[12px] text-abu">
-        Terakhir {tgl(a.terakhir_dikalibrasi)}
+        Terakhir {tglPendek(a.terakhir_dikalibrasi)}
         {a.log_terakhir?.oleh_label ? ` · ${a.log_terakhir.oleh_label}` : ''}
       </div>
 

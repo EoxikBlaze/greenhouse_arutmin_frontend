@@ -3,6 +3,7 @@
  *   GET/PUT /konfigurasi-dosis/:param · GET/PUT /timing-operasi/:param (PUT admin)
  *   GET /aturan-fail-safe · GET /jadwal-perawatan (baca saja)
  */
+import { angkaMaks } from './format'
 
 /** Baris GET /konfigurasi-dosis & /timing-operasi — PK `param`, `nilai` numeric dari pg (string). */
 export type ParameterRow = {
@@ -40,7 +41,7 @@ export type Daftar<T> = { rows: T[]; loading: boolean; error: string | null; rel
 export function tampilNilai(v: string | number | null | undefined): string {
   if (v === null || v === undefined || v === '') return '—'
   const n = Number(v)
-  return Number.isFinite(n) ? n.toLocaleString('id-ID', { maximumFractionDigits: 4 }) : String(v)
+  return Number.isFinite(n) ? angkaMaks(n, 4) : String(v)
 }
 
 export const belumDiatur = (v: ParameterRow['nilai']) => v === null || v === undefined || v === ''

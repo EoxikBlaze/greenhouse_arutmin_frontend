@@ -57,7 +57,7 @@ export function Pratinjau({
               </div>
               <button
                 type="button"
-                className="vsf-btn-secondary mt-3 !min-h-[34px] !text-[12px]"
+                className="vsf-btn-secondary mt-3 vsf-btn-kecil"
                 onClick={() => {
                   setGalat(false)
                   setMuat(true)

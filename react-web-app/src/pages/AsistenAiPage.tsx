@@ -6,6 +6,7 @@ import { useApiObject } from '../lib/useApiObject'
 import { ChatAsisten } from '../components/ChatAsisten'
 import { Ikon } from '../components/Ikon'
 import { StripKonteks, type KonteksKebun } from '../components/StripKonteks'
+import { tglJam } from '../lib/format'
 
 /**
  * Asisten AI — terhubung ke endpoint riil:
@@ -44,16 +45,6 @@ const GAYA_PRIORITAS: Record<Prioritas, string> = {
   rendah: 'border-arutmin-moss/50 bg-arutmin-mint/40 text-arutmin-forest',
 }
 
-const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-
-function tgl(iso?: string | null): string {
-  if (!iso) return '—'
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return '—'
-  const jam = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-  return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()} · ${jam}`
-}
-
 /** Satu hasil analisa — blok polos (tanpa kotak dalam kartu); dipakai hasil utama dan riwayat sesi. */
 function KartuHasil({ hasil, menonjol }: { hasil: Hasil; menonjol?: boolean }) {
   const konsol = hasil.sumber === 'ollama'
@@ -67,7 +58,7 @@ function KartuHasil({ hasil, menonjol }: { hasil: Hasil; menonjol?: boolean }) {
           {konsol ? `AI lokal (Ollama) · ${hasil.model ?? 'model tidak diketahui'}` : 'Aturan heuristik'}
         </span>
         <span className="flex-1" />
-        <span className="text-[12px] text-abu">{tgl(hasil.generated_at ?? null)}</span>
+        <span className="text-[12px] text-abu">{tglJam(hasil.generated_at ?? null)}</span>
       </div>
 
       <h3 className={clsx('mt-2.5 font-bold text-tinta', menonjol ? 'text-[16px] leading-snug' : 'text-[14px] leading-snug')}>
@@ -151,7 +142,7 @@ export default function AsistenAiPage() {
           </div>
           <button
             type="button"
-            className="vsf-btn-primary !min-h-[40px] !px-4 !text-[13px]"
+            className="vsf-btn-primary vsf-btn-kecil"
             onClick={() => void mintaAnalisa()}
             disabled={memuat}
             aria-busy={memuat}

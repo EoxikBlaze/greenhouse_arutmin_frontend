@@ -3,7 +3,6 @@ import clsx from 'clsx'
 import { Ikon } from '../Ikon'
 import {
   PARAMS,
-  angkaId,
   formatJam,
   formatTanggal,
   nilaiAngka,
@@ -14,6 +13,7 @@ import {
   type KunciSensor,
   type Titik,
 } from '../../lib/sensorLaporan'
+import { angkaId } from '../../lib/format'
 
 type Kolom = 'waktu' | KunciSensor
 type Arah = 'asc' | 'desc'

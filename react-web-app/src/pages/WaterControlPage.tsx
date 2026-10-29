@@ -10,6 +10,7 @@ import { Ikon } from '../components/Ikon'
 import { Segmen } from '../components/sensor/FilterBar'
 import { RiwayatPerintah, type Riwayat } from '../components/watercontrol/RiwayatPerintah'
 import { DialogKonfirmasiAksi } from '../components/watercontrol/DialogKonfirmasiAksi'
+import { tglJam } from '../lib/format'
 
 type Mode = 'AUTO' | 'MANUAL'
 
@@ -21,16 +22,6 @@ type Status = {
   mode?: string | null
   valve_state?: string | null
   updated_at?: string | null
-}
-
-const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-
-function tgl(iso?: string | null): string {
-  if (!iso) return '—'
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return '—'
-  const jam = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-  return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()} ${jam}`
 }
 
 /** Backend menolak semua perintah kontrol air (503 kontrol_air_nonaktif) sampai jalur antrean aktif. */
@@ -188,7 +179,7 @@ export default function WaterControlPage() {
         </div>
         <dl className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
           <div className="vsf-stat">
-            <dt className="vsf-label !text-tinta">Status API</dt>
+            <dt className="vsf-label vsf-label-tinta">Status API</dt>
             <dd className="mt-2">
               {loading && !status ? (
                 <span className="vsf-skeleton inline-block h-[24px] w-[130px]" />
@@ -196,11 +187,11 @@ export default function WaterControlPage() {
                 <StatusBadge tone={terjangkau ? 'online' : 'offline'} label={terjangkau ? 'Terhubung' : 'Terputus'} />
               )}
             </dd>
-            <dd className="mt-1 text-[12px] text-abu">terakhir {tgl(status?.updated_at)}</dd>
+            <dd className="mt-1 text-[12px] text-abu">terakhir {tglJam(status?.updated_at)}</dd>
           </div>
           {stat.map((s) => (
             <div key={s.label} className="vsf-stat">
-              <dt className="vsf-label !text-tinta">{s.label}</dt>
+              <dt className="vsf-label vsf-label-tinta">{s.label}</dt>
               <dd className={clsx('mt-1 font-heading text-[20px] font-bold leading-tight tabular-nums text-tinta', s.flash && statusFlash)}>
                 {s.nilai}
               </dd>
@@ -226,7 +217,7 @@ export default function WaterControlPage() {
 
         <div className="mt-4 grid gap-3 lg:grid-cols-2">
           <div className="vsf-blok">
-            <div className="vsf-label !text-tinta">Mode</div>
+            <div className="vsf-label vsf-label-tinta">Mode</div>
             <div className="mt-2">
               <fieldset
                 disabled={!KONTROL_AKTIF || busy !== null || !terjangkau || !mode}
@@ -247,7 +238,7 @@ export default function WaterControlPage() {
           </div>
 
           <div className="vsf-blok">
-            <div className="vsf-label !text-tinta">Aksi manual</div>
+            <div className="vsf-label vsf-label-tinta">Aksi manual</div>
             <div className="mt-2 flex flex-wrap gap-2">
               <button type="button" disabled={aksiOff} onClick={() => setKonfirmasi('fill')} className="vsf-btn-primary">
                 {busy === 'fill' ? <span className="vsf-spinner" /> : <Ikon nama="tetes" />}
@@ -271,7 +262,7 @@ export default function WaterControlPage() {
 
       <StatusPenampung onPesan={(teks, ok) => setPesan({ teks, ok })} />
 
-      <RiwayatPerintah rows={barisRiwayat} tgl={tgl} />
+      <RiwayatPerintah rows={barisRiwayat} />
 
       {konfirmasi && (
         <DialogKonfirmasiAksi

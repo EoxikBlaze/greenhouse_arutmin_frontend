@@ -59,7 +59,7 @@ export function StripKonteks({ data, memuat }: { data: KonteksKebun | null; memu
         )}
         <button
           type="button"
-          className="vsf-chrome-tautan ml-auto !min-h-[36px] !min-w-[36px] justify-center"
+          className="vsf-chrome-tautan ml-auto vsf-ikon-btn"
           aria-expanded={info}
           aria-controls="vsf-sumber-data"
           aria-label="Data yang dibaca asisten"

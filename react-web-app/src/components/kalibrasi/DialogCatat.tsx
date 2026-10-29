@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { api } from '../../lib/api'
 import { fieldError, useApiError } from '../../lib/crudApi'
 import { angkaIsian, LANGKAH, n, potongan, urutKonstanta, type Alat, type Log, type Terkini } from '../../lib/kalibrasi'
-import { DialogKaca, Pesan } from '../dosing/DialogKaca'
+import { DialogKaca, Pesan } from '../kaca/DialogKaca'
 import { Ikon } from '../Ikon'
 import { Isian } from './Isian'
 

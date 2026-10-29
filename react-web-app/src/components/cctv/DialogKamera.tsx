@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { api } from '../../lib/api'
 import { CONTOH_URL, formDari, type Form, type Kamera, type Tipe } from '../../lib/cctv'
 import { fieldError, useApiError } from '../../lib/crudApi'
-import { DialogKaca, Pesan } from '../dosing/DialogKaca'
+import { DialogKaca, Pesan } from '../kaca/DialogKaca'
 
 import { Ikon } from '../Ikon'
 import { Pilihan } from './Pilihan'
@@ -94,7 +94,7 @@ export function DialogKamera({ kamera, onSelesai, onTutup }: { kamera?: Kamera; 
           </span>
           {galat('url')}
         </label>
-        <label className="vsf-batch !flex cursor-pointer items-center gap-3 !p-3 text-[13px] font-semibold text-slate-700 sm:col-span-2">
+        <label className="vsf-batch flex cursor-pointer items-center gap-3 p-3 text-[13px] font-semibold text-slate-700 sm:col-span-2">
           <span className="relative grid h-[22px] w-[22px] shrink-0 place-items-center">
             <input
               type="checkbox"

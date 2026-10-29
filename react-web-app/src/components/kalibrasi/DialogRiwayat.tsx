@@ -1,6 +1,7 @@
 import { useApiList } from '../../lib/crudApi'
-import { n, tgl, urutKonstanta, type Alat, type Log } from '../../lib/kalibrasi'
-import { DialogKaca } from '../dosing/DialogKaca'
+import { n, urutKonstanta, type Alat, type Log } from '../../lib/kalibrasi'
+import { tglPendek } from '../../lib/format'
+import { DialogKaca } from '../kaca/DialogKaca'
 
 /** Popup Riwayat: tetap tabel (100 catatan terakhir). */
 export function DialogRiwayat({ alat, onTutup }: { alat: Alat; onTutup: () => void }) {
@@ -24,7 +25,7 @@ export function DialogRiwayat({ alat, onTutup }: { alat: Alat; onTutup: () => vo
             ) : (
               rows.map((l) => (
                 <tr key={String(l.id)} className="border-t border-white/50 align-top">
-                  <td className="whitespace-nowrap px-3 py-2">{tgl(l.dilakukan_pada)}</td>
+                  <td className="whitespace-nowrap px-3 py-2">{tglPendek(l.dilakukan_pada)}</td>
                   <td className="px-3 py-2">{n(l.nilai_ref)}</td>
                   <td className="px-3 py-2">{l.bacaan_sesudah != null ? n(l.bacaan_sesudah) : n(l.bacaan_sebelum)}</td>
                   <td className="px-3 py-2 font-mono text-[12px]">{l.konstanta_baru ? urutKonstanta(l.konstanta_baru).map(([k, v]) => `${k}=${v}`).join(' ') : '—'}</td>

@@ -15,7 +15,7 @@ import {
 } from '../../lib/dosing'
 import { Ikon } from '../Ikon'
 import { Segmen } from '../sensor/FilterBar'
-import { DialogKaca, Kosong, Pesan, Rangka } from './DialogKaca'
+import { DialogKaca, Kosong, Pesan, Rangka } from '../kaca/DialogKaca'
 
 type Sumber = 'Dosing' | 'Timing'
 const SUMBER: readonly Sumber[] = ['Dosing', 'Timing']
@@ -160,7 +160,7 @@ export function PanelParameter({ dosis, timing }: { dosis: Daftar<ParameterRow>;
                         {bolehUbah && (
                           <button
                             type="button"
-                            className="vsf-btn-secondary !min-h-[40px] !px-3 text-[13px]"
+                            className="vsf-btn-secondary vsf-btn-kecil"
                             aria-label={`Ubah ${judulParam(r.param)}`}
                             onClick={() => buka(r)}
                           >
@@ -200,7 +200,7 @@ export function PanelParameter({ dosis, timing }: { dosis: Daftar<ParameterRow>;
             </div>
           )}
           <label className="mt-3 block">
-            <span className="vsf-label !text-tinta">Nilai baru</span>
+            <span className="vsf-label vsf-label-tinta">Nilai baru</span>
             <span className="relative mt-1 block">
               <input
                 className="vsf-input w-full pr-20"

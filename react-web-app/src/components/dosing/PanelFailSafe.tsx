@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import clsx from 'clsx'
 import { cocok, kelompokFailSafe, kelompokkan, tampilNilai, URUT_FAILSAFE, type Daftar, type FailSafeRow } from '../../lib/dosing'
 import { Ikon } from '../Ikon'
-import { Kosong, Pesan, Rangka } from './DialogKaca'
+import { Kosong, Pesan, Rangka } from '../kaca/DialogKaca'
 
 /** Panel Keamanan: aturan fail-safe (baca saja), dikelompokkan dan bisa dicari. */
 export function PanelFailSafe({ data }: { data: Daftar<FailSafeRow> }) {

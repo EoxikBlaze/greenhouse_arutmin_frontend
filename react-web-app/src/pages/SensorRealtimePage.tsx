@@ -16,7 +16,6 @@ import {
   hapusDuplikat,
   nilaiAngka,
   seriParam,
-  tanggalIso,
   terakhirPerParam,
   unduhLaporan,
   waktuMs,
@@ -24,6 +23,7 @@ import {
   type KunciSensor,
   type Titik,
 } from '../lib/sensorLaporan'
+import { tanggalIso } from '../lib/format'
 
 const RANGE_MS: Record<Exclude<Rentang, 'Kustom'>, number> = {
   '6 Jam': 6 * 3_600_000,
@@ -243,7 +243,7 @@ export default function SensorRealtimePage() {
             <Ikon nama="salah" className="h-4 w-4" />
             {error}
           </span>
-          <button type="button" className="vsf-btn-secondary !min-h-[36px] text-[13px]" onClick={reload}>
+          <button type="button" className="vsf-btn-secondary vsf-btn-kecil" onClick={reload}>
             Coba lagi
           </button>
         </div>

@@ -3,11 +3,11 @@ import clsx from 'clsx'
 import { api } from '../../lib/api'
 import { fieldError, useApiError } from '../../lib/crudApi'
 import { useApiObject } from '../../lib/useApiObject'
-import { useDialog } from '../../lib/useDialog'
 import { FieldError } from '../CrudScreen'
 import { Ikon } from '../Ikon'
-import { ModalBackdrop } from '../ModalBackdrop'
-import { perkiraanSelesai, tglPendek } from '../../lib/kebun'
+import { DialogKaca } from '../kaca/DialogKaca'
+import { tanggalIso, tglPendek } from '../../lib/format'
+import { perkiraanSelesai } from '../../lib/kebun'
 
 /** GET /tanam/pilihan — bisa dibaca semua role; durasi tiap tahap dari tabel sikluses (null = belum diisi admin). */
 type Pilihan = {
@@ -21,12 +21,6 @@ type Pilihan = {
 }
 
 const LANGKAH = 10
-
-/** Tanggal lokal hari ini → YYYY-MM-DD (default kolom tgl_awal_semai). */
-function hariIni(): string {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
 
 /**
  * Form "Mulai Semai Baru" — body POST /tanam/mulai: id_tanaman · id_meja · jumlah_benih · tgl_awal_semai · keterangan.
@@ -42,17 +36,11 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
   const [idMeja, setIdMeja] = useState('')
   const [mejaManual, setMejaManual] = useState(false)
   const [jumlah, setJumlah] = useState('100')
-  const [tgl, setTgl] = useState(hariIni())
+  const [tgl, setTgl] = useState(tanggalIso(Date.now()))
   const [ket, setKet] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-
-  const { dialogRef, onKeyDown, backdropProps, closing, handleClose } = useDialog({
-    open: true,
-    onClose,
-    closeDisabled: submitting,
-  })
 
   const terpilih = tanamanList.find((t) => String(t.id) === idTanaman) ?? null
   const mejaTerpilih = mejaList.find((m) => String(m.id) === idMeja) ?? null
@@ -113,33 +101,7 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
   ].filter(Boolean)
 
   return (
-    <ModalBackdrop onMouseDown={backdropProps.onMouseDown} closing={closing}>
-      <div
-        ref={dialogRef}
-        onKeyDown={onKeyDown}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="vsf-mulai-title"
-        className={`vsf-modal-card max-h-[92vh] w-full max-w-[560px] overflow-auto rounded-lg border border-garis bg-white p-5 sm:p-6${closing ? ' is-closing' : ''}`}
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 id="vsf-mulai-title" data-dialog-title tabIndex={-1} className="font-heading text-[20px] font-bold text-tinta outline-none">
-              Mulai semai baru
-            </h2>
-            <p className="mt-0.5 text-[13px] text-abu">Pilih tanaman, isi jumlah benih, lalu mulai.</p>
-          </div>
-          <button
-            type="button"
-            className="vsf-chrome-tautan !min-h-[40px] !min-w-[40px] justify-center"
-            aria-label="Tutup"
-            disabled={submitting}
-            onClick={handleClose}
-          >
-            <Ikon nama="tutup" />
-          </button>
-        </div>
-
+    <DialogKaca judul="Mulai semai baru" sub="Pilih tanaman, isi jumlah benih, lalu mulai." onTutup={onClose} sibuk={submitting} lebar={560} onSubmit={() => void save()}>
         {(formError || error) && (
           <div role="alert" className="vsf-banner vsf-tone-error mt-4 rounded-std px-3 py-2 text-[13px]">
             {formError ?? error}
@@ -147,7 +109,7 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
         )}
 
         <fieldset className="mt-5 min-w-0">
-          <legend className="vsf-label !text-tinta">Tanaman *</legend>
+          <legend className="vsf-label vsf-label-tinta">Tanaman *</legend>
           {loading && tanamanList.length === 0 ? (
             <div className="vsf-skeleton mt-2 h-[72px] rounded-card" />
           ) : (
@@ -175,7 +137,7 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
 
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className="vsf-label !text-tinta">Meja tanam</span>
+            <span className="vsf-label vsf-label-tinta">Meja tanam</span>
             <select
               className="vsf-input mt-1 w-full"
               value={idMeja}
@@ -194,14 +156,14 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
           </label>
 
           <label className="block">
-            <span className="vsf-label !text-tinta">Tanggal mulai semai</span>
+            <span className="vsf-label vsf-label-tinta">Tanggal mulai semai</span>
             <input className="vsf-input mt-1 w-full" type="date" value={tgl} onChange={(e) => setTgl(e.target.value)} />
             <FieldError message={fieldError(fieldErrors, 'tgl_awal_semai')} />
           </label>
         </div>
 
         <div className="mt-4">
-          <span className="vsf-label block !text-tinta" id="vsf-jumlah-label">
+          <span className="vsf-label block vsf-label-tinta" id="vsf-jumlah-label">
             Jumlah benih *
           </span>
           <div className="vsf-stepper mt-1">
@@ -222,7 +184,7 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
         </div>
 
         <label className="mt-4 block">
-          <span className="vsf-label !text-tinta">Keterangan (opsional)</span>
+          <span className="vsf-label vsf-label-tinta">Keterangan (opsional)</span>
           <input className="vsf-input mt-1 w-full" placeholder="Catatan singkat" value={ket} onChange={(e) => setKet(e.target.value)} />
         </label>
 
@@ -232,15 +194,14 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
-          <button type="button" className="vsf-btn-secondary" disabled={submitting} onClick={handleClose}>
+          <button type="button" className="vsf-btn-secondary" disabled={submitting} onClick={onClose}>
             Batal
           </button>
-          <button type="button" className="vsf-btn-primary" disabled={submitting} onClick={() => void save()}>
+          <button type="submit" className="vsf-btn-primary" disabled={submitting}>
             {submitting && <span className="vsf-spinner" aria-hidden />}
             {submitting ? 'Menyimpan…' : 'Mulai Tanam'}
           </button>
         </div>
-      </div>
-    </ModalBackdrop>
+    </DialogKaca>
   )
 }

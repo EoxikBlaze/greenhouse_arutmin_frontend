@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { api } from '../../lib/api'
 import { fieldError, useApiError } from '../../lib/crudApi'
 import { angkaIsian, type Alat } from '../../lib/kalibrasi'
-import { DialogKaca, Pesan } from '../dosing/DialogKaca'
+import { DialogKaca, Pesan } from '../kaca/DialogKaca'
 import { Isian } from './Isian'
 
 /** Popup Atur: jadwal, standar (toleransi/referensi), dan konstanta firmware saat ini. */

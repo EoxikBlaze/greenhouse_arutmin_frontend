@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import { Ikon } from '../Ikon'
+import { tglJam } from '../../lib/format'
 
 /** Satu baris riwayat perintah: baris server + perintah yang dikirim sesi ini. */
 export type Riwayat = {
@@ -12,7 +13,7 @@ export type Riwayat = {
 }
 
 /** Riwayat perintah sebagai deretan kartu kaca tipis. Desktop: kolom sejajar + header; HP: satu kartu per baris. */
-export function RiwayatPerintah({ rows, tgl }: { rows: Riwayat[]; tgl: (iso?: string | null) => string }) {
+export function RiwayatPerintah({ rows }: { rows: Riwayat[] }) {
   return (
     <section className="vsf-card p-4 sm:p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -37,7 +38,7 @@ export function RiwayatPerintah({ rows, tgl }: { rows: Riwayat[]; tgl: (iso?: st
           {rows.map((r) => (
             <div role="row" key={r.key} className="vsf-riwayat-air-baris">
               <div role="cell" className="font-semibold tabular-nums text-tinta">
-                {tgl(r.waktu)}
+                {tglJam(r.waktu)}
               </div>
               <div role="cell" className="justify-self-end sm:justify-self-start">
                 <span className={clsx('vsf-chip-nilai', r.ok ? 'is-normal' : 'is-luar')}>{r.perintah}</span>

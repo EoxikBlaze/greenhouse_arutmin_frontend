@@ -4,10 +4,10 @@ import { api } from '../lib/api'
 import { useAuth } from '../lib/authContext'
 import { fieldError, useApiError } from '../lib/crudApi'
 import { useApiObject } from '../lib/useApiObject'
-import { useDialog } from '../lib/useDialog'
+import { angkaMaks } from '../lib/format'
 import { kenaikanPerHari } from '../lib/kebun'
 import { Ikon } from './Ikon'
-import { ModalBackdrop } from './ModalBackdrop'
+import { DialogKaca, Pesan } from './kaca/DialogKaca'
 
 /**
  * Target nutrisi NAIK HARIAN per jenis tanaman — routes/preset.js:
@@ -28,7 +28,7 @@ type Respon = { data: Baris[]; ambang_tds: { min: number; max: number } | null; 
 
 const angka = (v: unknown) => (v == null || v === '' ? null : Number(v))
 /** 2400 → "2.400", 33.333 → "33,3" */
-const tampil = (v: number) => v.toLocaleString('id-ID', { maximumFractionDigits: 1 })
+const tampil = (v: number) => angkaMaks(v, 1)
 
 /** Kolom angka dengan satuan di dalam kolom. */
 function KolomAngka({
@@ -50,7 +50,7 @@ function KolomAngka({
 }) {
   return (
     <label className="mt-3 block">
-      <span className="vsf-label !text-tinta">{label}</span>
+      <span className="vsf-label vsf-label-tinta">{label}</span>
       <span className="relative mt-1 block">
         <input
           className="vsf-input w-full pr-14"
@@ -82,12 +82,6 @@ export function NaikHarian() {
   const [pesan, setPesan] = useState<string | null>(null)
   const [galat, setGalat] = useState<string | null>(null)
   const [info, setInfo] = useState(false)
-
-  const { dialogRef, onKeyDown, backdropProps, closing, handleClose } = useDialog({
-    open: ubah !== null,
-    onClose: () => setUbah(null),
-    closeDisabled: sibuk,
-  })
 
   useEffect(() => {
     if (!pesan) return
@@ -143,7 +137,7 @@ export function NaikHarian() {
         </div>
         <button
           type="button"
-          className="vsf-chrome-tautan !min-h-[40px] !min-w-[40px] shrink-0 justify-center"
+          className="vsf-chrome-tautan shrink-0 vsf-ikon-btn"
           aria-expanded={info}
           aria-controls="vsf-naik-info"
           aria-label="Cara kerja target nutrisi"
@@ -198,7 +192,7 @@ export function NaikHarian() {
                   )}
                 </div>
                 {bolehTulis && (
-                  <button type="button" className="vsf-btn-secondary !min-h-[40px] shrink-0 !px-3 text-[13px]" onClick={() => buka(r)}>
+                  <button type="button" className="vsf-btn-secondary shrink-0 vsf-btn-kecil" onClick={() => buka(r)}>
                     <Ikon nama="ubah" className="h-4 w-4" />
                     {aktif ? 'Ubah' : 'Atur'}
                   </button>
@@ -216,80 +210,42 @@ export function NaikHarian() {
       </ul>
 
       {ubah && (
-        <ModalBackdrop onMouseDown={backdropProps.onMouseDown} closing={closing}>
-          <div
-            ref={dialogRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="vsf-naik-judul"
-            className={clsx('vsf-modal-card w-full max-w-[440px] rounded-card bg-white p-5 sm:p-6', closing && 'is-closing')}
-            onKeyDown={onKeyDown}
-          >
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              void simpan()
-            }}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 id="vsf-naik-judul" data-dialog-title tabIndex={-1} className="font-heading text-[20px] font-bold text-tinta outline-none">
-                  Atur target nutrisi
-                </h2>
-                <p className="mt-0.5 text-[13px] text-abu">{ubah.nama_tanaman}</p>
-              </div>
-              <button
-                type="button"
-                className="vsf-chrome-tautan !min-h-[40px] !min-w-[40px] justify-center"
-                aria-label="Tutup"
-                disabled={sibuk}
-                onClick={handleClose}
-              >
-                <Ikon nama="tutup" />
-              </button>
-            </div>
+        <DialogKaca judul="Atur target nutrisi" sub={ubah.nama_tanaman} onTutup={() => setUbah(null)} sibuk={sibuk} lebar={440} onSubmit={() => void simpan()}>
+          {galat && <Pesan jenis="galat">{galat}</Pesan>}
 
-            {galat && (
-              <div role="alert" className="vsf-banner vsf-tone-error mt-3 rounded-input px-3 py-2 text-[13px]">
-                {galat}
-              </div>
-            )}
+          <KolomAngka label="Target akhir" satuan="ppm" value={target} onChange={setTarget} placeholder="2400" autoFocus galat={fieldError(errs, 'ppm_target')} />
+          <KolomAngka label="Dicapai dalam (hari sejak pindah netpot)" satuan="hari" value={hari} onChange={setHari} placeholder="60" galat={fieldError(errs, 'hari_capai')} />
+          <KolomAngka label="ppm awal saat pindah netpot" satuan="ppm" value={awal} onChange={setAwal} placeholder="400" galat={fieldError(errs, 'ppm_awal')} />
 
-            <KolomAngka label="Target akhir" satuan="ppm" value={target} onChange={setTarget} placeholder="2400" autoFocus galat={fieldError(errs, 'ppm_target')} />
-            <KolomAngka label="Dicapai dalam (hari sejak pindah netpot)" satuan="hari" value={hari} onChange={setHari} placeholder="60" galat={fieldError(errs, 'hari_capai')} />
-            <KolomAngka label="ppm awal saat pindah netpot" satuan="ppm" value={awal} onChange={setAwal} placeholder="400" galat={fieldError(errs, 'ppm_awal')} />
-
-            <div className={clsx('vsf-ringkasan-form mt-4', perHari == null && 'is-kosong')} aria-live="polite">
-              <Ikon nama="tetes" className="h-4 w-4" />
-              <span>
-                {perHari == null
-                  ? 'Isi ketiga angka untuk melihat kenaikan per hari.'
-                  : `Naik ±${tampil(perHari)} ppm per hari, dari ${tampil(pa ?? 0)} ke ${tampil(pt ?? 0)} ppm.`}
-              </span>
-            </div>
-            {targetLewat && (
-              <div className="vsf-tone-warn mt-2 rounded-input px-3 py-2 text-[12px]" role="status">
-                Target di atas ambang alert TDS ({tampil(maksAmbang ?? 0)} ppm) — alert "di luar batas" akan muncul.
-              </div>
-            )}
-
-            <div className="mt-5 flex flex-wrap justify-end gap-2">
-              {ubah.ppm_target != null && (
-                <button type="button" className="vsf-btn-secondary mr-auto !text-arutmin-error" onClick={() => void simpan(true)} disabled={sibuk}>
-                  Matikan target
-                </button>
-              )}
-              <button type="button" className="vsf-btn-secondary" onClick={handleClose} disabled={sibuk}>
-                Batal
-              </button>
-              <button type="submit" className="vsf-btn-primary" disabled={sibuk}>
-                {sibuk && <span className="vsf-spinner" aria-hidden />}
-                {sibuk ? 'Menyimpan…' : 'Simpan'}
-              </button>
-            </div>
-          </form>
+          <div className={clsx('vsf-ringkasan-form mt-4', perHari == null && 'is-kosong')} aria-live="polite">
+            <Ikon nama="tetes" className="h-4 w-4" />
+            <span>
+              {perHari == null
+                ? 'Isi ketiga angka untuk melihat kenaikan per hari.'
+                : `Naik ±${tampil(perHari)} ppm per hari, dari ${tampil(pa ?? 0)} ke ${tampil(pt ?? 0)} ppm.`}
+            </span>
           </div>
-        </ModalBackdrop>
+          {targetLewat && (
+            <div className="vsf-tone-warn mt-2 rounded-input px-3 py-2 text-[12px]" role="status">
+              Target di atas ambang alert TDS ({tampil(maksAmbang ?? 0)} ppm) — alert "di luar batas" akan muncul.
+            </div>
+          )}
+
+          <div className="mt-5 flex flex-wrap justify-end gap-2">
+            {ubah.ppm_target != null && (
+              <button type="button" className="vsf-btn-secondary mr-auto vsf-teks-bahaya" onClick={() => void simpan(true)} disabled={sibuk}>
+                Matikan target
+              </button>
+            )}
+            <button type="button" className="vsf-btn-secondary" onClick={() => setUbah(null)} disabled={sibuk}>
+              Batal
+            </button>
+            <button type="submit" className="vsf-btn-primary" disabled={sibuk}>
+              {sibuk && <span className="vsf-spinner" aria-hidden />}
+              {sibuk ? 'Menyimpan…' : 'Simpan'}
+            </button>
+          </div>
+        </DialogKaca>
       )}
     </section>
   )

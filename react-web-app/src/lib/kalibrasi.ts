@@ -1,3 +1,5 @@
+import { tglPendek } from './format'
+
 /**
  * Kalibrasi alat IoT — tipe, teks, dan urutan (routes/kalibrasi.js):
  *   GET /kalibrasi · GET /kalibrasi/:sensor/riwayat · POST /kalibrasi/:sensor · PUT /kalibrasi/:sensor
@@ -94,12 +96,6 @@ export const n = (v: unknown, d = 2): string => {
   const x = Number(v)
   return Number.isFinite(x) ? String(Math.round(x * 10 ** d) / 10 ** d).replace('.', ',') : String(v)
 }
-const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-export const tgl = (iso?: string | null): string => {
-  if (!iso) return '—'
-  const d = new Date(iso)
-  return Number.isNaN(d.getTime()) ? '—' : `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}`
-}
 export const angkaIsian = (s: string): number | null => (s.trim() === '' ? null : Number(s.replace(',', '.')))
 
 /** Konstanta urut seperti di sensor.ino (PH_V7 sebelum PH_V4); jsonb mengurutkan kunci sendiri. */
@@ -144,7 +140,7 @@ export function teksTenggat(a: Pick<Alat, 'status' | 'jatuh_tempo'>, sekarang: D
   const sisa = Math.ceil((new Date(a.jatuh_tempo).getTime() - sekarang.getTime()) / HARI)
   if (sisa < 0) return `Terlambat ${-sisa} hari`
   if (sisa === 0) return 'Jatuh tempo hari ini'
-  return `${a.status === 'segera' ? 'Segera · ' : ''}Jatuh tempo ${tgl(a.jatuh_tempo)} (${sisa} hari lagi)`
+  return `${a.status === 'segera' ? 'Segera · ' : ''}Jatuh tempo ${tglPendek(a.jatuh_tempo)} (${sisa} hari lagi)`
 }
 
 export const jadwalTeks = (a: Pick<Alat, 'periode_hari_min' | 'periode_hari_max'>): string =>
