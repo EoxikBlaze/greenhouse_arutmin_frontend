@@ -127,42 +127,21 @@ class KartuKpi extends StatelessWidget {
     final Widget kartu;
     if (!hijau && !emas) {
       kartu = KacaCair(
+        varian: KacaVarian.bening,
         padding: const EdgeInsets.all(14),
         onTap: onTap,
         child: isi,
       );
     } else {
-      final gradasi = Container(
+      // KPI sorot = kaca bertint hijau/emas (bening, ikut BackdropGroup), rim sama dengan kartu lain
+      kartu = KacaCair(
+        varian: KacaVarian.bening,
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(Tok.rKartu),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
-          gradient: hijau
-              ? const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xEB6B9D4A), Color(0xE62D452F)],
-                )
-              : const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xF2F0D660), Color(0xE6D6A828)],
-                ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x332A5080),
-              blurRadius: 30,
-              spreadRadius: -10,
-              offset: Offset(0, 14),
-            ),
-          ],
-        ),
+        onTap: onTap,
+        warna: hijau
+            ? const [Color(0xEB6B9D4A), Color(0xE62D452F)]
+            : const [Color(0xF2F0D660), Color(0xE6D6A828)],
         child: isi,
-      );
-      kartu = RepaintBoundary(
-        child: onTap == null
-            ? gradasi
-            : Pressable(onTap: onTap!, child: gradasi),
       );
     }
 

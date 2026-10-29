@@ -25,6 +25,7 @@ final ApiService apiService = ApiService(penyimpan: const PenyimpanSesiAman());
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await apiService.pulihkanSesi();
+  await PreferensiKaca.muat();
   runApp(const GarapApp());
 }
 
@@ -102,10 +103,17 @@ class GarapApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: _buatTema(),
       // Ikuti ukuran teks sistem, tapi batasi agar dock dan kartu tidak meluber.
-      builder: (context, child) => MediaQuery.withClampedTextScaling(
-        minScaleFactor: 1.0,
-        maxScaleFactor: 1.3,
-        child: child!,
+      // Mode kaca (Jernih/Standar/Pekat dari halaman Akun) disebar ke semua permukaan kaca.
+      builder: (context, child) => ValueListenableBuilder<ModeKaca>(
+        valueListenable: PreferensiKaca.mode,
+        builder: (context, mode, _) => KacaScope(
+          mode: mode,
+          child: MediaQuery.withClampedTextScaling(
+            minScaleFactor: 1.0,
+            maxScaleFactor: 1.3,
+            child: child!,
+          ),
+        ),
       ),
       home: const _GarapRoot(),
     );
@@ -261,20 +269,23 @@ class _MainShellState extends State<_MainShell>
         children: [
           // satu latar cair untuk semua tab — panel kaca di tiap halaman tampil di atasnya
           const Positioned.fill(child: LatarCair()),
-          FadeTransition(
-            opacity: CurvedAnimation(parent: _pudar, curve: Tok.ease),
-            child: IndexedStack(
-              index: _indeks,
-              children: [
-                // Tab tersembunyi: ticker dijeda (PipeFlow, PulseDot, skeleton) agar hemat baterai.
-                for (var i = 0; i < _tab.length; i++)
-                  TickerMode(
-                    enabled: i == _indeks,
-                    child: _dibuka.contains(i)
-                        ? _tab[i].bangun(i == _indeks)
-                        : const SizedBox.shrink(),
-                  ),
-              ],
+          // BackdropGroup: semua panel kaca di tab berbagi satu blur latar (dock di luar grup).
+          BackdropGroup(
+            child: FadeTransition(
+              opacity: CurvedAnimation(parent: _pudar, curve: Tok.ease),
+              child: IndexedStack(
+                index: _indeks,
+                children: [
+                  // Tab tersembunyi: ticker dijeda (PipeFlow, PulseDot, skeleton) agar hemat baterai.
+                  for (var i = 0; i < _tab.length; i++)
+                    TickerMode(
+                      enabled: i == _indeks,
+                      child: _dibuka.contains(i)
+                          ? _tab[i].bangun(i == _indeks)
+                          : const SizedBox.shrink(),
+                    ),
+                ],
+              ),
             ),
           ),
           Positioned(

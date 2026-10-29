@@ -5,6 +5,7 @@ import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/brand.dart';
 import '../widgets/ikon.dart';
+import '../widgets/kaca.dart';
 import '../widgets/dock.dart';
 import '../widgets/halaman.dart';
 import '../widgets/motion.dart';
@@ -378,6 +379,8 @@ class _ProfilPageState extends State<ProfilPage> {
                 child: const Eyebrow('Pengaturan'),
               ),
               const SizedBox(height: Tok.sp3),
+              FadeUp(delay: FadeUp.urutan(7), child: const _PilihKaca()),
+              const SizedBox(height: Tok.sp3),
               FadeUp(
                 delay: FadeUp.urutan(7),
                 child: Panel(
@@ -468,6 +471,39 @@ class _Pintas extends StatelessWidget {
             const Icon(Ikon.kanan, size: 18, color: Tok.abu),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Pilihan transparansi kaca (padanan kartu "Tampilan kaca" di web). Berlaku langsung
+/// untuk seluruh aplikasi dan tersimpan di perangkat.
+class _PilihKaca extends StatelessWidget {
+  const _PilihKaca();
+
+  static const _label = ['Jernih', 'Standar', 'Pekat'];
+
+  @override
+  Widget build(BuildContext context) {
+    final mode = KacaScope.of(context);
+    return Panel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Tampilan kaca', style: Tok.h3),
+          const SizedBox(height: 2),
+          const Text(
+            'Atur seberapa tembus pandang kartu dan menu. Pilih Pekat bila teks sulit dibaca.',
+            style: Tok.kecil,
+          ),
+          const SizedBox(height: Tok.sp3),
+          PilPilih(
+            label: _label,
+            pilih: mode.index,
+            rata: true,
+            onPilih: (i) => PreferensiKaca.atur(ModeKaca.values[i]),
+          ),
+        ],
       ),
     );
   }

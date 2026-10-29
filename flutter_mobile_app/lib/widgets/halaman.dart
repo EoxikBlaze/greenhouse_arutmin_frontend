@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../theme/tokens.dart';
+import 'kaca.dart';
 
 /// Kepala halaman dalam (padanan kartu judul di web): kartu kaca kecil berisi
 /// eyebrow grup + judul, dengan [status] opsional di kanan. Menggantikan HeroHeader
@@ -25,28 +26,13 @@ class PageTop extends StatelessWidget {
       value: SystemUiOverlayStyle.dark,
       child: Padding(
         padding: EdgeInsets.fromLTRB(16, atas + 12, 16, 0),
-        child: Container(
+        child: KacaCair(
+          radius: 24,
           padding: const EdgeInsets.fromLTRB(18, 12, 12, 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withValues(alpha: 0.78),
-                const Color(0xFFD7E8F8).withValues(alpha: 0.6),
-              ],
-            ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x332A5080),
-                blurRadius: 28,
-                spreadRadius: -10,
-                offset: Offset(0, 12),
-              ),
-            ],
-          ),
+          warna: [
+            Colors.white.withValues(alpha: 0.7),
+            const Color(0xFFD7E8F8).withValues(alpha: 0.52),
+          ],
           child: Row(
             children: [
               Expanded(
@@ -115,13 +101,14 @@ class PilPilih extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Track tanpa blur sendiri (ada di atas kaca: bukan kaca di atas kaca), hanya tint + rim.
     final pil = Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.55),
+        color: Colors.white.withValues(alpha: 0.45),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.85)),
       ),
+      foregroundDecoration: const _RimPil(),
       child: Row(
         mainAxisSize: rata ? MainAxisSize.max : MainAxisSize.min,
         children: [
@@ -187,31 +174,16 @@ class HeroKartu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: Container(
-        width: double.infinity,
+    return SizedBox(
+      width: double.infinity,
+      child: KacaCair(
+        radius: 28,
         padding: EdgeInsets.all(padding),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.white.withValues(alpha: 0.72),
-              const Color(0xFFD7E8F8).withValues(alpha: 0.6),
-              const Color(0xFFF6EDBE).withValues(alpha: 0.62),
-            ],
-          ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x402A5080),
-              blurRadius: 34,
-              spreadRadius: -12,
-              offset: Offset(0, 16),
-            ),
-          ],
-        ),
+        warna: [
+          Colors.white.withValues(alpha: 0.64),
+          const Color(0xFFD7E8F8).withValues(alpha: 0.5),
+          const Color(0xFFF6EDBE).withValues(alpha: 0.54),
+        ],
         child: child,
       ),
     );
@@ -228,28 +200,56 @@ class MiniNilai extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 11, color: Tok.abuTeks)),
-          Text(
-            nilai,
-            style: const TextStyle(
-              fontSize: 14.5,
-              fontWeight: FontWeight.w700,
-              color: Tok.tinta,
+    // Di dalam kartu kaca: tint + rim tipis, tanpa blur sendiri.
+    final solid = KacaScope.solid(context);
+    return CustomPaint(
+      foregroundPainter: solid ? null : const RimKaca(radius: 14, kecil: true),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: solid ? 1 : 0.56),
+          borderRadius: BorderRadius.circular(14),
+          border: solid ? Border.all(color: Tok.garis) : null,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 11, color: Tok.abuTeks),
             ),
-          ),
-        ],
+            Text(
+              nilai,
+              style: const TextStyle(
+                fontSize: 14.5,
+                fontWeight: FontWeight.w700,
+                color: Tok.tinta,
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+}
+
+/// Rim tipis untuk track pil (bentuk kapsul).
+class _RimPil extends Decoration {
+  const _RimPil();
+
+  @override
+  BoxPainter createBoxPainter([VoidCallback? onChanged]) => _RimPilPainter();
+}
+
+class _RimPilPainter extends BoxPainter {
+  @override
+  void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
+    final ukuran = configuration.size;
+    if (ukuran == null) return;
+    canvas.save();
+    canvas.translate(offset.dx, offset.dy);
+    RimKaca(radius: ukuran.height / 2, kecil: true).paint(canvas, ukuran);
+    canvas.restore();
   }
 }

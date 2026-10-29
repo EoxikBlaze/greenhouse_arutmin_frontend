@@ -22,8 +22,9 @@ class Tok {
   static const Color tinta = Color(0xFF0B1A2B);
   static const Color abu = Color(0xFF64748B);
 
-  /// Abu untuk TEKS kecil (≥4,5:1 di atas `page`); [abu] untuk ikon/dekorasi.
-  static const Color abuTeks = Color(0xFF556277);
+  /// Abu untuk TEKS kecil; [abu] untuk ikon/dekorasi. Digelapkan dari 0xFF556277 karena
+  /// teks ini sering berada di atas kaca bening (foto di belakang): target ≥4,5:1.
+  static const Color abuTeks = Color(0xFF3E4C60);
   static const Color error = Color(0xFFC0392B);
   static const Color warning = Color(0xFFE0A42B);
 
