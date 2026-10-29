@@ -6,6 +6,7 @@ import { useAuth } from '../lib/authContext'
 import { StatusBadge } from '../components/StatusBadge'
 import { BtnEdit, BtnHapus, CrudScreen, Field, FieldError, type Column, type HapusTarget } from '../components/CrudScreen'
 import { Ikon } from '../components/Ikon'
+import { bacaKaca, PILIHAN_KACA, setKaca, type Kaca } from '../lib/kaca'
 
 /* ── Ikon SVG inline (R3): pengganti emoji silang/centang — aria-hidden, 16px ── */
 type FormState = Record<string, string>
@@ -266,6 +267,7 @@ export function ProfilPage() {
   const { data, loading, error, reload } = useApiObject<ProfilPayload>('/profil')
   const user = data?.user ?? null
 
+  const [kaca, setKacaState] = useState<Kaca>(bacaKaca)
   const [banner, setBanner] = useState<string | null>(null)
   const [edit, setEdit] = useState<{ username: string; email: string } | null>(null)
   const [editErr, setEditErr] = useState<Record<string, string[]>>({})
@@ -481,6 +483,31 @@ export function ProfilPage() {
           {savingSandi && <span className="vsf-spinner" />}
           {savingSandi ? 'Memperbarui…' : 'Perbarui Password'}
         </button>
+      </section>
+
+      <section className="vsf-card p-4 sm:p-5">
+        <div className="vsf-judul-bagian">Tampilan kaca</div>
+        <p className="mt-1 text-[12.5px] leading-relaxed text-slate-600">
+          Atur seberapa tembus pandang kartu dan menu. Pilih Pekat bila teks sulit dibaca.
+        </p>
+        <div role="radiogroup" aria-label="Transparansi kaca" className="mt-3 flex flex-wrap gap-2">
+          {PILIHAN_KACA.map((p) => (
+            <button
+              key={p.nilai}
+              type="button"
+              role="radio"
+              aria-checked={kaca === p.nilai}
+              className={kaca === p.nilai ? 'vsf-btn-primary' : 'vsf-btn-secondary'}
+              onClick={() => {
+                setKacaState(p.nilai)
+                setKaca(p.nilai)
+              }}
+            >
+              {p.label}
+              <span className="hidden text-[12px] font-medium opacity-80 sm:inline">· {p.ket}</span>
+            </button>
+          ))}
+        </div>
       </section>
 
       <section className="vsf-card p-4 sm:p-5">

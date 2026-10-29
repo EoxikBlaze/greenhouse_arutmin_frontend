@@ -294,7 +294,7 @@ export default function DashboardPage() {
                   const jalan = Number(p.jalan ?? 0)
                   const persen = p.k === 'panen' || total <= 0 ? (total > 0 ? 100 : 0) : Math.min(100, Math.round((jalan / total) * 100))
                   return (
-                    <li key={p.k} className="vsf-baris rounded-card border border-arutmin-border bg-white/85 p-3 transition hover:border-arutmin-moss/60 hover:bg-white">
+                    <li key={p.k} className="rounded-card border border-arutmin-border bg-white/85 p-3 transition hover:border-arutmin-moss/60 hover:bg-white">
                       <div className="flex items-center gap-3">
                         <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-arutmin-forest text-[13px] font-bold tabular-nums text-white">{i + 1}</span>
                         <div className="min-w-0 flex-1">

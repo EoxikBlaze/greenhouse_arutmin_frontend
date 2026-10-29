@@ -10,6 +10,7 @@ import { ModalBackdrop } from '../components/ModalBackdrop'
 import { Ikon, type NamaIkon } from '../components/Ikon'
 import { PillNav } from '../components/PillNav'
 import { useApiObject } from '../lib/useApiObject'
+import { mulaiKaca, pantauKaca } from '../lib/kaca'
 
 /** Bentuk data /dashboard yang dipakai chrome (hanya utk indikator IoT). */
 type DashboardStatus = { iotStatus?: { online?: boolean } | null }
@@ -129,13 +130,13 @@ function RailItem({ to, label, ikon, aktif }: { to: string; label: string; ikon:
         'group/rail relative grid h-12 w-12 place-items-center rounded-[18px] transition-all duration-[var(--dur-normal)] ease-[var(--ease-v2)]',
         aktif
           ? 'bg-activePill text-white shadow-[0_10px_20px_-10px_rgba(78,119,51,.95),inset_0_1px_0_rgba(255,255,255,.35)]'
-          : 'text-tinta/70 hover:bg-white/75 hover:text-tinta',
+          : 'text-tinta/70 hover:bg-white/75 hover:text-tinta hover:shadow-[var(--lg-rim-kecil)] active:scale-95',
       ].join(' ')}
     >
       <Ikon nama={ikon} className="h-[22px] w-[22px]" />
       <span
         role="tooltip"
-        className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 z-50 -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-full border border-white/70 bg-white/80 px-3 py-1.5 text-[13px] font-semibold text-tinta opacity-0 shadow-[0_8px_24px_-10px_rgba(40,80,130,.4)] backdrop-blur-md transition-all duration-[var(--dur-normal)] group-hover/rail:translate-x-0 group-hover/rail:opacity-100 group-focus-visible/rail:translate-x-0 group-focus-visible/rail:opacity-100"
+        className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 z-50 -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-full border border-white/70 bg-white/80 px-3 py-1.5 text-[13px] font-semibold text-tinta opacity-0 shadow-[0_8px_24px_-10px_rgba(40,80,130,.4)] transition-all duration-[var(--dur-normal)] group-hover/rail:translate-x-0 group-hover/rail:opacity-100 group-hover/rail:backdrop-blur-md group-focus-visible/rail:translate-x-0 group-focus-visible/rail:opacity-100 group-focus-visible/rail:backdrop-blur-md"
       >
         {label}
       </span>
@@ -223,6 +224,39 @@ export function AppShell() {
     }
   }, [navOpen])
 
+  // Material kaca: pilihan transparansi tersimpan + penghemat blur kartu di luar layar.
+  const akar = useRef<HTMLDivElement>(null)
+  const topbar = useRef<HTMLElement>(null)
+  useEffect(() => {
+    mulaiKaca()
+    const henti = akar.current ? pantauKaca(akar.current) : undefined
+    // Scroll edge: topbar makin pekat saat halaman digulir (atribut langsung, tanpa render ulang).
+    // Selama menggulung, html.lg-gulir mengganti lensa refraksi (mahal) dengan blur biasa agar tetap 60fps;
+    // lensa kembali 160ms setelah berhenti.
+    const html = document.documentElement
+    let menggulung = false
+    let henti160 = 0
+    const onScroll = () => {
+      const bar = topbar.current
+      const turun = window.scrollY > 8
+      if (bar && turun !== menggulung) {
+        menggulung = turun
+        bar.toggleAttribute('data-menggulung', turun)
+      }
+      if (!html.classList.contains('lg-gulir')) html.classList.add('lg-gulir')
+      window.clearTimeout(henti160)
+      henti160 = window.setTimeout(() => html.classList.remove('lg-gulir'), 160)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      henti?.()
+      window.removeEventListener('scroll', onScroll)
+      window.clearTimeout(henti160)
+      html.classList.remove('lg-gulir')
+    }
+  }, [])
+
   // Pindah halaman → mulai dari atas (SPA tidak mereset scroll sendiri).
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
@@ -269,7 +303,7 @@ export function AppShell() {
   useEffect(() => () => cancelAnimationFrame(kursorFrame.current), [])
   function ikutiKursor(e: React.PointerEvent<HTMLElement>) {
     if (e.pointerType !== 'mouse') return
-    const el = (e.target as HTMLElement).closest<HTMLElement>('.vsf-card, .vsf-kpi-kaca, .vsf-kpi')
+    const el = (e.target as HTMLElement).closest<HTMLElement>('.vsf-card, .vsf-kpi-kaca, .vsf-kpi, .glass-card, .glass-chrome')
     if (!el) return
     kursor.current = { el, x: e.clientX, y: e.clientY }
     if (kursorFrame.current) return
@@ -284,7 +318,7 @@ export function AppShell() {
   }
 
   return (
-    <div className="relative isolate min-h-dvh">
+    <div ref={akar} className="relative isolate min-h-dvh">
       <div className="app-latar" aria-hidden />
       <DemoBanner demo={demo} />
       {/* R4 — skip-link ke konten utama (sembunyi sampai difokus keyboard). */}
@@ -298,6 +332,7 @@ export function AppShell() {
       {/* Rail desktop — menu utama: satu ikon per grup, tooltip kaca di kanan. */}
       <aside
         aria-label="Menu utama"
+        onPointerMove={ikutiKursor}
         className="glass-chrome vsf-stagger fixed bottom-3 left-3 top-3 z-40 hidden w-[72px] flex-col items-center gap-2 py-3 lg:flex"
       >
         <Link to="/dashboard" aria-label="GARAP — ke dashboard" className="mb-1 block">
@@ -387,7 +422,7 @@ export function AppShell() {
 
       <main id="vsf-main" tabIndex={-1} onPointerMove={ikutiKursor} className="flex min-h-dvh min-w-0 flex-col outline-none lg:pl-[92px]">
         {/* Bilah atas: merek, nav pill submenu grup aktif, status. */}
-        <header className="vsf-topbar sticky top-0 z-20 px-4 pt-3 sm:px-6">
+        <header ref={topbar} className="vsf-topbar sticky top-0 z-20 px-4 pt-3 sm:px-6">
           <div className="glass-chrome flex flex-wrap items-center gap-x-3 gap-y-2 py-2 pl-2 pr-2 sm:pl-3 xl:flex-nowrap">
             <button
               type="button"
