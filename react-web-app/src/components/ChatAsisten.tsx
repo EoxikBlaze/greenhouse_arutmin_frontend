@@ -2,34 +2,20 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import clsx from 'clsx'
 import { api } from '../lib/api'
 import { useApiError } from '../lib/crudApi'
+import { Ikon } from './Ikon'
+import { riwayatUntukServer, type Pesan, type Tabel } from '../lib/riwayatChat'
 
 /**
  * Chat bebas dengan asisten AI — POST /api/ai/chat
  * body { pesan, riwayat:[{peran:'user'|'ai', teks}] } → { jawaban, sumber, model, fallback_karena }.
  * Riwayat hanya hidup di sesi halaman ini (tidak disimpan di server).
+ *
+ * Tata letak: thread mengalir di halaman (tanpa kotak dalam), composer kaca menempel di bawah layar.
  */
-
-type Tabel = { judul: string; kolom: string[]; baris: string[][] }
-type Pesan = {
-  id: number
-  peran: 'user' | 'ai'
-  teks: string
-  sumber?: string
-  status?: 'OK' | 'PERHATIAN' | 'KRITIS'
-  tabel?: Tabel[]
-  galat?: boolean
-}
-
-const SARAN = [
-  'Bagaimana kondisi pH dan TDS sekarang?',
-  'Apa yang harus saya lakukan hari ini?',
-  'Kapan tahap semai berikutnya selesai?',
-  'Kenapa daun selada menguning?',
-]
 
 /** Pintasan jalur deterministik: jawaban + tabel langsung dari database, tanpa LLM. */
 const PINTASAN = [
-  { label: 'Diagnosa menyeluruh', pesan: 'Lakukan diagnosa menyeluruh' },
+  { label: 'Diagnosa menyeluruh', pesan: 'Lakukan diagnosa menyeluruh', utama: true },
   { label: 'Tabel sensor', pesan: 'Tampilkan tabel sensor terbaru' },
   { label: 'Alert terbuka', pesan: 'Tampilkan daftar alert terbuka' },
   { label: 'Status penampung', pesan: 'Tampilkan status penampung dan dosing' },
@@ -58,8 +44,8 @@ function warnaSel(v: string): string {
 function TabelAi({ t }: { t: Tabel }) {
   return (
     <figure className="mt-2.5 min-w-0">
-      <figcaption className="mb-1 text-[12px] font-bold uppercase tracking-[.1em] text-slate-500">{t.judul}</figcaption>
-      <div className="max-w-full overflow-x-auto overscroll-x-contain rounded-card border border-arutmin-border">
+      <figcaption className="mb-1 text-[12px] font-bold uppercase tracking-[.1em] text-abu">{t.judul}</figcaption>
+      <div className="max-w-full overflow-x-auto overscroll-x-contain rounded-card border border-arutmin-border bg-white">
         <table className="w-full min-w-max border-collapse text-left text-[12px]">
           <thead>
             <tr className="bg-arutmin-page">
@@ -88,47 +74,49 @@ function TabelAi({ t }: { t: Tabel }) {
 }
 
 const BATAS = 600
+const TAMPIL_HITUNG = 400
+const TINGGI_MAKS = 132
 
-/**
- * Riwayat untuk server: pasangan tanya-jawab yang ditolak/galat dibuang UTUH.
- * Dulu hanya jawabannya yang dibuang → pertanyaan luar topik ikut terkirim dan
- * membuat pertanyaan sah berikutnya ditolak juga.
- */
-function riwayatUntukServer(pesan: Pesan[]) {
-  const out: Pesan[] = []
-  for (const p of pesan) {
-    if (p.peran === 'ai' && (p.galat || p.sumber === 'tolak')) {
-      if (out.length && out[out.length - 1].peran === 'user') out.pop()
-      continue
-    }
-    out.push(p)
-  }
-  return out.slice(-8).map((p) => ({ peran: p.peran, teks: p.teks }))
+/** Waktu saat ini (ms); dipanggil hanya dari handler kirim, bukan saat render. */
+const sekarang = () => Date.now()
+
+function jam(ms: number): string {
+  const d = new Date(ms)
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
-export function ChatAsisten() {
+export function ChatAsisten({ saran }: { saran: string[] }) {
   const handleApiError = useApiError()
   const [pesan, setPesan] = useState<Pesan[]>([])
   const [isi, setIsi] = useState('')
   const [memuat, setMemuat] = useState(false)
-  const gulirRef = useRef<HTMLDivElement>(null)
+  const akhirRef = useRef<HTMLDivElement>(null)
+  const kolomRef = useRef<HTMLTextAreaElement>(null)
   const idRef = useRef(0)
   // naik setiap "Hapus percakapan" → jawaban yang datang terlambat dari percakapan lama dibuang
   const sesiRef = useRef(0)
 
-  // Gulir HANYA kotak chat (bukan halaman) ke pesan terbaru.
+  // Gulir halaman ke pesan terbaru (tidak saat masih kosong: jangan menggeser halaman waktu dibuka).
   useEffect(() => {
-    const el = gulirRef.current
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+    if (pesan.length === 0) return
+    akhirRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [pesan, memuat])
 
-  async function kirim(teks: string) {
+  // Textarea tumbuh mengikuti isi, sampai batas tinggi.
+  useEffect(() => {
+    const el = kolomRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${Math.min(el.scrollHeight, TINGGI_MAKS)}px`
+  }, [isi])
+
+  async function kirim(teks: string, dasar: Pesan[] = pesan) {
     const t = teks.trim()
     if (!t || memuat || t.length > BATAS) return
-    const riwayat = riwayatUntukServer(pesan)
+    const riwayat = riwayatUntukServer(dasar)
     const sesi = sesiRef.current
-    const user: Pesan = { id: ++idRef.current, peran: 'user', teks: t }
-    setPesan((l) => [...l, user])
+    const user: Pesan = { id: ++idRef.current, peran: 'user', teks: t, waktu: sekarang() }
+    setPesan([...dasar, user])
     setIsi('')
     setMemuat(true)
     try {
@@ -140,19 +128,29 @@ export function ChatAsisten() {
         tabel?: Tabel[]
       }
       if (sesi !== sesiRef.current) return
+      const waktu = sekarang()
       setPesan((l) => [
         ...l,
-        { id: ++idRef.current, peran: 'ai', teks: d.jawaban, sumber: d.sumber, status: d.status, tabel: d.tabel ?? [] },
+        { id: ++idRef.current, peran: 'ai', teks: d.jawaban, waktu, sumber: d.sumber, status: d.status, tabel: d.tabel ?? [] },
       ])
     } catch (err) {
       if (sesi !== sesiRef.current) return
+      const waktu = sekarang()
       setPesan((l) => [
         ...l,
-        { id: ++idRef.current, peran: 'ai', teks: handleApiError(err).message, galat: true },
+        { id: ++idRef.current, peran: 'ai', teks: handleApiError(err).message, waktu, galat: true, ulang: t },
       ])
     } finally {
       if (sesi === sesiRef.current) setMemuat(false)
     }
+  }
+
+  /** "Coba lagi": buang pesan galat beserta pertanyaan pengguna sebelumnya, lalu kirim ulang. */
+  function cobaLagi(id: number) {
+    const i = pesan.findIndex((p) => p.id === id)
+    const teks = i >= 0 ? pesan[i].ulang : undefined
+    if (!teks || memuat) return
+    void kirim(teks, pesan.slice(0, Math.max(0, i - 1)))
   }
 
   function hapus() {
@@ -167,132 +165,178 @@ export function ChatAsisten() {
   }
 
   function onKey(e: KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault()
       void kirim(isi)
     }
   }
 
-  return (
-    <section className="vsf-card flex h-full w-full min-w-0 flex-col p-4 sm:p-5" aria-labelledby="vsf-chat-title">
-      <div className="flex flex-wrap items-center gap-2">
-        <div id="vsf-chat-title" className="vsf-judul-bagian">
-          Tanya asisten
-        </div>
-        <span className="flex-1" />
-        {pesan.length > 0 && (
-          <button type="button" className="vsf-btn-secondary !min-h-[44px] sm:!min-h-[36px] !text-[12px]" onClick={hapus}>
-            Hapus percakapan
-          </button>
-        )}
-      </div>
+  const kosong = pesan.length === 0
 
-      <div
-        ref={gulirRef}
-        className="mt-3 max-h-[min(70vh,640px)] min-h-[280px] flex-1 overflow-y-auto overscroll-contain rounded-card border border-arutmin-border bg-arutmin-page p-3"
-        role="log"
-        aria-live="polite"
-        aria-label="Percakapan dengan asisten AI"
-      >
-        {pesan.length === 0 && (
-          <div className="grid h-full min-h-[170px] place-items-center text-center">
-            <div>
-              <div className="text-[14px] font-bold text-tinta">Tanya apa saja soal kebun Anda</div>
-              <p className="mx-auto mt-1 max-w-[420px] text-[12.5px] text-slate-600">
-                Jawaban memakai data sensor, ambang, alert, penampung, dan tahap tanam terbaru. Coba “Diagnosa menyeluruh” untuk pemeriksaan lengkap berbentuk tabel.
-              </p>
-              <div className="mt-3 flex flex-wrap justify-center gap-2">
-                {SARAN.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    className="inline-flex min-h-[44px] items-center rounded-full border border-arutmin-moss/50 bg-white px-3 py-1.5 text-[12px] sm:min-h-0 font-semibold text-arutmin-forest transition-colors hover:bg-arutmin-mint/50"
-                    onClick={() => void kirim(s)}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
+  return (
+    <section aria-label="Percakapan dengan asisten AI" className="flex min-w-0 flex-col gap-3">
+      {kosong ? (
+        <div className="grid min-h-[34vh] place-items-center py-6 text-center">
+          <div className="vsf-card w-full max-w-[560px] px-4 py-5">
+            <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-activePill text-white shadow-[var(--lg-rim-kecil)]">
+              <Ikon nama="ai" className="h-6 w-6" />
+            </span>
+            <h2 className="mt-3 font-display text-[22px] font-bold leading-tight text-tinta">Tanya apa saja soal kebun</h2>
+            <p className="mx-auto mt-1 max-w-[440px] text-[13px] leading-relaxed text-abu">
+              Jawaban dibaca dari data sensor, alert, penampung, dan tahap tanam terbaru.
+            </p>
+            <div className="mt-4 grid gap-2 text-left">
+              {saran.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  disabled={memuat}
+                  onClick={() => void kirim(s)}
+                  className="vsf-card flex min-h-[48px] items-center justify-between gap-3 px-4 py-2.5 text-[14px] font-semibold text-tinta disabled:opacity-60"
+                >
+                  <span>{s}</span>
+                  <Ikon nama="kanan" className="h-4 w-4 shrink-0 text-abu" />
+                </button>
+              ))}
             </div>
           </div>
-        )}
-
-        <ul className="grid grid-cols-[minmax(0,1fr)] gap-2.5">
-          {pesan.map((p) => (
-            <li key={p.id} className={clsx('flex', p.peran === 'user' ? 'justify-end' : 'justify-start')}>
-              <div
-                className={clsx(
-                  'min-w-0 whitespace-pre-wrap break-words rounded-card px-3.5 py-2.5 text-[13.5px] leading-relaxed',
-                  p.tabel && p.tabel.length > 0 ? 'w-full max-w-full' : 'max-w-[88%]',
-                  p.peran === 'user' && 'bg-arutmin-forest text-white',
-                  p.peran === 'ai' && !p.galat && 'border border-arutmin-border bg-white text-tinta',
-                  p.galat && 'vsf-tone-error',
-                )}
-              >
-                {p.status && (
+        </div>
+      ) : (
+        <>
+          <div className="flex justify-end">
+            <button type="button" className="vsf-btn-secondary !min-h-[40px] !px-3 !text-[12px]" onClick={hapus}>
+              <Ikon nama="hapus" className="h-3.5 w-3.5" />
+              Hapus percakapan
+            </button>
+          </div>
+          <ul role="log" aria-live="polite" aria-label="Pesan" className="grid grid-cols-[minmax(0,1fr)] gap-3">
+            {pesan.map((p) => (
+              <li key={p.id} className={clsx('flex min-w-0', p.peran === 'user' ? 'justify-end' : 'justify-start gap-2.5')}>
+                {p.peran === 'ai' && (
                   <span
+                    aria-hidden
                     className={clsx(
-                      'mb-1.5 mr-2 inline-block rounded-full px-2.5 py-0.5 text-[12px] font-bold',
-                      p.status === 'OK' && 'bg-arutmin-mint/60 text-arutmin-forest',
-                      p.status === 'PERHATIAN' && 'bg-amber-100 text-amber-800',
-                      p.status === 'KRITIS' && 'bg-red-100 text-red-700',
+                      'mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full text-white',
+                      p.galat ? 'bg-arutmin-error' : 'bg-activePill',
                     )}
                   >
-                    {p.status}
+                    <Ikon nama={p.galat ? 'peringatan' : 'ai'} className="h-4 w-4" />
                   </span>
                 )}
-                {p.teks}
-                {p.tabel?.map((t, i) => <TabelAi key={i} t={t} />)}
-                {p.peran === 'ai' && !p.galat && p.sumber && SUMBER[p.sumber] && (
-                  <div className="mt-1.5 text-[12px] text-slate-500">{SUMBER[p.sumber]}</div>
-                )}
-              </div>
-            </li>
+                <div
+                  className={clsx(
+                    'min-w-0 whitespace-pre-wrap break-words px-4 py-2.5 text-[14px] leading-relaxed shadow-sm',
+                    p.tabel && p.tabel.length > 0 ? 'w-full max-w-full' : 'max-w-[86%]',
+                    p.peran === 'user' && 'rounded-[22px] rounded-br-md bg-activePill text-white',
+                    p.peran === 'ai' && !p.galat && 'rounded-[22px] rounded-tl-md border border-white bg-white/85 text-tinta',
+                    p.galat && 'vsf-tone-error rounded-[22px] rounded-tl-md',
+                  )}
+                >
+                  {p.status && (
+                    <span
+                      className={clsx(
+                        'mb-1.5 mr-2 inline-block rounded-full px-2.5 py-0.5 text-[12px] font-bold',
+                        p.status === 'OK' && 'bg-arutmin-mint/60 text-arutmin-forest',
+                        p.status === 'PERHATIAN' && 'bg-amber-100 text-amber-800',
+                        p.status === 'KRITIS' && 'bg-red-100 text-red-700',
+                      )}
+                    >
+                      {p.status}
+                    </span>
+                  )}
+                  {p.teks}
+                  {p.tabel?.map((t, i) => <TabelAi key={i} t={t} />)}
+                  {p.galat && p.ulang && (
+                    <div className="mt-2">
+                      <button
+                        type="button"
+                        disabled={memuat}
+                        className="vsf-btn-secondary !min-h-[36px] !px-3 !text-[12px]"
+                        onClick={() => cobaLagi(p.id)}
+                      >
+                        Coba lagi
+                      </button>
+                    </div>
+                  )}
+                  <div className={clsx('mt-1.5 flex flex-wrap gap-x-2 text-[12px]', p.peran === 'user' ? 'justify-end text-white/80' : 'text-abu')}>
+                    {p.peran === 'ai' && !p.galat && p.sumber && SUMBER[p.sumber] && <span>{SUMBER[p.sumber]}</span>}
+                    <span className="tabular-nums">{jam(p.waktu)}</span>
+                  </div>
+                </div>
+              </li>
+            ))}
+            {memuat && (
+              <li className="flex justify-start gap-2.5" role="status" aria-label="Asisten sedang menulis">
+                <span aria-hidden className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-activePill text-white">
+                  <Ikon nama="ai" className="h-4 w-4" />
+                </span>
+                <div className="flex items-center gap-1.5 rounded-[22px] rounded-tl-md border border-white bg-white/85 px-4 py-3 shadow-sm">
+                  <span className="vsf-dot h-2 w-2 rounded-full bg-arutmin-moss" />
+                  <span className="vsf-dot h-2 w-2 rounded-full bg-arutmin-moss opacity-70" />
+                  <span className="vsf-dot h-2 w-2 rounded-full bg-arutmin-moss opacity-40" />
+                </div>
+              </li>
+            )}
+          </ul>
+        </>
+      )}
+
+      {/* penanda akhir thread: tujuan gulir otomatis, jarak bawah menyisakan ruang untuk composer yang menempel */}
+      <div ref={akhirRef} aria-hidden className="scroll-mb-40" />
+
+      {/* composer menempel di bawah layar */}
+      <div className="sticky bottom-3 z-10 grid gap-2">
+        <div className="flex gap-1.5 overflow-x-auto overscroll-x-contain pb-0.5 [scrollbar-width:none]" aria-label="Pintasan">
+          {PINTASAN.map((x) => (
+            <button
+              key={x.label}
+              type="button"
+              disabled={memuat}
+              onClick={() => void kirim(x.pesan)}
+              className={clsx(
+                'inline-flex min-h-[40px] shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[12px] font-semibold transition-colors disabled:opacity-50',
+                x.utama
+                  ? 'border-transparent bg-activePill text-white shadow-[var(--lg-rim-kecil)]'
+                  : 'border-white bg-white/75 text-tinta hover:bg-white',
+              )}
+            >
+              {x.utama && <Ikon nama="ai" className="h-3.5 w-3.5" />}
+              {x.label}
+            </button>
           ))}
-          {memuat && (
-            <li className="flex justify-start" role="status" aria-label="Asisten sedang menulis">
-              <div className="flex items-center gap-1.5 rounded-card border border-arutmin-border bg-white px-3.5 py-3">
-                <span className="vsf-dot h-2 w-2 rounded-full bg-arutmin-moss" />
-                <span className="vsf-dot h-2 w-2 rounded-full bg-arutmin-moss opacity-70" />
-                <span className="vsf-dot h-2 w-2 rounded-full bg-arutmin-moss opacity-40" />
-              </div>
-            </li>
+        </div>
+        <form
+          onSubmit={onSubmit}
+          className="glass-chrome flex items-end gap-2 !rounded-[28px] p-2 pl-4 transition-shadow focus-within:shadow-[0_0_0_3px_rgb(107_157_74/0.35)]"
+        >
+          <label className="sr-only" htmlFor="vsf-chat-input">
+            Pesan untuk asisten
+          </label>
+          <textarea
+            ref={kolomRef}
+            id="vsf-chat-input"
+            value={isi}
+            onChange={(e) => setIsi(e.target.value.slice(0, BATAS))}
+            onKeyDown={onKey}
+            rows={1}
+            placeholder="Tulis pertanyaan…"
+            className="max-h-[132px] min-h-[44px] flex-1 resize-none bg-transparent py-2.5 text-[14px] leading-relaxed text-tinta outline-none placeholder:text-abu"
+          />
+          {isi.length > TAMPIL_HITUNG && (
+            <span className="self-center text-[12px] tabular-nums text-abu" aria-live="polite">
+              {isi.length}/{BATAS}
+            </span>
           )}
-        </ul>
-      </div>
-
-      <div className="mt-3 flex flex-wrap gap-1.5" aria-label="Pintasan">
-        {PINTASAN.map((x) => (
           <button
-            key={x.label}
-            type="button"
-            disabled={memuat}
-            className="inline-flex min-h-[44px] items-center rounded-full border border-arutmin-border2 bg-white px-2.5 py-1 text-[12px] sm:min-h-0 font-semibold text-slate-700 transition-colors hover:border-arutmin-moss hover:bg-arutmin-mint/40 disabled:opacity-50"
-            onClick={() => void kirim(x.pesan)}
+            type="submit"
+            aria-label="Kirim pesan"
+            disabled={memuat || !isi.trim()}
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-activePill text-white shadow-[var(--lg-rim-kecil)] transition-[transform,opacity] active:scale-95 disabled:cursor-not-allowed disabled:opacity-45"
           >
-            {x.label}
+            <Ikon nama="kirim" className="h-5 w-5" />
           </button>
-        ))}
+        </form>
       </div>
-
-      <form onSubmit={onSubmit} className="mt-2 flex items-end gap-2">
-        <label className="sr-only" htmlFor="vsf-chat-input">
-          Pesan untuk asisten
-        </label>
-        <textarea
-          id="vsf-chat-input"
-          value={isi}
-          onChange={(e) => setIsi(e.target.value.slice(0, BATAS))}
-          onKeyDown={onKey}
-          rows={2}
-          placeholder="Tulis pertanyaan… (Enter kirim, Shift+Enter baris baru)"
-          className="min-h-[44px] flex-1 resize-none rounded-input border border-arutmin-border2 bg-white px-3 py-2 text-[14px] outline-none focus:border-arutmin-moss"
-        />
-        <button type="submit" className="vsf-btn-primary" disabled={memuat || !isi.trim()}>
-          Kirim
-        </button>
-      </form>
-      <div className="mt-1 text-right text-[12px] text-slate-500">{isi.length}/{BATAS}</div>
     </section>
   )
 }

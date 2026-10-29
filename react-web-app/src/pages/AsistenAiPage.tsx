@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import { api } from '../lib/api'
 import { useApiError } from '../lib/crudApi'
+import { useApiObject } from '../lib/useApiObject'
 import { ChatAsisten } from '../components/ChatAsisten'
 import { Ikon } from '../components/Ikon'
+import { StripKonteks, type KonteksKebun } from '../components/StripKonteks'
 
 /**
  * Asisten AI — terhubung ke endpoint riil:
@@ -52,34 +54,26 @@ function tgl(iso?: string | null): string {
   return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()} · ${jam}`
 }
 
-/** Data yang benar-benar dibaca asisten (routes/ai.js). */
-const SUMBER_DATA = ['Sensor terakhir', 'Ambang sensor', 'Alert terbuka', 'Penampung & dosing', 'Tahap tanam', 'Panen terakhir']
-
-/** Kartu satu hasil analisa — dipakai hasil utama & riwayat sesi. */
+/** Satu hasil analisa — blok polos (tanpa kotak dalam kartu); dipakai hasil utama dan riwayat sesi. */
 function KartuHasil({ hasil, menonjol }: { hasil: Hasil; menonjol?: boolean }) {
   const konsol = hasil.sumber === 'ollama'
   return (
-    <article
-      className={clsx(
-        'rounded-card border bg-white p-4',
-        menonjol ? 'border-arutmin-moss/50' : 'border-arutmin-border',
-      )}
-    >
+    <article>
       <div className="flex flex-wrap items-center gap-2">
         <span className={clsx('vsf-pill border px-2 py-0.5 text-[12px] font-bold uppercase tracking-[.1em]', GAYA_PRIORITAS[hasil.prioritas] ?? GAYA_PRIORITAS.rendah)}>
           Prioritas {hasil.prioritas}
         </span>
-        <span className="vsf-pill border-arutmin-border bg-white text-slate-600 text-[12px]">
+        <span className="vsf-pill border-white bg-white/70 text-[12px] text-tinta">
           {konsol ? `AI lokal (Ollama) · ${hasil.model ?? 'model tidak diketahui'}` : 'Aturan heuristik'}
         </span>
         <span className="flex-1" />
-        <span className="text-[12px] text-slate-500">{tgl(hasil.generated_at ?? null)}</span>
+        <span className="text-[12px] text-abu">{tgl(hasil.generated_at ?? null)}</span>
       </div>
 
-      <h3 className={clsx('mt-3 font-bold text-slate-900', menonjol ? 'text-[16px] leading-snug' : 'text-[14px] leading-snug')}>
+      <h3 className={clsx('mt-2.5 font-bold text-tinta', menonjol ? 'text-[16px] leading-snug' : 'text-[14px] leading-snug')}>
         {hasil.keputusan}
       </h3>
-      <p className="mt-1.5 text-[13px] leading-relaxed text-slate-600">{hasil.alasan}</p>
+      <p className="mt-1 text-[13px] leading-relaxed text-abu">{hasil.alasan}</p>
 
       {!konsol && hasil.fallback_karena && (
         <p className="mt-2 rounded-input border border-amber-500/50 bg-amber-50 px-3 py-2 text-[12px] leading-relaxed text-amber-900">
@@ -87,7 +81,7 @@ function KartuHasil({ hasil, menonjol }: { hasil: Hasil; menonjol?: boolean }) {
         </p>
       )}
       {!konsol && (hasil.aturan?.length ?? 0) > 0 && (
-        <ul className="mt-2 list-disc pl-5 text-[12px] leading-relaxed text-slate-500">
+        <ul className="mt-2 list-disc pl-5 text-[12px] leading-relaxed text-abu">
           {hasil.aturan?.map((a) => (
             <li key={a}>{a}</li>
           ))}
@@ -97,12 +91,24 @@ function KartuHasil({ hasil, menonjol }: { hasil: Hasil; menonjol?: boolean }) {
   )
 }
 
+/** Pertanyaan awal yang sesuai kondisi kebun sekarang (bukan daftar generik). */
+function saranDariKonteks(k: KonteksKebun | null): string[] {
+  const terputus = k?.iotStatus?.online === false
+  return [
+    terputus ? 'Kenapa alat terputus?' : 'Bagaimana kondisi pH dan TDS sekarang?',
+    'Apa yang harus saya lakukan hari ini?',
+    'Kapan tahap semai berikutnya selesai?',
+  ]
+}
+
 export default function AsistenAiPage() {
   const handleApiError = useApiError()
   const [hasil, setHasil] = useState<Hasil | null>(null)
   const [riwayat, setRiwayat] = useState<Riwayat[]>([])
   const [memuat, setMemuat] = useState(false)
   const [galat, setGalat] = useState<string | null>(null)
+  // satu pengambilan /dashboard dipakai strip konteks dan pertanyaan awal; senyap tiap 60 dtk
+  const { data: konteks, loading: memuatKonteks } = useApiObject<KonteksKebun>('/dashboard', { pollMs: 60_000 })
 
   // Efek samping setState di dalam async handler (bukan sinkron di dalam effect).
   async function mintaAnalisa() {
@@ -129,28 +135,23 @@ export default function AsistenAiPage() {
   }, [galat])
 
   return (
-    <div className="mx-auto grid w-full max-w-[1180px] grid-cols-[minmax(0,1fr)] gap-4 vsf-stagger lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
-      {/* Kiri: chat sebagai fokus utama */}
-      <div className="grid min-w-0 grid-rows-[auto_minmax(0,1fr)] gap-3">
-        <header className="px-1">
-          <h2 className="font-display text-[20px] font-bold leading-tight text-tinta">Asisten AI</h2>
-          <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
-            Tanya soal kebun atau minta diagnosa menyeluruh. Jawaban dibaca dari data terbaru di server.
-          </p>
-        </header>
-        <ChatAsisten />
-      </div>
+    <div className="mx-auto flex w-full max-w-[780px] flex-col gap-4 vsf-stagger">
+      <StripKonteks data={konteks} memuat={memuatKonteks} />
 
-      {/* Kanan: langkah berikutnya + data yang dibaca */}
-      <aside className="grid min-w-0 grid-rows-[auto_1fr] gap-4">
-        <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
-          <div className="vsf-judul-bagian">Langkah berikutnya</div>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-slate-600">
-            Satu rekomendasi prioritas beserta alasannya, dari kondisi kebun saat ini.
-          </p>
+      {/* Langkah berikutnya: satu rekomendasi prioritas, ringkas */}
+      <section className="vsf-card px-4 py-3.5 sm:px-5" aria-labelledby="vsf-langkah-title">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <div id="vsf-langkah-title" className="vsf-judul-bagian">Langkah berikutnya</div>
+            {!hasil && !memuat && (
+              <p className="mt-0.5 text-[12.5px] leading-relaxed text-abu">
+                Satu rekomendasi prioritas dari kondisi kebun saat ini.
+              </p>
+            )}
+          </div>
           <button
             type="button"
-            className="vsf-btn-primary mt-3 w-full justify-center"
+            className="vsf-btn-primary !min-h-[40px] !px-4 !text-[13px]"
             onClick={() => void mintaAnalisa()}
             disabled={memuat}
             aria-busy={memuat}
@@ -158,70 +159,48 @@ export default function AsistenAiPage() {
             {memuat ? (
               <>
                 <span className="vsf-spinner" aria-hidden="true" />
-                Menganalisa data…
+                Menganalisa…
               </>
             ) : (
               <>
                 <Ikon nama="ai" className="h-4 w-4" />
-                Minta langkah selanjutnya
+                {hasil ? 'Perbarui' : 'Minta langkah'}
               </>
             )}
           </button>
+        </div>
 
-          {galat && (
-            <div
-              role="alert"
-              className="vsf-banner mt-3 rounded-input vsf-tone-error px-3 py-2 text-[13px]"
-            >
-              {galat}
-            </div>
-          )}
-
-          <div className="mt-3">
-            {memuat && !hasil ? (
-              <div className="grid gap-3" role="status" aria-label="Menganalisa data">
-                <div className="vsf-skeleton h-[92px] rounded-card" />
-              </div>
-            ) : hasil ? (
-              <KartuHasil hasil={hasil} menonjol />
-            ) : (
-              <p className="rounded-card border border-dashed border-arutmin-border px-3 py-4 text-center text-[12.5px] leading-relaxed text-slate-500">
-                Belum ada analisa. Tekan tombol di atas untuk membuatnya dari data sistem saat ini.
-              </p>
-            )}
+        {galat && (
+          <div role="alert" className="vsf-banner mt-3 rounded-input vsf-tone-error px-3 py-2 text-[13px]">
+            {galat}
           </div>
+        )}
 
-          {riwayat.length > 1 && (
-            <div className="mt-4">
-              <div className="vsf-label">
-                Sebelumnya ({riwayat.length - 1})
-              </div>
-              <div className="mt-2 grid gap-2">
-                {riwayat.slice(1).map((r) => (
-                  <KartuHasil key={r.urut} hasil={r} />
-                ))}
-              </div>
+        {memuat && !hasil ? (
+          <div className="mt-3" role="status" aria-label="Menganalisa data">
+            <div className="vsf-skeleton h-[72px] rounded-card" />
+          </div>
+        ) : hasil ? (
+          <div className="mt-3 border-t border-white/60 pt-3">
+            <KartuHasil hasil={hasil} menonjol />
+          </div>
+        ) : null}
+
+        {riwayat.length > 1 && (
+          <details className="mt-3 border-t border-white/60 pt-2">
+            <summary className="cursor-pointer select-none py-1.5 text-[12px] font-semibold text-abu">
+              Sebelumnya ({riwayat.length - 1})
+            </summary>
+            <div className="mt-2 grid gap-3">
+              {riwayat.slice(1).map((r) => (
+                <KartuHasil key={r.urut} hasil={r} />
+              ))}
             </div>
-          )}
-        </section>
+          </details>
+        )}
+      </section>
 
-        <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
-          <div className="vsf-judul-bagian">Data yang dibaca</div>
-          <ul className="mt-2.5 flex flex-wrap gap-1.5">
-            {SUMBER_DATA.map((k) => (
-              <li
-                key={k}
-                className="rounded-full border border-arutmin-border bg-arutmin-page px-2.5 py-1 text-[12px] font-semibold text-slate-700"
-              >
-                {k}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3 text-[12px] leading-relaxed text-slate-500">
-            Bila AI lokal mati, jawaban memakai aturan tetap dan alasannya ditampilkan apa adanya.
-          </p>
-        </section>
-      </aside>
+      <ChatAsisten saran={saranDariKonteks(konteks)} />
     </div>
   )
 }
