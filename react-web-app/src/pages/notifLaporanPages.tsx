@@ -150,7 +150,7 @@ export function LaporanPage() {
             <div className="text-[12px] uppercase tracking-[.14em] text-amber-800 font-bold">Akses terbatas</div>
             <p className="mt-2 text-[13px] leading-relaxed text-amber-900">
               Laporan hanya tersedia untuk <b>admin</b> dan <b>akun demo</b>. Peran petani dapat melihat
-              progres tanam lewat menu “Tanam Saya”.
+              progres tanam lewat menu “Kebun Saya”.
             </p>
             <button type="button" className="vsf-btn-secondary mt-3" onClick={bersihkan}>
               Bersihkan filter

@@ -242,7 +242,7 @@ export function ManajemenUserPage() {
         notes={[
           'Live: GET /user (daftar) · POST /user (tambah) · PUT /user/:id (ubah) · DELETE /user/:id (hapus) — Bearer JWT.',
           'Kolom backend: id, username, email, level, is_demo — “terakhir login” tidak tersedia di kontrak sehingga diganti email.',
-          'Level menentukan sidebar: petani hanya Dashboard / Sensor / Tanam Saya.',
+          'Level menentukan sidebar: petani hanya Dashboard / Sensor / Kebun Saya.',
           'Akun demo = admin read-only; hapus akun sendiri ditolak backend (422) — pesan tampil di dialog.',
         ]}
         actions={(r, ask) => (

@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react'
+import clsx from 'clsx'
 import { api } from '../lib/api'
 import { useAuth } from '../lib/authContext'
 import { fieldError, useApiError } from '../lib/crudApi'
 import { useApiObject } from '../lib/useApiObject'
+import { useDialog } from '../lib/useDialog'
+import { kenaikanPerHari } from '../lib/kebun'
+import { Ikon } from './Ikon'
 import { ModalBackdrop } from './ModalBackdrop'
 
 /**
@@ -23,7 +27,46 @@ type Baris = {
 type Respon = { data: Baris[]; ambang_tds: { min: number; max: number } | null; batas: [number, number] }
 
 const angka = (v: unknown) => (v == null || v === '' ? null : Number(v))
-const tampil = (v: number) => String(Math.round(v * 10) / 10).replace('.', ',')
+/** 2400 → "2.400", 33.333 → "33,3" */
+const tampil = (v: number) => v.toLocaleString('id-ID', { maximumFractionDigits: 1 })
+
+/** Kolom angka dengan satuan di dalam kolom. */
+function KolomAngka({
+  label,
+  satuan,
+  value,
+  onChange,
+  placeholder,
+  autoFocus,
+  galat,
+}: {
+  label: string
+  satuan: string
+  value: string
+  onChange: (v: string) => void
+  placeholder: string
+  autoFocus?: boolean
+  galat?: string
+}) {
+  return (
+    <label className="mt-3 block">
+      <span className="vsf-label !text-tinta">{label}</span>
+      <span className="relative mt-1 block">
+        <input
+          className="vsf-input w-full pr-14"
+          inputMode="numeric"
+          value={value}
+          autoFocus={autoFocus}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          aria-invalid={galat ? true : undefined}
+        />
+        <span className="vsf-suffix">{satuan}</span>
+      </span>
+      {galat && <div className="vsf-field-error">{galat}</div>}
+    </label>
+  )
+}
 
 export function NaikHarian() {
   const { role } = useAuth()
@@ -38,6 +81,13 @@ export function NaikHarian() {
   const [sibuk, setSibuk] = useState(false)
   const [pesan, setPesan] = useState<string | null>(null)
   const [galat, setGalat] = useState<string | null>(null)
+  const [info, setInfo] = useState(false)
+
+  const { dialogRef, onKeyDown, backdropProps, closing, handleClose } = useDialog({
+    open: ubah !== null,
+    onClose: () => setUbah(null),
+    closeDisabled: sibuk,
+  })
 
   useEffect(() => {
     if (!pesan) return
@@ -54,6 +104,7 @@ export function NaikHarian() {
     setTarget(r.ppm_target == null ? '' : String(Number(r.ppm_target)))
     setHari(r.hari_capai == null ? '' : String(r.hari_capai))
     setErrs({})
+    setGalat(null)
   }
 
   async function simpan(matikan = false) {
@@ -80,52 +131,81 @@ export function NaikHarian() {
   // pratinjau di form: kenaikan per hari & peringatan ambang alert
   const pa = angka(awal.replace(',', '.'))
   const pt = angka(target.replace(',', '.'))
-  const ph = angka(hari)
-  const perHari = pa != null && pt != null && ph && ph > 0 && pt >= pa ? (pt - pa) / ph : null
+  const perHari = kenaikanPerHari(pa, pt, angka(hari))
+  const targetLewat = pt != null && maksAmbang != null && pt > maksAmbang
 
   return (
     <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
-      <div className="min-w-0 max-w-[760px]">
-        <div className="vsf-judul-bagian">Target nutrisi naik harian</div>
-        <p className="mt-1 text-[13px] leading-relaxed text-slate-600">
-          Cukup isi <b>target akhir</b> tiap tanaman. Mulai hari pindah netpot (tahap Peremajaan) target ppm penampung
-          naik sedikit tiap hari dari ppm awal sampai target akhir, lalu ditahan sampai panen. Tahap Semai tetap
-          memakai preset. pH tetap dari preset.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="vsf-judul-bagian">Target nutrisi harian</div>
+          <p className="mt-0.5 text-[13px] text-abu">Naikkan ppm penampung sedikit tiap hari sampai target akhir.</p>
+        </div>
+        <button
+          type="button"
+          className="vsf-chrome-tautan !min-h-[40px] !min-w-[40px] shrink-0 justify-center"
+          aria-expanded={info}
+          aria-controls="vsf-naik-info"
+          aria-label="Cara kerja target nutrisi"
+          onClick={() => setInfo((v) => !v)}
+        >
+          <Ikon nama="info" />
+        </button>
       </div>
+      {info && (
+        <p id="vsf-naik-info" className="mt-3 max-w-[760px] text-[13px] leading-relaxed text-abu">
+          Cukup isi <b className="text-tinta">target akhir</b> tiap tanaman. Mulai hari pindah netpot (tahap Peremajaan) target ppm
+          penampung naik sedikit tiap hari dari ppm awal sampai target akhir, lalu ditahan sampai panen. Tahap Semai tetap memakai
+          preset. pH tetap dari preset.
+        </p>
+      )}
 
-      {pesan && <div role="status" className="vsf-banner mt-3 rounded-input border border-arutmin-moss/50 bg-arutmin-mint/40 px-3 py-2 text-[13px] text-arutmin-forest">{pesan}</div>}
-      {(galat || (error && !loading)) && <div role="alert" className="vsf-banner mt-3 rounded-input vsf-tone-error px-3 py-2 text-[13px]">{galat ?? error}</div>}
+      {pesan && (
+        <div role="status" className="vsf-banner mt-3 rounded-input border border-arutmin-moss/50 bg-arutmin-mint/40 px-3 py-2 text-[13px] text-arutmin-forest">
+          {pesan}
+        </div>
+      )}
+      {(galat || (error && !loading)) && !ubah && (
+        <div role="alert" className="vsf-banner vsf-tone-error mt-3 rounded-input px-3 py-2 text-[13px]">
+          {galat ?? error}
+        </div>
+      )}
 
-      <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {loading && rows.length === 0 && <li className="vsf-skeleton h-[88px] rounded-card" />}
+      <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {loading && rows.length === 0 && <li className="vsf-skeleton h-[112px] rounded-card" />}
         {rows.map((r) => {
           const aktif = r.ppm_target != null
           const lewatAmbang = aktif && maksAmbang != null && Number(r.ppm_target) > maksAmbang
           return (
-            <li key={String(r.id_tanaman)} className="rounded-card border border-arutmin-border bg-white p-3">
+            <li key={String(r.id_tanaman)} className="vsf-batch">
               <div className="flex items-start gap-2">
                 <div className="min-w-0 flex-1">
-                  <div className="font-bold text-slate-900">{r.nama_tanaman}</div>
+                  <div className="text-[16px] font-bold text-tinta">{r.nama_tanaman}</div>
                   {aktif ? (
-                    <div className="mt-0.5 text-[13px] text-slate-700">
-                      <span className="tabular-nums font-semibold">{tampil(Number(r.ppm_awal))} → {tampil(Number(r.ppm_target))} ppm</span>
-                      <div className="text-[12px] text-slate-600">
-                        {r.hari_capai} hari · naik ±{r.per_hari == null ? '—' : tampil(r.per_hari)} ppm/hari
+                    <>
+                      <div className="mt-1 text-[15px] font-semibold tabular-nums text-tinta">
+                        {tampil(Number(r.ppm_awal))} → {tampil(Number(r.ppm_target))} <span className="text-[12px] font-normal text-abu">ppm</span>
                       </div>
-                    </div>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        <span className="vsf-chip-nilai is-normal">{r.hari_capai} hari</span>
+                        <span className="vsf-chip-nilai is-normal">+{r.per_hari == null ? '—' : tampil(r.per_hari)} ppm/hari</span>
+                      </div>
+                    </>
                   ) : (
-                    <div className="mt-0.5 text-[12.5px] text-slate-500">Belum diatur — memakai preset per tahap.</div>
+                    <div className="mt-1 text-[13px] text-abu">
+                      Belum diatur — memakai preset per tahap.
+                    </div>
                   )}
                 </div>
                 {bolehTulis && (
-                  <button type="button" className="vsf-btn-secondary min-h-[44px] sm:min-h-[36px] px-3 py-1 text-[13px]" onClick={() => buka(r)}>
+                  <button type="button" className="vsf-btn-secondary !min-h-[40px] shrink-0 !px-3 text-[13px]" onClick={() => buka(r)}>
+                    <Ikon nama="ubah" className="h-4 w-4" />
                     {aktif ? 'Ubah' : 'Atur'}
                   </button>
                 )}
               </div>
               {lewatAmbang && (
-                <div className="mt-2 rounded-input bg-amber-50 px-2 py-1 text-[12px] text-amber-800">
+                <div className="vsf-tone-warn mt-3 rounded-input px-2.5 py-1.5 text-[12px]">
                   Ambang alert TDS saat ini {maksAmbang} ppm — alert "di luar batas" akan muncul.{' '}
                   {role === 'petani' ? 'Minta admin menaikkan ambang TDS.' : 'Naikkan ambang TDS di menu Ambang.'}
                 </div>
@@ -136,43 +216,79 @@ export function NaikHarian() {
       </ul>
 
       {ubah && (
-        <ModalBackdrop onMouseDown={(e) => { if (e.target === e.currentTarget && !sibuk) setUbah(null) }}>
-          <form
+        <ModalBackdrop onMouseDown={backdropProps.onMouseDown} closing={closing}>
+          <div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="vsf-naik-judul"
-            className="w-full max-w-[420px] rounded-card bg-white p-5 vsf-modal-card"
-            onSubmit={(e) => { e.preventDefault(); void simpan() }}
-            onKeyDown={(e) => { if (e.key === 'Escape' && !sibuk) setUbah(null) }}
+            className={clsx('vsf-modal-card w-full max-w-[440px] rounded-card bg-white p-5 sm:p-6', closing && 'is-closing')}
+            onKeyDown={onKeyDown}
           >
-            <div id="vsf-naik-judul" className="vsf-judul-bagian">Naik harian · {ubah.nama_tanaman}</div>
-            <label className="mt-3 block text-[13px] font-semibold text-slate-700">
-              Target akhir (ppm)
-              <input className="vsf-input mt-1 w-full" inputMode="numeric" value={target} autoFocus onChange={(e) => setTarget(e.target.value)} placeholder="2400" />
-            </label>
-            {fieldError(errs, 'ppm_target') && <div className="vsf-field-error">{fieldError(errs, 'ppm_target')}</div>}
-            <label className="mt-3 block text-[13px] font-semibold text-slate-700">
-              Dicapai dalam (hari sejak pindah netpot)
-              <input className="vsf-input mt-1 w-full" inputMode="numeric" value={hari} onChange={(e) => setHari(e.target.value)} placeholder="60" />
-            </label>
-            {fieldError(errs, 'hari_capai') && <div className="vsf-field-error">{fieldError(errs, 'hari_capai')}</div>}
-            <label className="mt-3 block text-[13px] font-semibold text-slate-700">
-              ppm awal saat pindah netpot
-              <input className="vsf-input mt-1 w-full" inputMode="numeric" value={awal} onChange={(e) => setAwal(e.target.value)} placeholder="400" />
-            </label>
-            {fieldError(errs, 'ppm_awal') && <div className="vsf-field-error">{fieldError(errs, 'ppm_awal')}</div>}
-            <p className="mt-3 rounded-input bg-navy/[.04] px-3 py-2 text-[13px] text-slate-700" aria-live="polite">
-              {perHari == null ? 'Isi ketiga angka untuk melihat kenaikan per hari.'
-                : `Naik ±${tampil(perHari)} ppm per hari.`}
-            </p>
-            <div className="mt-4 flex flex-wrap justify-end gap-2">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              void simpan()
+            }}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 id="vsf-naik-judul" data-dialog-title tabIndex={-1} className="font-heading text-[20px] font-bold text-tinta outline-none">
+                  Atur target nutrisi
+                </h2>
+                <p className="mt-0.5 text-[13px] text-abu">{ubah.nama_tanaman}</p>
+              </div>
+              <button
+                type="button"
+                className="vsf-chrome-tautan !min-h-[40px] !min-w-[40px] justify-center"
+                aria-label="Tutup"
+                disabled={sibuk}
+                onClick={handleClose}
+              >
+                <Ikon nama="tutup" />
+              </button>
+            </div>
+
+            {galat && (
+              <div role="alert" className="vsf-banner vsf-tone-error mt-3 rounded-input px-3 py-2 text-[13px]">
+                {galat}
+              </div>
+            )}
+
+            <KolomAngka label="Target akhir" satuan="ppm" value={target} onChange={setTarget} placeholder="2400" autoFocus galat={fieldError(errs, 'ppm_target')} />
+            <KolomAngka label="Dicapai dalam (hari sejak pindah netpot)" satuan="hari" value={hari} onChange={setHari} placeholder="60" galat={fieldError(errs, 'hari_capai')} />
+            <KolomAngka label="ppm awal saat pindah netpot" satuan="ppm" value={awal} onChange={setAwal} placeholder="400" galat={fieldError(errs, 'ppm_awal')} />
+
+            <div className={clsx('vsf-ringkasan-form mt-4', perHari == null && 'is-kosong')} aria-live="polite">
+              <Ikon nama="tetes" className="h-4 w-4" />
+              <span>
+                {perHari == null
+                  ? 'Isi ketiga angka untuk melihat kenaikan per hari.'
+                  : `Naik ±${tampil(perHari)} ppm per hari, dari ${tampil(pa ?? 0)} ke ${tampil(pt ?? 0)} ppm.`}
+              </span>
+            </div>
+            {targetLewat && (
+              <div className="vsf-tone-warn mt-2 rounded-input px-3 py-2 text-[12px]" role="status">
+                Target di atas ambang alert TDS ({tampil(maksAmbang ?? 0)} ppm) — alert "di luar batas" akan muncul.
+              </div>
+            )}
+
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
               {ubah.ppm_target != null && (
-                <button type="button" className="vsf-btn-secondary mr-auto" onClick={() => void simpan(true)} disabled={sibuk}>Matikan</button>
+                <button type="button" className="vsf-btn-secondary mr-auto !text-arutmin-error" onClick={() => void simpan(true)} disabled={sibuk}>
+                  Matikan target
+                </button>
               )}
-              <button type="button" className="vsf-btn-secondary" onClick={() => setUbah(null)} disabled={sibuk}>Batal</button>
-              <button type="submit" className="vsf-btn-primary" disabled={sibuk}>{sibuk ? 'Menyimpan…' : 'Simpan'}</button>
+              <button type="button" className="vsf-btn-secondary" onClick={handleClose} disabled={sibuk}>
+                Batal
+              </button>
+              <button type="submit" className="vsf-btn-primary" disabled={sibuk}>
+                {sibuk && <span className="vsf-spinner" aria-hidden />}
+                {sibuk ? 'Menyimpan…' : 'Simpan'}
+              </button>
             </div>
           </form>
+          </div>
         </ModalBackdrop>
       )}
     </section>

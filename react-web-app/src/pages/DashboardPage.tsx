@@ -241,7 +241,7 @@ export default function DashboardPage() {
                 to="/tanam"
                 className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[13px] font-semibold text-tinta shadow-[inset_0_1px_0_#fff] transition hover:bg-white/85 sm:flex-none"
               >
-                Tanam Saya
+                Kebun Saya
               </Link>
             )}
           </div>

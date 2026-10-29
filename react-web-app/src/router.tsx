@@ -5,7 +5,7 @@ import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import SensorRealtimePage from './pages/SensorRealtimePage'
 import WaterControlPage from './pages/WaterControlPage'
-import TanamSayaPage from './pages/TanamSayaPage'
+import KebunSayaPage from './pages/KebunSayaPage'
 import CctvPage from './pages/CctvPage'
 import AsistenAiPage from './pages/AsistenAiPage'
 import DosingPage from './pages/DosingPage'
@@ -52,7 +52,7 @@ export const router = createBrowserRouter([
           { path: '/dashboard', element: <RequireAuth allow={ALL} element={<DashboardPage />} /> },
           { path: '/sensor', element: <Navigate to="/sensor-realtime" replace /> },
           { path: '/sensor-realtime', element: <RequireAuth allow={ALL} element={<SensorRealtimePage />} /> },
-          { path: '/tanam', element: <RequireAuth allow={ALL} element={<TanamSayaPage />} /> },
+          { path: '/tanam', element: <RequireAuth allow={ALL} element={<KebunSayaPage />} /> },
           { path: '/cctv', element: <RequireAuth allow={ALL} element={<CctvPage />} /> },
           { path: '/asisten-ai', element: <RequireAuth allow={ALL} element={<AsistenAiPage />} /> },
           { path: '/profil', element: <RequireAuth allow={ALL} element={<ProfilPage />} /> },

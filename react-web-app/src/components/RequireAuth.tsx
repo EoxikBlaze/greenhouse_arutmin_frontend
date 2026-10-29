@@ -5,7 +5,7 @@ import type { Role } from '../lib/authTypes'
 
 /**
  * Guard rute sesuai peta peran di untitled.pen:
- * - semua role  : Dashboard, Sensor, Tanam Saya, CCTV, Asisten AI, Profil, Logout
+ * - semua role  : Dashboard, Sensor, Kebun Saya, CCTV, Asisten AI, Profil, Logout
  * - admin+demo  : Water Control, Data Tahap, Durasi, Master, Laporan, Notif
  * - admin only  : Manajemen User
  * Mode demo = admin read-only (aksi destruktif dinonaktifkan di level komponen).

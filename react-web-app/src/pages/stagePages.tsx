@@ -437,7 +437,7 @@ export function SemaiPage() {
       <div className="vsf-card p-4 sm:p-5 text-[13px] leading-relaxed text-slate-600">
         <span className="font-bold text-slate-700">Catatan:</span> tab ini menampilkan daftar, detail, dan
         penutupan tahap (Tandai Selesai). Batch semai BARU dibuat lewat tombol{' '}
-        <b>Mulai Semai Baru</b> di Dashboard atau halaman Tanam Saya.
+        <b>Mulai Semai Baru</b> di Dashboard atau halaman Kebun Saya.
       </div>
 
       <CrudScreen<SemaiRow>
@@ -455,7 +455,7 @@ export function SemaiPage() {
         notes={[
           'Live: GET /semai (daftar) · GET /semai/selesai (tab) · GET /semai/batch/:id (detail) — Bearer JWT.',
           'Kolom backend: id_tanaman, id_siklus, id_meja, jumlah_benih, tgl_awal_semai, tgl_akhir_semai, status, keterangan, benih_berhasil, benih_gagal.',
-          'Batch semai BARU dibuat lewat tombol Mulai Semai Baru (POST /tanam/mulai) di Dashboard atau halaman Tanam Saya.',
+          'Batch semai BARU dibuat lewat tombol Mulai Semai Baru (POST /tanam/mulai) di Dashboard atau halaman Kebun Saya.',
           'Tutup tahap lewat tombol Tandai Selesai di modal detail → POST /tanam/semai/:id/selesai.',
           'Ubah/hapus baris lewat layar ini sengaja tidak dipasang: tiap baris dapat dirujuk peremajaan (FK ON DELETE RESTRICT → 409).',
           'Error kontrak tetap aktif: 401 → redirect login · 404 detail → "Data tidak ditemukan." · 403 → mode demo.',
@@ -621,7 +621,7 @@ function tanggalOffset(hari: number): string {
 }
 
 /** Status tahap dari kolom `status` di server ('proses' | 'selesai' | 'gagal'). Dulu ditebak dari
- * tanggal akhir → bertentangan dengan Tanam Saya (batch 'proses' tampil 'selesai'). */
+ * tanggal akhir → bertentangan dengan Kebun Saya (batch 'proses' tampil 'selesai'). */
 const statusTahap = (status: unknown): string => {
   const v = String(status ?? '').trim()
   return v === 'proses' ? 'berjalan' : v || '—'
