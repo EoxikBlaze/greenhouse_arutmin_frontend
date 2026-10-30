@@ -1,0 +1,1080 @@
+{
+ "nodes": [
+  {
+   "id": "file:react-web-app/src/lib/auth.tsx",
+   "type": "file",
+   "name": "auth.tsx",
+   "filePath": "react-web-app/src/lib/auth.tsx",
+   "summary": "Provider autentikasi yang memuat/menyimpan sesi, membaca klaim token, dan menyediakan konteks login/logout.",
+   "tags": [
+    "auth",
+    "provider",
+    "context",
+    "session"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/lib/auth.tsx:claimsOf",
+   "type": "function",
+   "name": "claimsOf",
+   "filePath": "react-web-app/src/lib/auth.tsx",
+   "lineRange": [
+    7,
+    20
+   ],
+   "summary": "Fungsi claimsOf di auth.tsx (internal), 14 baris; mendukung: provider autentikasi yang memuat/menyimpan sesi.",
+   "tags": [
+    "function",
+    "internal",
+    "auth"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/lib/auth.tsx:load",
+   "type": "function",
+   "name": "load",
+   "filePath": "react-web-app/src/lib/auth.tsx",
+   "lineRange": [
+    23,
+    44
+   ],
+   "summary": "Fungsi load di auth.tsx (internal), 22 baris; mendukung: provider autentikasi yang memuat/menyimpan sesi.",
+   "tags": [
+    "function",
+    "internal",
+    "auth"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/lib/auth.tsx:save",
+   "type": "function",
+   "name": "save",
+   "filePath": "react-web-app/src/lib/auth.tsx",
+   "lineRange": [
+    46,
+    63
+   ],
+   "summary": "Fungsi save di auth.tsx (internal), 18 baris; mendukung: provider autentikasi yang memuat/menyimpan sesi.",
+   "tags": [
+    "function",
+    "internal",
+    "auth"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/lib/auth.tsx:AuthProvider",
+   "type": "function",
+   "name": "AuthProvider",
+   "filePath": "react-web-app/src/lib/auth.tsx",
+   "lineRange": [
+    65,
+    113
+   ],
+   "summary": "Komponen React AuthProvider di auth.tsx (diekspor), 49 baris; mendukung: provider autentikasi yang memuat/menyimpan sesi.",
+   "tags": [
+    "component",
+    "exported",
+    "auth"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:react-web-app/src/lib/authContext.ts",
+   "type": "file",
+   "name": "authContext.ts",
+   "filePath": "react-web-app/src/lib/authContext.ts",
+   "summary": "Definisi konteks autentikasi, hook useAuth, dan pemetaan level ke peran pengguna.",
+   "tags": [
+    "auth",
+    "context",
+    "hook",
+    "roles"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/lib/authContext.ts:useAuth",
+   "type": "function",
+   "name": "useAuth",
+   "filePath": "react-web-app/src/lib/authContext.ts",
+   "lineRange": [
+    34,
+    36
+   ],
+   "summary": "Fungsi useAuth di authContext.ts (diekspor), 3 baris; mendukung: definisi konteks autentikasi.",
+   "tags": [
+    "function",
+    "exported",
+    "auth"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/lib/authContext.ts:roleFromLevel",
+   "type": "function",
+   "name": "roleFromLevel",
+   "filePath": "react-web-app/src/lib/authContext.ts",
+   "lineRange": [
+    55,
+    60
+   ],
+   "summary": "Fungsi roleFromLevel di authContext.ts (diekspor), 6 baris; mendukung: definisi konteks autentikasi.",
+   "tags": [
+    "function",
+    "exported",
+    "auth"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:react-web-app/src/lib/authTypes.ts",
+   "type": "file",
+   "name": "authTypes.ts",
+   "filePath": "react-web-app/src/lib/authTypes.ts",
+   "summary": "Tipe TypeScript untuk data pengguna dan konteks autentikasi.",
+   "tags": [
+    "type-definition",
+    "auth",
+    "typescript"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "file",
+   "name": "crudApi.ts",
+   "filePath": "react-web-app/src/lib/crudApi.ts",
+   "summary": "Helper API CRUD: parsing galat server, hook useApiError dan useApiList, serta ekstraksi galat field.",
+   "tags": [
+    "api-client",
+    "hook",
+    "error-handling",
+    "crud"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/lib/crudApi.ts:parseApiFailure",
+   "type": "function",
+   "name": "parseApiFailure",
+   "filePath": "react-web-app/src/lib/crudApi.ts",
+   "lineRange": [
+    37,
+    65
+   ],
+   "summary": "Fungsi parseApiFailure di crudApi.ts (diekspor), 29 baris; mendukung: helper api crud.",
+   "tags": [
+    "function",
+    "exported",
+    "api-client"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/lib/crudApi.ts:useApiError",
+   "type": "function",
+   "name": "useApiError",
+   "filePath": "react-web-app/src/lib/crudApi.ts",
+   "lineRange": [
+    71,
+    101
+   ],
+   "summary": "Fungsi useApiError di crudApi.ts (diekspor), 31 baris; mendukung: helper api crud.",
+   "tags": [
+    "function",
+    "exported",
+    "api-client"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/lib/crudApi.ts:rowsOf",
+   "type": "function",
+   "name": "rowsOf",
+   "filePath": "react-web-app/src/lib/crudApi.ts",
+   "lineRange": [
+    103,
+    112
+   ],
+   "summary": "Fungsi rowsOf di crudApi.ts (internal), 10 baris; mendukung: helper api crud.",
+   "tags": [
+    "function",
+    "internal",
+    "api-client"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/lib/crudApi.ts:useApiList",
+   "type": "function",
+   "name": "useApiList",
+   "filePath": "react-web-app/src/lib/crudApi.ts",
+   "lineRange": [
+    119,
+    161
+   ],
+   "summary": "Fungsi useApiList di crudApi.ts (diekspor), 43 baris; mendukung: helper api crud.",
+   "tags": [
+    "function",
+    "exported",
+    "api-client"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/lib/crudApi.ts:fieldError",
+   "type": "function",
+   "name": "fieldError",
+   "filePath": "react-web-app/src/lib/crudApi.ts",
+   "lineRange": [
+    164,
+    170
+   ],
+   "summary": "Fungsi fieldError di crudApi.ts (diekspor), 7 baris; mendukung: helper api crud.",
+   "tags": [
+    "function",
+    "exported",
+    "api-client"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:react-web-app/src/lib/token.ts",
+   "type": "file",
+   "name": "token.ts",
+   "filePath": "react-web-app/src/lib/token.ts",
+   "summary": "Utilitas pembacaan token autentikasi dari storage.",
+   "tags": [
+    "utility",
+    "auth",
+    "token",
+    "storage"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/lib/token.ts:currentToken",
+   "type": "function",
+   "name": "currentToken",
+   "filePath": "react-web-app/src/lib/token.ts",
+   "lineRange": [
+    9,
+    16
+   ],
+   "summary": "Fungsi currentToken di token.ts (diekspor), 8 baris; mendukung: utilitas pembacaan token autentikasi dari storage.",
+   "tags": [
+    "function",
+    "exported",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:react-web-app/src/lib/useApiObject.ts",
+   "type": "file",
+   "name": "useApiObject.ts",
+   "filePath": "react-web-app/src/lib/useApiObject.ts",
+   "summary": "Hook untuk memuat objek tunggal dari API dengan polling dan efek kilat saat nilai berubah.",
+   "tags": [
+    "hook",
+    "api-client",
+    "polling",
+    "react"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/lib/useApiObject.ts:useFlashOnChange",
+   "type": "function",
+   "name": "useFlashOnChange",
+   "filePath": "react-web-app/src/lib/useApiObject.ts",
+   "lineRange": [
+    21,
+    32
+   ],
+   "summary": "Fungsi useFlashOnChange di useApiObject.ts (diekspor), 12 baris; mendukung: hook untuk memuat objek tunggal dari api dengan polling dan efek kilat saat nilai berubah.",
+   "tags": [
+    "function",
+    "exported",
+    "hook"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/lib/useApiObject.ts:useApiObject",
+   "type": "function",
+   "name": "useApiObject",
+   "filePath": "react-web-app/src/lib/useApiObject.ts",
+   "lineRange": [
+    34,
+    87
+   ],
+   "summary": "Fungsi useApiObject di useApiObject.ts (diekspor), 54 baris; mendukung: hook untuk memuat objek tunggal dari api dengan polling dan efek kilat saat nilai berubah.",
+   "tags": [
+    "function",
+    "exported",
+    "hook"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:react-web-app/src/lib/useDialog.ts",
+   "type": "file",
+   "name": "useDialog.ts",
+   "filePath": "react-web-app/src/lib/useDialog.ts",
+   "summary": "Hook pengelola dialog modal (buka/tutup, fokus, tombol Escape) yang dipakai banyak komponen.",
+   "tags": [
+    "hook",
+    "dialog",
+    "accessibility",
+    "react"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/lib/useDialog.ts:useDialog",
+   "type": "function",
+   "name": "useDialog",
+   "filePath": "react-web-app/src/lib/useDialog.ts",
+   "lineRange": [
+    27,
+    112
+   ],
+   "summary": "Fungsi useDialog di useDialog.ts (diekspor), 86 baris; mendukung: hook pengelola dialog modal (buka/tutup.",
+   "tags": [
+    "function",
+    "exported",
+    "hook"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:react-web-app/src/main.tsx",
+   "type": "file",
+   "name": "main.tsx",
+   "filePath": "react-web-app/src/main.tsx",
+   "summary": "Titik masuk aplikasi React: memasang AuthProvider dan router serta mengimpor CSS global.",
+   "tags": [
+    "entry-point",
+    "react",
+    "bootstrap",
+    "router"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:react-web-app/src/pages/AsistenAiPage.tsx",
+   "type": "file",
+   "name": "AsistenAiPage.tsx",
+   "filePath": "react-web-app/src/pages/AsistenAiPage.tsx",
+   "summary": "Halaman asisten AI yang membungkus ChatAsisten dan menampilkan kartu hasil.",
+   "tags": [
+    "page",
+    "ai-assistant",
+    "chat",
+    "react"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/AsistenAiPage.tsx:KartuHasil",
+   "type": "function",
+   "name": "KartuHasil",
+   "filePath": "react-web-app/src/pages/AsistenAiPage.tsx",
+   "lineRange": [
+    58,
+    97
+   ],
+   "summary": "Komponen React KartuHasil di AsistenAiPage.tsx (internal), 40 baris; mendukung: halaman asisten ai yang membungkus chatasisten dan menampilkan kartu hasil.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/AsistenAiPage.tsx:AsistenAiPage",
+   "type": "function",
+   "name": "AsistenAiPage",
+   "filePath": "react-web-app/src/pages/AsistenAiPage.tsx",
+   "lineRange": [
+    99,
+    228
+   ],
+   "summary": "Komponen React AsistenAiPage di AsistenAiPage.tsx (diekspor), 130 baris; mendukung: halaman asisten ai yang membungkus chatasisten dan menampilkan kartu hasil.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:react-web-app/src/pages/AuditPage.tsx",
+   "type": "file",
+   "name": "AuditPage.tsx",
+   "filePath": "react-web-app/src/pages/AuditPage.tsx",
+   "summary": "Halaman log audit dengan filter, ringkasan perubahan, dan format nilai/waktu.",
+   "tags": [
+    "page",
+    "audit",
+    "logging",
+    "table"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/AuditPage.tsx:nilaiTeks",
+   "type": "function",
+   "name": "nilaiTeks",
+   "filePath": "react-web-app/src/pages/AuditPage.tsx",
+   "lineRange": [
+    93,
+    112
+   ],
+   "summary": "Fungsi nilaiTeks di AuditPage.tsx (internal), 20 baris; mendukung: halaman log audit dengan filter.",
+   "tags": [
+    "function",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/AuditPage.tsx:daftarRingkasan",
+   "type": "function",
+   "name": "daftarRingkasan",
+   "filePath": "react-web-app/src/pages/AuditPage.tsx",
+   "lineRange": [
+    128,
+    158
+   ],
+   "summary": "Fungsi daftarRingkasan di AuditPage.tsx (internal), 31 baris; mendukung: halaman log audit dengan filter.",
+   "tags": [
+    "function",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/AuditPage.tsx:Ringkasan",
+   "type": "function",
+   "name": "Ringkasan",
+   "filePath": "react-web-app/src/pages/AuditPage.tsx",
+   "lineRange": [
+    161,
+    184
+   ],
+   "summary": "Komponen React Ringkasan di AuditPage.tsx (internal), 24 baris; mendukung: halaman log audit dengan filter.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/AuditPage.tsx:AuditPage",
+   "type": "function",
+   "name": "AuditPage",
+   "filePath": "react-web-app/src/pages/AuditPage.tsx",
+   "lineRange": [
+    186,
+    451
+   ],
+   "summary": "Komponen React AuditPage di AuditPage.tsx (diekspor), 266 baris; mendukung: halaman log audit dengan filter.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:react-web-app/src/pages/CctvPage.tsx",
+   "type": "file",
+   "name": "CctvPage.tsx",
+   "filePath": "react-web-app/src/pages/CctvPage.tsx",
+   "summary": "Halaman pemantauan CCTV dengan ubin sumber video dan tampilan gambar besar.",
+   "tags": [
+    "page",
+    "cctv",
+    "video",
+    "monitoring"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/CctvPage.tsx:useSumber",
+   "type": "function",
+   "name": "useSumber",
+   "filePath": "react-web-app/src/pages/CctvPage.tsx",
+   "lineRange": [
+    47,
+    81
+   ],
+   "summary": "Fungsi useSumber di CctvPage.tsx (internal), 35 baris; mendukung: halaman pemantauan cctv dengan ubin sumber video dan tampilan gambar besar.",
+   "tags": [
+    "function",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/CctvPage.tsx:Ubin",
+   "type": "function",
+   "name": "Ubin",
+   "filePath": "react-web-app/src/pages/CctvPage.tsx",
+   "lineRange": [
+    84,
+    169
+   ],
+   "summary": "Komponen React Ubin di CctvPage.tsx (internal), 86 baris; mendukung: halaman pemantauan cctv dengan ubin sumber video dan tampilan gambar besar.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/pages/CctvPage.tsx:CctvPage",
+   "type": "function",
+   "name": "CctvPage",
+   "filePath": "react-web-app/src/pages/CctvPage.tsx",
+   "lineRange": [
+    171,
+    405
+   ],
+   "summary": "Komponen React CctvPage di CctvPage.tsx (diekspor), 235 baris; mendukung: halaman pemantauan cctv dengan ubin sumber video dan tampilan gambar besar.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/CctvPage.tsx:BesarGambar",
+   "type": "function",
+   "name": "BesarGambar",
+   "filePath": "react-web-app/src/pages/CctvPage.tsx",
+   "lineRange": [
+    407,
+    423
+   ],
+   "summary": "Komponen React BesarGambar di CctvPage.tsx (internal), 17 baris; mendukung: halaman pemantauan cctv dengan ubin sumber video dan tampilan gambar besar.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:react-web-app/src/pages/DashboardPage.tsx",
+   "type": "file",
+   "name": "DashboardPage.tsx",
+   "filePath": "react-web-app/src/pages/DashboardPage.tsx",
+   "summary": "Halaman dashboard utama yang merangkum metrik sensor dan status melalui polling API.",
+   "tags": [
+    "page",
+    "dashboard",
+    "sensor",
+    "monitoring"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/DashboardPage.tsx:IkonMetrik",
+   "type": "function",
+   "name": "IkonMetrik",
+   "filePath": "react-web-app/src/pages/DashboardPage.tsx",
+   "lineRange": [
+    81,
+    135
+   ],
+   "summary": "Komponen React IkonMetrik di DashboardPage.tsx (internal), 55 baris; mendukung: halaman dashboard utama yang merangkum metrik sensor dan status melalui polling api.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/pages/DashboardPage.tsx:DashboardPage",
+   "type": "function",
+   "name": "DashboardPage",
+   "filePath": "react-web-app/src/pages/DashboardPage.tsx",
+   "lineRange": [
+    137,
+    351
+   ],
+   "summary": "Komponen React DashboardPage di DashboardPage.tsx (diekspor), 215 baris; mendukung: halaman dashboard utama yang merangkum metrik sensor dan status melalui polling api.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:react-web-app/src/lib/auth.tsx",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/lib/auth.tsx",
+   "target": "file:react-web-app/src/lib/authContext.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/lib/auth.tsx",
+   "target": "file:react-web-app/src/lib/token.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/lib/auth.tsx",
+   "target": "function:react-web-app/src/lib/auth.tsx:claimsOf",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/auth.tsx",
+   "target": "function:react-web-app/src/lib/auth.tsx:load",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/auth.tsx",
+   "target": "function:react-web-app/src/lib/auth.tsx:save",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/auth.tsx",
+   "target": "function:react-web-app/src/lib/auth.tsx:AuthProvider",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/auth.tsx",
+   "target": "function:react-web-app/src/lib/auth.tsx:AuthProvider",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/lib/authContext.ts",
+   "target": "file:react-web-app/src/lib/authTypes.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/lib/authContext.ts",
+   "target": "function:react-web-app/src/lib/authContext.ts:useAuth",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/authContext.ts",
+   "target": "function:react-web-app/src/lib/authContext.ts:useAuth",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/lib/authContext.ts",
+   "target": "function:react-web-app/src/lib/authContext.ts:roleFromLevel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/authContext.ts",
+   "target": "function:react-web-app/src/lib/authContext.ts:roleFromLevel",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/lib/crudApi.ts",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/lib/crudApi.ts",
+   "target": "file:react-web-app/src/lib/authContext.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/lib/crudApi.ts",
+   "target": "function:react-web-app/src/lib/crudApi.ts:parseApiFailure",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/crudApi.ts",
+   "target": "function:react-web-app/src/lib/crudApi.ts:parseApiFailure",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/lib/crudApi.ts",
+   "target": "function:react-web-app/src/lib/crudApi.ts:useApiError",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/crudApi.ts",
+   "target": "function:react-web-app/src/lib/crudApi.ts:useApiError",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/lib/crudApi.ts",
+   "target": "function:react-web-app/src/lib/crudApi.ts:rowsOf",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/crudApi.ts",
+   "target": "function:react-web-app/src/lib/crudApi.ts:useApiList",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/crudApi.ts",
+   "target": "function:react-web-app/src/lib/crudApi.ts:useApiList",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/lib/crudApi.ts",
+   "target": "function:react-web-app/src/lib/crudApi.ts:fieldError",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/crudApi.ts",
+   "target": "function:react-web-app/src/lib/crudApi.ts:fieldError",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/lib/token.ts",
+   "target": "function:react-web-app/src/lib/token.ts:currentToken",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/token.ts",
+   "target": "function:react-web-app/src/lib/token.ts:currentToken",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/lib/useApiObject.ts",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/lib/useApiObject.ts",
+   "target": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/lib/useApiObject.ts",
+   "target": "function:react-web-app/src/lib/useApiObject.ts:useFlashOnChange",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/useApiObject.ts",
+   "target": "function:react-web-app/src/lib/useApiObject.ts:useFlashOnChange",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/lib/useApiObject.ts",
+   "target": "function:react-web-app/src/lib/useApiObject.ts:useApiObject",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/useApiObject.ts",
+   "target": "function:react-web-app/src/lib/useApiObject.ts:useApiObject",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/lib/useDialog.ts",
+   "target": "function:react-web-app/src/lib/useDialog.ts:useDialog",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/useDialog.ts",
+   "target": "function:react-web-app/src/lib/useDialog.ts:useDialog",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/main.tsx",
+   "target": "file:react-web-app/src/index.css",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/main.tsx",
+   "target": "file:react-web-app/src/lib/auth.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/main.tsx",
+   "target": "file:react-web-app/src/router.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/AsistenAiPage.tsx",
+   "target": "file:react-web-app/src/components/ChatAsisten.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/AsistenAiPage.tsx",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/AsistenAiPage.tsx",
+   "target": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/AsistenAiPage.tsx",
+   "target": "function:react-web-app/src/pages/AsistenAiPage.tsx:KartuHasil",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/AsistenAiPage.tsx",
+   "target": "function:react-web-app/src/pages/AsistenAiPage.tsx:AsistenAiPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/AsistenAiPage.tsx",
+   "target": "function:react-web-app/src/pages/AsistenAiPage.tsx:AsistenAiPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/AuditPage.tsx",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/AuditPage.tsx",
+   "target": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/AuditPage.tsx",
+   "target": "function:react-web-app/src/pages/AuditPage.tsx:nilaiTeks",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/AuditPage.tsx",
+   "target": "function:react-web-app/src/pages/AuditPage.tsx:daftarRingkasan",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/AuditPage.tsx",
+   "target": "function:react-web-app/src/pages/AuditPage.tsx:Ringkasan",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/AuditPage.tsx",
+   "target": "function:react-web-app/src/pages/AuditPage.tsx:AuditPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/AuditPage.tsx",
+   "target": "function:react-web-app/src/pages/AuditPage.tsx:AuditPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/CctvPage.tsx",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/CctvPage.tsx",
+   "target": "file:react-web-app/src/lib/authContext.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/CctvPage.tsx",
+   "target": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/CctvPage.tsx",
+   "target": "function:react-web-app/src/pages/CctvPage.tsx:useSumber",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/CctvPage.tsx",
+   "target": "function:react-web-app/src/pages/CctvPage.tsx:Ubin",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/CctvPage.tsx",
+   "target": "function:react-web-app/src/pages/CctvPage.tsx:CctvPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/CctvPage.tsx",
+   "target": "function:react-web-app/src/pages/CctvPage.tsx:CctvPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/CctvPage.tsx",
+   "target": "function:react-web-app/src/pages/CctvPage.tsx:BesarGambar",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/DashboardPage.tsx",
+   "target": "file:react-web-app/src/components/StatusBadge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/DashboardPage.tsx",
+   "target": "file:react-web-app/src/lib/authContext.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/DashboardPage.tsx",
+   "target": "file:react-web-app/src/lib/useApiObject.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/DashboardPage.tsx",
+   "target": "function:react-web-app/src/pages/DashboardPage.tsx:IkonMetrik",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/DashboardPage.tsx",
+   "target": "function:react-web-app/src/pages/DashboardPage.tsx:DashboardPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/DashboardPage.tsx",
+   "target": "function:react-web-app/src/pages/DashboardPage.tsx:DashboardPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ]
+}

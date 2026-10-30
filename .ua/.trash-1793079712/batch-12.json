@@ -1,0 +1,382 @@
+{
+ "nodes": [
+  {
+   "id": "document:docs/ANALISIS_BACKEND.md",
+   "type": "document",
+   "name": "ANALISIS_BACKEND.md",
+   "filePath": "docs/ANALISIS_BACKEND.md",
+   "summary": "Analisis peta project dan hasil uji nyata backend Node.js (20 pemeriksaan lulus), cara menjalankan, perintah curl, temuan bug, dan urutan kerja yang disarankan.",
+   "tags": [
+    "documentation",
+    "backend",
+    "testing",
+    "analysis"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/ANALISIS_DB_PERANCANGAN.md",
+   "type": "document",
+   "name": "ANALISIS_DB_PERANCANGAN.md",
+   "filePath": "docs/ANALISIS_DB_PERANCANGAN.md",
+   "summary": "Verifikasi database live GARAP terhadap dokumen perancangan IoT Hidroponik FINAL, berisi gap prioritas, empat file migrasi usulan, dan keputusan yang butuh user.",
+   "tags": [
+    "documentation",
+    "database",
+    "migration",
+    "analysis"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/API_ROUTES.md",
+   "type": "document",
+   "name": "API_ROUTES.md",
+   "filePath": "docs/API_ROUTES.md",
+   "summary": "Peta route Laravel lama (web.php dan api.php) sebagai acuan kontrak API untuk SPA dan mobile.",
+   "tags": [
+    "documentation",
+    "api-schema",
+    "routes",
+    "legacy"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:docs/ARSITEKTUR_PI_2ESP32.md",
+   "type": "document",
+   "name": "ARSITEKTUR_PI_2ESP32.md",
+   "filePath": "docs/ARSITEKTUR_PI_2ESP32.md",
+   "summary": "Rancangan arsitektur lokal Raspberry Pi sebagai server utama dengan dua ESP32: topologi, siklus data, gap, keamanan, pemasangan, dan urutan implementasi.",
+   "tags": [
+    "documentation",
+    "architecture",
+    "raspberry-pi",
+    "esp32",
+    "iot"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:docs/AUDIT_KONSISTENSI_GARAP.md",
+   "type": "document",
+   "name": "AUDIT_KONSISTENSI_GARAP.md",
+   "filePath": "docs/AUDIT_KONSISTENSI_GARAP.md",
+   "summary": "Audit baca-saja pasca-G8 yang membandingkan openapi.yaml dan klaim dokumen dengan rute nyata di src/ serta server dan DB live.",
+   "tags": [
+    "documentation",
+    "audit",
+    "consistency",
+    "api-schema"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:docs/AUDIT_UI_UX.md",
+   "type": "document",
+   "name": "AUDIT_UI_UX.md",
+   "filePath": "docs/AUDIT_UI_UX.md",
+   "summary": "Audit UI/UX web React GARAP: temuan TINGGI/SEDANG/RENDAH, quick-win, verifikasi alur kritis, kontras WCAG, dan checklist re-test.",
+   "tags": [
+    "documentation",
+    "audit",
+    "ui-ux",
+    "accessibility",
+    "frontend"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:docs/BACKEND_ANALYSIS.md",
+   "type": "document",
+   "name": "BACKEND_ANALYSIS.md",
+   "filePath": "docs/BACKEND_ANALYSIS.md",
+   "summary": "Analisis backend Laravel sebelum port ke Node.js: inventaris 104 route, model data, otorisasi, keamanan, dan keputusan teknis port.",
+   "tags": [
+    "documentation",
+    "backend",
+    "analysis",
+    "migration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/BACKLOG_GARAP.md",
+   "type": "document",
+   "name": "BACKLOG_GARAP.md",
+   "filePath": "docs/BACKLOG_GARAP.md",
+   "summary": "Backlog utang proses dan temuan audit GARAP (kritis, sedang, catatan), status gerbang G1-G8, keputusan user, dan koreksi status.",
+   "tags": [
+    "documentation",
+    "backlog",
+    "process",
+    "audit"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:docs/BACKUP_RESTORE_PI.md",
+   "type": "document",
+   "name": "BACKUP_RESTORE_PI.md",
+   "filePath": "docs/BACKUP_RESTORE_PI.md",
+   "summary": "Panduan backup dan restore database serta file penting di Pi dan Mac memakai backup-pi.sh, termasuk cron dan checklist sebelum peresmian.",
+   "tags": [
+    "documentation",
+    "backup",
+    "operations",
+    "raspberry-pi",
+    "database"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:docs/CCTV_EZVIZ_H8C.md",
+   "type": "document",
+   "name": "CCTV_EZVIZ_H8C.md",
+   "filePath": "docs/CCTV_EZVIZ_H8C.md",
+   "summary": "Panduan menyambungkan CCTV EZVIZ H8C via RTSP dan ffmpeg di Pi untuk disajikan sebagai gambar ke web dan aplikasi HP.",
+   "tags": [
+    "documentation",
+    "cctv",
+    "deployment",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/DATABASE.md",
+   "type": "document",
+   "name": "DATABASE.md",
+   "filePath": "docs/DATABASE.md",
+   "summary": "Panduan database GARAP: perintah migrasi sehari-hari, konvensi, peta domain, relasi inti, dan langkah pengembangan berikutnya.",
+   "tags": [
+    "documentation",
+    "database",
+    "migration",
+    "schema-definition"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/DB_SCHEMA.md",
+   "type": "document",
+   "name": "DB_SCHEMA.md",
+   "filePath": "docs/DB_SCHEMA.md",
+   "summary": "Dokumentasi susunan database PostgreSQL era Laravel: koneksi lokal, diagram relasi, tabel aplikasi, tabel infrastruktur, dan data seed.",
+   "tags": [
+    "documentation",
+    "database",
+    "schema-definition",
+    "legacy"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/DEBUG_PERFORMANCE_REPORT.md",
+   "type": "document",
+   "name": "DEBUG_PERFORMANCE_REPORT.md",
+   "filePath": "docs/DEBUG_PERFORMANCE_REPORT.md",
+   "summary": "Laporan debugging dan performa backend Node.js: uji beban 141 ribu request, analisis kompleksitas, keamanan, memory leak, dan roadmap optimasi.",
+   "tags": [
+    "documentation",
+    "performance",
+    "security",
+    "debugging",
+    "backend"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/DEBUG_PRA_PI_2026-10-23.md",
+   "type": "document",
+   "name": "DEBUG_PRA_PI_2026-10-23.md",
+   "filePath": "docs/DEBUG_PRA_PI_2026-10-23.md",
+   "summary": "Hasil debug menyeluruh sebelum pemasangan di Raspberry Pi: tes backend, web, mobile, instalasi DB baru, bug yang diperbaiki, dan sisa keputusan.",
+   "tags": [
+    "documentation",
+    "debugging",
+    "raspberry-pi",
+    "testing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:docs/DEBUG_REPORT.md",
+   "type": "document",
+   "name": "DEBUG_REPORT.md",
+   "filePath": "docs/DEBUG_REPORT.md",
+   "summary": "Laporan animasi dan debugging React SPA GARAP, penyesuaian ke wireframe .pen, backend API-only, dan hal yang masih terbuka.",
+   "tags": [
+    "documentation",
+    "debugging",
+    "frontend",
+    "animation"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/ESP32_API.md",
+   "type": "document",
+   "name": "ESP32_API.md",
+   "filePath": "docs/ESP32_API.md",
+   "summary": "Panduan endpoint untuk perangkat ESP32: autentikasi X-API-KEY, daftar endpoint, contoh curl, snippet firmware Arduino, troubleshooting, dan verifikasi live.",
+   "tags": [
+    "documentation",
+    "esp32",
+    "api-schema",
+    "iot",
+    "firmware"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:docs/FLOWCHART_BACKEND.md",
+   "type": "document",
+   "name": "FLOWCHART_BACKEND.md",
+   "filePath": "docs/FLOWCHART_BACKEND.md",
+   "summary": "Flowchart mermaid jalur satu request backend: pipeline, guard, handler, database, cabang role, dan alur tulis data ESP32.",
+   "tags": [
+    "documentation",
+    "backend",
+    "flowchart",
+    "architecture"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/FLUTTER_SETUP.md",
+   "type": "document",
+   "name": "FLUTTER_SETUP.md",
+   "filePath": "docs/FLUTTER_SETUP.md",
+   "summary": "Tutorial setup Flutter dan iOS Simulator di Mac Apple Silicon beserta koneksi ke backend lokal dan troubleshooting.",
+   "tags": [
+    "documentation",
+    "flutter",
+    "setup",
+    "mobile"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/JALUR_BACKEND.md",
+   "type": "document",
+   "name": "JALUR_BACKEND.md",
+   "filePath": "docs/JALUR_BACKEND.md",
+   "summary": "Pelacakan satu request dari klien sampai respons: pipeline middleware, peta mount dan guard, daftar rute lengkap, dan contoh trace end-to-end.",
+   "tags": [
+    "documentation",
+    "backend",
+    "routes",
+    "architecture"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:docs/JALUR_BACKEND_DAN_DB.md",
+   "type": "document",
+   "name": "JALUR_BACKEND_DAN_DB.md",
+   "filePath": "docs/JALUR_BACKEND_DAN_DB.md",
+   "summary": "Gabungan jalur backend dan jalur database: pipeline ke PostgreSQL, endpoint ke tabel, skema 13 tabel, dan isi database.",
+   "tags": [
+    "documentation",
+    "backend",
+    "database",
+    "architecture"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "document:docs/ANALISIS_BACKEND.md",
+   "target": "document:docs/JALUR_BACKEND.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/JALUR_BACKEND.md",
+   "target": "document:docs/FLOWCHART_BACKEND.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/JALUR_BACKEND.md",
+   "target": "document:docs/JALUR_BACKEND_DAN_DB.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/BACKEND_ANALYSIS.md",
+   "target": "document:docs/API_ROUTES.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/DATABASE.md",
+   "target": "document:docs/DB_SCHEMA.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/ARSITEKTUR_PI_2ESP32.md",
+   "target": "document:docs/ESP32_API.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/ARSITEKTUR_PI_2ESP32.md",
+   "target": "document:docs/BACKUP_RESTORE_PI.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/AUDIT_UI_UX.md",
+   "target": "document:docs/BACKLOG_GARAP.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/AUDIT_KONSISTENSI_GARAP.md",
+   "target": "document:docs/BACKLOG_GARAP.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/DEBUG_PRA_PI_2026-10-23.md",
+   "target": "document:docs/ARSITEKTUR_PI_2ESP32.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/DEBUG_REPORT.md",
+   "target": "document:docs/DEBUG_PERFORMANCE_REPORT.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/ANALISIS_DB_PERANCANGAN.md",
+   "target": "document:docs/DATABASE.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/CCTV_EZVIZ_H8C.md",
+   "target": "document:docs/ARSITEKTUR_PI_2ESP32.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

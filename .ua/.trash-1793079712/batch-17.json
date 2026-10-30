@@ -1,0 +1,1363 @@
+{
+ "nodes": [
+  {
+   "id": "file:backend-nodejs/deploy-pi/setup-ai.sh",
+   "type": "file",
+   "name": "setup-ai.sh",
+   "filePath": "backend-nodejs/deploy-pi/setup-ai.sh",
+   "summary": "Skrip idempotent untuk memasang AI lokal (Ollama + model qwen2.5 ringan) di Raspberry Pi sebagai backend asisten keputusan budidaya.",
+   "tags": [
+    "shell",
+    "deployment",
+    "raspberry-pi",
+    "ai-lokal"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "Bash dengan helper log jalan/info/waspad; model dapat di-override lewat env AI_MODEL."
+  },
+  {
+   "id": "file:backend-nodejs/scripts/loadtest.js",
+   "type": "file",
+   "name": "loadtest.js",
+   "filePath": "backend-nodejs/scripts/loadtest.js",
+   "summary": "Load test Node.js yang mensimulasikan ribuan user bersamaan dengan beban campuran GET sensor, chart-data, dan POST save-sensor, lalu melaporkan RPS dan latency p50/p95/p99.",
+   "tags": [
+    "load-test",
+    "performance",
+    "script",
+    "testing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/scripts/simulasi-mqtt.js",
+   "type": "file",
+   "name": "simulasi-mqtt.js",
+   "filePath": "backend-nodejs/scripts/simulasi-mqtt.js",
+   "summary": "Simulator ESP32 via MQTT dengan protokol sama seperti firmware, untuk menguji broker dan jembatan backend sebelum perangkat dirakit.",
+   "tags": [
+    "mqtt",
+    "simulator",
+    "iot",
+    "script"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/rancangan/RANCANGAN_BACKEND.docx",
+   "type": "document",
+   "name": "RANCANGAN_BACKEND.docx",
+   "filePath": "docs/rancangan/RANCANGAN_BACKEND.docx",
+   "summary": "Dokumen Word rancangan backend GARAP API (format biner; isi tidak diurai oleh ekstraktor).",
+   "tags": [
+    "documentation",
+    "backend",
+    "rancangan"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:docs/rancangan/index.html",
+   "type": "file",
+   "name": "index.html",
+   "filePath": "docs/rancangan/index.html",
+   "summary": "Halaman HTML statis berjudul Rancangan Backend GARAP API yang menyajikan rancangan backend dalam bentuk web.",
+   "tags": [
+    "documentation",
+    "html",
+    "backend",
+    "rancangan"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "config:flutter_mobile_app/.metadata",
+   "type": "config",
+   "name": ".metadata",
+   "filePath": "flutter_mobile_app/.metadata",
+   "summary": "Metadata Flutter yang melacak versi SDK dan konfigurasi migrasi proyek aplikasi mobile.",
+   "tags": [
+    "configuration",
+    "flutter",
+    "build-system"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/config.dart",
+   "type": "file",
+   "name": "config.dart",
+   "filePath": "flutter_mobile_app/lib/config.dart",
+   "summary": "Konfigurasi alamat backend (apiBase via --dart-define API_BASE) dan batas waktu request API.",
+   "tags": [
+    "config",
+    "flutter",
+    "api-config"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/main.dart",
+   "type": "file",
+   "name": "main.dart",
+   "filePath": "flutter_mobile_app/lib/main.dart",
+   "summary": "Entry point aplikasi Flutter GARAP: tema, root dengan sesi login, shell navigasi dock berisi tab Dashboard, Sensor, Tanam, Water Control, dan Profil.",
+   "tags": [
+    "entry-point",
+    "flutter",
+    "navigation",
+    "theme"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/models/meja.dart",
+   "type": "file",
+   "name": "meja.dart",
+   "filePath": "flutter_mobile_app/lib/models/meja.dart",
+   "summary": "Model data Meja (meja tanam) dengan parsing aman dari map JSON.",
+   "tags": [
+    "data-model",
+    "flutter",
+    "parsing"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/models/monitoring_entry.dart",
+   "type": "file",
+   "name": "monitoring_entry.dart",
+   "filePath": "flutter_mobile_app/lib/models/monitoring_entry.dart",
+   "summary": "Model satu entri riwayat monitoring beserta parser dari map JSON.",
+   "tags": [
+    "data-model",
+    "flutter",
+    "monitoring"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/models/penampung_state.dart",
+   "type": "file",
+   "name": "penampung_state.dart",
+   "filePath": "flutter_mobile_app/lib/models/penampung_state.dart",
+   "summary": "Model status penampung air dan fungsi gabungPenampung untuk menggabungkan data penampung.",
+   "tags": [
+    "data-model",
+    "flutter",
+    "water"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/pages/asisten_page.dart",
+   "type": "file",
+   "name": "asisten_page.dart",
+   "filePath": "flutter_mobile_app/lib/pages/asisten_page.dart",
+   "summary": "Halaman chat Asisten AI untuk rekomendasi langkah budidaya, dengan gelembung pesan, tabel jawaban, dan lencana status.",
+   "tags": [
+    "page",
+    "flutter",
+    "ai-assistant",
+    "chat"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/pages/cctv_page.dart",
+   "type": "file",
+   "name": "cctv_page.dart",
+   "filePath": "flutter_mobile_app/lib/pages/cctv_page.dart",
+   "summary": "Halaman CCTV dengan beberapa jenis tampilan kamera: snapshot, RTSP, dan MJPEG, serta tayangan besar.",
+   "tags": [
+    "page",
+    "flutter",
+    "cctv",
+    "streaming"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/pages/dashboard_page.dart",
+   "type": "file",
+   "name": "dashboard_page.dart",
+   "filePath": "flutter_mobile_app/lib/pages/dashboard_page.dart",
+   "summary": "Halaman dashboard ringkasan: statistik, tahap tanam, ringkasan sensor dan air, serta pintasan cepat.",
+   "tags": [
+    "page",
+    "flutter",
+    "dashboard",
+    "monitoring"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/pages/login_page.dart",
+   "type": "file",
+   "name": "login_page.dart",
+   "filePath": "flutter_mobile_app/lib/pages/login_page.dart",
+   "summary": "Halaman login dengan formulir, dekorasi merek, dan penanganan alamat backend serta pesan kesalahan.",
+   "tags": [
+    "page",
+    "flutter",
+    "auth",
+    "login"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/pages/meja_page.dart",
+   "type": "file",
+   "name": "meja_page.dart",
+   "filePath": "flutter_mobile_app/lib/pages/meja_page.dart",
+   "summary": "Halaman daftar meja tanam yang memuat data dari API dan menjaga state dengan keep-alive.",
+   "tags": [
+    "page",
+    "flutter",
+    "meja",
+    "list"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/pages/naik_harian_page.dart",
+   "type": "file",
+   "name": "naik_harian_page.dart",
+   "filePath": "flutter_mobile_app/lib/pages/naik_harian_page.dart",
+   "summary": "Halaman kenaikan harian dengan kartu dan bottom sheet untuk mengubah nilai.",
+   "tags": [
+    "page",
+    "flutter",
+    "form",
+    "dosing"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/pages/profil_page.dart",
+   "type": "file",
+   "name": "profil_page.dart",
+   "filePath": "flutter_mobile_app/lib/pages/profil_page.dart",
+   "summary": "Halaman profil pengguna: ubah data profil dan ganti kata sandi.",
+   "tags": [
+    "page",
+    "flutter",
+    "profile",
+    "auth"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/pages/riwayat_monitoring_page.dart",
+   "type": "file",
+   "name": "riwayat_monitoring_page.dart",
+   "filePath": "flutter_mobile_app/lib/pages/riwayat_monitoring_page.dart",
+   "summary": "Halaman riwayat monitoring yang menampilkan entri dari API dengan format waktu.",
+   "tags": [
+    "page",
+    "flutter",
+    "monitoring",
+    "history"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/pages/sensor_page.dart",
+   "type": "file",
+   "name": "sensor_page.dart",
+   "filePath": "flutter_mobile_app/lib/pages/sensor_page.dart",
+   "summary": "Halaman sensor: data terbaru dan riwayat dengan penyegaran berkala serta definisi metrik sensor.",
+   "tags": [
+    "page",
+    "flutter",
+    "sensor",
+    "realtime"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/pages/tanam_page.dart",
+   "type": "file",
+   "name": "tanam_page.dart",
+   "filePath": "flutter_mobile_app/lib/pages/tanam_page.dart",
+   "summary": "Halaman siklus tanam: mulai tanam, hasil panen, kartu tanam, dan bottom sheet pemilihan tanaman.",
+   "tags": [
+    "page",
+    "flutter",
+    "planting",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/pages/tentang_page.dart",
+   "type": "file",
+   "name": "tentang_page.dart",
+   "filePath": "flutter_mobile_app/lib/pages/tentang_page.dart",
+   "summary": "Halaman Tentang berisi info proyek, anggota tim, mitra, dan aksi salin/buka tautan.",
+   "tags": [
+    "page",
+    "flutter",
+    "about",
+    "static-content"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/pages/watercontrol_page.dart",
+   "type": "file",
+   "name": "watercontrol_page.dart",
+   "filePath": "flutter_mobile_app/lib/pages/watercontrol_page.dart",
+   "summary": "Halaman kontrol air: status penampung, aksi pengisian dengan konfirmasi, dan indikator tetes animasi.",
+   "tags": [
+    "page",
+    "flutter",
+    "water-control",
+    "actuator"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "type": "file",
+   "name": "api_service.dart",
+   "filePath": "flutter_mobile_app/lib/services/api_service.dart",
+   "summary": "Klien HTTP ke backend: manajemen token/sesi, request dengan penanganan error, login, dan pengambilan data meja, monitoring, serta sensor.",
+   "tags": [
+    "service",
+    "flutter",
+    "api-client",
+    "auth"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:flutter_mobile_app/lib/services/client_factory.dart",
+   "type": "file",
+   "name": "client_factory.dart",
+   "filePath": "flutter_mobile_app/lib/services/client_factory.dart",
+   "summary": "Pabrik klien HTTP (buatKlienHttp) untuk platform Flutter.",
+   "tags": [
+    "service",
+    "flutter",
+    "http",
+    "factory"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/scripts/loadtest.js:login",
+   "type": "function",
+   "name": "login",
+   "filePath": "backend-nodejs/scripts/loadtest.js",
+   "lineRange": [
+    24,
+    31
+   ],
+   "summary": "Login untuk mendapat token auth yang dipakai request terautentikasi pada load test.",
+   "tags": [
+    "auth",
+    "load-test"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/scripts/loadtest.js:pct",
+   "type": "function",
+   "name": "pct",
+   "filePath": "backend-nodejs/scripts/loadtest.js",
+   "lineRange": [
+    33,
+    37
+   ],
+   "summary": "Menghitung persentil latency dari array hasil.",
+   "tags": [
+    "utility",
+    "statistics"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:flutter_mobile_app/lib/main.dart:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "flutter_mobile_app/lib/main.dart",
+   "lineRange": [
+    25,
+    25
+   ],
+   "summary": "Fungsi main yang menjalankan aplikasi GarapApp.",
+   "tags": [
+    "entry-point",
+    "flutter"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:flutter_mobile_app/lib/models/penampung_state.dart:gabungPenampung",
+   "type": "function",
+   "name": "gabungPenampung",
+   "filePath": "flutter_mobile_app/lib/models/penampung_state.dart",
+   "lineRange": [
+    49,
+    62
+   ],
+   "summary": "Menggabungkan data beberapa penampung menjadi satu PenampungState.",
+   "tags": [
+    "utility",
+    "water",
+    "data-model"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:flutter_mobile_app/lib/pages/asisten_page.dart:riwayatUntukServer",
+   "type": "function",
+   "name": "riwayatUntukServer",
+   "filePath": "flutter_mobile_app/lib/pages/asisten_page.dart",
+   "lineRange": [
+    65,
+    67
+   ],
+   "summary": "Mengubah riwayat chat menjadi format yang dikirim ke server.",
+   "tags": [
+    "utility",
+    "ai-assistant"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:flutter_mobile_app/lib/pages/naik_harian_page.dart:kenaikanPerHari",
+   "type": "function",
+   "name": "kenaikanPerHari",
+   "filePath": "flutter_mobile_app/lib/pages/naik_harian_page.dart",
+   "lineRange": [
+    24,
+    34
+   ],
+   "summary": "Menghitung kenaikan nilai per hari.",
+   "tags": [
+    "utility",
+    "calculation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:flutter_mobile_app/lib/services/client_factory.dart:buatKlienHttp",
+   "type": "function",
+   "name": "buatKlienHttp",
+   "filePath": "flutter_mobile_app/lib/services/client_factory.dart",
+   "lineRange": [
+    15,
+    15
+   ],
+   "summary": "Membuat klien HTTP.",
+   "tags": [
+    "factory",
+    "http"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/main.dart:GarapApp",
+   "type": "class",
+   "name": "GarapApp",
+   "filePath": "flutter_mobile_app/lib/main.dart",
+   "lineRange": [
+    96,
+    108
+   ],
+   "summary": "Widget root MaterialApp dengan tema GARAP.",
+   "tags": [
+    "component",
+    "flutter",
+    "theme"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/models/meja.dart:Meja",
+   "type": "class",
+   "name": "Meja",
+   "filePath": "flutter_mobile_app/lib/models/meja.dart",
+   "lineRange": [
+    6,
+    84
+   ],
+   "summary": "Model meja tanam dengan konstruktor fromMap dan helper konversi tipe.",
+   "tags": [
+    "data-model",
+    "parsing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/models/monitoring_entry.dart:MonitoringEntry",
+   "type": "class",
+   "name": "MonitoringEntry",
+   "filePath": "flutter_mobile_app/lib/models/monitoring_entry.dart",
+   "lineRange": [
+    2,
+    47
+   ],
+   "summary": "Model entri monitoring dengan parser fromMap.",
+   "tags": [
+    "data-model",
+    "monitoring"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/models/penampung_state.dart:PenampungState",
+   "type": "class",
+   "name": "PenampungState",
+   "filePath": "flutter_mobile_app/lib/models/penampung_state.dart",
+   "lineRange": [
+    6,
+    46
+   ],
+   "summary": "Model keadaan penampung air dengan parser fromMap.",
+   "tags": [
+    "data-model",
+    "water"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/pages/asisten_page.dart:AsistenPage",
+   "type": "class",
+   "name": "AsistenPage",
+   "filePath": "flutter_mobile_app/lib/pages/asisten_page.dart",
+   "lineRange": [
+    10,
+    17
+   ],
+   "summary": "Widget halaman AsistenPage pada aplikasi mobile.",
+   "tags": [
+    "component",
+    "flutter",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/pages/cctv_page.dart:CctvPage",
+   "type": "class",
+   "name": "CctvPage",
+   "filePath": "flutter_mobile_app/lib/pages/cctv_page.dart",
+   "lineRange": [
+    15,
+    22
+   ],
+   "summary": "Widget halaman CctvPage pada aplikasi mobile.",
+   "tags": [
+    "component",
+    "flutter",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/pages/dashboard_page.dart:DashboardPage",
+   "type": "class",
+   "name": "DashboardPage",
+   "filePath": "flutter_mobile_app/lib/pages/dashboard_page.dart",
+   "lineRange": [
+    12,
+    20
+   ],
+   "summary": "Widget halaman DashboardPage pada aplikasi mobile.",
+   "tags": [
+    "component",
+    "flutter",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/pages/login_page.dart:LoginPage",
+   "type": "class",
+   "name": "LoginPage",
+   "filePath": "flutter_mobile_app/lib/pages/login_page.dart",
+   "lineRange": [
+    16,
+    32
+   ],
+   "summary": "Widget halaman LoginPage pada aplikasi mobile.",
+   "tags": [
+    "component",
+    "flutter",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/pages/meja_page.dart:MejaPage",
+   "type": "class",
+   "name": "MejaPage",
+   "filePath": "flutter_mobile_app/lib/pages/meja_page.dart",
+   "lineRange": [
+    10,
+    17
+   ],
+   "summary": "Widget halaman MejaPage pada aplikasi mobile.",
+   "tags": [
+    "component",
+    "flutter",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/pages/naik_harian_page.dart:NaikHarianPage",
+   "type": "class",
+   "name": "NaikHarianPage",
+   "filePath": "flutter_mobile_app/lib/pages/naik_harian_page.dart",
+   "lineRange": [
+    13,
+    20
+   ],
+   "summary": "Widget halaman NaikHarianPage pada aplikasi mobile.",
+   "tags": [
+    "component",
+    "flutter",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/pages/profil_page.dart:ProfilPage",
+   "type": "class",
+   "name": "ProfilPage",
+   "filePath": "flutter_mobile_app/lib/pages/profil_page.dart",
+   "lineRange": [
+    15,
+    29
+   ],
+   "summary": "Widget halaman ProfilPage pada aplikasi mobile.",
+   "tags": [
+    "component",
+    "flutter",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/pages/riwayat_monitoring_page.dart:RiwayatMonitoringPage",
+   "type": "class",
+   "name": "RiwayatMonitoringPage",
+   "filePath": "flutter_mobile_app/lib/pages/riwayat_monitoring_page.dart",
+   "lineRange": [
+    9,
+    16
+   ],
+   "summary": "Widget halaman RiwayatMonitoringPage pada aplikasi mobile.",
+   "tags": [
+    "component",
+    "flutter",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/pages/sensor_page.dart:SensorPage",
+   "type": "class",
+   "name": "SensorPage",
+   "filePath": "flutter_mobile_app/lib/pages/sensor_page.dart",
+   "lineRange": [
+    12,
+    20
+   ],
+   "summary": "Widget halaman SensorPage pada aplikasi mobile.",
+   "tags": [
+    "component",
+    "flutter",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/pages/tanam_page.dart:TanamPage",
+   "type": "class",
+   "name": "TanamPage",
+   "filePath": "flutter_mobile_app/lib/pages/tanam_page.dart",
+   "lineRange": [
+    16,
+    24
+   ],
+   "summary": "Widget halaman TanamPage pada aplikasi mobile.",
+   "tags": [
+    "component",
+    "flutter",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/pages/tentang_page.dart:TentangPage",
+   "type": "class",
+   "name": "TentangPage",
+   "filePath": "flutter_mobile_app/lib/pages/tentang_page.dart",
+   "lineRange": [
+    11,
+    295
+   ],
+   "summary": "Widget halaman TentangPage pada aplikasi mobile.",
+   "tags": [
+    "component",
+    "flutter",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/pages/watercontrol_page.dart:WaterControlPage",
+   "type": "class",
+   "name": "WaterControlPage",
+   "filePath": "flutter_mobile_app/lib/pages/watercontrol_page.dart",
+   "lineRange": [
+    10,
+    18
+   ],
+   "summary": "Widget halaman WaterControlPage pada aplikasi mobile.",
+   "tags": [
+    "component",
+    "flutter",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/pages/cctv_page.dart:Feed",
+   "type": "class",
+   "name": "Feed",
+   "filePath": "flutter_mobile_app/lib/pages/cctv_page.dart",
+   "lineRange": [
+    235,
+    259
+   ],
+   "summary": "Widget penampil satu feed kamera.",
+   "tags": [
+    "component",
+    "cctv"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/services/api_service.dart:ApiException",
+   "type": "class",
+   "name": "ApiException",
+   "filePath": "flutter_mobile_app/lib/services/api_service.dart",
+   "lineRange": [
+    16,
+    24
+   ],
+   "summary": "Exception kustom untuk kesalahan respons API.",
+   "tags": [
+    "error-handling",
+    "api-client"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:flutter_mobile_app/lib/services/api_service.dart:ApiService",
+   "type": "class",
+   "name": "ApiService",
+   "filePath": "flutter_mobile_app/lib/services/api_service.dart",
+   "lineRange": [
+    32,
+    358
+   ],
+   "summary": "Layanan API terpusat: sesi/token, request JSON dan bytes, login, fetchMeja, fetchMonitoring, fetchLatestSensor.",
+   "tags": [
+    "service",
+    "api-client",
+    "auth"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:backend-nodejs/scripts/loadtest.js",
+   "target": "function:backend-nodejs/scripts/loadtest.js:login",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/scripts/loadtest.js",
+   "target": "function:backend-nodejs/scripts/loadtest.js:login",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:backend-nodejs/scripts/loadtest.js",
+   "target": "function:backend-nodejs/scripts/loadtest.js:pct",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/scripts/loadtest.js",
+   "target": "function:backend-nodejs/scripts/loadtest.js:pct",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/main.dart",
+   "target": "function:flutter_mobile_app/lib/main.dart:main",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/main.dart",
+   "target": "function:flutter_mobile_app/lib/main.dart:main",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/models/penampung_state.dart",
+   "target": "function:flutter_mobile_app/lib/models/penampung_state.dart:gabungPenampung",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/models/penampung_state.dart",
+   "target": "function:flutter_mobile_app/lib/models/penampung_state.dart:gabungPenampung",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/asisten_page.dart",
+   "target": "function:flutter_mobile_app/lib/pages/asisten_page.dart:riwayatUntukServer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/asisten_page.dart",
+   "target": "function:flutter_mobile_app/lib/pages/asisten_page.dart:riwayatUntukServer",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/naik_harian_page.dart",
+   "target": "function:flutter_mobile_app/lib/pages/naik_harian_page.dart:kenaikanPerHari",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/naik_harian_page.dart",
+   "target": "function:flutter_mobile_app/lib/pages/naik_harian_page.dart:kenaikanPerHari",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/services/client_factory.dart",
+   "target": "function:flutter_mobile_app/lib/services/client_factory.dart:buatKlienHttp",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/services/client_factory.dart",
+   "target": "function:flutter_mobile_app/lib/services/client_factory.dart:buatKlienHttp",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/main.dart",
+   "target": "class:flutter_mobile_app/lib/main.dart:GarapApp",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/main.dart",
+   "target": "class:flutter_mobile_app/lib/main.dart:GarapApp",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/models/meja.dart",
+   "target": "class:flutter_mobile_app/lib/models/meja.dart:Meja",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/models/meja.dart",
+   "target": "class:flutter_mobile_app/lib/models/meja.dart:Meja",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/models/monitoring_entry.dart",
+   "target": "class:flutter_mobile_app/lib/models/monitoring_entry.dart:MonitoringEntry",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/models/monitoring_entry.dart",
+   "target": "class:flutter_mobile_app/lib/models/monitoring_entry.dart:MonitoringEntry",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/models/penampung_state.dart",
+   "target": "class:flutter_mobile_app/lib/models/penampung_state.dart:PenampungState",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/models/penampung_state.dart",
+   "target": "class:flutter_mobile_app/lib/models/penampung_state.dart:PenampungState",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/asisten_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/asisten_page.dart:AsistenPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/asisten_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/asisten_page.dart:AsistenPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/cctv_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/cctv_page.dart:CctvPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/cctv_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/cctv_page.dart:CctvPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/dashboard_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/dashboard_page.dart:DashboardPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/dashboard_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/dashboard_page.dart:DashboardPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/login_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/login_page.dart:LoginPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/login_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/login_page.dart:LoginPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/meja_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/meja_page.dart:MejaPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/meja_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/meja_page.dart:MejaPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/naik_harian_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/naik_harian_page.dart:NaikHarianPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/naik_harian_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/naik_harian_page.dart:NaikHarianPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/profil_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/profil_page.dart:ProfilPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/profil_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/profil_page.dart:ProfilPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/riwayat_monitoring_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/riwayat_monitoring_page.dart:RiwayatMonitoringPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/riwayat_monitoring_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/riwayat_monitoring_page.dart:RiwayatMonitoringPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/sensor_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/sensor_page.dart:SensorPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/sensor_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/sensor_page.dart:SensorPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/tanam_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/tanam_page.dart:TanamPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/tanam_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/tanam_page.dart:TanamPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/tentang_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/tentang_page.dart:TentangPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/tentang_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/tentang_page.dart:TentangPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/watercontrol_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/watercontrol_page.dart:WaterControlPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/watercontrol_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/watercontrol_page.dart:WaterControlPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/cctv_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/cctv_page.dart:Feed",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/cctv_page.dart",
+   "target": "class:flutter_mobile_app/lib/pages/cctv_page.dart:Feed",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "target": "class:flutter_mobile_app/lib/services/api_service.dart:ApiException",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "target": "class:flutter_mobile_app/lib/services/api_service.dart:ApiException",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "target": "class:flutter_mobile_app/lib/services/api_service.dart:ApiService",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "target": "class:flutter_mobile_app/lib/services/api_service.dart:ApiService",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/asisten_page.dart",
+   "target": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/cctv_page.dart",
+   "target": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/dashboard_page.dart",
+   "target": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/login_page.dart",
+   "target": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/meja_page.dart",
+   "target": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/naik_harian_page.dart",
+   "target": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/profil_page.dart",
+   "target": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/riwayat_monitoring_page.dart",
+   "target": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/sensor_page.dart",
+   "target": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/tanam_page.dart",
+   "target": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/watercontrol_page.dart",
+   "target": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/main.dart",
+   "target": "file:flutter_mobile_app/lib/pages/asisten_page.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/main.dart",
+   "target": "file:flutter_mobile_app/lib/pages/cctv_page.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/main.dart",
+   "target": "file:flutter_mobile_app/lib/pages/dashboard_page.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/main.dart",
+   "target": "file:flutter_mobile_app/lib/pages/login_page.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/main.dart",
+   "target": "file:flutter_mobile_app/lib/pages/meja_page.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/main.dart",
+   "target": "file:flutter_mobile_app/lib/pages/naik_harian_page.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/main.dart",
+   "target": "file:flutter_mobile_app/lib/pages/profil_page.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/main.dart",
+   "target": "file:flutter_mobile_app/lib/pages/riwayat_monitoring_page.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/main.dart",
+   "target": "file:flutter_mobile_app/lib/pages/sensor_page.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/main.dart",
+   "target": "file:flutter_mobile_app/lib/pages/tanam_page.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/main.dart",
+   "target": "file:flutter_mobile_app/lib/pages/tentang_page.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/main.dart",
+   "target": "file:flutter_mobile_app/lib/pages/watercontrol_page.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "target": "file:flutter_mobile_app/lib/config.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "target": "file:flutter_mobile_app/lib/services/client_factory.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "target": "file:flutter_mobile_app/lib/models/meja.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/services/api_service.dart",
+   "target": "file:flutter_mobile_app/lib/models/monitoring_entry.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:flutter_mobile_app/lib/pages/watercontrol_page.dart",
+   "target": "file:flutter_mobile_app/lib/models/penampung_state.dart",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:flutter_mobile_app/.metadata",
+   "target": "file:flutter_mobile_app/lib/main.dart",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:docs/rancangan/index.html",
+   "target": "document:docs/rancangan/RANCANGAN_BACKEND.docx",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend-nodejs/scripts/simulasi-mqtt.js",
+   "target": "file:backend-nodejs/scripts/loadtest.js",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

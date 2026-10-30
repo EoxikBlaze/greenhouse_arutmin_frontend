@@ -1,0 +1,8 @@
+{"nodes":[
+{"id":"document:flutter_mobile_app/README.md","type":"document","name":"README.md","filePath":"flutter_mobile_app/README.md","summary":"README bawaan template Flutter berisi tautan sumber belajar; belum memuat informasi spesifik aplikasi mobile Vertonik Smart Farm.","tags":["documentation","flutter","template","boilerplate"],"complexity":"simple"},
+{"id":"config:flutter_mobile_app/analysis_options.yaml","type":"config","name":"analysis_options.yaml","filePath":"flutter_mobile_app/analysis_options.yaml","summary":"Konfigurasi Dart analyzer yang menyertakan flutter_lints dan mengecualikan folder build serta platform (android, ios, web, windows, macos, linux).","tags":["configuration","dart","linting","flutter"],"complexity":"simple"},
+{"id":"config:flutter_mobile_app/pubspec.yaml","type":"config","name":"pubspec.yaml","filePath":"flutter_mobile_app/pubspec.yaml","summary":"Manifest paket Flutter: versi 1.0.0+1, dependensi http dan flutter_secure_storage, serta aset logo mitra dan foto tim untuk halaman Tentang Kami.","tags":["configuration","dependencies","flutter","build-system"],"complexity":"simple","languageNotes":"SDK Dart ^3.13.5; publish_to none mencegah publikasi tidak sengaja ke pub.dev."}
+],"edges":[
+{"source":"config:flutter_mobile_app/analysis_options.yaml","target":"config:flutter_mobile_app/pubspec.yaml","type":"related","direction":"forward","weight":0.5},
+{"source":"document:flutter_mobile_app/README.md","target":"config:flutter_mobile_app/pubspec.yaml","type":"documents","direction":"forward","weight":0.5}
+]}

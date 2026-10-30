@@ -1,0 +1,1656 @@
+{
+ "nodes": [
+  {
+   "id": "file:react-web-app/src/pages/DosingPage.tsx",
+   "type": "file",
+   "name": "DosingPage.tsx",
+   "filePath": "react-web-app/src/pages/DosingPage.tsx",
+   "summary": "Halaman kontrol dosing nutrisi: tabel parameter, preset, dan kenaikan harian.",
+   "tags": [
+    "page",
+    "dosing",
+    "nutrient",
+    "control"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/DosingPage.tsx:Head",
+   "type": "function",
+   "name": "Head",
+   "filePath": "react-web-app/src/pages/DosingPage.tsx",
+   "lineRange": [
+    78,
+    87
+   ],
+   "summary": "Komponen React Head di DosingPage.tsx (internal), 10 baris; mendukung: halaman kontrol dosing nutrisi.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/DosingPage.tsx:Galat",
+   "type": "function",
+   "name": "Galat",
+   "filePath": "react-web-app/src/pages/DosingPage.tsx",
+   "lineRange": [
+    90,
+    108
+   ],
+   "summary": "Komponen React Galat di DosingPage.tsx (internal), 19 baris; mendukung: halaman kontrol dosing nutrisi.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/DosingPage.tsx:TabelParameter",
+   "type": "function",
+   "name": "TabelParameter",
+   "filePath": "react-web-app/src/pages/DosingPage.tsx",
+   "lineRange": [
+    114,
+    317
+   ],
+   "summary": "Komponen React TabelParameter di DosingPage.tsx (internal), 204 baris; mendukung: halaman kontrol dosing nutrisi.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/DosingPage.tsx:DosingPage",
+   "type": "function",
+   "name": "DosingPage",
+   "filePath": "react-web-app/src/pages/DosingPage.tsx",
+   "lineRange": [
+    319,
+    606
+   ],
+   "summary": "Komponen React DosingPage di DosingPage.tsx (diekspor), 288 baris; mendukung: halaman kontrol dosing nutrisi.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:react-web-app/src/pages/KalibrasiPage.tsx",
+   "type": "file",
+   "name": "KalibrasiPage.tsx",
+   "filePath": "react-web-app/src/pages/KalibrasiPage.tsx",
+   "summary": "Halaman kalibrasi sensor: pencatatan, riwayat, dan pengaturan konstanta.",
+   "tags": [
+    "page",
+    "calibration",
+    "sensor",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/KalibrasiPage.tsx:Modal",
+   "type": "function",
+   "name": "Modal",
+   "filePath": "react-web-app/src/pages/KalibrasiPage.tsx",
+   "lineRange": [
+    119,
+    129
+   ],
+   "summary": "Komponen React Modal di KalibrasiPage.tsx (internal), 11 baris; mendukung: halaman kalibrasi sensor.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/KalibrasiPage.tsx:Isian",
+   "type": "function",
+   "name": "Isian",
+   "filePath": "react-web-app/src/pages/KalibrasiPage.tsx",
+   "lineRange": [
+    131,
+    142
+   ],
+   "summary": "Komponen React Isian di KalibrasiPage.tsx (internal), 12 baris; mendukung: halaman kalibrasi sensor.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/KalibrasiPage.tsx:CatatKalibrasi",
+   "type": "function",
+   "name": "CatatKalibrasi",
+   "filePath": "react-web-app/src/pages/KalibrasiPage.tsx",
+   "lineRange": [
+    145,
+    259
+   ],
+   "summary": "Komponen React CatatKalibrasi di KalibrasiPage.tsx (internal), 115 baris; mendukung: halaman kalibrasi sensor.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/pages/KalibrasiPage.tsx:Riwayat",
+   "type": "function",
+   "name": "Riwayat",
+   "filePath": "react-web-app/src/pages/KalibrasiPage.tsx",
+   "lineRange": [
+    262,
+    292
+   ],
+   "summary": "Komponen React Riwayat di KalibrasiPage.tsx (internal), 31 baris; mendukung: halaman kalibrasi sensor.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/KalibrasiPage.tsx:Atur",
+   "type": "function",
+   "name": "Atur",
+   "filePath": "react-web-app/src/pages/KalibrasiPage.tsx",
+   "lineRange": [
+    295,
+    347
+   ],
+   "summary": "Komponen React Atur di KalibrasiPage.tsx (internal), 53 baris; mendukung: halaman kalibrasi sensor.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/pages/KalibrasiPage.tsx:KalibrasiPage",
+   "type": "function",
+   "name": "KalibrasiPage",
+   "filePath": "react-web-app/src/pages/KalibrasiPage.tsx",
+   "lineRange": [
+    350,
+    457
+   ],
+   "summary": "Komponen React KalibrasiPage di KalibrasiPage.tsx (diekspor), 108 baris; mendukung: halaman kalibrasi sensor.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:react-web-app/src/pages/LoginPage.tsx",
+   "type": "file",
+   "name": "LoginPage.tsx",
+   "filePath": "react-web-app/src/pages/LoginPage.tsx",
+   "summary": "Halaman login dengan validasi form, ikon, dan penanganan galat autentikasi.",
+   "tags": [
+    "page",
+    "login",
+    "auth",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/LoginPage.tsx:LoginPage",
+   "type": "function",
+   "name": "LoginPage",
+   "filePath": "react-web-app/src/pages/LoginPage.tsx",
+   "lineRange": [
+    46,
+    265
+   ],
+   "summary": "Komponen React LoginPage di LoginPage.tsx (diekspor), 220 baris; mendukung: halaman login dengan validasi form.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:react-web-app/src/pages/SensorRealtimePage.tsx",
+   "type": "file",
+   "name": "SensorRealtimePage.tsx",
+   "filePath": "react-web-app/src/pages/SensorRealtimePage.tsx",
+   "summary": "Halaman sensor realtime dengan grafik, pill status, dan ilustrasi keadaan kosong.",
+   "tags": [
+    "page",
+    "sensor",
+    "realtime",
+    "chart"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/SensorRealtimePage.tsx:Pill",
+   "type": "function",
+   "name": "Pill",
+   "filePath": "react-web-app/src/pages/SensorRealtimePage.tsx",
+   "lineRange": [
+    67,
+    82
+   ],
+   "summary": "Komponen React Pill di SensorRealtimePage.tsx (internal), 16 baris; mendukung: halaman sensor realtime dengan grafik.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/SensorRealtimePage.tsx:Grafik",
+   "type": "function",
+   "name": "Grafik",
+   "filePath": "react-web-app/src/pages/SensorRealtimePage.tsx",
+   "lineRange": [
+    134,
+    184
+   ],
+   "summary": "Komponen React Grafik di SensorRealtimePage.tsx (internal), 51 baris; mendukung: halaman sensor realtime dengan grafik.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/pages/SensorRealtimePage.tsx:SensorRealtimePage",
+   "type": "function",
+   "name": "SensorRealtimePage",
+   "filePath": "react-web-app/src/pages/SensorRealtimePage.tsx",
+   "lineRange": [
+    186,
+    534
+   ],
+   "summary": "Komponen React SensorRealtimePage di SensorRealtimePage.tsx (diekspor), 349 baris; mendukung: halaman sensor realtime dengan grafik.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:react-web-app/src/pages/TanamSayaPage.tsx",
+   "type": "file",
+   "name": "TanamSayaPage.tsx",
+   "filePath": "react-web-app/src/pages/TanamSayaPage.tsx",
+   "summary": "Halaman tanaman milik pengguna dengan dialog mulai semai dan daftar status.",
+   "tags": [
+    "page",
+    "tanaman",
+    "crud",
+    "dialog"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/TanamSayaPage.tsx:IlustrasiTanam",
+   "type": "function",
+   "name": "IlustrasiTanam",
+   "filePath": "react-web-app/src/pages/TanamSayaPage.tsx",
+   "lineRange": [
+    52,
+    65
+   ],
+   "summary": "Komponen React IlustrasiTanam di TanamSayaPage.tsx (internal), 14 baris; mendukung: halaman tanaman milik pengguna dengan dialog mulai semai dan daftar status.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/TanamSayaPage.tsx:DialogMulaiSemai",
+   "type": "function",
+   "name": "DialogMulaiSemai",
+   "filePath": "react-web-app/src/pages/TanamSayaPage.tsx",
+   "lineRange": [
+    86,
+    272
+   ],
+   "summary": "Komponen React DialogMulaiSemai di TanamSayaPage.tsx (internal), 187 baris; mendukung: halaman tanaman milik pengguna dengan dialog mulai semai dan daftar status.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/TanamSayaPage.tsx:TanamSayaPage",
+   "type": "function",
+   "name": "TanamSayaPage",
+   "filePath": "react-web-app/src/pages/TanamSayaPage.tsx",
+   "lineRange": [
+    274,
+    466
+   ],
+   "summary": "Komponen React TanamSayaPage di TanamSayaPage.tsx (diekspor), 193 baris; mendukung: halaman tanaman milik pengguna dengan dialog mulai semai dan daftar status.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:react-web-app/src/pages/WaterControlPage.tsx",
+   "type": "file",
+   "name": "WaterControlPage.tsx",
+   "filePath": "react-web-app/src/pages/WaterControlPage.tsx",
+   "summary": "Halaman kontrol air dengan status penampung dan indikator kondisi.",
+   "tags": [
+    "page",
+    "water",
+    "control",
+    "monitoring"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/WaterControlPage.tsx:WaterControlPage",
+   "type": "function",
+   "name": "WaterControlPage",
+   "filePath": "react-web-app/src/pages/WaterControlPage.tsx",
+   "lineRange": [
+    70,
+    349
+   ],
+   "summary": "Komponen React WaterControlPage di WaterControlPage.tsx (diekspor), 280 baris; mendukung: halaman kontrol air dengan status penampung dan indikator kondisi.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:react-web-app/src/pages/masterPages.tsx",
+   "type": "file",
+   "name": "masterPages.tsx",
+   "filePath": "react-web-app/src/pages/masterPages.tsx",
+   "summary": "Halaman data master (jenis tanaman, meja tanam, ambang sensor) berbasis CrudScreen dengan validasi.",
+   "tags": [
+    "page",
+    "master-data",
+    "crud",
+    "validation"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/masterPages.tsx:inputFor",
+   "type": "function",
+   "name": "inputFor",
+   "filePath": "react-web-app/src/pages/masterPages.tsx",
+   "lineRange": [
+    45,
+    85
+   ],
+   "summary": "Fungsi inputFor di masterPages.tsx (internal), 41 baris; mendukung: halaman data master (jenis tanaman.",
+   "tags": [
+    "function",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/masterPages.tsx:JenisTanamanPage",
+   "type": "function",
+   "name": "JenisTanamanPage",
+   "filePath": "react-web-app/src/pages/masterPages.tsx",
+   "lineRange": [
+    125,
+    313
+   ],
+   "summary": "Komponen React JenisTanamanPage di masterPages.tsx (diekspor), 189 baris; mendukung: halaman data master (jenis tanaman.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/masterPages.tsx:validateMeja",
+   "type": "function",
+   "name": "validateMeja",
+   "filePath": "react-web-app/src/pages/masterPages.tsx",
+   "lineRange": [
+    349,
+    374
+   ],
+   "summary": "Fungsi validateMeja di masterPages.tsx (internal), 26 baris; mendukung: halaman data master (jenis tanaman.",
+   "tags": [
+    "function",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/masterPages.tsx:payloadOf",
+   "type": "function",
+   "name": "payloadOf",
+   "filePath": "react-web-app/src/pages/masterPages.tsx",
+   "lineRange": [
+    377,
+    386
+   ],
+   "summary": "Fungsi payloadOf di masterPages.tsx (internal), 10 baris; mendukung: halaman data master (jenis tanaman.",
+   "tags": [
+    "function",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/masterPages.tsx:MejaTanamanPage",
+   "type": "function",
+   "name": "MejaTanamanPage",
+   "filePath": "react-web-app/src/pages/masterPages.tsx",
+   "lineRange": [
+    388,
+    595
+   ],
+   "summary": "Komponen React MejaTanamanPage di masterPages.tsx (diekspor), 208 baris; mendukung: halaman data master (jenis tanaman.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/masterPages.tsx:validateAmbang",
+   "type": "function",
+   "name": "validateAmbang",
+   "filePath": "react-web-app/src/pages/masterPages.tsx",
+   "lineRange": [
+    611,
+    631
+   ],
+   "summary": "Fungsi validateAmbang di masterPages.tsx (internal), 21 baris; mendukung: halaman data master (jenis tanaman.",
+   "tags": [
+    "function",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/masterPages.tsx:AmbangSensorPage",
+   "type": "function",
+   "name": "AmbangSensorPage",
+   "filePath": "react-web-app/src/pages/masterPages.tsx",
+   "lineRange": [
+    633,
+    805
+   ],
+   "summary": "Komponen React AmbangSensorPage di masterPages.tsx (diekspor), 173 baris; mendukung: halaman data master (jenis tanaman.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:react-web-app/src/pages/notifLaporanPages.tsx",
+   "type": "file",
+   "name": "notifLaporanPages.tsx",
+   "filePath": "react-web-app/src/pages/notifLaporanPages.tsx",
+   "summary": "Halaman laporan dengan pengecekan hak akses dan format angka.",
+   "tags": [
+    "page",
+    "report",
+    "access-control",
+    "react"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/notifLaporanPages.tsx:LaporanPage",
+   "type": "function",
+   "name": "LaporanPage",
+   "filePath": "react-web-app/src/pages/notifLaporanPages.tsx",
+   "lineRange": [
+    27,
+    219
+   ],
+   "summary": "Komponen React LaporanPage di notifLaporanPages.tsx (diekspor), 193 baris; mendukung: halaman laporan dengan pengecekan hak akses dan format angka.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:react-web-app/src/pages/stagePages.tsx",
+   "type": "file",
+   "name": "stagePages.tsx",
+   "filePath": "react-web-app/src/pages/stagePages.tsx",
+   "summary": "Kumpulan halaman tahap siklus tanam (semai, peremajaan, pendewasaan, panen, durasi) dengan modal detail dan validasi.",
+   "tags": [
+    "page",
+    "lifecycle",
+    "crud",
+    "stages"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/stagePages.tsx:PillStatus",
+   "type": "function",
+   "name": "PillStatus",
+   "filePath": "react-web-app/src/pages/stagePages.tsx",
+   "lineRange": [
+    57,
+    70
+   ],
+   "summary": "Komponen React PillStatus di stagePages.tsx (internal), 14 baris; mendukung: kumpulan halaman tahap siklus tanam (semai.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/stagePages.tsx:IsianBerhasil",
+   "type": "function",
+   "name": "IsianBerhasil",
+   "filePath": "react-web-app/src/pages/stagePages.tsx",
+   "lineRange": [
+    94,
+    183
+   ],
+   "summary": "Komponen React IsianBerhasil di stagePages.tsx (internal), 90 baris; mendukung: kumpulan halaman tahap siklus tanam (semai.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/pages/stagePages.tsx:ModalDetailBaris",
+   "type": "function",
+   "name": "ModalDetailBaris",
+   "filePath": "react-web-app/src/pages/stagePages.tsx",
+   "lineRange": [
+    185,
+    278
+   ],
+   "summary": "Komponen React ModalDetailBaris di stagePages.tsx (internal), 94 baris; mendukung: kumpulan halaman tahap siklus tanam (semai.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/pages/stagePages.tsx:daftarTahap",
+   "type": "function",
+   "name": "daftarTahap",
+   "filePath": "react-web-app/src/pages/stagePages.tsx",
+   "lineRange": [
+    302,
+    322
+   ],
+   "summary": "Fungsi daftarTahap di stagePages.tsx (internal), 21 baris; mendukung: kumpulan halaman tahap siklus tanam (semai.",
+   "tags": [
+    "function",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/stagePages.tsx:SemaiPage",
+   "type": "function",
+   "name": "SemaiPage",
+   "filePath": "react-web-app/src/pages/stagePages.tsx",
+   "lineRange": [
+    324,
+    574
+   ],
+   "summary": "Komponen React SemaiPage di stagePages.tsx (diekspor), 251 baris; mendukung: kumpulan halaman tahap siklus tanam (semai.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/stagePages.tsx:TahapCrudPage",
+   "type": "function",
+   "name": "TahapCrudPage",
+   "filePath": "react-web-app/src/pages/stagePages.tsx",
+   "lineRange": [
+    675,
+    925
+   ],
+   "summary": "Komponen React TahapCrudPage di stagePages.tsx (internal), 251 baris; mendukung: kumpulan halaman tahap siklus tanam (semai.",
+   "tags": [
+    "component",
+    "internal",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/stagePages.tsx:PeremajaanPage",
+   "type": "function",
+   "name": "PeremajaanPage",
+   "filePath": "react-web-app/src/pages/stagePages.tsx",
+   "lineRange": [
+    928,
+    1000
+   ],
+   "summary": "Komponen React PeremajaanPage di stagePages.tsx (diekspor), 73 baris; mendukung: kumpulan halaman tahap siklus tanam (semai.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/pages/stagePages.tsx:PendewasaanPage",
+   "type": "function",
+   "name": "PendewasaanPage",
+   "filePath": "react-web-app/src/pages/stagePages.tsx",
+   "lineRange": [
+    1003,
+    1078
+   ],
+   "summary": "Komponen React PendewasaanPage di stagePages.tsx (diekspor), 76 baris; mendukung: kumpulan halaman tahap siklus tanam (semai.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/pages/stagePages.tsx:PanenPage",
+   "type": "function",
+   "name": "PanenPage",
+   "filePath": "react-web-app/src/pages/stagePages.tsx",
+   "lineRange": [
+    1081,
+    1154
+   ],
+   "summary": "Komponen React PanenPage di stagePages.tsx (diekspor), 74 baris; mendukung: kumpulan halaman tahap siklus tanam (semai.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/pages/stagePages.tsx:payloadSiklus",
+   "type": "function",
+   "name": "payloadSiklus",
+   "filePath": "react-web-app/src/pages/stagePages.tsx",
+   "lineRange": [
+    1178,
+    1187
+   ],
+   "summary": "Fungsi payloadSiklus di stagePages.tsx (internal), 10 baris; mendukung: kumpulan halaman tahap siklus tanam (semai.",
+   "tags": [
+    "function",
+    "internal",
+    "page"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/stagePages.tsx:DurasiSiklusPage",
+   "type": "function",
+   "name": "DurasiSiklusPage",
+   "filePath": "react-web-app/src/pages/stagePages.tsx",
+   "lineRange": [
+    1189,
+    1393
+   ],
+   "summary": "Komponen React DurasiSiklusPage di stagePages.tsx (diekspor), 205 baris; mendukung: kumpulan halaman tahap siklus tanam (semai.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:react-web-app/src/pages/userProfilPages.tsx",
+   "type": "file",
+   "name": "userProfilPages.tsx",
+   "filePath": "react-web-app/src/pages/userProfilPages.tsx",
+   "summary": "Halaman manajemen pengguna dan profil pribadi dengan validasi form.",
+   "tags": [
+    "page",
+    "user-management",
+    "profile",
+    "crud"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/userProfilPages.tsx:ManajemenUserPage",
+   "type": "function",
+   "name": "ManajemenUserPage",
+   "filePath": "react-web-app/src/pages/userProfilPages.tsx",
+   "lineRange": [
+    56,
+    273
+   ],
+   "summary": "Komponen React ManajemenUserPage di userProfilPages.tsx (diekspor), 218 baris; mendukung: halaman manajemen pengguna dan profil pribadi dengan validasi form.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/userProfilPages.tsx:ProfilPage",
+   "type": "function",
+   "name": "ProfilPage",
+   "filePath": "react-web-app/src/pages/userProfilPages.tsx",
+   "lineRange": [
+    280,
+    513
+   ],
+   "summary": "Komponen React ProfilPage di userProfilPages.tsx (diekspor), 234 baris; mendukung: halaman manajemen pengguna dan profil pribadi dengan validasi form.",
+   "tags": [
+    "component",
+    "exported",
+    "page"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:react-web-app/src/router.tsx",
+   "type": "file",
+   "name": "router.tsx",
+   "filePath": "react-web-app/src/router.tsx",
+   "summary": "Definisi router aplikasi: memetakan seluruh halaman, guard autentikasi, layout, dan halaman galat.",
+   "tags": [
+    "router",
+    "routing",
+    "configuration",
+    "entry-point"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:react-web-app/src/pages/DosingPage.tsx",
+   "target": "file:react-web-app/src/components/NaikHarian.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/DosingPage.tsx",
+   "target": "file:react-web-app/src/components/PresetDosing.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/DosingPage.tsx",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/DosingPage.tsx",
+   "target": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/DosingPage.tsx",
+   "target": "file:react-web-app/src/lib/useApiObject.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/DosingPage.tsx",
+   "target": "function:react-web-app/src/pages/DosingPage.tsx:Head",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/DosingPage.tsx",
+   "target": "function:react-web-app/src/pages/DosingPage.tsx:Galat",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/DosingPage.tsx",
+   "target": "function:react-web-app/src/pages/DosingPage.tsx:TabelParameter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/DosingPage.tsx",
+   "target": "function:react-web-app/src/pages/DosingPage.tsx:DosingPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/DosingPage.tsx",
+   "target": "function:react-web-app/src/pages/DosingPage.tsx:DosingPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/KalibrasiPage.tsx",
+   "target": "file:react-web-app/src/components/ModalBackdrop.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/KalibrasiPage.tsx",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/KalibrasiPage.tsx",
+   "target": "file:react-web-app/src/lib/authContext.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/KalibrasiPage.tsx",
+   "target": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/KalibrasiPage.tsx",
+   "target": "file:react-web-app/src/lib/useApiObject.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/KalibrasiPage.tsx",
+   "target": "function:react-web-app/src/pages/KalibrasiPage.tsx:Modal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/KalibrasiPage.tsx",
+   "target": "function:react-web-app/src/pages/KalibrasiPage.tsx:Isian",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/KalibrasiPage.tsx",
+   "target": "function:react-web-app/src/pages/KalibrasiPage.tsx:CatatKalibrasi",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/KalibrasiPage.tsx",
+   "target": "function:react-web-app/src/pages/KalibrasiPage.tsx:Riwayat",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/KalibrasiPage.tsx",
+   "target": "function:react-web-app/src/pages/KalibrasiPage.tsx:Atur",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/KalibrasiPage.tsx",
+   "target": "function:react-web-app/src/pages/KalibrasiPage.tsx:KalibrasiPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/KalibrasiPage.tsx",
+   "target": "function:react-web-app/src/pages/KalibrasiPage.tsx:KalibrasiPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/LoginPage.tsx",
+   "target": "file:react-web-app/src/layouts/AppShell.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/LoginPage.tsx",
+   "target": "file:react-web-app/src/lib/authContext.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/LoginPage.tsx",
+   "target": "function:react-web-app/src/pages/LoginPage.tsx:LoginPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/LoginPage.tsx",
+   "target": "function:react-web-app/src/pages/LoginPage.tsx:LoginPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/SensorRealtimePage.tsx",
+   "target": "file:react-web-app/src/components/StatusBadge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/SensorRealtimePage.tsx",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/SensorRealtimePage.tsx",
+   "target": "file:react-web-app/src/lib/authContext.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/SensorRealtimePage.tsx",
+   "target": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/SensorRealtimePage.tsx",
+   "target": "function:react-web-app/src/pages/SensorRealtimePage.tsx:Pill",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/SensorRealtimePage.tsx",
+   "target": "function:react-web-app/src/pages/SensorRealtimePage.tsx:Grafik",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/SensorRealtimePage.tsx",
+   "target": "function:react-web-app/src/pages/SensorRealtimePage.tsx:SensorRealtimePage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/SensorRealtimePage.tsx",
+   "target": "function:react-web-app/src/pages/SensorRealtimePage.tsx:SensorRealtimePage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/TanamSayaPage.tsx",
+   "target": "file:react-web-app/src/components/CrudScreen.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/TanamSayaPage.tsx",
+   "target": "file:react-web-app/src/components/ModalBackdrop.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/TanamSayaPage.tsx",
+   "target": "file:react-web-app/src/components/NaikHarian.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/TanamSayaPage.tsx",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/TanamSayaPage.tsx",
+   "target": "file:react-web-app/src/lib/authContext.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/TanamSayaPage.tsx",
+   "target": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/TanamSayaPage.tsx",
+   "target": "file:react-web-app/src/lib/useDialog.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/TanamSayaPage.tsx",
+   "target": "function:react-web-app/src/pages/TanamSayaPage.tsx:IlustrasiTanam",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/TanamSayaPage.tsx",
+   "target": "function:react-web-app/src/pages/TanamSayaPage.tsx:DialogMulaiSemai",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/TanamSayaPage.tsx",
+   "target": "function:react-web-app/src/pages/TanamSayaPage.tsx:TanamSayaPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/TanamSayaPage.tsx",
+   "target": "function:react-web-app/src/pages/TanamSayaPage.tsx:TanamSayaPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/WaterControlPage.tsx",
+   "target": "file:react-web-app/src/components/StatusBadge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/WaterControlPage.tsx",
+   "target": "file:react-web-app/src/components/StatusPenampung.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/WaterControlPage.tsx",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/WaterControlPage.tsx",
+   "target": "file:react-web-app/src/lib/authContext.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/WaterControlPage.tsx",
+   "target": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/WaterControlPage.tsx",
+   "target": "file:react-web-app/src/lib/useApiObject.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/WaterControlPage.tsx",
+   "target": "function:react-web-app/src/pages/WaterControlPage.tsx:WaterControlPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/WaterControlPage.tsx",
+   "target": "function:react-web-app/src/pages/WaterControlPage.tsx:WaterControlPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/masterPages.tsx",
+   "target": "file:react-web-app/src/components/CrudScreen.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/masterPages.tsx",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/masterPages.tsx",
+   "target": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/masterPages.tsx",
+   "target": "function:react-web-app/src/pages/masterPages.tsx:inputFor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/masterPages.tsx",
+   "target": "function:react-web-app/src/pages/masterPages.tsx:JenisTanamanPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/masterPages.tsx",
+   "target": "function:react-web-app/src/pages/masterPages.tsx:JenisTanamanPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/masterPages.tsx",
+   "target": "function:react-web-app/src/pages/masterPages.tsx:validateMeja",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/masterPages.tsx",
+   "target": "function:react-web-app/src/pages/masterPages.tsx:payloadOf",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/masterPages.tsx",
+   "target": "function:react-web-app/src/pages/masterPages.tsx:MejaTanamanPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/masterPages.tsx",
+   "target": "function:react-web-app/src/pages/masterPages.tsx:MejaTanamanPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/masterPages.tsx",
+   "target": "function:react-web-app/src/pages/masterPages.tsx:validateAmbang",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/masterPages.tsx",
+   "target": "function:react-web-app/src/pages/masterPages.tsx:AmbangSensorPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/masterPages.tsx",
+   "target": "function:react-web-app/src/pages/masterPages.tsx:AmbangSensorPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/notifLaporanPages.tsx",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/notifLaporanPages.tsx",
+   "target": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/notifLaporanPages.tsx",
+   "target": "function:react-web-app/src/pages/notifLaporanPages.tsx:LaporanPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/notifLaporanPages.tsx",
+   "target": "function:react-web-app/src/pages/notifLaporanPages.tsx:LaporanPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "file:react-web-app/src/components/CrudScreen.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "file:react-web-app/src/components/ModalBackdrop.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "file:react-web-app/src/lib/useDialog.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "function:react-web-app/src/pages/stagePages.tsx:PillStatus",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "function:react-web-app/src/pages/stagePages.tsx:IsianBerhasil",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "function:react-web-app/src/pages/stagePages.tsx:ModalDetailBaris",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "function:react-web-app/src/pages/stagePages.tsx:daftarTahap",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "function:react-web-app/src/pages/stagePages.tsx:SemaiPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "function:react-web-app/src/pages/stagePages.tsx:SemaiPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "function:react-web-app/src/pages/stagePages.tsx:TahapCrudPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "function:react-web-app/src/pages/stagePages.tsx:PeremajaanPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "function:react-web-app/src/pages/stagePages.tsx:PeremajaanPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "function:react-web-app/src/pages/stagePages.tsx:PendewasaanPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "function:react-web-app/src/pages/stagePages.tsx:PendewasaanPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "function:react-web-app/src/pages/stagePages.tsx:PanenPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "function:react-web-app/src/pages/stagePages.tsx:PanenPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "function:react-web-app/src/pages/stagePages.tsx:payloadSiklus",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "function:react-web-app/src/pages/stagePages.tsx:DurasiSiklusPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/stagePages.tsx",
+   "target": "function:react-web-app/src/pages/stagePages.tsx:DurasiSiklusPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/userProfilPages.tsx",
+   "target": "file:react-web-app/src/components/CrudScreen.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/userProfilPages.tsx",
+   "target": "file:react-web-app/src/components/StatusBadge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/userProfilPages.tsx",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/userProfilPages.tsx",
+   "target": "file:react-web-app/src/lib/authContext.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/userProfilPages.tsx",
+   "target": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/userProfilPages.tsx",
+   "target": "file:react-web-app/src/lib/useApiObject.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/userProfilPages.tsx",
+   "target": "function:react-web-app/src/pages/userProfilPages.tsx:ManajemenUserPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/userProfilPages.tsx",
+   "target": "function:react-web-app/src/pages/userProfilPages.tsx:ManajemenUserPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/userProfilPages.tsx",
+   "target": "function:react-web-app/src/pages/userProfilPages.tsx:ProfilPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/userProfilPages.tsx",
+   "target": "function:react-web-app/src/pages/userProfilPages.tsx:ProfilPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/components/GalatHalaman.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/components/RequireAuth.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/layouts/AppShell.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/pages/AsistenAiPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/pages/AuditPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/pages/CctvPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/pages/DashboardPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/pages/DosingPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/pages/KalibrasiPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/pages/LoginPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/pages/SensorRealtimePage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/pages/TanamSayaPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/pages/TentangPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/pages/WaterControlPage.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/pages/masterPages.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/pages/notifLaporanPages.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/pages/stagePages.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/router.tsx",
+   "target": "file:react-web-app/src/pages/userProfilPages.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  }
+ ]
+}
