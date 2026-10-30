@@ -14,27 +14,85 @@
     --ar-border: 226 232 221;/* #E2E8DD */
     --ar-border2: 215 224 210;/* #D7E0D2 */
     --ar-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  }
 
-  html, body { height: 100%; }
+    /* ── ROMBAK-A · token desain (ADDITIVE — token --ar-* di atas tak tersentuh) ── */
+    --navy: #0A1F38;   /* navy utama — chrome, sidebar, topbar, header tabel */
+    --navy2: #071527;  /* navy terdalam — ujung gradasi chrome */
+    --emas: #E9CD53;   /* emas — monogram, aksen brand, sorotan status */
+    --moss: #6B9D4A;   /* moss — aksen sukses/aktif + indikator fokus */
+    --tinta: #0B1A2B;  /* tinta — teks utama */
+    --abu: #4f6075;    /* abu — teks sekunder */
+    --garis: #E2E8DD;  /* garis — pemisah/border */
+    --kartu: #FFFFFF;  /* kartu — permukaan panel */
+    --r: 12px;         /* radius standar (rentang 10–14px) */
+    --r-sm: 12px;
+    --r-lg: 20px;
+    --shadow-soft: 0 1px 2px rgba(10, 31, 56, 0.05), 0 14px 30px -22px rgba(10, 31, 56, 0.45);
+    --shadow-deep: 0 28px 64px -30px rgba(7, 21, 39, 0.55);
+    --tr: 150ms;       /* transisi standar semua komponen */
+
+    /* ── Desain v3 · token kaca (satu sumber untuk semua permukaan glass) ── */
+    /* Material utama ada di blok "Liquid Glass v5" (akhir berkas); token --lg-*. */
+    --glass-blur: 18px;                        /* blur kaca statis (kartu, hero) */
+    --glass-blur-chrome: 24px;                 /* blur chrome (sidebar, topbar) */
+    --glass-blur-kaca: 22px;                   /* blur .vsf-kaca (kartu kaca tebal) */
+    --glass-blur-bilah: 22px;                  /* blur .vsf-bilah (header/footer landing) */
+    --glass-blur-hover: 14px;                  /* blur kartu saat hover (perangkat pointer) */
+  }
+  html,
+  body { height: 100%; }
+  html { scroll-behavior: smooth; scroll-padding-top: 76px; scrollbar-gutter: stable; }
+  body { overflow-x: clip; }
   body {
     margin: 0;
     font-family: theme('fontFamily.sans');
+    font-size: 15px;               /* skala body 14–15px */
     background: rgb(var(--ar-page));
-    color: rgb(17 24 39);
+    color: var(--tinta);
+    -webkit-font-smoothing: antialiased;
   }
-
-  h1, h2, h3, h4, h5, h6 {
+  /* Hierarki tipografi: Space Grotesk utk display/heading, Inter utk body */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: theme('fontFamily.heading');
-    color: rgb(17 24 39);
+    color: var(--tinta);
   }
-}
+  h1 { font-size: 26px; line-height: 1.25; letter-spacing: -0.015em; font-weight: 700; }
+  h2 { font-size: 19px; line-height: 1.3;  letter-spacing: -0.01em;  font-weight: 700; }
+  h3 { font-size: 16px; line-height: 1.35; font-weight: 600; }
+  /* R2 — indikator fokus SERAGAM untuk SEMUA elemen interaktif:
+     outline moss 2px + offset 2px (menggantikan ring 3.5px vs outline UA 1px). */
+  :where(a,
+  button,
+  input,
+  select,
+  textarea,
+  summary,
+  [tabindex],
+  [role='button'],
+  [role='menuitem'],
+  [role='link'],
+  [role='tab']):focus-visible {
+    outline: 2px solid var(--moss);
+    outline-offset: 2px;
+  }
+  /* Elemen di atas chrome navy → ring emas agar tetap kontras. */
+  .bg-sidebar :where(a,
+  button):focus-visible,
+  .vsf-topbar :where(a,
+  button):focus-visible {
+    outline-color: var(--moss);
+  }}
 
 /* ============================================================
    ANIMATIONS — single source of truth
    ============================================================ */
 @keyframes vsf-fade-up {
-  from { opacity: 0; transform: translateY(14px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes vsf-fade {
@@ -53,6 +111,13 @@
   from { background-position: 200% 0; }
   to   { background-position: -200% 0; }
 }
+/* Login — banner ditolak: turun lalu goyang halus (sinyal "gagal" yang jelas) */
+@keyframes vsf-shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-3px); }
+  50%      { transform: translateX(3px); }
+  75%      { transform: translateX(-2px); }
+}
 @keyframes vsf-pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
   50%      { opacity: 0.45; transform: scale(0.8); }
@@ -64,30 +129,102 @@
   0%   { background-color: rgba(107, 157, 74, 0.28); }
   100% { background-color: transparent; }
 }
+/* P3 — keluar (exit) animasi, dijalankan SEBELUM elemen dilepas host. */
+@keyframes vsf-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes vsf-fade-out-scale {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.97); }
+}
 
 @layer components {
+  /* Kartu kaca (material "clear"): blur + rim. Nilai akhir (background, rim, transisi) ada di blok "Liquid Glass v5". */
   .vsf-card {
-    @apply bg-arutmin-card border border-arutmin-border rounded-card;
-    transition: border-color 0.2s ease, box-shadow 0.25s var(--ar-ease), transform 0.25s var(--ar-ease);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
+    backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 24px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      inset 1px 0 0 rgba(255, 255, 255, 0.4),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 0 28px rgba(255, 255, 255, 0.16),
+      0 12px 36px -14px rgba(40, 80, 130, 0.3);
   }
   .vsf-card:hover {
-    border-color: rgba(107, 157, 74, 0.55);
-    box-shadow: 0 10px 24px -16px rgba(45, 69, 47, 0.45);
-    transform: translateY(-2px);
+    border-color: rgba(107, 157, 74, 0.45);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), var(--shadow-soft), 0 12px 26px -20px rgba(45, 69, 47, 0.45);
+  }
+  /* Desain v3: kartu terangkat sedikit saat hover (perangkat pointer saja, hormati reduced-motion). */
+  /* Hanya kartu yang benar-benar bisa diklik: kartu biasa tidak boleh "terangkat" (menipu + kerja compositor ekstra). */
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    a.vsf-card:hover,
+    button.vsf-card:hover,
+    [role='button'].vsf-card:hover { transform: translateY(-2px); }
   }
   .vsf-input {
-    @apply bg-white border border-arutmin-border2 rounded-input px-3 py-2 outline-none;
-    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.15s var(--ar-ease);
+    @apply bg-white border border-arutmin-border2 px-3 py-2 outline-none;
+    border-radius: var(--r-sm);
+    transition: border-color var(--tr) ease, box-shadow var(--tr) ease, transform var(--tr) var(--ar-ease);
   }
+  /* Fokus input: border moss + glow tipis — ring outline global (R2) melengkapi. */
   .vsf-input:focus {
-    border-color: theme('colors.arutmin.moss');
-    box-shadow: theme('boxShadow.focusMoss');
+    border-color: var(--moss);
+    box-shadow: 0 0 0 3px rgba(107, 157, 74, 0.18);
   }
-  .vsf-input:disabled { @apply bg-slate-50 text-slate-400 cursor-not-allowed; }
+  /* State error field — merah lembut, tetap terbaca & konsisten dgn banner. */
+  .vsf-input[aria-invalid='true'] {
+    border-color: rgba(192, 57, 43, 0.7);
+    background-color: #FEF5F4;
+  }
+  .vsf-input[aria-invalid='true']:focus {
+    border-color: theme('colors.arutmin.error');
+    box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.16);
+  }
+  .vsf-input:disabled { @apply bg-slate-50 text-slate-500 cursor-not-allowed; }
+  /* Nada status bersama untuk banner & lencana (satu sumber; tata letak tetap di tiap pemakai). */
+  .vsf-tone-error { @apply border border-red-600/50 bg-red-50 text-red-700; }
+  .vsf-tone-warn { @apply border border-amber-500/50 bg-amber-50 text-amber-800; }
+  .vsf-field-error { @apply mt-1 text-[12px] text-red-700; }
+  /* ── (2) Eyebrow global — satu varian: 11px uppercase, tracking .14em, bold ── */
+  .vsf-eyebrow {
+    @apply text-[12px] uppercase tracking-[.14em] font-bold;
+    color: var(--abu);
+  }
+  .vsf-eyebrow-light { color: rgba(255, 255, 255, 0.62); }
+  .vsf-eyebrow-navy { color: var(--navy); }
+  .vsf-eyebrow-emas { color: var(--emas); }
+  .vsf-eyebrow-gold { color: #7a6410; }
+  .vsf-eyebrow-chrome { color: #46576b; }
+  /* Kontrol di atas chrome kaca terang (sidebar, topbar). */
+  .vsf-chrome-tautan {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    color: var(--tinta);
+    transition: background-color 150ms ease;
+  }
+  .vsf-chrome-tautan:hover { background: rgba(255, 255, 255, 0.75); }
+  .vsf-chip-terang {
+    display: inline-flex;
+    min-height: 36px;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--tinta);
+    background: rgba(255, 255, 255, 0.62);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.9), 0 4px 14px -8px rgba(40, 80, 130, 0.3);
+  }
+  /* QW2 — target sentuh ≥44px untuk tombol utama/sekunder. */
   .vsf-btn-primary {
-    @apply text-white font-semibold rounded-full px-4 py-2 inline-flex items-center justify-center gap-2;
+    @apply min-h-[44px] text-white font-semibold rounded-full px-4 py-2 inline-flex items-center justify-center gap-2;
     background-image: theme('backgroundImage.primary');
-    transition: transform 0.18s var(--ar-ease), box-shadow 0.18s ease, filter 0.18s ease, opacity 0.18s ease;
+    transition: transform var(--tr) var(--ar-ease), box-shadow var(--tr) ease, filter var(--tr) ease, opacity var(--tr) ease;
   }
   .vsf-btn-primary:hover:not(:disabled) {
     transform: translateY(-1px);
@@ -96,51 +233,133 @@
   }
   .vsf-btn-primary:active:not(:disabled) { transform: translateY(0) scale(0.98); }
   .vsf-btn-primary:disabled { @apply opacity-50 cursor-not-allowed; }
-
-  /* Page transition (dipakai AppShell, key = pathname) */
-  .vsf-page { animation: vsf-fade-up 0.3s var(--ar-ease) both; }
-
-  /* Stagger: anak-anak kartu/section naik berurutan */
-  .vsf-stagger > * {
-    animation: vsf-fade-up 0.45s var(--ar-ease) both;
+  .vsf-btn-secondary {
+    @apply min-h-[44px] inline-flex items-center justify-center gap-2 rounded-full border border-arutmin-moss px-4 py-2 text-arutmin-forest font-semibold bg-white/75;
+    transition: transform var(--tr) var(--ar-ease), box-shadow var(--tr) ease, background-color var(--tr) ease, border-color var(--tr) ease;
   }
-  .vsf-stagger > *:nth-child(1) { animation-delay: 0.03s; }
-  .vsf-stagger > *:nth-child(2) { animation-delay: 0.09s; }
-  .vsf-stagger > *:nth-child(3) { animation-delay: 0.15s; }
-  .vsf-stagger > *:nth-child(4) { animation-delay: 0.21s; }
-  .vsf-stagger > *:nth-child(5) { animation-delay: 0.27s; }
-  .vsf-stagger > *:nth-child(6) { animation-delay: 0.33s; }
-  .vsf-stagger > *:nth-child(7) { animation-delay: 0.39s; }
-  .vsf-stagger > *:nth-child(8) { animation-delay: 0.45s; }
-  .vsf-stagger > *:nth-child(9) { animation-delay: 0.51s; }
-  .vsf-stagger > *:nth-child(10) { animation-delay: 0.57s; }
-  .vsf-stagger > *:nth-child(11) { animation-delay: 0.63s; }
-  .vsf-stagger > *:nth-child(12) { animation-delay: 0.69s; }
-  .vsf-stagger > *:nth-child(n+13) { animation-delay: 0.75s; }
-
-  /* Tabel: baris fade-in berurutan + transisi hover */
+  .vsf-btn-secondary:hover:not(:disabled) {
+    background-color: rgb(var(--ar-page));
+    border-color: var(--moss);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px -12px rgba(45, 69, 47, 0.7);
+  }
+  .vsf-btn-secondary:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+  .vsf-btn-secondary:disabled { @apply opacity-50 cursor-not-allowed; }
+  /* (3) Tombol bahaya — kelas resmi (dulu diduplikasi inline merah 3×). */
+  .vsf-btn-danger {
+    @apply min-h-[44px] inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold text-white;
+    background-color: theme('colors.arutmin.error');
+    transition: transform var(--tr) var(--ar-ease), box-shadow var(--tr) ease, filter var(--tr) ease, opacity var(--tr) ease;
+  }
+  .vsf-btn-danger:hover:not(:disabled) {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px -10px rgba(192, 57, 43, 0.75);
+  }
+  .vsf-btn-danger:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+  .vsf-btn-danger:disabled { @apply opacity-60 cursor-not-allowed; }
+  /* (3)+(4) Varian tombol dalam satu aturan: transisi, hover, active, fokus. */
+  :is(.vsf-btn,
+  .vsf-btn-primary,
+  .vsf-btn-secondary,
+  .vsf-btn-danger):focus-visible {
+    outline: 2px solid var(--moss);
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+  .vsf-btn { @apply inline-flex items-center justify-center gap-2 min-h-[44px] rounded-full px-4 py-2 text-[13px] font-semibold; }
+  .vsf-btn:hover:not(:disabled) { transform: translateY(-1px); }
+  .vsf-btn:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+  .vsf-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+  /* Page transition (dipakai AppShell, key = pathname) */
+  /* backwards (bukan both): fill dilepas setelah selesai, supaya backdrop-filter kartu di dalamnya tetap bekerja. */
+  .vsf-page { animation: vsf-fade-up var(--dur-normal) var(--ease-v2) backwards; }
+  /* Stagger: anak-anak kartu/section naik berurutan.
+     P1 — fill-mode `backwards` (bukan `both`): setelah animasi selesai, fill
+     dilepas sehingga `transform` hover (.vsf-card:hover → translateY(-2px))
+     TIDAK lagi ditimpa keyframes. P6 — durasi 0.25s, delay maks 0.15s. */
+  .vsf-stagger > * {
+    animation: vsf-fade-up var(--dur-normal) var(--ease-v2) backwards;
+  }
+  .vsf-stagger > *:nth-child(1) { animation-delay: 0s; }
+  .vsf-stagger > *:nth-child(2) { animation-delay: 0.04s; }
+  .vsf-stagger > *:nth-child(3) { animation-delay: 0.08s; }
+  .vsf-stagger > *:nth-child(4) { animation-delay: 0.12s; }
+  .vsf-stagger > *:nth-child(n+5) { animation-delay: 0.12s; }
+  /* Tabel: baris fade-in berurutan + transisi hover.
+     QW6 — min-width:0 agar pembungkus overflow-auto jadi scroll INTERNAL
+     (tabel tak lagi melebarkan dokumen di layar 390px).
+     P6 — durasi 0.25s, delay 0.05–0.2s. */
+  .vsf-table { min-width: 0; max-width: 100%; }
+  /* Petunjuk geser: bayangan tepi muncul hanya bila ada isi tersembunyi di sisi itu
+     (penutup putih ikut ter-scroll, bayangan diam). */
+  .vsf-table {
+    background-image:
+      linear-gradient(to right, #fff 30%, rgba(255, 255, 255, 0)),
+      linear-gradient(to left, #fff 30%, rgba(255, 255, 255, 0)),
+      radial-gradient(farthest-side at 0 50%, rgba(10, 31, 56, 0.3), rgba(10, 31, 56, 0)),
+      radial-gradient(farthest-side at 100% 50%, rgba(10, 31, 56, 0.3), rgba(10, 31, 56, 0));
+    background-position: left center, right center, left center, right center;
+    background-repeat: no-repeat;
+    background-size: 40px 100%, 40px 100%, 16px 100%, 16px 100%;
+    background-attachment: local, local, scroll, scroll;
+  }
+  .vsf-table table { min-width: 0; }
   .vsf-table tbody tr {
-    animation: vsf-fade-up 0.35s var(--ar-ease) both;
+    animation: vsf-fade-up var(--dur-normal) var(--ease-v2) backwards;
     transition: background-color 0.15s ease;
   }
-  .vsf-table tbody tr:nth-child(1) { animation-delay: 0.08s; }
-  .vsf-table tbody tr:nth-child(2) { animation-delay: 0.13s; }
-  .vsf-table tbody tr:nth-child(3) { animation-delay: 0.18s; }
-  .vsf-table tbody tr:nth-child(4) { animation-delay: 0.23s; }
-  .vsf-table tbody tr:nth-child(5) { animation-delay: 0.28s; }
-  .vsf-table tbody tr:nth-child(n+6) { animation-delay: 0.33s; }
+  .vsf-table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+  .vsf-table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+  .vsf-table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+  .vsf-table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+  .vsf-table tbody tr:nth-child(n+5) { animation-delay: 0.2s; }
   .vsf-table th { white-space: nowrap; }
-
   /* Modal + backdrop */
-  .vsf-modal-backdrop { animation: vsf-fade 0.16s ease-out both; }
+  /* Desain v2: latar modal = glass chrome ketiga (blur 6px); kartu = isi solid berbingkai cincin glass. */
+  .vsf-modal-backdrop {
+    animation: vsf-fade 0.16s ease-out both;
+    background: rgba(10, 31, 56, 0.45);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
   .vsf-modal-card {
     animation: vsf-pop 0.24s var(--ar-ease) both;
-    box-shadow: 0 24px 60px -20px rgba(17, 24, 39, 0.45);
+    box-shadow:
+      0 0 0 6px rgba(255, 255, 255, 0.3),
+      0 24px 60px -20px rgba(10, 31, 56, 0.5);
   }
-
+  /* P3 — animasi KELUAR (sebelum unmount, dijalankan host via `is-closing`):
+     backdrop & kartu turun 180ms cb(.22,1,.36,1); fokus/trap tetap di host. */
+  .vsf-modal-backdrop.is-closing {
+    animation: vsf-fade-out 180ms var(--ar-ease) forwards;
+    pointer-events: none;
+  }
+  .vsf-modal-card.is-closing { animation: vsf-fade-out-scale 180ms var(--ar-ease) forwards; }
   /* Banner (demo / sukses / peringatan) */
   .vsf-banner { animation: vsf-slide-down 0.3s var(--ar-ease) both; }
-
+  /* Login — banner error server: turun dulu, lalu goyang halus (0.3s) */
+  .vsf-banner-danger {
+    animation: vsf-slide-down 0.3s var(--ar-ease) both, vsf-shake 0.32s var(--ar-ease) 0.3s 1;
+  }
+  /* P3 — keluar: fade 150ms ease-out sebelum dilepas host. */
+  .vsf-banner.is-closing { animation: vsf-fade-out 150ms ease-out forwards; }
+  /* Login — progress bar di atas kartu, hanya saat proses login berjalan */
+  .vsf-progress {
+    background: linear-gradient(
+      100deg,
+      rgba(107, 157, 74, 0.25) 20%,
+      rgba(107, 157, 74, 0.95) 50%,
+      rgba(107, 157, 74, 0.25) 80%
+    );
+    background-size: 200% 100%;
+    animation: vsf-shimmer 1.1s linear infinite;
+  }
+  /* P7 — backdrop off-canvas sidebar: fade 180ms (bukan pop instan). */
+  .vsf-backdrop { animation: vsf-fade 180ms ease-out both; }
+  /* P5 — grafik sensor: fade-in 220ms ease-out saat data/rentang berubah
+     (elemen di-remount host dgn `key`, animasi dijalankan ulang). */
+  .vsf-chart { animation: vsf-fade 220ms ease-out both; }
   /* Skeleton loading */
   .vsf-skeleton {
     background: linear-gradient(100deg, #eaf0e7 35%, #f6faf4 50%, #eaf0e7 65%);
@@ -148,10 +367,8 @@
     animation: vsf-shimmer 1.4s linear infinite;
     border-radius: 12px;
   }
-
   /* Titik status online berdenyut */
   .vsf-dot { animation: vsf-pulse-dot 1.6s ease-in-out infinite; display: inline-block; }
-
   /* Spinner kecil dalam tombol saat perintah diproses */
   .vsf-spinner {
     width: 13px; height: 13px; border-radius: 9999px;
@@ -164,10 +381,8 @@
     border-color: rgba(45, 69, 47, 0.25);
     border-top-color: rgb(var(--ar-forest));
   }
-
-  /* Sorotan kilat saat nilai live berubah */
-  .vsf-flash { animation: vsf-flash 0.9s ease-out 1; }
-
+  /* Sorotan kilat saat nilai live berubah — P4: 0.5s (0.4–0.6s sesuai panduan). */
+  .vsf-flash { animation: vsf-flash 0.5s ease-out 1; }
   /* Pill / chip transisi lembut */
   .vsf-pill {
     @apply inline-flex items-center rounded-full border px-3 py-1 text-[12px] font-semibold;
@@ -175,17 +390,1772 @@
                 transform 0.15s var(--ar-ease), box-shadow 0.18s ease;
   }
   .vsf-pill:hover { transform: translateY(-1px); }
-  .vsf-pill:active { transform: translateY(0) scale(0.97); }
+  .vsf-pill:active { transform: translateY(0) scale(0.97); }}
+  /* ── KONTRAS (audit WCAG 2.x) ─────────────────────────────────────────
+   RED 2.54 — placeholder bawaan #9CA3AF (2.54) → slate-500 #64748B (4.76
+   di putih; 4.55 di slate-50). `opacity:1` menetralkan alpha UA Safari/Chrome. */
+  /* Selector disamakan dgn preflight Tailwind (input::placeholder — spesifisitas
+   0,1,1) supaya MENANG; aturan ini duduk di bawah file (urutan lebih akhir). */
+  input::placeholder,
+  textarea::placeholder,
+  ::placeholder {
+  color: #64748b;
+  opacity: 1;
 }
 
 /* Aksesibilitas: hormati preferensi kurangi-gerak */
 @media (prefers-reduced-motion: reduce) {
-  .vsf-page, .vsf-stagger > *, .vsf-table tbody tr,
-  .vsf-modal-backdrop, .vsf-modal-card, .vsf-banner,
-  .vsf-skeleton, .vsf-dot, .vsf-spinner, .vsf-flash {
+  .vsf-page,
+  .vsf-stagger > *,
+  .vsf-table tbody tr,
+  .vsf-modal-backdrop,
+  .vsf-modal-card,
+  .vsf-banner,
+  .vsf-banner-danger,
+  .vsf-progress,
+  .vsf-skeleton,
+  .vsf-dot,
+  .vsf-spinner,
+  .vsf-flash,
+  .vsf-chart,
+  .vsf-backdrop {
     animation: none !important;
   }
-  .vsf-card, .vsf-input, .vsf-btn-primary, .vsf-pill {
+  .vsf-card,
+  .vsf-input,
+  .vsf-btn-primary,
+  .vsf-pill {
     transition: none !important;
   }
+  /* P2 (global) — SEMUA transisi & animasi dipangkas ke ~0: utilitas Tailwind
+     (transition/duration/transform) ikut mati, bukan hanya keyframes .vsf-*.
+     Indikator esensial tetap terlihat (spinner/dot sengaja `animation:none`,
+     artinya berhut diam — tanpa kedip, sesuai preferensi pengguna). */
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }}
+@keyframes vsf-goyang { from { transform: translateX(-1.4%); } to { transform: translateX(1.4%); } }
+  /* splash art: badan cat "menyiprat" dari tengah, lalu butiran terlempar keluar */
+  .vsf-splash { overflow: visible; }
+  .vsf-splash-badan,
+  .vsf-splash-tetes { transform-box: view-box; transform-origin: 50% 50%; }
+  .vsf-splash-badan { animation: vsf-splat 0.7s 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .vsf-splash-tetes { animation: vsf-ciprat 0.6s 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .vsf-splash-tetes-2 { animation-delay: 0.5s; }
+@keyframes vsf-splat { from { opacity: 0; transform: scale(0.35, 0.2); } 60% { opacity: 1; } to { opacity: 1; transform: scale(1); } }
+@keyframes vsf-ciprat { from { opacity: 0; transform: scale(0.82); } to { opacity: 1; transform: scale(1); } }
+  .vsf-pop { animation: vsf-pop 0.65s var(--d, 0s) cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+@keyframes vsf-pop { from { opacity: 0; transform: translateY(16px) scale(0.9); } to { opacity: 1; transform: none; } }
+  .vsf-kedip { animation: vsf-kedip 1.8s ease-in-out infinite; animation-delay: var(--d, 0s); transform-origin: center; }
+@keyframes vsf-kedip { 0%, 100% { opacity: 0.35; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.15); } }
+  .vsf-muncul {
+  opacity: 0;
+  translate: 0 24px;
+  scale: 0.97;
+  transition: opacity 0.65s var(--ar-ease, ease), translate 0.65s var(--ar-ease, ease), scale 0.65s var(--ar-ease, ease), transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, background 0.3s ease;
+  transition-delay: var(--d, 0s), var(--d, 0s), var(--d, 0s), 0s, 0s, 0s;
+}
+  .vsf-muncul.is-in { opacity: 1; translate: 0 0; scale: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .vsf-pop,
+  .vsf-kedip { animation: none !important; }
+  .vsf-splash-badan,
+  .vsf-splash-tetes { animation: none !important; }
+  .vsf-muncul { opacity: 1; translate: none; scale: none; transition: none; }}
+  /* ── Tentang: satu halaman, latar lanskap tetap (fixed) + kaca ───────────────── */
+  .vsf-latar {
+  position: fixed;
+  inset: -3%;
+  z-index: -2;
+  background: #4b9bdc url('/bg-lanskap.jpg') center / cover no-repeat;
+  animation: vsf-zoom 48s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes vsf-zoom { from { transform: scale(1); } to { transform: scale(1.06) translateY(-1%); } }
+  .vsf-kabut {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(10, 31, 56, 0.1) 0%, rgba(10, 31, 56, 0) 28%, rgba(10, 31, 56, 0.34) 100%);
+}
+  /* ── Liquid Glass (gaya Apple): blur + saturasi, tepi bercahaya, kilau spekular ikut kursor ── */
+  .vsf-satu .vsf-card,
+  .vsf-kaca { isolation: isolate; }
+  .vsf-satu .vsf-card,
+  .vsf-kaca:not(.sticky):not(.absolute):not(.fixed) { position: relative; }
+  .vsf-kaca-hidup { transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease; }
+  .vsf-kaca-hidup:active { transform: scale(0.97); }
+  /* kilau spekular: titik terang mengikuti kursor (--mx/--my diisi JS) */
+  .vsf-satu .vsf-card::before,
+  .vsf-kaca::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(130% 90% at var(--mx, 18%) var(--my, 0%), rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 58%);
+  opacity: 0.55;
+  transition: opacity 0.3s ease;
+}
+  .vsf-satu .vsf-card:hover::before,
+  .vsf-kaca:hover::before { opacity: 0.95; }
+  /* varian gelap (navy tembus pandang) untuk header, pil, bilah */
+  .vsf-kaca-gelap {
+  background: linear-gradient(135deg, rgba(10, 31, 56, 0.62), rgba(10, 31, 56, 0.36)) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  color: #fff;
+}
+  .vsf-judul-latar { color: #fff !important; text-shadow: 0 2px 16px rgba(7, 21, 39, 0.7); }
+@media (prefers-reduced-motion: reduce) {
+  .vsf-latar { animation: none; }}
+
+/* ══ Liquid Glass — versi cair ══
+   Prinsip (dari skill Liquid Glass): kaca hanya untuk lapisan kontrol/navigasi, tint seperlunya,
+   gerak berbasis pegas, dan wajib patuh Reduce Motion / Reduce Transparency / Increase Contrast. */
+@property --mx { syntax: '<percentage>'; inherits: false; initial-value: 18%;}
+@property --my { syntax: '<percentage>'; inherits: false; initial-value: 0%;}
+  /* easing pegas sungguhan (overshoot lalu mengendap) — fallback ke cubic-bezier */
+  :root {
+  --pegas: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --pegas-lembut: cubic-bezier(0.22, 1.25, 0.36, 1);
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --pegas: linear(0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 16.7%, 1.017 19.9%, 1.077 23.2%, 1.121 27%, 1.149 31.2%, 1.159 36%, 1.146 41%, 1.103 47.5%, 1.032 55.5%, 0.99 62%, 0.977 67%, 0.985 74%, 1.002 83%, 1 100%);
+    --pegas-lembut: linear(0, 0.02 1.6%, 0.12 4.1%, 0.5 9.9%, 0.83 15.4%, 1.03 20.6%, 1.1 25.7%, 1.09 31%, 1.04 37.6%, 0.99 45%, 0.98 52%, 1.0 64%, 1 100%);
+  }}
+  /* kilau halus: --mx/--my kini beranimasi, jadi sorotan "meluncur" mengikuti kursor */
+  .vsf-satu .vsf-card,
+  .vsf-kaca {
+  transition:
+    --mx 0.5s var(--pegas-lembut), --my 0.5s var(--pegas-lembut),
+    translate 0.6s var(--pegas), scale 0.6s var(--pegas),
+    box-shadow 0.4s ease, border-color 0.3s ease, background 0.4s ease;
+}
+  .vsf-satu .vsf-card:hover,
+  .vsf-kaca-hidup:hover {
+  transform: none;
+  translate: 0 -5px;
+  scale: 1.018;
+}
+  .vsf-kaca-hidup:active,
+  .vsf-satu .vsf-card:active {
+  transform: none;
+  translate: 0 -1px;
+  scale: 0.972;
+  transition-duration: 0.18s;
+}
+  /* sorotan makin tegas saat disentuh */
+  .vsf-satu .vsf-card:hover::before,
+  .vsf-kaca:hover::before { opacity: 1; }
+  /* tepi cair: radius berdenyut halus saat hover */
+  .vsf-kaca-hidup { transition-property: --mx, --my, translate, scale, box-shadow, border-color, background, border-radius; }
+  .vsf-kaca-hidup:hover { border-radius: 30px; }
+
+/* Aksesibilitas — kaca jadi permukaan solid bila diminta */
+@media (prefers-reduced-motion: reduce) {
+  .vsf-satu .vsf-card,
+  .vsf-kaca { transition: box-shadow 0.2s ease; }
+  .vsf-satu .vsf-card:hover,
+  .vsf-kaca-hidup:hover { translate: none; scale: none; }}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-satu .vsf-card,
+  .vsf-kaca {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(10, 31, 56, 0.35);
+  }
+  .vsf-kaca-gelap { background: #0a1f38 !important; }}
+  /* elemen yang bisa ditekan/ditahan (InfoTekan) */
+  [data-info-judul] { cursor: pointer; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  [data-info-judul]:focus-visible { outline: 3px solid #e9cd53; outline-offset: 3px; }
+  .vsf-gelembung { animation: vsf-gelembung 0.35s var(--pegas-lembut, ease-out) both; }
+@keyframes vsf-gelembung { from { opacity: 0; scale: 0.9; } to { opacity: 1; scale: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .vsf-gelembung { animation: none; }}
+
+/* ══ Liquid Glass — lebih tampil & lebih cair ══ */
+@property --rx { syntax: '<angle>'; inherits: false; initial-value: 0deg;}
+@property --ry { syntax: '<angle>'; inherits: false; initial-value: 0deg;}
+  /* kilau menyapu saat hover — seperti cahaya melintasi kaca cair */
+  .vsf-satu .vsf-card:hover::before,
+  .vsf-kaca-hidup:hover::before {
+  background:
+    linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.55) 46%, rgba(255, 255, 255, 0.15) 54%, transparent 68%) no-repeat,
+    radial-gradient(130% 90% at var(--mx, 18%) var(--my, 0%), rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0) 58%);
+  background-size: 260% 100%, 100% 100%;
+  animation: vsf-sapu 1.1s var(--pegas-lembut, ease-out) 1;
+}
+@keyframes vsf-sapu { from { background-position: 120% 0, 0 0; } to { background-position: -40% 0, 0 0; } }
+  /* miring 3D mengikuti kursor + sedikit "melebar" seperti tetesan */
+  .vsf-satu .vsf-card:hover,
+  .vsf-kaca-hidup:hover {
+  transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry));
+  transition:
+    --mx 0.5s var(--pegas-lembut), --my 0.5s var(--pegas-lembut),
+    --rx 0.45s var(--pegas-lembut), --ry 0.45s var(--pegas-lembut),
+    translate 0.6s var(--pegas), scale 0.6s var(--pegas), box-shadow 0.4s ease, border-color 0.3s ease, background 0.4s ease;
+}
+  .vsf-satu .vsf-card:active,
+  .vsf-kaca-hidup:active { transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vsf-satu .vsf-card:hover,
+  .vsf-kaca-hidup:hover { transform: none; }
+  .vsf-satu .vsf-card:hover::before,
+  .vsf-kaca-hidup:hover::before { animation: none; }}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-satu .vsf-card { backdrop-filter: none; background: rgba(255, 255, 255, 0.96); }}
+  /* ── Stabilitas performa ── */
+  .vsf-muncul { will-change: auto; }
+  .vsf-latar { backface-visibility: hidden; }
+/* layar kecil/perangkat lemah: kurangi blur & matikan bola cair */
+@media (max-width: 640px) {
+  .vsf-satu .vsf-card,
+  .vsf-kaca { -webkit-backdrop-filter: blur(10px) ; backdrop-filter: blur(10px) ; }}
+  /* foto tim yang "keluar" dari kartu: melayang pelan, patuh Reduce Motion */
+  .vsf-keluar { animation: vsf-keluar 6s ease-in-out infinite; }
+@keyframes vsf-keluar { 0%, 100% { translate: 0 0; } 50% { translate: 0 -5px; } }
+@media (prefers-reduced-motion: reduce) {
+  .vsf-keluar { animation: none; }}
+  /* ══ Performa 60 fps ══
+   Biang lag: elemen kaca (backdrop-filter) menghitung ulang blur SETIAP frame bila apa pun di belakangnya bergerak.
+   Karena itu latar & bola cair dibuat statis; gerak dipindah ke elemen kecil di atas kaca (compositor-only). */
+  .vsf-latar { animation: none; will-change: auto; transform: none; }
+  .vsf-satu .vsf-card,
+  .vsf-kaca {
+  -webkit-backdrop-filter: blur(12px) brightness(1.08);
+  backdrop-filter: blur(12px) brightness(1.08);
+}
+  /* animasi tak berujung hanya pakai transform/opacity & dipromosikan ke layer sendiri */
+  .vsf-keluar { will-change: translate; animation-duration: 7s; }
+  .vsf-kedip { will-change: transform, opacity; }
+/* sorotan yang meluncur saat hover cukup sekali & hanya di perangkat dengan kursor */
+@media (hover: none) {
+  .vsf-satu .vsf-card:hover,
+  .vsf-kaca-hidup:hover { transform: none; translate: none; scale: none; }
+  .vsf-satu .vsf-card:hover::before,
+  .vsf-kaca-hidup:hover::before { animation: none; }}
+  /* ══ Responsif & halus ══ */
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+  body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; overscroll-behavior-y: none; }
+  /* tap tanpa jeda 300 ms & tanpa zoom ganda di semua kontrol */
+  a,
+  button,
+  [role='button'],
+  input,
+  select,
+  textarea,
+  summary,
+  [data-info-judul] { touch-action: manipulation; }
+  /* scroll lebih mulus untuk panel yang bisa digulir sendiri */
+  .overflow-auto,
+  .overflow-y-auto,
+  .overflow-x-auto { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  /* judul hero mengecil halus mengikuti lebar layar, tanpa lompatan breakpoint */
+  .vsf-satu h2 { font-size: clamp(1.25rem, 1.05rem + 1vw, 1.75rem); }
+  /* foto tim/ikon tidak boleh di-drag atau menyorot di ponsel */
+  img { -webkit-user-drag: none; }
+/* tampilan layar pendek (ponsel landscape): hero tidak memaksa tinggi layar penuh */
+@media (max-height: 520px) {
+  .vsf-satu > section:first-child { min-height: auto !important; }}
+  /* ══ Smooth saat menggulir ══ */
+  /* rim bergradasi memakai mask-composite per kartu → paint mahal; diganti garis tepi sederhana */
+  .vsf-satu .vsf-card { border-color: rgba(255, 255, 255, 0.7); contain: layout style; }
+  /* Muncul cepat: scroll kencang tidak boleh meninggalkan elemen transparan (tanpa jeda, tanpa geser jauh) */
+  .vsf-muncul {
+  translate: 0 10px;
+  scale: 1;
+  transition: opacity 0.28s ease-out, translate 0.28s ease-out, transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, background 0.3s ease;
+  transition-delay: 0s !important;
+}
+  .vsf-muncul.is-in { translate: 0 0; }
+  /* Kartu kaca statis: tanpa backdrop-filter permanen (puluhan layer blur membuat tile kosong saat scroll cepat,
+   terutama dari bawah ke atas). Blur kaca hanya menyala pada kartu yang sedang di-hover. */
+  .vsf-satu .vsf-card {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+@media (hover: hover) and (pointer: fine) {
+  .vsf-satu .vsf-card:hover {
+    -webkit-backdrop-filter: blur(var(--glass-blur-hover)) !important;
+    backdrop-filter: blur(var(--glass-blur-hover)) !important;
+  }}
+  /* foto tim: tanpa animasi melayang terus-menerus (lapisan komposit tetap = berat); efek hover tetap ada */
+  .vsf-keluar { animation: none !important; will-change: auto !important; }
+  /* ══ Bilah liquid glass (header & footer landing) ══
+   Bilah melayang membulat dengan blur asli. Hanya dua elemen ini yang memakai backdrop-filter
+   permanen, jadi biayanya kecil dibanding kaca di puluhan kartu (lihat catatan performa di atas). */
+  .vsf-bilah {
+  position: relative;
+  isolation: isolate;
+  border-radius: 22px;
+  color: #fff;
+  background: rgba(10, 31, 56, 0.42);
+  -webkit-backdrop-filter: blur(var(--glass-blur-bilah)) brightness(0.96);
+  backdrop-filter: blur(var(--glass-blur-bilah)) brightness(0.96);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 28px rgba(255, 255, 255, 0.07),
+    0 18px 40px -18px rgba(7, 21, 39, 0.7);
+  text-shadow: 0 1px 10px rgba(7, 21, 39, 0.45);
+}
+  .vsf-bilah-tautan {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 12px;
+  color: rgba(255, 255, 255, 0.86);
+  transition: background-color 150ms ease, color 150ms ease;
+}
+  .vsf-bilah-tautan:hover { background: rgba(255, 255, 255, 0.14); color: #fff; }
+  .vsf-bilah-tautan:focus-visible { outline: 2px solid var(--emas); outline-offset: 2px; }
+  .vsf-bilah-tombol {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 20px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--navy);
+  background: rgba(255, 255, 255, 0.92);
+  text-shadow: none;
+  box-shadow: inset 0 1px 0 #fff, 0 6px 16px -8px rgba(7, 21, 39, 0.6);
+  transition: transform 150ms ease, background-color 150ms ease;
+}
+  .vsf-bilah-tombol:hover { background: #fff; transform: translateY(-1px); }
+  .vsf-bilah-tombol:active { transform: scale(0.97); }
+  .vsf-bilah-tombol:focus-visible { outline: 2px solid var(--emas); outline-offset: 3px; }
+  .vsf-bilah-tombol-kaca {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  text-shadow: inherit;
+}
+  .vsf-bilah-tombol-kaca:hover { background: rgba(255, 255, 255, 0.22); }
+  .vsf-bilah-tombol-terang {
+  color: #fff;
+  background: linear-gradient(135deg, #4e7733, #42662b);
+  box-shadow: 0 8px 18px -10px rgba(78, 119, 51, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+  .vsf-bilah-tombol-terang:hover { background: linear-gradient(135deg, #55823a, #4a7230); }
+@media (max-width: 640px) {
+  .vsf-bilah { border-radius: 18px; -webkit-backdrop-filter: blur(16px) ; backdrop-filter: blur(16px) ; }}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-bilah { -webkit-backdrop-filter: none; backdrop-filter: none; background: #0a1f38; }
+}
+  .vsf-bilah-chip {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+  /* ============================================================
+   DESAIN v2 — token radius/durasi + permukaan glass dasar
+   (nilai material akhir: blok "Liquid Glass v5" di akhir berkas).
+   Blur dibatasi lewat .vsf-di-luar (kartu jauh di luar layar tanpa filter).
+   ============================================================ */
+  :root {
+  --rad-sm: 12px;
+  --rad-md: 20px;
+  --rad-lg: 28px;
+  --dur-cepat: 120ms;
+  --dur-normal: 220ms;
+  --dur-lambat: 380ms;
+  --ease-v2: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer components {
+  /* Lapisan latar tetap di belakang shell: warna palet saja, supaya glass punya sesuatu untuk dikaburkan. */
+  .app-latar {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    /* Foto pegunungan yang sama dengan halaman Tentang Kami; kerudung putih tipis menjaga teks tetap terbaca. */
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.1)),
+      #4b9bdc url('/bg-lanskap.jpg') center / cover no-repeat;
+  }
+  /* Chrome (material "regular"): rail, topbar, laci, footer. */
+  .glass-chrome {
+    background: linear-gradient(155deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.46));
+    -webkit-backdrop-filter: blur(var(--glass-blur-chrome)) brightness(1.06);
+    backdrop-filter: blur(var(--glass-blur-chrome)) brightness(1.06);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: var(--rad-lg);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      inset 1px 0 0 rgba(255, 255, 255, 0.4),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 0 30px rgba(255, 255, 255, 0.18),
+      0 16px 44px -16px rgba(40, 80, 130, 0.34);
+    color: var(--tinta);
+  }
+  /* Kartu/ringkasan kaca (material "clear"). */
+  .glass-card {
+    background: linear-gradient(155deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
+    backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 24px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      inset 1px 0 0 rgba(255, 255, 255, 0.4),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 0 28px rgba(255, 255, 255, 0.16),
+      0 12px 36px -14px rgba(40, 80, 130, 0.3);
+    color: var(--tinta);
+  }
+}
+
+/* Tanpa dukungan blur → chrome tetap terbaca. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-chrome { background: rgba(255, 255, 255, 0.94); }}
+
+/* Preferensi pengguna: kurangi transparansi / kontras tinggi → semuanya solid. */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .glass-chrome {
+    background: #f4f8fb;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-color: var(--garis);
+  }
+  .glass-card { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; border-color: var(--garis); }}
+
+/* Desain v2 — kartu/modal tetap terbaca bila pengguna meminta transparansi dikurangi. */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-card { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; border-color: var(--garis); }
+  .vsf-modal-backdrop { background: rgba(10, 31, 56, 0.7); -webkit-backdrop-filter: none; backdrop-filter: none; }}
+
+/* Desain v2 — tipografi bagian + ritme halaman (satu sumber untuk semua halaman). */
+@layer components {
+  /* Judul kartu/bagian: kalimat biasa, bukan huruf kapital berjarak. */
+  .vsf-judul-bagian {
+    font-family: theme('fontFamily.heading');
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.005em;
+    color: var(--tinta);
+  }
+  /* Label kecil di dalam kartu (nama metrik, kolom info). */
+  .vsf-label {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #475569;
+  }
+  /* Kerangka halaman: satu kolom, lebar maks 1180, jarak bagian 16 (HP) / 24 (desktop). */
+  .vsf-halaman {
+    @apply mx-auto grid w-full max-w-[1180px] grid-cols-[minmax(0,1fr)] gap-4 md:gap-6;
+  }}
+
+@layer components {
+  /* Hero halaman: kaca bening-buram dengan sorot emas (kanan atas) dan mint (kiri bawah). */
+  .glass-hero {
+    background:
+      radial-gradient(26rem 14rem at 100% 0%, rgba(233, 205, 83, 0.34), transparent 70%),
+      radial-gradient(30rem 16rem at 0% 100%, rgba(207, 226, 206, 0.4), transparent 70%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.26));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
+    backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 28px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      inset 1px 0 0 rgba(255, 255, 255, 0.4),
+      inset 0 0 36px rgba(255, 255, 255, 0.2),
+      0 18px 48px -20px rgba(40, 80, 130, 0.36);
+    color: var(--tinta);
+  }}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .glass-hero { background: #f1f6ef; -webkit-backdrop-filter: none; backdrop-filter: none; }}
+
+/* Target sentuh 44px untuk kolom isian di layar kecil. */
+@media (max-width: 639px) {
+  .vsf-input { min-height: 44px; }}
+/* ══ Desain v4 — nav pill, kartu KPI, grafik batang, progres (dashboard ala referensi, bahan liquid glass) ══ */
+.vsf-pillnav { display: flex; min-width: 0; justify-content: center; }
+.vsf-pillnav-track {
+  position: relative;
+  display: flex;
+  gap: 4px;
+  max-width: 100%;
+  width: max-content;
+  padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8), inset 0 1px 0 #fff;
+}
+.vsf-pillnav-track::-webkit-scrollbar { display: none; }
+.vsf-pillnav-pil {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: 0;
+  border-radius: 999px;
+  pointer-events: none;
+  background: linear-gradient(135deg, #4e7733, #42662b);
+  box-shadow: 0 8px 18px -10px rgba(78, 119, 51, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.42s var(--ease-v2), width 0.42s var(--ease-v2), opacity 0.2s ease;
+}
+.vsf-pillnav-item {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tinta);
+  opacity: 0.78;
+  transition: color 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
+}
+.vsf-pillnav-item:hover { opacity: 1; background: rgba(255, 255, 255, 0.55); }
+.vsf-pillnav-item.is-aktif,
+.vsf-pillnav-item.is-aktif:hover { color: #fff; opacity: 1; background: transparent; }
+
+/* Kartu KPI: kaca biasa, atau disorot hijau / emas */
+.vsf-kpi {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 0 28px rgba(255, 255, 255, 0.14),
+    0 12px 36px -14px rgba(40, 80, 130, 0.3);
+  transition: transform var(--dur-normal) var(--ease-v2), box-shadow var(--dur-normal) var(--ease-v2);
+}
+.vsf-kpi:hover { transform: translateY(-3px); }
+.vsf-kpi-kaca {
+  color: var(--tinta);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
+  backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
+}
+.vsf-kpi-kaca .vsf-kpi-ikon { background: rgba(107, 157, 74, 0.16); color: #2d452f; }
+.vsf-kpi-hijau {
+  color: #fff;
+  background:
+    radial-gradient(14rem 8rem at 100% 0%, rgba(233, 205, 83, 0.38), transparent 70%),
+    linear-gradient(145deg, rgba(107, 157, 74, 0.92), rgba(45, 69, 47, 0.9));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) ;
+  backdrop-filter: blur(var(--glass-blur)) ;
+}
+.vsf-kpi-hijau .vsf-kpi-ikon { background: rgba(255, 255, 255, 0.22); color: #fff; }
+.vsf-kpi-emas {
+  color: #2a2208;
+  background:
+    radial-gradient(14rem 8rem at 0% 100%, rgba(255, 255, 255, 0.42), transparent 70%),
+    linear-gradient(145deg, rgba(240, 214, 96, 0.95), rgba(214, 168, 40, 0.9));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) ;
+  backdrop-filter: blur(var(--glass-blur)) ;
+}
+.vsf-kpi-emas .vsf-kpi-ikon { background: rgba(255, 255, 255, 0.4); color: #2a2208; }
+
+/* Grafik batang tumbuh dari bawah */
+@keyframes vsf-batang-tumbuh { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.vsf-batang {
+  transform-origin: bottom;
+  animation: vsf-batang-tumbuh 0.6s var(--ease-v2) backwards;
+  background: linear-gradient(180deg, #4c6a4b, #2d452f);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: filter 0.2s ease;
+}
+.vsf-batang:hover { filter: brightness(1.2); }
+.vsf-batang-sorot { background: linear-gradient(180deg, #f0d660, #6b9d4a); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 8px 18px -8px rgba(107, 157, 74, 0.8); }
+
+/* Progres tahap */
+@keyframes vsf-progres-isi { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.vsf-progres { transform-origin: left; animation: vsf-progres-isi 0.7s var(--ease-v2) backwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vsf-pillnav-pil,
+  .vsf-kpi,
+  .vsf-batang,
+  .vsf-progres { animation: none; transition: none; }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-kpi-kaca { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .vsf-pillnav-track { background: #fff; }
+}
+
+/* ══ Kilau spekular liquid glass: titik terang mengikuti kursor (--mx/--my diisi AppShell) ══ */
+@property --sheen { syntax: '<number>'; inherits: false; initial-value: 0; }
+.vsf-card {
+  background:
+    radial-gradient(260px circle at var(--mx) var(--my), rgba(255, 255, 255, var(--sheen)), transparent 70%),
+    linear-gradient(155deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
+  transition: transform var(--dur-normal) var(--ease-v2), border-color var(--dur-normal) ease, box-shadow var(--dur-normal) ease, --sheen 0.35s ease;
+}
+.vsf-kpi-kaca {
+  background:
+    radial-gradient(240px circle at var(--mx) var(--my), rgba(255, 255, 255, var(--sheen)), transparent 70%),
+    linear-gradient(155deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.5));
+  transition: transform var(--dur-normal) var(--ease-v2), box-shadow var(--dur-normal) var(--ease-v2), --sheen 0.35s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .vsf-card:hover,
+  .vsf-kpi-kaca:hover { --sheen: 0.6; }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-card,
+  .vsf-kpi-kaca { background: #fff; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vsf-card,
+  .vsf-kpi-kaca { transition: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Liquid Glass v5 — satu sistem material (acuan: liquid-glass.md)
+   • regular = chrome (rail, topbar, laci, footer, modal): tint lebih tinggi.
+   • clear   = kartu/hero/KPI di atas foto: bening-buram (tint tipis + blur sedang), teks tetap ≥4.5:1.
+   • Rim terarah putih (terang kiri-atas, redup kanan-bawah); tanpa pendar warna dan tanpa saturate (tidak menguatkan biru foto).
+   • Tanpa kaca di atas kaca: tombol/input/blok dalam kartu = tint + rim, tanpa blur.
+   • --k menskalakan alpha (html[data-kaca]: jernih .72 · standar 1 · pekat 1.3).
+   Blok ini sengaja di akhir: menang atas definisi lama di atas.
+   ══════════════════════════════════════════════════════════════════════════ */
+@property --lg-naik { syntax: '<number>'; inherits: true; initial-value: 0; }
+:root {
+  --k: 1;
+  --lg-clr-a: min(1, calc(0.5 * var(--k)));
+  --lg-clr-b: min(1, calc(0.32 * var(--k)));
+  --lg-blur-kpi: 16px;
+  /* rim terarah putih (tanpa pendar warna) + glow dalam */
+  --lg-rim:
+    inset 1.5px 1.5px 0 -0.5px rgb(255 255 255 / 0.95),
+    inset -1px -1px 0 -0.5px rgb(255 255 255 / 0.4),
+    inset 0 0 0 1px rgb(255 255 255 / 0.14),
+    inset 0 0 26px rgb(255 255 255 / 0.15);
+  --lg-rim-kecil:
+    inset 1px 1px 0 -0.5px rgb(255 255 255 / 0.9),
+    inset -1px -1px 0 -0.5px rgb(255 255 255 / 0.35),
+    inset 0 0 0 1px rgb(255 255 255 / 0.18);
+  --lg-drop-chrome: 0 1px 2px rgb(20 30 40 / 0.08), 0 18px 46px -16px rgb(20 30 40 / 0.38);
+  --lg-drop-kartu: 0 1px 2px rgb(20 30 40 / 0.06), 0 12px 36px -14px rgb(20 30 40 / 0.3);
+  --lg-spec: radial-gradient(130% 70% at 14% 0%, rgb(255 255 255 / 0.5), transparent 60%);
+}
+html[data-kaca='jernih'] { --k: 0.72; }
+html[data-kaca='pekat'] { --k: 1.3; }
+
+/* ── regular: chrome ── */
+.glass-chrome {
+  /* dihitung per elemen (bukan di :root) supaya --lg-naik dari scroll edge ikut terbaca */
+  --lg-reg-a: min(1, calc((0.56 + 0.2 * var(--lg-naik)) * var(--k)));
+  --lg-reg-b: min(1, calc((0.36 + 0.16 * var(--lg-naik)) * var(--k)));
+  background:
+    radial-gradient(240px circle at var(--mx) var(--my), rgb(255 255 255 / var(--sheen)), transparent 70%),
+    var(--lg-spec),
+    linear-gradient(155deg, rgb(255 255 255 / var(--lg-reg-a)), rgb(255 255 255 / var(--lg-reg-b)));
+  -webkit-backdrop-filter: blur(var(--glass-blur-chrome)) brightness(1.06);
+  backdrop-filter: blur(var(--glass-blur-chrome)) brightness(1.06);
+  border: 1px solid rgb(255 255 255 / 0.3);
+  box-shadow: var(--lg-rim), var(--lg-drop-chrome);
+  transition: --lg-naik 0.3s ease, --sheen 0.35s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .glass-chrome:hover { --sheen: 0.4; }
+}
+
+/* ── clear: kartu, ringkasan, KPI kaca ── */
+.vsf-card,
+.glass-card,
+.vsf-kpi-kaca {
+  background:
+    radial-gradient(260px circle at var(--mx) var(--my), rgb(255 255 255 / var(--sheen)), transparent 70%),
+    var(--lg-spec),
+    linear-gradient(155deg, rgb(255 255 255 / var(--lg-clr-a)), rgb(255 255 255 / var(--lg-clr-b)));
+  border: 1px solid rgb(255 255 255 / 0.32);
+  box-shadow: var(--lg-rim), var(--lg-drop-kartu);
+}
+.glass-card {
+  -webkit-backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
+  backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
+  transition: border-color var(--dur-normal) ease, box-shadow var(--dur-normal) ease, --sheen 0.35s ease;
+}
+.vsf-card:hover {
+  border-color: rgb(107 157 74 / 0.45);
+  box-shadow: var(--lg-rim), var(--shadow-soft), 0 12px 26px -20px rgb(45 69 47 / 0.45);
+}
+.vsf-kpi-kaca,
+.vsf-kpi-hijau,
+.vsf-kpi-emas {
+  -webkit-backdrop-filter: blur(var(--lg-blur-kpi)) brightness(1.05);
+  backdrop-filter: blur(var(--lg-blur-kpi)) brightness(1.05);
+}
+.vsf-kpi { border-color: rgb(255 255 255 / 0.34); box-shadow: var(--lg-rim), var(--lg-drop-kartu); }
+.glass-hero {
+  border-color: rgb(255 255 255 / 0.36);
+  box-shadow: var(--lg-rim), 0 18px 48px -20px rgb(20 30 40 / 0.36);
+}
+@media (hover: hover) and (pointer: fine) {
+  .glass-card:hover { --sheen: 0.5; }
+}
+
+/* ── scroll edge: topbar makin pekat + tepi atas konten memudar saat halaman digulir ── */
+.vsf-topbar > .glass-chrome { transition: --lg-naik 0.3s ease, --sheen 0.35s ease; }
+.vsf-topbar[data-menggulung] > .glass-chrome { --lg-naik: 1; }
+.vsf-topbar::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 -26px 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  -webkit-mask-image: linear-gradient(#000 45%, transparent);
+  mask-image: linear-gradient(#000 45%, transparent);
+}
+.vsf-topbar[data-menggulung]::before { opacity: 1; }
+
+/* ── hemat biaya: kartu jauh di luar layar tanpa filter (diberi kelas oleh lib/kaca.ts) ── */
+.vsf-di-luar {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* ── kontrol sebahasa (tint + rim, TANPA blur sendiri: bukan kaca di atas kaca) ── */
+.vsf-btn-secondary {
+  color: var(--ar-forest, #2d452f);
+  background:
+    var(--lg-spec),
+    linear-gradient(155deg, rgb(255 255 255 / 0.74), rgb(255 255 255 / 0.46));
+  border-color: rgb(255 255 255 / 0.7);
+  box-shadow: var(--lg-rim-kecil), 0 6px 16px -10px rgb(20 30 40 / 0.35);
+}
+.vsf-btn-secondary:hover:not(:disabled) {
+  background:
+    var(--lg-spec),
+    linear-gradient(155deg, rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.62));
+  border-color: rgb(107 157 74 / 0.7);
+}
+.vsf-btn-primary {
+  background:
+    radial-gradient(120% 90% at 18% 0%, rgb(255 255 255 / 0.32), transparent 55%),
+    linear-gradient(145deg, rgb(107 157 74 / 0.96), rgb(45 69 47 / 0.94));
+  box-shadow: var(--lg-rim-kecil), 0 10px 22px -12px rgb(45 69 47 / 0.75);
+}
+.vsf-btn-primary:active:not(:disabled),
+.vsf-btn-secondary:active:not(:disabled),
+.vsf-btn-danger:active:not(:disabled) { transform: translateY(0) scale(0.97); }
+.vsf-input {
+  background-color: rgb(255 255 255 / 0.8);
+  border-color: rgb(215 224 210 / 0.9);
+  box-shadow: inset 0 1px 2px rgb(20 30 40 / 0.08), inset 0 0 0 1px rgb(255 255 255 / 0.6);
+}
+.vsf-input:focus { background-color: rgb(255 255 255 / 0.94); box-shadow: 0 0 0 3px rgb(107 157 74 / 0.22); }
+.vsf-input:disabled { background-color: rgb(241 245 249 / 0.8); }
+.vsf-pillnav-track {
+  background: rgb(255 255 255 / 0.4);
+  box-shadow: var(--lg-rim-kecil), inset 0 0 14px rgb(255 255 255 / 0.25);
+}
+.vsf-pillnav-item:active { transform: scale(0.96); }
+
+/* ── modal: kaca pekat satu lapis (di atas backdrop yang sudah diburamkan) ── */
+.vsf-modal-card {
+  background:
+    var(--lg-spec),
+    linear-gradient(155deg, rgb(255 255 255 / min(1, calc(0.94 * var(--k)))), rgb(255 255 255 / min(1, calc(0.86 * var(--k)))));
+  -webkit-backdrop-filter: blur(24px) ;
+  backdrop-filter: blur(24px) ;
+  border: 1px solid rgb(255 255 255 / 0.6);
+  box-shadow: var(--lg-rim), 0 0 0 6px rgb(255 255 255 / 0.22), 0 28px 64px -22px rgb(10 31 56 / 0.55);
+}
+
+/* ── tanpa dukungan blur ── */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-chrome,
+  .vsf-modal-card { background: rgb(255 255 255 / 0.95); }
+  .vsf-card,
+  .glass-card,
+  .vsf-kpi-kaca { background: rgb(255 255 255 / 0.9); }
+  .vsf-topbar::before { display: none; }
+}
+
+/* ── transparansi dikurangi / kontras tinggi: semua jadi solid (menang atas v5 di atas) ── */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .glass-chrome {
+    background: #f4f8fb;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-color: var(--garis);
+  }
+  .vsf-card,
+  .glass-card,
+  .vsf-kpi-kaca,
+  .vsf-modal-card {
+    background: #fff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-color: var(--garis);
+  }
+  .glass-hero { background: #f1f6ef; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .vsf-kpi-hijau { background: #3d6b2f; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .vsf-kpi-emas { background: #e3c24a; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .vsf-btn-secondary { background: #fff; border-color: var(--moss); }
+  .vsf-btn-primary { background: linear-gradient(145deg, #4e7733, #2d452f); }
+  .vsf-input { background-color: #fff; }
+  .vsf-topbar::before { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glass-chrome,
+  .glass-card,
+  .vsf-topbar > .glass-chrome,
+  .vsf-topbar::before { transition: none; }
+}
+
+/* Kontras teks di atas kaca: slate-400/500/600 bawaan Tailwind (#94a3b8/#64748b/#475569) dan text-abu (#4f6075) diukur
+   2.3–4.4:1 di atas foto (target 4.5:1). Digelapkan hanya di dalam permukaan kaca; di luar kaca tidak berubah.
+   Ancestor lewat :where() (spesifisitas 0) + kelas utilitas (0,1,0) = sama dengan utilitas Tailwind, menang karena urutan. */
+:where(.vsf-card, .glass-card, .glass-hero, .vsf-kpi-kaca, .glass-chrome, .vsf-kaca:not(.vsf-kaca-gelap)) .text-slate-400,
+:where(.vsf-card, .glass-card, .glass-hero, .vsf-kpi-kaca, .glass-chrome, .vsf-kaca:not(.vsf-kaca-gelap)) .text-slate-500,
+:where(.vsf-card, .glass-card, .glass-hero, .vsf-kpi-kaca, .glass-chrome, .vsf-kaca:not(.vsf-kaca-gelap)) .text-abu { color: #1f2d42; }
+:where(.vsf-card, .glass-card, .glass-hero, .vsf-kpi-kaca, .glass-chrome, .vsf-kaca:not(.vsf-kaca-gelap)) .text-slate-600,
+:where(.vsf-card, .glass-card, .glass-hero, .vsf-kpi-kaca, .glass-chrome, .vsf-kaca:not(.vsf-kaca-gelap)) .text-slate-700,
+:where(.vsf-card, .glass-card, .glass-hero, .vsf-kpi-kaca, .glass-chrome, .vsf-kaca:not(.vsf-kaca-gelap)) .vsf-label { color: #1a2740; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Liquid Glass v7 — halaman landing (Login, Tentang) memakai material yang sama dengan app
+   Material = token v5 (--lg-rim / --lg-spec / --lg-drop-*), bukan lagi rim bergradasi ::after lama.
+   • .vsf-kaca        = kaca terang ("regular") — kartu login, kartu Tentang
+   • .vsf-kaca-gelap  = kaca navy ("regular" di atas foto gelap) — teks putih
+   • .vsf-bilah       = bilah melayang (header/footer landing), navy
+   Blur sengaja tetap sedang: kartu Tentang puluhan (lihat catatan performa di atas).
+   ══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --lg-rim-gelap:
+    inset 1.5px 1.5px 0 -0.5px rgb(255 255 255 / 0.55),
+    inset -1px -1px 0 -0.5px rgb(255 255 255 / 0.18),
+    inset 0 0 0 1px rgb(255 255 255 / 0.12),
+    inset 4px 4px 14px -9px rgb(255 255 255 / 0.35);
+  --lg-drop-landing: 0 2px 6px rgb(7 21 39 / 0.14), 0 24px 56px -22px rgb(7 21 39 / 0.55);
+}
+
+.vsf-satu .vsf-card,
+.vsf-kaca {
+  background:
+    var(--lg-spec),
+    linear-gradient(145deg, rgb(255 255 255 / min(1, calc(0.7 * var(--k)))), rgb(255 255 255 / min(1, calc(0.5 * var(--k)))));
+  border: 1px solid rgb(255 255 255 / 0.4);
+  box-shadow: var(--lg-rim), var(--lg-drop-landing);
+}
+/* kartu Tentang: tanpa blur permanen (puluhan kartu) → tint lebih pekat; kilau + rim sama dengan kartu app */
+.vsf-satu .vsf-card {
+  background:
+    var(--lg-spec),
+    linear-gradient(145deg, rgb(255 255 255 / min(1, calc(0.8 * var(--k)))), rgb(255 255 255 / min(1, calc(0.64 * var(--k))))) !important;
+}
+.vsf-satu .vsf-card:hover,
+.vsf-kaca-hidup:hover {
+  border-color: rgb(255 255 255 / 0.7);
+  box-shadow: var(--lg-rim), 0 3px 8px rgb(7 21 39 / 0.16), 0 32px 64px -24px rgb(7 21 39 / 0.6);
+}
+
+.vsf-kaca-gelap {
+  background:
+    radial-gradient(130% 70% at 14% 0%, rgb(255 255 255 / 0.16), transparent 60%),
+    linear-gradient(145deg, rgb(10 31 56 / min(1, calc(0.6 * var(--k)))), rgb(10 31 56 / min(1, calc(0.34 * var(--k))))) !important;
+  border-color: rgb(255 255 255 / 0.26) !important;
+  box-shadow: var(--lg-rim-gelap), var(--lg-drop-landing) !important;
+  color: #fff;
+}
+
+.vsf-bilah {
+  background:
+    radial-gradient(130% 120% at 14% -30%, rgb(255 255 255 / 0.3), transparent 60%),
+    linear-gradient(145deg, rgb(10 31 56 / min(1, calc(0.5 * var(--k)))), rgb(10 31 56 / min(1, calc(0.32 * var(--k)))));
+  border-color: rgb(255 255 255 / 0.26);
+  box-shadow: var(--lg-rim-gelap), 0 18px 40px -18px rgb(7 21 39 / 0.7);
+}
+.vsf-bilah-chip,
+.vsf-bilah-tombol-kaca {
+  background: rgb(255 255 255 / 0.12);
+  box-shadow: var(--lg-rim-kecil);
+}
+.vsf-bilah-tombol-kaca:hover { background: rgb(255 255 255 / 0.22); }
+.vsf-bilah-tombol-terang {
+  background:
+    radial-gradient(120% 90% at 18% 0%, rgb(255 255 255 / 0.3), transparent 55%),
+    linear-gradient(145deg, rgb(107 157 74 / 0.96), rgb(45 69 47 / 0.94));
+  box-shadow: var(--lg-rim-kecil), 0 10px 22px -12px rgb(45 69 47 / 0.75);
+}
+
+/* kontrol di dalam kartu Login: sama dengan kontrol app */
+.vsf-kaca .vsf-input { background-color: rgb(255 255 255 / 0.82); }
+.vsf-kaca .vsf-btn-primary { box-shadow: var(--lg-rim-kecil), 0 10px 22px -12px rgb(45 69 47 / 0.75); }
+
+/* kontras: label kecil abu di atas kaca terang landing */
+.vsf-kaca:not(.vsf-kaca-gelap) :where(.text-slate-500, .text-slate-600, .text-abu) { color: #3a485c; }
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-kaca-gelap { background: #0a1f38 !important; box-shadow: none !important; }
+  .vsf-bilah { background: #0a1f38; box-shadow: none; }
+  .vsf-kaca,
+  .vsf-satu .vsf-card { background: rgb(255 255 255 / 0.97); box-shadow: 0 1px 3px rgb(7 21 39 / 0.2); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Sensor Real-Time — kontrol segmen, kartu nilai, grafik, riwayat berbentuk kartu.
+   Hanya kartu panel (.vsf-card) dan kartu nilai (.vsf-kpi-kaca) yang punya blur;
+   segmen, kartu baris, chip, dan tooltip = tint + rim tanpa blur sendiri.
+   ══════════════════════════════════════════════════════════════════════════ */
+.vsf-segmen {
+  display: inline-flex;
+  max-width: 100%;
+  gap: 2px;
+  padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.4);
+  box-shadow: var(--lg-rim-kecil), inset 0 0 14px rgb(255 255 255 / 0.25);
+}
+.vsf-segmen::-webkit-scrollbar { display: none; }
+.vsf-segmen button {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--tinta);
+  transition: background-color 150ms ease, color 150ms ease, transform 150ms ease;
+}
+.vsf-segmen button:hover { background: rgb(255 255 255 / 0.6); }
+.vsf-segmen button:active { transform: scale(0.96); }
+.vsf-segmen button:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
+.vsf-segmen button[aria-checked='true'] {
+  color: #fff;
+  background: linear-gradient(135deg, #4e7733, #42662b);
+  box-shadow: var(--lg-rim-kecil), 0 6px 14px -8px rgb(45 69 47 / 0.8);
+}
+
+.vsf-nilai {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 14px 16px;
+  border-radius: 20px;
+  text-align: left;
+  cursor: pointer;
+}
+.vsf-nilai:focus-visible { outline: 2px solid var(--moss); outline-offset: 3px; }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .vsf-nilai:hover { transform: translateY(-2px); }
+}
+.vsf-nilai.is-aktif {
+  border-color: rgb(78 119 51 / 0.85);
+  box-shadow: var(--lg-rim), 0 0 0 2px rgb(107 157 74 / 0.55), var(--lg-drop-kartu);
+}
+
+.vsf-chip-nilai {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 1px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.vsf-chip-nilai.is-normal { background: rgb(207 226 206 / 0.8); color: #24391f; }
+.vsf-chip-nilai.is-luar { background: rgb(254 243 199 / 0.96); color: #7c2d12; }
+.vsf-chip-nilai.is-kosong { background: rgb(226 232 240 / 0.85); color: #334155; }
+
+.vsf-chip-info {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.55);
+  box-shadow: var(--lg-rim-kecil);
+}
+
+.vsf-grafik-wrap { position: relative; }
+.vsf-tip {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--tinta);
+  pointer-events: none;
+  transform: translateX(-50%);
+  background: linear-gradient(155deg, rgb(255 255 255 / 0.95), rgb(255 255 255 / 0.82));
+  box-shadow: var(--lg-rim-kecil), 0 8px 20px -10px rgb(20 30 40 / 0.45);
+}
+
+.vsf-riwayat { display: flex; flex-direction: column; gap: 8px; }
+.vsf-riwayat-kepala { display: none; }
+.vsf-baris {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgb(255 255 255 / 0.55);
+  background: linear-gradient(155deg, rgb(255 255 255 / 0.66), rgb(255 255 255 / 0.46));
+  box-shadow: var(--lg-rim-kecil);
+  transition: background-color 150ms ease;
+}
+.vsf-baris:hover { background: linear-gradient(155deg, rgb(255 255 255 / 0.82), rgb(255 255 255 / 0.6)); }
+.vsf-baris-waktu { grid-column: 1 / -1; font-size: 13px; }
+.vsf-baris-sel { display: flex; min-width: 0; flex-direction: column; gap: 1px; font-size: 13px; }
+.vsf-baris-label { font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #3a485c; }
+@media (min-width: 640px) {
+  .vsf-riwayat {
+    max-height: min(68vh, 620px);
+    overflow-y: auto;
+    padding: 0 4px 4px 0;
+    overscroll-behavior: contain;
+  }
+  .vsf-riwayat-kepala,
+  .vsf-baris {
+    display: grid;
+    grid-template-columns: minmax(130px, 1.5fr) repeat(5, minmax(0, 1fr));
+    align-items: center;
+    column-gap: 8px;
+  }
+  .vsf-riwayat-kepala {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 6px 14px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #2b3c50;
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.92), rgb(255 255 255 / 0.78));
+    box-shadow: var(--lg-rim-kecil), 0 6px 14px -10px rgb(20 30 40 / 0.4);
+  }
+  .vsf-baris-waktu { grid-column: auto; }
+  .vsf-baris-sel { align-items: flex-end; text-align: right; }
+  .vsf-baris-label { display: none; }
+}
+.vsf-urut {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 36px;
+  padding: 0 6px;
+  border-radius: 8px;
+  font: inherit;
+  color: inherit;
+}
+.vsf-urut:hover { background: rgb(255 255 255 / 0.7); }
+.vsf-urut:focus-visible { outline: 2px solid var(--moss); outline-offset: 1px; }
+
+.vsf-nilai-sel { color: var(--tinta); }
+.vsf-nilai-sel.is-luar { color: #9b1c1c; font-weight: 700; }
+.vsf-tidak-dikirim { font-size: 12px; font-style: italic; color: #566478; }
+.vsf-lencana-luar {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.7;
+  color: #9b1c1c;
+  background: rgb(254 226 226 / 0.95);
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-segmen,
+  .vsf-baris,
+  .vsf-riwayat-kepala,
+  .vsf-chip-info,
+  .vsf-tip { background: #fff; box-shadow: 0 1px 3px rgb(7 21 39 / 0.2); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Kebun Saya — kartu batch, bar progres, pilihan tanaman, stepper, ringkasan form.
+   Semua blok di dalam .vsf-card atau modal = tint + rim, tanpa blur sendiri.
+   ══════════════════════════════════════════════════════════════════════════ */
+.vsf-stat {
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgb(255 255 255 / 0.55);
+  background: linear-gradient(155deg, rgb(255 255 255 / 0.62), rgb(255 255 255 / 0.42));
+  box-shadow: var(--lg-rim-kecil);
+}
+
+.vsf-batch {
+  min-width: 0;
+  border-radius: 20px;
+  border: 1px solid rgb(255 255 255 / 0.55);
+  background: linear-gradient(155deg, rgb(255 255 255 / 0.66), rgb(255 255 255 / 0.46));
+  box-shadow: var(--lg-rim-kecil);
+  transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+.vsf-batch:hover { background: linear-gradient(155deg, rgb(255 255 255 / 0.82), rgb(255 255 255 / 0.6)); }
+.vsf-batch.is-siap { border-color: rgb(212 168 29 / 0.7); box-shadow: var(--lg-rim-kecil), 0 0 0 1px rgb(233 205 83 / 0.55); }
+
+.vsf-chip-nilai.is-siap { background: rgb(253 240 184 / 0.98); color: #5b4506; }
+
+.vsf-bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(30 45 61 / 0.12);
+}
+.vsf-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #6b9d4a, #3f6b2f);
+  transition: width 400ms ease;
+}
+.vsf-bar > span.is-siap { background: linear-gradient(90deg, #e9cd53, #c99a14); }
+
+.vsf-siap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #5b4506;
+  background: rgb(253 240 184 / 0.9);
+}
+
+.vsf-pilih-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 8px;
+  max-height: 188px;
+  overflow-y: auto;
+}
+.vsf-pilih {
+  display: flex;
+  min-height: 56px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  text-align: left;
+  color: var(--tinta);
+  border: 1px solid rgb(30 45 61 / 0.14);
+  background: linear-gradient(155deg, rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.7));
+  box-shadow: var(--lg-rim-kecil);
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+.vsf-pilih b { font-size: 14px; }
+.vsf-pilih small { font-size: 12px; color: #3a485c; }
+.vsf-pilih:hover { border-color: rgb(107 157 74 / 0.7); }
+.vsf-pilih:active { transform: scale(0.97); }
+.vsf-pilih:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
+.vsf-pilih[aria-checked='true'] {
+  border-color: #4e7733;
+  background: linear-gradient(155deg, rgb(207 226 206 / 0.95), rgb(255 255 255 / 0.85));
+  box-shadow: var(--lg-rim-kecil), 0 0 0 2px rgb(107 157 74 / 0.55);
+}
+
+.vsf-stepper {
+  display: inline-flex;
+  align-items: stretch;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgb(215 224 210 / 0.9);
+  background: rgb(255 255 255 / 0.85);
+}
+.vsf-stepper button {
+  width: 48px;
+  min-height: 44px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ar-forest, #2d452f);
+  transition: background-color 150ms ease;
+}
+.vsf-stepper button:hover:not(:disabled) { background: rgb(207 226 206 / 0.7); }
+.vsf-stepper button:disabled { opacity: 0.4; cursor: not-allowed; }
+.vsf-stepper button:focus-visible { outline: 2px solid var(--moss); outline-offset: -2px; }
+.vsf-stepper input {
+  width: 88px;
+  border: 0;
+  border-inline: 1px solid rgb(215 224 210 / 0.9);
+  background: transparent;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--tinta);
+  outline: none;
+}
+.vsf-stepper input:focus { background: rgb(255 255 255 / 0.95); }
+
+.vsf-ringkasan-form {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #24391f;
+  background: rgb(207 226 206 / 0.7);
+  box-shadow: var(--lg-rim-kecil);
+}
+.vsf-ringkasan-form svg { margin-top: 2px; }
+.vsf-ringkasan-form.is-kosong { font-weight: 500; color: #3a485c; background: rgb(226 232 240 / 0.7); }
+
+.vsf-suffix {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  font-weight: 600;
+  color: #3a485c;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-stat,
+  .vsf-batch { background: #fff; box-shadow: 0 1px 3px rgb(7 21 39 / 0.2); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Water Control — kartu penampung, riwayat perintah, blok kontrol.
+   Semua blok di dalam .vsf-card = tint + rim, tanpa blur sendiri.
+   ══════════════════════════════════════════════════════════════════════════ */
+.vsf-penampung {
+  min-width: 0;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgb(255 255 255 / 0.55);
+  background: linear-gradient(155deg, rgb(255 255 255 / 0.66), rgb(255 255 255 / 0.46));
+  box-shadow: var(--lg-rim-kecil);
+  transition: background-color 150ms ease;
+}
+.vsf-penampung:hover { background: linear-gradient(155deg, rgb(255 255 255 / 0.82), rgb(255 255 255 / 0.6)); }
+.vsf-penampung.is-lock {
+  border-color: rgb(192 57 43 / 0.55);
+  background: linear-gradient(155deg, rgb(254 226 226 / 0.85), rgb(255 255 255 / 0.55));
+}
+.vsf-penampung-angka {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.vsf-penampung-angka > div {
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.5);
+  box-shadow: var(--lg-rim-kecil);
+}
+.vsf-penampung-angka dt { font-size: 11px; font-weight: 600; color: #3a485c; }
+.vsf-penampung-angka dd { margin-top: 1px; font-size: 14px; font-weight: 700; color: var(--tinta); }
+
+.vsf-blok {
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgb(255 255 255 / 0.55);
+  background: linear-gradient(155deg, rgb(255 255 255 / 0.62), rgb(255 255 255 / 0.42));
+  box-shadow: var(--lg-rim-kecil);
+}
+
+.vsf-riwayat-air { display: flex; flex-direction: column; gap: 8px; }
+.vsf-riwayat-air-kepala { display: none; }
+.vsf-riwayat-air-baris {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgb(255 255 255 / 0.55);
+  background: linear-gradient(155deg, rgb(255 255 255 / 0.66), rgb(255 255 255 / 0.46));
+  box-shadow: var(--lg-rim-kecil);
+  font-size: 13px;
+}
+.vsf-riwayat-air-baris:hover { background: linear-gradient(155deg, rgb(255 255 255 / 0.82), rgb(255 255 255 / 0.6)); }
+.vsf-riwayat-air-baris > .sel-hasil { grid-column: 1 / -1; }
+@media (min-width: 640px) {
+  .vsf-riwayat-air-kepala,
+  .vsf-riwayat-air-baris {
+    display: grid;
+    grid-template-columns: minmax(150px, 1.3fr) minmax(110px, 1fr) minmax(90px, 0.8fr) minmax(0, 2fr);
+    column-gap: 12px;
+  }
+  .vsf-riwayat-air-baris > .sel-hasil { grid-column: auto; }
+  .vsf-riwayat-air-kepala {
+    padding: 6px 14px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #2b3c50;
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.92), rgb(255 255 255 / 0.78));
+    box-shadow: var(--lg-rim-kecil), 0 6px 14px -10px rgb(20 30 40 / 0.4);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-penampung,
+  .vsf-blok,
+  .vsf-riwayat-air-baris { background: #fff; box-shadow: 0 1px 3px rgb(7 21 39 / 0.2); }
+  .vsf-penampung.is-lock { background: #fef2f2; }
+  .vsf-penampung-angka > div { background: #f1f5f9; box-shadow: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Dosing Otomatis — deretan kartu parameter/fail-safe/jadwal/preset/target.
+   Kolom desktop lewat variabel --kolom (di-set per panel); HP = satu kartu per baris.
+   Kartu baris = tint + rim tanpa blur sendiri.
+   ══════════════════════════════════════════════════════════════════════════ */
+.vsf-daftar { display: flex; flex-direction: column; gap: 8px; }
+.vsf-param {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgb(255 255 255 / 0.55);
+  background: linear-gradient(155deg, rgb(255 255 255 / 0.66), rgb(255 255 255 / 0.46));
+  box-shadow: var(--lg-rim-kecil);
+  transition: background-color 150ms ease;
+}
+.vsf-param:hover { background: linear-gradient(155deg, rgb(255 255 255 / 0.82), rgb(255 255 255 / 0.6)); }
+.vsf-param.is-kosong { border-color: rgb(212 168 29 / 0.55); }
+.vsf-param.is-mati { opacity: 0.75; }
+.vsf-param-sel { min-width: 0; font-size: 13px; line-height: 1.45; color: var(--tinta); }
+.vsf-param-label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #3a485c; }
+.vsf-param-kode { display: block; font-size: 11.5px; color: #3a485c; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.vsf-param-nilai { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--tinta); }
+.vsf-param-nilai small { margin-left: 4px; font-size: 12px; font-weight: 500; color: #3a485c; }
+@media (min-width: 768px) {
+  .vsf-param {
+    display: grid;
+    grid-template-columns: var(--kolom);
+    align-items: center;
+    column-gap: 14px;
+  }
+}
+.vsf-grup {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 14px 2px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #2b3c50;
+}
+.vsf-grup:first-child { margin-top: 0; }
+.vsf-grup span { font-weight: 600; letter-spacing: 0; text-transform: none; color: #3a485c; }
+.vsf-cari { position: relative; flex: 1 1 220px; max-width: 340px; }
+.vsf-cari > svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #3a485c; }
+.vsf-cari .vsf-input { width: 100%; padding-left: 38px; border-radius: 999px; }
+
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-param { background: #fff; box-shadow: 0 1px 3px rgb(7 21 39 / 0.2); }
+}
+.vsf-batch.is-lock { border-color: rgb(220 38 38 / 0.45); background: linear-gradient(155deg, rgb(254 226 226 / 0.7), rgb(255 255 255 / 0.46)); }
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-batch.is-lock { background: #fef2f2; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Kalibrasi Alat — tile ringkasan yang bisa diklik, chip bacaan, blok detail.
+   Memakai .vsf-stat / .vsf-batch yang sudah ada; di dalam kartu kaca = tint tanpa blur.
+   ══════════════════════════════════════════════════════════════════════════ */
+button.vsf-stat { text-align: left; cursor: pointer; transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease; }
+button.vsf-stat:hover { background: linear-gradient(155deg, rgb(255 255 255 / 0.82), rgb(255 255 255 / 0.6)); }
+button.vsf-stat:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
+button.vsf-stat[aria-pressed='true'] { border-color: rgb(78 119 51 / 0.85); box-shadow: var(--lg-rim-kecil), 0 0 0 2px rgb(107 157 74 / 0.55); }
+.vsf-kal-chip {
+  display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 12px; border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 0.55); background: rgb(255 255 255 / 0.55); box-shadow: var(--lg-rim-kecil);
+  font-size: 12px; color: #3a485c;
+}
+.vsf-kal-chip b { font-size: 14px; font-variant-numeric: tabular-nums; color: #0b1c2e; }
+.vsf-kal-blok {
+  border-radius: 16px; border: 1px solid rgb(255 255 255 / 0.55);
+  background: linear-gradient(155deg, rgb(255 255 255 / 0.62), rgb(255 255 255 / 0.42)); box-shadow: var(--lg-rim-kecil);
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-kal-chip, .vsf-kal-blok, button.vsf-stat:hover { background: #fff; box-shadow: 0 1px 3px rgb(7 21 39 / 0.2); }
+}
+
+/* ══ Tentang Kami — splash pembuka + halaman ══════════════════════════════════
+   Splash: overlay transparan di atas .vsf-latar (tanpa backdrop-filter layar penuh).
+   Animasi masuk memakai fill 'backwards' (bukan 'both') agar tidak mengunci backdrop-filter.
+   Keluar: grup merek diterbangkan lewat WAAPI (transform saja); selama bergerak kaca pil
+   dibuat tanpa blur (tint + rim) — aturan "tanpa kaca di atas kaca". */
+html.vsf-splash-aktif { overflow: hidden; }
+.vsf-splash-overlay {
+  position: fixed; inset: 0; z-index: 90;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px 16px; cursor: pointer; overflow: hidden;
+}
+.vsf-splash-overlay[data-pergi='1'] { pointer-events: none; }
+.vsf-splash-isi { display: flex; width: 100%; max-width: 820px; flex-direction: column; align-items: center; }
+/* tunggu latar + font siap: semua animasi di splash menahan diri */
+.vsf-splash-overlay[data-siap='0'] * { animation-play-state: paused !important; }
+@keyframes vsf-sp-in { from { opacity: 0; transform: translateY(18px) scale(0.9); } to { opacity: 1; transform: none; } }
+@keyframes vsf-sp-tulis { from { clip-path: inset(-25% 100% -25% -5%); } to { clip-path: inset(-25% -5% -25% -5%); } }
+.vsf-sp-item { animation: vsf-sp-in 0.65s var(--d, 0s) cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+.vsf-sp-teks { animation: vsf-sp-in 0.55s 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.vsf-sp-tulis { display: inline-block; animation: vsf-sp-tulis 0.9s var(--d, 0.85s) cubic-bezier(0.4, 0, 0.2, 1) backwards; }
+.vsf-splash-overlay[data-pergi='1'] .vsf-sp-sosial,
+.vsf-splash-overlay[data-pergi='1'] .vsf-sp-lewati { opacity: 0; transition: opacity 0.25s ease; }
+.vsf-splash-overlay[data-pergi='1'] .vsf-kaca {
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+.vsf-splash-overlay[data-pergi='1'] .vsf-kaca:not(.vsf-kaca-gelap) { background: rgb(255 255 255 / 0.78); }
+/* hero setelah splash: statis (tujuan terbang), tak memutar ulang animasi masuk */
+.vsf-statis .vsf-splash-badan, .vsf-statis .vsf-splash-tetes, .vsf-statis .vsf-sp-teks { animation: none !important; }
+/* fase halaman: tersembunyi selama splash lalu naik bertahap saat splash keluar */
+.vsf-sp {
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1) var(--sd, 0s), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1) var(--sd, 0s);
+}
+.vsf-tentang[data-splash='tampil'] .vsf-sp { opacity: 0; transform: translateY(14px); }
+.vsf-tentang[data-splash] .vsf-hero-grup { visibility: hidden; }
+/* konten di bawah hero jangan mengintip lewat splash yang transparan */
+.vsf-tentang[data-splash] main > :not(:first-child),
+.vsf-tentang[data-splash] > footer { visibility: hidden; }
+.vsf-tentang[data-splash] .vsf-latar { animation-play-state: paused; }
+/* kaca netral gelap (tanpa biru) untuk pil/CTA di badan halaman */
+.vsf-kaca-netral {
+  background: linear-gradient(135deg, rgb(24 28 32 / 0.58), rgb(24 28 32 / 0.34)) !important;
+  border-color: rgb(255 255 255 / 0.28) !important;
+  color: #fff;
+}
+.vsf-bilah-tautan[aria-current='true'] { background: rgba(255, 255, 255, 0.2); color: #fff; }
+/* pudar tepi: elemen yang menyentuh zona bawah-header / dasar layar memudar bertahap (mask per elemen,
+   batas --p1..--p4 diisi lib/usePudarTepi). Kotak mask dilebarkan 40px agar bayangan kartu tak terpotong. */
+.vsf-pudar {
+  -webkit-mask-image: linear-gradient(to bottom, transparent var(--p1), #000 var(--p2), #000 var(--p3), transparent var(--p4));
+  mask-image: linear-gradient(to bottom, transparent var(--p1), #000 var(--p2), #000 var(--p3), transparent var(--p4));
+  -webkit-mask-size: calc(100% + 80px) calc(100% + 80px); mask-size: calc(100% + 80px) calc(100% + 80px);
+  -webkit-mask-position: -40px -40px; mask-position: -40px -40px;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+}
+@media (prefers-reduced-motion: reduce) {
+  .vsf-sp { transition: none; }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-kaca-netral { background: #20262c !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Utilitas bersama (polish): ukuran tombol kecil, tombol ikon, label tinta, teks bahaya.
+   Menggantikan tambalan !min-h-[..] / !px-3 / !text-tinta di komponen.
+   ══════════════════════════════════════════════════════════════════════════ */
+/* padding dasar kartu batch di layer components agar utilitas (p-0, p-3) bisa menimpanya tanpa !important */
+@layer components {
+  .vsf-batch { padding: 16px; }
+}
+.vsf-btn-kecil { min-height: 40px; padding: 6px 14px; font-size: 13px; }
+.vsf-ikon-btn { min-height: 40px; min-width: 40px; justify-content: center; }
+.vsf-label-tinta { color: var(--tinta); }
+.vsf-btn-secondary.vsf-teks-bahaya { color: #b4291c; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Master Data — tabel kaca (Jenis Tanaman, Meja Tanaman, Ambang Sensor).
+   Baris = tint putih + rim tanpa blur sendiri; di HP tiap baris jadi kartu berlabel.
+   ══════════════════════════════════════════════════════════════════════════ */
+.vsf-master-tabel { min-width: 0; overflow-x: auto; }
+.vsf-master-tabel table { width: 100%; border-collapse: separate; border-spacing: 0 8px; font-size: 13px; }
+.vsf-master-tabel th {
+  padding: 0 14px 2px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--abu, #64748b);
+}
+.vsf-master-tabel td {
+  padding: 12px 14px;
+  vertical-align: middle;
+  color: var(--tinta);
+  background: rgb(255 255 255 / 0.56);
+  border-block: 1px solid rgb(255 255 255 / 0.55);
+  transition: background-color 150ms ease;
+}
+.vsf-master-tabel td:first-child { border-radius: 16px 0 0 16px; border-left: 1px solid rgb(255 255 255 / 0.55); }
+.vsf-master-tabel td:last-child { border-radius: 0 16px 16px 0; border-right: 1px solid rgb(255 255 255 / 0.55); }
+.vsf-master-tabel tbody tr:hover td { background: rgb(255 255 255 / 0.74); }
+.vsf-master-tabel .is-kanan { text-align: right; }
+.vsf-master-id { display: block; margin-top: 1px; font-size: 11px; font-weight: 400; color: var(--abu, #64748b); }
+.vsf-master-aksi { white-space: nowrap; text-align: right; }
+.vsf-master-aksi > * + * { margin-left: 6px; }
+.vsf-master-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgb(255 255 255 / 0.7);
+  box-shadow: var(--lg-rim-kecil);
+}
+.vsf-master-chip.is-kosong { font-weight: 500; color: var(--abu, #64748b); background: rgb(255 255 255 / 0.4); }
+@media (max-width: 639px) {
+  .vsf-master-tabel table, .vsf-master-tabel tbody { display: block; }
+  .vsf-master-tabel thead { display: none; }
+  .vsf-master-tabel tr {
+    display: block;
+    margin-bottom: 10px;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 0.55);
+    box-shadow: var(--lg-rim-kecil);
+  }
+  .vsf-master-tabel td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 0;
+    border-radius: 0 !important;
+    text-align: right;
+  }
+  .vsf-master-tabel td::before { content: attr(data-label); font-size: 12px; color: var(--abu, #64748b); text-align: left; }
+  .vsf-master-tabel td.vsf-master-aksi { justify-content: flex-end; }
+  .vsf-master-tabel td.vsf-master-aksi::before { content: none; }
+}
+/* tutup celah subpiksel antar sel (latar tembus pandang) */
+.vsf-master-tabel td:not(:last-child) { box-shadow: 1px 0 0 rgb(255 255 255 / 0.56); }
+.vsf-master-tabel tbody tr:hover td:not(:last-child) { box-shadow: 1px 0 0 rgb(255 255 255 / 0.74); }
+@media (max-width: 639px) { .vsf-master-tabel td:not(:last-child) { box-shadow: none; } }
+@media (max-width: 639px) {
+  .vsf-master-tabel td:first-child::before { content: none; }
+  .vsf-master-tabel td:first-child { justify-content: flex-start; text-align: left; font-size: 15px; }
+}
+
+/* ── Laporan (Laporan & Sistem) ─────────────────────────────────────── */
+.vsf-laporan-ringkas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 900px) { .vsf-laporan-ringkas { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.vsf-laporan-kartu { display: grid; gap: 4px; padding: 14px 16px; }
+.vsf-laporan-angka { font-size: 26px; font-weight: 700; line-height: 1.15; color: #1f2d24; font-variant-numeric: tabular-nums; }
+.vsf-laporan-tabel table thead th {
+  text-align: left; padding: 10px 12px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+  color: #2d452f; background: rgb(255 255 255 / 0.55); border-bottom: 2px solid rgb(45 69 47 / 0.55);
+  position: sticky; top: 0;
+}
+.vsf-laporan-tabel table tbody td {
+  padding: 10px 12px; color: #334155; font-variant-numeric: tabular-nums; border-bottom: 1px solid rgb(255 255 255 / 0.6);
+}
+.vsf-laporan-tabel table tbody tr { cursor: pointer; transition: background 0.15s ease; }
+.vsf-laporan-tabel table tbody tr:hover { background: rgb(255 255 255 / 0.55); }
+.vsf-laporan-tabel table tbody tr:focus-visible { outline: 2px solid var(--moss); outline-offset: -2px; }
+.vsf-laporan-tag {
+  margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase; color: #2d452f; background: rgb(255 255 255 / 0.7);
+  box-shadow: var(--lg-rim-kecil);
+}
+.vsf-laporan-popup-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.vsf-laporan-popup-sel { padding: 12px 14px; border-radius: 16px; background: rgb(255 255 255 / 0.5); box-shadow: var(--lg-rim-kecil); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Manajemen User — avatar, lencana level, chip filter, kartu level, kolom password.
+   Di dalam kartu kaca/popup = tint + rim tanpa blur.
+   ══════════════════════════════════════════════════════════════════════════ */
+.vsf-avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(145deg, #6B9D4A, #3c6b2b);
+  box-shadow: var(--lg-rim-kecil);
+}
+.vsf-avatar.is-besar { width: 56px; height: 56px; font-size: 19px; }
+.vsf-pengguna { display: flex; align-items: center; gap: 10px; min-width: 0; text-align: left; border-radius: 12px; }
+.vsf-pengguna:hover b { text-decoration: underline; }
+.vsf-pengguna:focus-visible { outline: 2px solid var(--moss); outline-offset: 3px; }
+.vsf-lencana-level {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  background: rgb(255 255 255 / 0.7);
+  box-shadow: var(--lg-rim-kecil);
+}
+.vsf-lencana-level.is-admin { color: #2c5a1d; background: rgb(214 236 196 / 0.85); }
+.vsf-lencana-level.is-user { color: #1e4f7a; background: rgb(204 226 247 / 0.85); }
+.vsf-lencana-level.is-petani { color: #7a4a0c; background: rgb(250 232 196 / 0.9); }
+.vsf-chip-ringkas {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--tinta);
+  background: rgb(255 255 255 / 0.5);
+  box-shadow: var(--lg-rim-kecil);
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+.vsf-chip-ringkas:hover { background: rgb(255 255 255 / 0.74); }
+.vsf-chip-ringkas[aria-pressed='true'] { color: #fff; background: linear-gradient(145deg, #4f7f35, #2f5a22); }
+.vsf-chip-ringkas:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
+.vsf-label-form { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 700; color: var(--tinta); }
+.vsf-kartu-level-grup { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.vsf-kartu-level { position: relative; display: block; cursor: pointer; }
+.vsf-kartu-level input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.vsf-kartu-level-isi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  height: 100%;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.6);
+  box-shadow: var(--lg-rim-kecil);
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+.vsf-kartu-level-isi b { font-size: 13px; color: var(--tinta); }
+.vsf-kartu-level-isi small { font-size: 11px; line-height: 1.35; color: var(--abu); }
+.vsf-kartu-level input:checked + .vsf-kartu-level-isi { background: rgb(214 236 196 / 0.85); box-shadow: 0 0 0 2px var(--moss); }
+.vsf-kartu-level input:focus-visible + .vsf-kartu-level-isi { outline: 2px solid var(--moss); outline-offset: 2px; }
+@media (max-width: 479px) { .vsf-kartu-level-grup { grid-template-columns: 1fr; } }
+.vsf-sandi { position: relative; }
+.vsf-sandi .vsf-input { padding-right: 40px; }
+.vsf-sandi-mata { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: 36px; height: 36px; border-radius: 999px; color: var(--abu); }
+.vsf-sandi-mata:hover { color: var(--tinta); background: rgb(255 255 255 / 0.7); }
+.vsf-sandi-mata:focus-visible { outline: 2px solid var(--moss); }
+.vsf-meter-sandi { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 12px; color: var(--abu); }
+.vsf-meter-sandi span { display: inline-flex; gap: 3px; }
+.vsf-meter-sandi i { width: 28px; height: 5px; border-radius: 999px; background: rgb(100 116 139 / 0.25); }
+.vsf-meter-sandi[data-skor='1'] i:nth-child(-n+1) { background: #dc2626; }
+.vsf-meter-sandi[data-skor='2'] i:nth-child(-n+2) { background: #d97706; }
+.vsf-meter-sandi[data-skor='3'] i { background: #3f8a2a; }
+.vsf-saklar { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 16px; cursor: pointer; background: rgb(255 255 255 / 0.5); box-shadow: var(--lg-rim-kecil); }
+.vsf-saklar input { margin-top: 3px; width: 16px; height: 16px; accent-color: #4f7f35; }
+.vsf-saklar-isi { display: flex; flex-direction: column; gap: 1px; }
+.vsf-saklar-isi b { font-size: 13px; color: var(--tinta); }
+.vsf-saklar-isi small { font-size: 12px; color: var(--abu); }
+.vsf-detail-blok { margin-top: 16px; padding: 12px 14px; border-radius: 16px; background: rgb(255 255 255 / 0.55); box-shadow: var(--lg-rim-kecil); }
+.vsf-detail-blok ul { display: grid; gap: 6px; margin: 6px 0 0; padding: 0; list-style: none; font-size: 13px; color: var(--tinta); }
+.vsf-detail-blok li { display: flex; align-items: center; gap: 8px; }
+.vsf-detail-blok li svg { flex: none; color: #3f8a2a; }
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-kartu-level-isi, .vsf-saklar, .vsf-detail-blok, .vsf-chip-ringkas { background: #fff; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Riwayat Audit — lencana aksi, baris klik, sebelum/sesudah, paginasi.
+   Di dalam kartu kaca/popup = tint + rim tanpa blur.
+   ══════════════════════════════════════════════════════════════════════════ */
+.vsf-aksi-lencana {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  background: rgb(255 255 255 / 0.7);
+  box-shadow: var(--lg-rim-kecil);
+}
+.vsf-aksi-lencana.is-create { color: #2c5a1d; background: rgb(214 236 196 / 0.85); }
+.vsf-aksi-lencana.is-update { color: #1e4f7a; background: rgb(204 226 247 / 0.85); }
+.vsf-aksi-lencana.is-delete { color: #9b2218; background: rgb(254 215 210 / 0.9); }
+.vsf-aksi-lencana.is-login { color: #7a5a0c; background: rgb(250 238 190 / 0.9); }
+.vsf-baris-klik { cursor: pointer; }
+.vsf-baris-klik:focus-visible { outline: 2px solid var(--moss); outline-offset: -2px; border-radius: 16px; }
+.vsf-ringkas { display: block; max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--abu); }
+@media (max-width: 639px) { .vsf-ringkas { max-width: 60vw; } }
+.vsf-pilih-pendek { width: auto; min-width: 120px; min-height: 40px; border-radius: 999px; }
+.vsf-beda { display: grid; gap: 6px; margin-top: 6px; font-size: 13px; }
+.vsf-beda-baris { display: grid; grid-template-columns: minmax(90px, 0.8fr) 1fr 1fr; gap: 8px; align-items: start; padding: 6px 8px; border-radius: 12px; background: rgb(255 255 255 / 0.5); }
+.vsf-beda-baris.is-satu { grid-template-columns: minmax(90px, 0.8fr) 2fr; }
+.vsf-beda-baris.is-kepala { background: none; padding-block: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--abu); }
+.vsf-beda-kunci { font-weight: 600; color: var(--tinta); }
+.vsf-beda-lama, .vsf-beda-baru { min-width: 0; overflow-wrap: anywhere; }
+.vsf-beda-lama { color: #9b2218; text-decoration: line-through; text-decoration-color: rgb(155 34 24 / 0.5); }
+.vsf-beda-baru { color: #2c5a1d; font-weight: 600; }
+@media (max-width: 479px) {
+  .vsf-beda-baris, .vsf-beda-baris.is-satu { grid-template-columns: 1fr; gap: 2px; }
+  .vsf-beda-baris.is-kepala { display: none; }
+}
+.vsf-lipat summary { cursor: pointer; margin-bottom: 0; }
+.vsf-lipat[open] summary { margin-bottom: 6px; }
+.vsf-lipat dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 0; font-size: 13px; color: var(--tinta); }
+.vsf-lipat dt { color: var(--abu); }
+.vsf-lipat dd { margin: 0; overflow-wrap: anywhere; }
+.vsf-paginasi { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; font-size: 13px; color: var(--abu); }
+.vsf-paginasi-nomor { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.vsf-chip-nomor { min-width: 36px; justify-content: center; padding-inline: 8px; }
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-beda-baris { background: #fff; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Profile — kartu profil, segmen & pratinjau tampilan kaca.
+   Di dalam kartu kaca = tint + rim tanpa blur.
+   ══════════════════════════════════════════════════════════════════════════ */
+.vsf-kartu-profil .vsf-detail-blok { margin-top: 18px; }
+.vsf-segmen-kaca { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 999px; background: rgb(255 255 255 / 0.45); box-shadow: var(--lg-rim-kecil); }
+.vsf-segmen-kaca button { display: flex; flex-direction: column; align-items: center; min-height: 44px; padding: 6px 16px; border-radius: 999px; color: var(--tinta); transition: background-color 150ms ease; }
+.vsf-segmen-kaca button b { font-size: 13px; }
+.vsf-segmen-kaca button small { font-size: 11px; color: var(--abu); }
+.vsf-segmen-kaca button:hover { background: rgb(255 255 255 / 0.6); }
+.vsf-segmen-kaca button[aria-checked='true'] { color: #fff; background: linear-gradient(145deg, #4f7f35, #2f5a22); }
+.vsf-segmen-kaca button[aria-checked='true'] small { color: rgb(255 255 255 / 0.85); }
+.vsf-segmen-kaca button:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
+.vsf-pratinjau-kaca { display: flex; align-items: center; gap: 10px; min-width: 170px; padding: 12px 14px; border-radius: 18px; font-size: 13px; color: var(--tinta); box-shadow: var(--lg-rim-kecil); background: linear-gradient(90deg, #6B9D4A, #2f5a22 55%, #d9a441); background-size: 100% 100%; position: relative; isolation: isolate; overflow: hidden; }
+.vsf-pratinjau-kaca::before { content: ''; position: absolute; inset: 0; z-index: -1; background: rgb(255 255 255 / 0.55); }
+.vsf-pratinjau-kaca.is-jernih::before { background: rgb(255 255 255 / 0.28); }
+.vsf-pratinjau-kaca.is-pekat::before { background: rgb(255 255 255 / 0.9); }
+.vsf-pratinjau-kaca span { width: 22px; height: 22px; border-radius: 999px; background: linear-gradient(145deg, #6B9D4A, #3c6b2b); }
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-pratinjau-kaca::before, .vsf-pratinjau-kaca.is-jernih::before, .vsf-pratinjau-kaca.is-pekat::before { background: #fff; }
+  .vsf-segmen-kaca { background: #fff; }
 }

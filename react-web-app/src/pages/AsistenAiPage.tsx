@@ -1,165 +1,197 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState } from 'react'
 import clsx from 'clsx'
-import { useSearchParams } from 'react-router-dom'
+import { api } from '../lib/api'
+import { useApiError } from '../lib/crudApi'
+import { useApiObject } from '../lib/useApiObject'
+import { ChatAsisten } from '../components/ChatAsisten'
+import { Ikon } from '../components/Ikon'
+import { StripKonteks, type KonteksKebun } from '../components/StripKonteks'
+import { tglJam } from '../lib/format'
 
-type Pesan = { dari: 'ANDA' | 'ASISTEN AI'; teks: string; waktu: string }
+/**
+ * Asisten AI — terhubung ke endpoint riil:
+ *   POST /api/ai/langkah-selanjutnya   (Bearer JWT, role admin | petani — demo ditolak)
+ *   body opsional { id_tanaman?, id_meja? } → balas JSON {keputusan, prioritas, alasan,
+ *   sumber: 'ollama' | 'heuristik', ...} (routes/ai.js).
+ * Tidak ada jawaban simulasi: setiap klik membaca data terbaru dari server.
+ */
 
-const AWAL: Pesan[] = [
-  {
-    dari: 'ANDA',
-    teks: 'Bagaimana kondisi pH air tandon hari ini? Apakah aman untuk tahap Pendewasaan?',
-    waktu: '07:41',
-  },
-  {
-    dari: 'ASISTEN AI',
-    teks: 'pH tandon saat ini 6.2 — dalam rentang aman Pendewasaan (target 6.0–6.5). TDS 1.180 ppm juga stabil. Tidak ada tindakan yang diperlukan saat ini.',
-    waktu: '07:41',
-  },
-  { dari: 'ANDA', teks: "Kalau K-04 terus 'Periksa Alat', apa yang harus dilakukan?", waktu: '07:43' },
-]
+type Prioritas = 'tinggi' | 'sedang' | 'rendah'
 
-const QUICK = ['✦ Ringkas sensor hari ini', '✦ Rekomendasi penyiraman', '✦ Jadwal panen terdekat']
+type Hasil = {
+  keputusan: string
+  alasan: string
+  prioritas: Prioritas
+  sumber: string
+  model: string | null
+  fallback_karena: string | null
+  aturan?: string[]
+  generated_at?: string
+}
 
-function jam(): string {
-  return new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date())
+type Riwayat = Hasil & { urut: number }
+
+/** Penjelasan jujur kenapa jawaban berasal dari heuristik, bukan model. */
+const ALASAN_FALLBACK: Record<string, string> = {
+  koneksi: 'AI lokal tidak dapat dihubungi — jawaban diambil dari aturan heuristik transparan.',
+  timeout: 'AI lokal tidak merespons dalam batas 30 detik — jawaban diambil dari aturan heuristik transparan.',
+  respons_ollama_tidak_valid: 'AI lokal mengirim balasan tidak valid — jawaban diambil dari aturan heuristik transparan.',
+  output_tidak_sah: 'Balasan AI tidak lolos pemeriksaan format — jawaban diambil dari aturan heuristik transparan.',
+}
+
+const GAYA_PRIORITAS: Record<Prioritas, string> = {
+  tinggi: 'vsf-tone-error',
+  sedang: 'vsf-tone-warn',
+  rendah: 'border-arutmin-moss/50 bg-arutmin-mint/40 text-arutmin-forest',
+}
+
+/** Satu hasil analisa — blok polos (tanpa kotak dalam kartu); dipakai hasil utama dan riwayat sesi. */
+function KartuHasil({ hasil, menonjol }: { hasil: Hasil; menonjol?: boolean }) {
+  const konsol = hasil.sumber === 'ollama'
+  return (
+    <article>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className={clsx('vsf-pill border px-2 py-0.5 text-[12px] font-bold uppercase tracking-[.1em]', GAYA_PRIORITAS[hasil.prioritas] ?? GAYA_PRIORITAS.rendah)}>
+          Prioritas {hasil.prioritas}
+        </span>
+        <span className="vsf-pill border-white bg-white/70 text-[12px] text-tinta">
+          {konsol ? `AI lokal (Ollama) · ${hasil.model ?? 'model tidak diketahui'}` : 'Aturan heuristik'}
+        </span>
+        <span className="flex-1" />
+        <span className="text-[12px] text-abu">{tglJam(hasil.generated_at ?? null)}</span>
+      </div>
+
+      <h3 className={clsx('mt-2.5 font-bold text-tinta', menonjol ? 'text-[16px] leading-snug' : 'text-[14px] leading-snug')}>
+        {hasil.keputusan}
+      </h3>
+      <p className="mt-1 text-[13px] leading-relaxed text-abu">{hasil.alasan}</p>
+
+      {!konsol && hasil.fallback_karena && (
+        <p className="mt-2 rounded-input border border-amber-500/50 bg-amber-50 px-3 py-2 text-[12px] leading-relaxed text-amber-900">
+          {ALASAN_FALLBACK[hasil.fallback_karena] ?? 'Model AI tidak dipakai — jawaban berasal dari aturan heuristik.'}
+        </p>
+      )}
+      {!konsol && (hasil.aturan?.length ?? 0) > 0 && (
+        <ul className="mt-2 list-disc pl-5 text-[12px] leading-relaxed text-abu">
+          {hasil.aturan?.map((a) => (
+            <li key={a}>{a}</li>
+          ))}
+        </ul>
+      )}
+    </article>
+  )
+}
+
+/** Pertanyaan awal yang sesuai kondisi kebun sekarang (bukan daftar generik). */
+function saranDariKonteks(k: KonteksKebun | null): string[] {
+  const terputus = k?.iotStatus?.online === false
+  return [
+    terputus ? 'Kenapa alat terputus?' : 'Bagaimana kondisi pH dan TDS sekarang?',
+    'Apa yang harus saya lakukan hari ini?',
+    'Kapan tahap semai berikutnya selesai?',
+  ]
 }
 
 export default function AsistenAiPage() {
-  const [searchParams] = useSearchParams()
-  const stateVariant = searchParams.get('state') ?? 'ok' // loading | offline | ok
-  const [pesan, setPesan] = useState<Pesan[]>(AWAL)
-  const [input, setInput] = useState('')
-  const [mengetik, setMengetik] = useState(false)
-  const [sSensor, setSSensor] = useState(true)
-  const [sRiwayat, setSRiwayat] = useState(true)
+  const handleApiError = useApiError()
+  const [hasil, setHasil] = useState<Hasil | null>(null)
+  const [riwayat, setRiwayat] = useState<Riwayat[]>([])
+  const [memuat, setMemuat] = useState(false)
+  const [galat, setGalat] = useState<string | null>(null)
+  // satu pengambilan /dashboard dipakai strip konteks dan pertanyaan awal; senyap tiap 60 dtk
+  const { data: konteks, loading: memuatKonteks } = useApiObject<KonteksKebun>('/dashboard', { pollMs: 60_000 })
 
-  const offline = stateVariant === 'offline'
-  const loading = stateVariant === 'loading'
-
-  function kirim(teks: string) {
-    const t = teks.trim()
-    if (!t || offline || mengetik) return
-    setPesan((p) => [...p, { dari: 'ANDA', teks: t, waktu: jam() }])
-    setInput('')
-    setMengetik(true)
-    // TODO tahap API: streaming per-kalimat dari endpoint asisten
-    setTimeout(() => {
-      setPesan((p) => [
-        ...p,
-        {
-          dari: 'ASISTEN AI',
-          teks: 'Baik — berdasarkan data sensor terkini, kondisi kebun dalam batas normal. Saya akan kabari bila ada nilai keluar ambang.',
-          waktu: jam(),
-        },
-      ])
-      setMengetik(false)
-    }, 1200)
+  // Efek samping setState di dalam async handler (bukan sinkron di dalam effect).
+  async function mintaAnalisa() {
+    if (memuat) return
+    setMemuat(true)
+    setGalat(null)
+    try {
+      const res = await api.post('/api/ai/langkah-selanjutnya', {})
+      const data = res.data as Hasil
+      setHasil(data)
+      setRiwayat((lama) => [{ ...data, urut: Date.now() }, ...lama].slice(0, 5))
+    } catch (err) {
+      setGalat(handleApiError(err).message)
+    } finally {
+      setMemuat(false)
+    }
   }
 
-  function onSubmit(e: FormEvent) {
-    e.preventDefault()
-    kirim(input)
-  }
+  // Auto-hilang untuk banner error agar layar tidak menumpuk.
+  useEffect(() => {
+    if (!galat) return
+    const id = window.setTimeout(() => setGalat(null), 6000)
+    return () => window.clearTimeout(id)
+  }, [galat])
 
   return (
-    <div className="mx-auto max-w-[1180px] grid gap-4 vsf-stagger">
-      {/* Konteks percakapan */}
-      <section className="vsf-card p-4">
-        <div className="flex flex-wrap items-center gap-3 text-[13px]">
-          <b className="text-slate-900">Konteks aktif:</b>
-          <span className="text-slate-600">6 sensor live · 12 batch · tahap Pendewasaan</span>
-        </div>
-        <div className="mt-2 text-[12px] text-slate-500">
-          states: loading (bubble skeleton) · AI offline (‘Asisten tidak tersedia — coba lagi’) · guard [petani]
-          (hanya baca data sendiri)
-        </div>
-      </section>
+    <div className="mx-auto flex w-full max-w-[780px] flex-col gap-4 vsf-stagger">
+      <StripKonteks data={konteks} memuat={memuatKonteks} />
 
-      {/* Panel chat */}
-      <section className="vsf-card p-4">
-        <div className="text-[11px] uppercase tracking-[.14em] text-slate-500 font-bold">Panel chat</div>
+      {/* Langkah berikutnya: satu rekomendasi prioritas, ringkas */}
+      <section className="vsf-card px-4 py-3.5 sm:px-5" aria-labelledby="vsf-langkah-title">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <div id="vsf-langkah-title" className="vsf-judul-bagian">Langkah berikutnya</div>
+            {!hasil && !memuat && (
+              <p className="mt-0.5 text-[12.5px] leading-relaxed text-abu">
+                Satu rekomendasi prioritas dari kondisi kebun saat ini.
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            className="vsf-btn-primary vsf-btn-kecil"
+            onClick={() => void mintaAnalisa()}
+            disabled={memuat}
+            aria-busy={memuat}
+          >
+            {memuat ? (
+              <>
+                <span className="vsf-spinner" aria-hidden="true" />
+                Menganalisa…
+              </>
+            ) : (
+              <>
+                <Ikon nama="ai" className="h-4 w-4" />
+                {hasil ? 'Perbarui' : 'Minta langkah'}
+              </>
+            )}
+          </button>
+        </div>
 
-        {offline && (
-          <div className="vsf-banner mt-3 rounded-input border border-red-600/50 bg-red-50 px-3 py-2 text-[13px] text-red-700" role="alert">
-            ✖ Asisten tidak tersedia — coba lagi
+        {galat && (
+          <div role="alert" className="vsf-banner mt-3 rounded-input vsf-tone-error px-3 py-2 text-[13px]">
+            {galat}
           </div>
         )}
 
-        <div className="mt-3 grid gap-3 max-h-[420px] overflow-y-auto pr-1" aria-live="polite">
-          {loading ? (
-            <>
-              <div className="vsf-skeleton h-[64px] w-[70%] justify-self-end rounded-2xl" />
-              <div className="vsf-skeleton h-[64px] w-[75%] rounded-2xl" />
-            </>
-          ) : (
-            pesan.map((m, i) => (
-              <div key={i} className={clsx('flex', m.dari === 'ANDA' ? 'justify-end' : 'justify-start')}>
-                <div
-                  className={clsx(
-                    'max-w-[80%] rounded-2xl px-4 py-2 text-[13px]',
-                    m.dari === 'ANDA'
-                      ? 'bg-activePill text-white rounded-br-md'
-                      : 'bg-arutmin-mint/40 text-slate-800 rounded-bl-md border border-arutmin-border',
-                  )}
-                >
-                  <div className={clsx('text-[10px] font-bold tracking-[.12em] uppercase mb-1', m.dari === 'ANDA' ? 'text-white/70' : 'text-arutmin-forest/70')}>
-                    {m.dari}
-                  </div>
-                  <div>{m.teks}</div>
-                  <div className={clsx('mt-1 text-[10px]', m.dari === 'ANDA' ? 'text-white/70' : 'text-slate-500')}>{m.waktu}</div>
-                </div>
-              </div>
-            ))
-          )}
+        {memuat && !hasil ? (
+          <div className="mt-3" role="status" aria-label="Menganalisa data">
+            <div className="vsf-skeleton h-[72px] rounded-card" />
+          </div>
+        ) : hasil ? (
+          <div className="mt-3 border-t border-white/60 pt-3">
+            <KartuHasil hasil={hasil} menonjol />
+          </div>
+        ) : null}
 
-          {(mengetik || loading) && (
-            <div className="flex items-center gap-2 text-[12px] text-slate-500" role="status">
-              <span className="vsf-dot text-arutmin-moss">●</span> Asisten AI sedang mengetik…
+        {riwayat.length > 1 && (
+          <details className="mt-3 border-t border-white/60 pt-2">
+            <summary className="cursor-pointer select-none py-1.5 text-[12px] font-semibold text-abu">
+              Sebelumnya ({riwayat.length - 1})
+            </summary>
+            <div className="mt-2 grid gap-3">
+              {riwayat.slice(1).map((r) => (
+                <KartuHasil key={r.urut} hasil={r} />
+              ))}
             </div>
-          )}
-        </div>
-
-        {/* Quick prompts */}
-        <div className="mt-4 flex flex-wrap gap-2">
-          {QUICK.map((q) => (
-            <button
-              key={q}
-              type="button"
-              disabled={offline || loading}
-              onClick={() => kirim(q.replace('✦ ', ''))}
-              className="vsf-pill border-arutmin-border bg-white text-slate-700 hover:border-arutmin-moss/60 disabled:opacity-50"
-            >
-              {q}
-            </button>
-          ))}
-        </div>
-
-        {/* Input bar */}
-        <form className="mt-3 flex gap-2" onSubmit={onSubmit}>
-          <input
-            className="vsf-input flex-1"
-            placeholder="Tanyakan kondisi kebun…"
-            value={input}
-            disabled={offline || loading}
-            onChange={(e) => setInput(e.target.value)}
-            aria-label="Tanyakan kondisi kebun"
-          />
-          <button type="submit" className="vsf-btn-primary" disabled={offline || loading || mengetik}>
-            Kirim ➤
-          </button>
-        </form>
-
-        <div className="mt-3 flex flex-wrap gap-4 text-[12px] text-slate-600">
-          <label className="inline-flex items-center gap-2">
-            <input type="checkbox" checked={sSensor} onChange={(e) => setSSensor(e.target.checked)} />
-            Sertakan data sensor
-          </label>
-          <label className="inline-flex items-center gap-2">
-            <input type="checkbox" checked={sRiwayat} onChange={(e) => setSRiwayat(e.target.checked)} />
-            Sertakan riwayat tanam
-          </label>
-        </div>
+          </details>
+        )}
       </section>
+
+      <ChatAsisten saran={saranDariKonteks(konteks)} />
     </div>
   )
 }

@@ -1,0 +1,109 @@
+/* Tata "spanduk" untuk gaya ceria — kanvas 3000×1000 px (spanduk 3 × 1 m), dimuat bila DATA.tata = 'spanduk'.
+   Komponen (judul, daftar bernomor, kartu ilustrasi, kolom web, proker, QR) memakai kelas dari ceria.css. */
+html, body.spanduk { width: 3000px; height: 1000px; }
+body.spanduk { display: grid; grid-template-rows: 1fr 70px; background: var(--cokelat); }
+.sp-baris { display: grid; min-height: 0; }
+.sp-baris > section { position: relative; padding: 46px 44px 40px; min-height: 0; overflow: hidden; }
+.sp-baris > section + section { border-left: 8px solid var(--cokelat); }
+
+/* kolom kepala: lanskap + judul */
+.sp-kepala .latar { position: absolute; inset: 0; background: url(../../react-web-app/public/bg-lanskap.jpg) center 40%/cover; }
+.sp-kepala .latar::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,214,140,.1) 0%, rgba(240,154,42,.3) 45%, rgba(226,118,27,.95) 100%); }
+.sp-kepala > * { position: relative; }
+.sp-kepala .judul-besar { width: auto; margin-top: 22px; }
+.sp-kepala .judul-besar .a { font-size: 150px; }
+.sp-kepala .judul-besar .b { font-size: 62px; margin-top: 8px; }
+.sp-kepala .judul-besar .c { font-size: 42px; margin-top: 12px; }
+.sp-kepala .ilus-kepala { top: 150px; right: 40px; width: 300px; }
+.sp-kepala .apa { position: absolute; left: 44px; right: 44px; bottom: 40px; margin: 0; }
+.sp-kepala .apa .pil { margin-left: 70px; font-size: 34px; }
+.sp-kepala .kotak-putus { width: auto; font-size: 22px; line-height: 1.6; padding: 40px 34px 30px; }
+
+/* judul kolom */
+.sp-judul { text-align: center; }
+.sp-judul .jdl { font-size: 76px; }
+.sp-judul small.jdl { display: block; font-size: 36px; margin-top: 6px; -webkit-text-stroke-width: 6px; }
+
+/* alat: sensor + aktuator berdampingan */
+.sp-alat { display: grid; grid-template-columns: 470px 1fr; gap: 34px; height: 100%; }
+.sp-alat .daftar-nomor { gap: 14px; margin-top: 22px; }
+.sp-alat .daftar-nomor > div { padding: 14px 16px 14px 22px; }
+.sp-alat .daftar-nomor b { font-size: 21px; }
+.sp-alat .daftar-nomor .t span { font-size: 15.5px; }
+.sp-alat .bulat { width: 62px; height: 62px; font-size: 34px; }
+.sp-alat .kartu-ilus { margin-top: 22px; gap: 18px; }
+.sp-alat .kartu-ilus > div { padding: 18px 16px 18px; }
+.sp-alat .kartu-ilus svg { width: 120px; height: 96px; }
+.sp-alat .kartu-ilus b { font-size: 21px; }
+.sp-alat .kartu-ilus span { font-size: 15.5px; }
+.sp-alat .catatan-merah { font-size: 16.5px; margin-top: 18px; }
+
+/* website */
+.sp-web .atas { display: flex; align-items: flex-start; gap: 24px; }
+.sp-web .atas .sp-judul { flex: 1; text-align: left; }
+.sp-web .qr .kode { width: 150px; height: 150px; }
+.sp-web .alir { margin-top: 14px; gap: 10px; }
+.sp-web .alir span { font-size: 17px; padding: 8px 16px; }
+.sp-web .kolom-web { margin-top: 12px; gap: 16px; }
+.sp-web .kolom-web > div { padding: 66px 14px 18px; margin-top: 60px; }
+.sp-web .kolom-web .lingkar { width: 104px; height: 104px; top: -52px; }
+.sp-web .kolom-web h4 { font-size: 28px; }
+.sp-web .kolom-web p { font-size: 16px; line-height: 1.55; }
+.sp-web .kolom-web svg { width: 104px; height: 82px; }
+
+/* proker */
+.sp-proker .proker-grid { margin-top: 30px; gap: 24px; }
+.sp-proker .proker-grid > div { padding: 24px 24px; gap: 18px; }
+.sp-proker .proker-grid h4 { font-size: 32px; }
+.sp-proker .proker-grid p { font-size: 19px; }
+.sp-proker .proker-grid .meta span { font-size: 15px; padding: 5px 14px; }
+.sp-proker .proker-grid .bulat { width: 70px; height: 70px; font-size: 40px; }
+
+/* tim */
+.tim-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 66px 16px; margin-top: 70px; }
+.tim-grid.tiga { grid-template-columns: repeat(3, 1fr); padding: 0 90px; margin-top: 66px; }
+.orang { position: relative; height: 200px; border: 4px solid var(--cokelat); border-radius: 22px; box-shadow: 0 5px 0 var(--cokelat); }
+.orang:nth-child(odd) { background: linear-gradient(180deg, var(--oranye-muda), var(--oranye)); }
+.orang:nth-child(even) { background: linear-gradient(180deg, var(--hijau-muda), var(--hijau)); }
+.orang img { position: absolute; left: 50%; bottom: 0; height: 250px; width: auto; transform: translateX(-50%); filter: drop-shadow(0 4px 0 rgba(107,52,16,.35)); }
+.orang .papan { position: absolute; left: -6px; right: -6px; bottom: -30px; background: var(--putih); border: 4px solid var(--cokelat); border-radius: 14px; padding: 6px 6px 7px; text-align: center; z-index: 2; }
+.orang .papan b { display: block; font-family: 'Lilita One', sans-serif; font-weight: 400; font-size: 17px; color: var(--hijau2); line-height: 1.1; letter-spacing: .01em; }
+.orang .papan span { display: block; font-family: Inter, sans-serif; font-size: 11.5px; font-weight: 700; color: var(--oranye2); margin-top: 2px; line-height: 1.2; }
+.sp-tim .bawah { position: absolute; left: 44px; right: 44px; bottom: 40px; display: flex; align-items: center; gap: 22px; }
+.sp-tim .bawah .ajak { flex: 1; }
+.sp-tim .bawah .ajak .jdl { font-size: 46px; }
+.sp-tim .bawah .ajak p { color: var(--putih); font-size: 18px; line-height: 1.5; margin-top: 8px; }
+.sp-tim .qr .kode { width: 160px; height: 160px; }
+
+/* kaki */
+body.spanduk .kaki { padding: 0 44px; font-size: 20px; }
+body.spanduk .kaki img { height: 50px; }
+
+/* ── isi kolom memanjang mengisi tinggi spanduk (tanpa ruang kosong di bawah) ── */
+.sp-baris > section { display: flex; flex-direction: column; }
+.sp-kepala .ilus-kepala { position: absolute; top: 420px; right: 54px; width: 250px; }
+.sp-alat { flex: 1; min-height: 0; }
+.sp-alat > div { display: flex; flex-direction: column; min-height: 0; }
+.sp-alat .daftar-nomor { flex: 1; grid-auto-rows: 1fr; }
+.sp-alat .daftar-nomor b { font-size: 24px; }
+.sp-alat .daftar-nomor .t span { font-size: 17px; }
+.sp-alat .kartu-ilus { flex: 1; grid-auto-rows: 1fr; }
+.sp-alat .kartu-ilus > div { display: flex; flex-direction: column; justify-content: center; }
+.sp-alat .kartu-ilus svg { width: 140px; height: 112px; margin: 0 auto; }
+.sp-alat .kartu-ilus b { font-size: 24px; }
+.sp-alat .kartu-ilus span { font-size: 17px; }
+.sp-alat .catatan-merah { font-size: 18px; }
+.sp-web .kolom-web { flex: 1; align-items: stretch; }
+.sp-web .kolom-web > div { display: flex; flex-direction: column; justify-content: center; }
+.sp-web .kolom-web svg { width: 120px; height: 96px; margin: 0 auto; }
+.sp-web .kolom-web h4 { font-size: 32px; }
+.sp-web .kolom-web p { font-size: 18.5px; }
+.sp-web .alir span { font-size: 19px; }
+.sp-proker .proker-grid { flex: 1; grid-auto-rows: 1fr; }
+.sp-proker .proker-grid > div { align-items: center; padding: 28px 28px; }
+.sp-proker .proker-grid h4 { font-size: 38px; }
+.sp-proker .proker-grid p { font-size: 22px; line-height: 1.5; margin-top: 10px; }
+.sp-proker .proker-grid .meta { margin-top: 14px; }
+.sp-proker .proker-grid .meta span { font-size: 17px; }
+.sp-proker .proker-grid .bulat { width: 84px; height: 84px; font-size: 48px; }
+.sp-proker .contoh-cap { font-size: 14px; padding: 3px 9px; }

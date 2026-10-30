@@ -15,10 +15,46 @@ ios/Pods/
 # Backend (repo terpisah: greenhouse_arutmin_backend)
 backend-nodejs/
 # Repo induk (repo terpisah: greenhouse_arutmin)
-deploy-pi/
+# deploy-pi/ tetap diabaikan, KECUALI 4 sumber firmware yang disetujui pemilik (Fase 3B.3).
+# Git tidak bisa mengecualikan isi folder yang diabaikan utuh → pola "folder/*" + pengecualian per file.
+deploy-pi/*
+!deploy-pi/firmware/
+deploy-pi/firmware/*
+!deploy-pi/firmware/aktuator/
+!deploy-pi/firmware/sensor/
+deploy-pi/firmware/aktuator/*
+deploy-pi/firmware/sensor/*
+!deploy-pi/firmware/aktuator/aktuator.ino
+!deploy-pi/firmware/aktuator/rahasia.h.contoh
+!deploy-pi/firmware/sensor/sensor.ino
+!deploy-pi/firmware/sensor/rahasia.h.contoh
 scripts/
 
 # Sampah
 .DS_Store
 *.log
 *.zip
+
+# Sampah instalasi skills (npx skills add)
+.agents/
+.claude/
+skills-lock.json
+
+# Paket deploy berisi .env & kredensial — jangan pernah ikut git
+vertonik-pi-*/
+
+# rahasia lokal Pi
+deploy-pi/*.lokal
+
+# Arsip & cadangan sementara (jangan masuk git)
+*.tgz
+_backup_*/
+_tmp_dist/
+.playwright-cli/
+*.bak-*
+
+# Hasil kerja skill desain (screenshot & laporan inspector)
+.taste-skill/
+
+# hasil render infografis/spanduk (±100 MB) — disimpan lokal, belum di GitHub; lihat docs/RENCANA_DAN_TODO.md
+docs/infografis/hasil/

@@ -5,7 +5,7 @@ import type { Role } from '../lib/authTypes'
 
 /**
  * Guard rute sesuai peta peran di untitled.pen:
- * - semua role  : Dashboard, Sensor, Tanam Saya, CCTV, Asisten AI, Profil, Logout
+ * - semua role  : Dashboard, Sensor, Kebun Saya, CCTV, Asisten AI, Profil, Logout
  * - admin+demo  : Water Control, Data Tahap, Durasi, Master, Laporan, Notif
  * - admin only  : Manajemen User
  * Mode demo = admin read-only (aksi destruktif dinonaktifkan di level komponen).
@@ -14,7 +14,17 @@ export function RequireAuth({ allow, element }: { allow?: Role[]; element?: Reac
   const { isAuthenticated, role } = useAuth()
 
   if (!isAuthenticated) return <Navigate to="/login" replace />
-  if (allow && !allow.includes(role)) return <Navigate to="/dashboard" replace />
+  // QW5 — redirect karena role tak diizinkan mengirim state notice, yang
+  // ditampilkan AppShell sebagai role="status" di halaman tujuan (/dashboard).
+  if (allow && !allow.includes(role)) {
+    return (
+      <Navigate
+        to="/dashboard"
+        replace
+        state={{ notice: 'Halaman ini hanya untuk admin.' }}
+      />
+    )
+  }
   if (element) return element
   return <Outlet />
 }

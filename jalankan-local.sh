@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Jalankan seluruh stack Vertonik Smart Farm secara lokal (macOS).
+# Jalankan seluruh stack GARAP secara lokal (macOS).
 # Usage: ./jalankan-local.sh
 set -euo pipefail
 
@@ -30,6 +30,6 @@ fi
 echo "    $(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://$P1_REACT/) http://$P1_REACT/ (buka /dashboard)"
 
 echo
-echo "Semua jalan. Login web: admin / @adminbersabda123"
+echo "Semua jalan. Login web: admin — password lihat backend-nodejs/.env (kunci ADMIN_PASSWORD)"
 echo "  Backend : http://$P1_LARAVEL"
 echo "  Web SPA : http://$P1_REACT/dashboard"

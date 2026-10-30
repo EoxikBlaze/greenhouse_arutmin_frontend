@@ -11,8 +11,8 @@ Sumber: `/Users/rizki/Documents/Vertonik-Smart-Farm/routes/web.php` dan `routes/
 | POST | `/login` | `login.proses` |
 | GET | `/logout` | `logout` |
 | GET | `/monitoring/getReport6Jam` |  |
-| POST | `/monitoring/saveAlert` |  |
-| POST | `/monitoring/saveSensor` |  |
+| POST | `/monitoring/saveAlert` | X-API-KEY (sejak G7) |
+| POST | `/monitoring/saveSensor` | X-API-KEY (sejak G7) |
 | GET | `/dashboard` | `dashboard` |
 | GET | `/tanam` | `tanam.index` |
 | POST | `/tanam/mulai` | `tanam.mulai` |
@@ -35,9 +35,6 @@ Sumber: `/Users/rizki/Documents/Vertonik-Smart-Farm/routes/web.php` dan `routes/
 | POST | `/profil/update` | `profil.update` |
 | GET | `/profil/password` | `profil.password` |
 | POST | `/profil/password` | `profil.password.update` |
-| GET | `/notifikasi-wa` | `notifikasi-wa.index` |
-| POST | `/notifikasi-wa` | `notifikasi-wa.update` |
-| POST | `/notifikasi-wa/uji` | `notifikasi-wa.uji` |
 | RESOURCE | `meja` | `MejaController` |
 | RESOURCE | `tanaman` | `TanamanController` |
 | RESOURCE | `siklus` | `SiklusController` |

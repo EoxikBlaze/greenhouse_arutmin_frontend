@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=1080">
+<title>Infografis</title>
+<!-- Pakai:  template.html?data=vertonik  (memuat data/anggota.js + data/vertonik.js). Render: node render.js -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Oswald:wght@600;700&family=Kaushan+Script&family=Lilita+One&family=Merriweather:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="lib/qrcode.js"></script>
+<script src="data/anggota.js"></script>
+<script>
+  // nama data dari ?data=… (huruf, angka, '-' saja) — dimuat sebelum perender
+  const nama = (new URLSearchParams(location.search).get('data') || 'vertonik').replace(/[^a-z0-9-]/gi, '');
+  document.write('<script src="data/' + nama + '.js"><\/script>');
+</script>
+<script>
+  // gaya dipilih file data (DATA.gaya): 'infografis' (bawaan, gaya Tentang) atau 'ceria'
+  const gaya = /^[a-z]+$/.test(window.DATA?.gaya || '') ? window.DATA.gaya : 'infografis';
+  document.write('<link rel="stylesheet" href="' + gaya + '.css">');
+  if (window.DATA?.tata === 'spanduk') document.write('<link rel="stylesheet" href="' + (gaya === 'ceria' ? 'spanduk.css' : 'spanduk-tentang.css') + '">');
+</script>
+</head>
+<body>
+<script>document.write('<script src="' + gaya + '.js"><\/script>');</script>
+</body></html>

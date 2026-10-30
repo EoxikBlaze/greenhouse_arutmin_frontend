@@ -1,0 +1,1492 @@
+{
+ "nodes": [
+  {
+   "id": "file:backend-nodejs/scripts/migrate.js",
+   "type": "file",
+   "name": "migrate.js",
+   "filePath": "backend-nodejs/scripts/migrate.js",
+   "summary": "Skrip CLI migrasi database yang menjalankan file SQL ke PostgreSQL memakai konfigurasi aplikasi.",
+   "tags": [
+    "script",
+    "migration",
+    "database",
+    "entry-point"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:backend-nodejs/scripts/migrate.js:main",
+   "type": "function",
+   "name": "main",
+   "filePath": "backend-nodejs/scripts/migrate.js",
+   "lineRange": [
+    27,
+    77
+   ],
+   "summary": "Fungsi main di migrate.js; bagian dari logika modul ini.",
+   "tags": [
+    "script",
+    "migration",
+    "database"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/src/aiDiagnosa.js",
+   "type": "file",
+   "name": "aiDiagnosa.js",
+   "filePath": "backend-nodejs/src/aiDiagnosa.js",
+   "summary": "Modul diagnosa AI berbasis data: mengambil sensor, alert, dan penampung lalu membangun tabel markdown, mendeteksi niat pengguna, dan menjawab tanpa LLM.",
+   "tags": [
+    "ai",
+    "diagnosa",
+    "service",
+    "database"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:backend-nodejs/src/aiDiagnosa.js:sensorPerMeja",
+   "type": "function",
+   "name": "sensorPerMeja",
+   "filePath": "backend-nodejs/src/aiDiagnosa.js",
+   "lineRange": [
+    56,
+    92
+   ],
+   "summary": "Fungsi sensorPerMeja di aiDiagnosa.js; bagian dari logika modul ini.",
+   "tags": [
+    "ai",
+    "diagnosa",
+    "service"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/aiDiagnosa.js:tabelAlert",
+   "type": "function",
+   "name": "tabelAlert",
+   "filePath": "backend-nodejs/src/aiDiagnosa.js",
+   "lineRange": [
+    104,
+    119
+   ],
+   "summary": "Fungsi tabelAlert di aiDiagnosa.js; bagian dari logika modul ini.",
+   "tags": [
+    "ai",
+    "diagnosa",
+    "service"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/aiDiagnosa.js:tabelPenampung",
+   "type": "function",
+   "name": "tabelPenampung",
+   "filePath": "backend-nodejs/src/aiDiagnosa.js",
+   "lineRange": [
+    121,
+    144
+   ],
+   "summary": "Fungsi tabelPenampung di aiDiagnosa.js; bagian dari logika modul ini.",
+   "tags": [
+    "ai",
+    "diagnosa",
+    "service"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/aiDiagnosa.js:diagnosaMenyeluruh",
+   "type": "function",
+   "name": "diagnosaMenyeluruh",
+   "filePath": "backend-nodejs/src/aiDiagnosa.js",
+   "lineRange": [
+    157,
+    241
+   ],
+   "summary": "Fungsi diagnosaMenyeluruh di aiDiagnosa.js; bagian dari logika modul ini.",
+   "tags": [
+    "ai",
+    "diagnosa",
+    "service"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:backend-nodejs/src/aiDiagnosa.js:deteksiNiat",
+   "type": "function",
+   "name": "deteksiNiat",
+   "filePath": "backend-nodejs/src/aiDiagnosa.js",
+   "lineRange": [
+    244,
+    264
+   ],
+   "summary": "Fungsi deteksiNiat di aiDiagnosa.js; bagian dari logika modul ini.",
+   "tags": [
+    "ai",
+    "diagnosa",
+    "service"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/aiDiagnosa.js:tabelPreset",
+   "type": "function",
+   "name": "tabelPreset",
+   "filePath": "backend-nodejs/src/aiDiagnosa.js",
+   "lineRange": [
+    289,
+    306
+   ],
+   "summary": "Fungsi tabelPreset di aiDiagnosa.js; bagian dari logika modul ini.",
+   "tags": [
+    "ai",
+    "diagnosa",
+    "service"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/aiDiagnosa.js:jawabNiat",
+   "type": "function",
+   "name": "jawabNiat",
+   "filePath": "backend-nodejs/src/aiDiagnosa.js",
+   "lineRange": [
+    308,
+    338
+   ],
+   "summary": "Fungsi jawabNiat di aiDiagnosa.js; bagian dari logika modul ini.",
+   "tags": [
+    "ai",
+    "diagnosa",
+    "service"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/aiDiagnosa.js:ekstrakTabelMarkdown",
+   "type": "function",
+   "name": "ekstrakTabelMarkdown",
+   "filePath": "backend-nodejs/src/aiDiagnosa.js",
+   "lineRange": [
+    341,
+    363
+   ],
+   "summary": "Fungsi ekstrakTabelMarkdown di aiDiagnosa.js; bagian dari logika modul ini.",
+   "tags": [
+    "ai",
+    "diagnosa",
+    "service"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/src/aiGuard.js",
+   "type": "file",
+   "name": "aiGuard.js",
+   "filePath": "backend-nodejs/src/aiGuard.js",
+   "summary": "Pengaman AI: mendeteksi prompt injection dan teks tersembunyi, membatasi topik, mencatat pelanggaran, serta menyaring riwayat dan keluaran model.",
+   "tags": [
+    "ai",
+    "security",
+    "validation",
+    "guardrail"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:backend-nodejs/src/aiGuard.js:dekodeTersembunyi",
+   "type": "function",
+   "name": "dekodeTersembunyi",
+   "filePath": "backend-nodejs/src/aiGuard.js",
+   "lineRange": [
+    44,
+    62
+   ],
+   "summary": "Fungsi dekodeTersembunyi di aiGuard.js; bagian dari logika modul ini.",
+   "tags": [
+    "ai",
+    "security",
+    "validation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/aiGuard.js:deteksi",
+   "type": "function",
+   "name": "deteksi",
+   "filePath": "backend-nodejs/src/aiGuard.js",
+   "lineRange": [
+    120,
+    143
+   ],
+   "summary": "Fungsi deteksi di aiGuard.js; bagian dari logika modul ini.",
+   "tags": [
+    "ai",
+    "security",
+    "validation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/aiGuard.js:dalamTopik",
+   "type": "function",
+   "name": "dalamTopik",
+   "filePath": "backend-nodejs/src/aiGuard.js",
+   "lineRange": [
+    202,
+    212
+   ],
+   "summary": "Fungsi dalamTopik di aiGuard.js; bagian dari logika modul ini.",
+   "tags": [
+    "ai",
+    "security",
+    "validation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/aiGuard.js:catatPelanggaran",
+   "type": "function",
+   "name": "catatPelanggaran",
+   "filePath": "backend-nodejs/src/aiGuard.js",
+   "lineRange": [
+    225,
+    234
+   ],
+   "summary": "Fungsi catatPelanggaran di aiGuard.js; bagian dari logika modul ini.",
+   "tags": [
+    "ai",
+    "security",
+    "validation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/aiGuard.js:periksaPesan",
+   "type": "function",
+   "name": "periksaPesan",
+   "filePath": "backend-nodejs/src/aiGuard.js",
+   "lineRange": [
+    270,
+    281
+   ],
+   "summary": "Fungsi periksaPesan di aiGuard.js; bagian dari logika modul ini.",
+   "tags": [
+    "ai",
+    "security",
+    "validation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/aiGuard.js:bersihkanData",
+   "type": "function",
+   "name": "bersihkanData",
+   "filePath": "backend-nodejs/src/aiGuard.js",
+   "lineRange": [
+    295,
+    308
+   ],
+   "summary": "Fungsi bersihkanData di aiGuard.js; bagian dari logika modul ini.",
+   "tags": [
+    "ai",
+    "security",
+    "validation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/aiGuard.js:saringRiwayat",
+   "type": "function",
+   "name": "saringRiwayat",
+   "filePath": "backend-nodejs/src/aiGuard.js",
+   "lineRange": [
+    316,
+    334
+   ],
+   "summary": "Fungsi saringRiwayat di aiGuard.js; bagian dari logika modul ini.",
+   "tags": [
+    "ai",
+    "security",
+    "validation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/aiGuard.js:saringKeluaran",
+   "type": "function",
+   "name": "saringKeluaran",
+   "filePath": "backend-nodejs/src/aiGuard.js",
+   "lineRange": [
+    348,
+    364
+   ],
+   "summary": "Fungsi saringKeluaran di aiGuard.js; bagian dari logika modul ini.",
+   "tags": [
+    "ai",
+    "security",
+    "validation"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/src/config.js",
+   "type": "file",
+   "name": "config.js",
+   "filePath": "backend-nodejs/src/config.js",
+   "summary": "Memuat dan mengekspos konfigurasi aplikasi dari environment variable (port, database, MQTT, rahasia).",
+   "tags": [
+    "config",
+    "environment",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/src/crypto.js",
+   "type": "file",
+   "name": "crypto.js",
+   "filePath": "backend-nodejs/src/crypto.js",
+   "summary": "Utilitas enkripsi AES-GCM beserta dekripsi format legacy untuk data sensitif, memakai kunci dari konfigurasi.",
+   "tags": [
+    "crypto",
+    "security",
+    "utility",
+    "encryption"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:backend-nodejs/src/crypto.js:decryptGcm",
+   "type": "function",
+   "name": "decryptGcm",
+   "filePath": "backend-nodejs/src/crypto.js",
+   "lineRange": [
+    31,
+    41
+   ],
+   "summary": "Fungsi decryptGcm di crypto.js; bagian dari logika modul ini.",
+   "tags": [
+    "crypto",
+    "security",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/crypto.js:decryptLegacy",
+   "type": "function",
+   "name": "decryptLegacy",
+   "filePath": "backend-nodejs/src/crypto.js",
+   "lineRange": [
+    48,
+    57
+   ],
+   "summary": "Fungsi decryptLegacy di crypto.js; bagian dari logika modul ini.",
+   "tags": [
+    "crypto",
+    "security",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/src/routes/ai.js",
+   "type": "file",
+   "name": "ai.js",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "summary": "Route API AI: diagnosa tanaman dan chat dengan Ollama, validasi body, verifikasi fakta, pemanggilan LLM, dan penerapan aiGuard.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes",
+    "validation",
+    "llm"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:validasiBody",
+   "type": "function",
+   "name": "validasiBody",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    83,
+    102
+   ],
+   "summary": "Fungsi validasiBody di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:ambilSensor",
+   "type": "function",
+   "name": "ambilSensor",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    127,
+    137
+   ],
+   "summary": "Fungsi ambilSensor di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:ambilAlert",
+   "type": "function",
+   "name": "ambilAlert",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    140,
+    151
+   ],
+   "summary": "Fungsi ambilAlert di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:ambilTahap",
+   "type": "function",
+   "name": "ambilTahap",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    154,
+    181
+   ],
+   "summary": "Fungsi ambilTahap di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:ambilDurasi",
+   "type": "function",
+   "name": "ambilDurasi",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    184,
+    194
+   ],
+   "summary": "Fungsi ambilDurasi di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:ambilPanen",
+   "type": "function",
+   "name": "ambilPanen",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    196,
+    213
+   ],
+   "summary": "Fungsi ambilPanen di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:evaluasiTahap",
+   "type": "function",
+   "name": "evaluasiTahap",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    216,
+    246
+   ],
+   "summary": "Fungsi evaluasiTahap di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:cekAngkaPengguna",
+   "type": "function",
+   "name": "cekAngkaPengguna",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    254,
+    274
+   ],
+   "summary": "Fungsi cekAngkaPengguna di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:temuan",
+   "type": "function",
+   "name": "temuan",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    297,
+    405
+   ],
+   "summary": "Fungsi temuan di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:heuristik",
+   "type": "function",
+   "name": "heuristik",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    407,
+    427
+   ],
+   "summary": "Fungsi heuristik di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:faktaTerverifikasi",
+   "type": "function",
+   "name": "faktaTerverifikasi",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    443,
+    475
+   ],
+   "summary": "Fungsi faktaTerverifikasi di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:promptRingkas",
+   "type": "function",
+   "name": "promptRingkas",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    481,
+    525
+   ],
+   "summary": "Fungsi promptRingkas di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:parseJsonLlm",
+   "type": "function",
+   "name": "parseJsonLlm",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    528,
+    545
+   ],
+   "summary": "Fungsi parseJsonLlm di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:validasiOutputLlm",
+   "type": "function",
+   "name": "validasiOutputLlm",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    558,
+    583
+   ],
+   "summary": "Fungsi validasiOutputLlm di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:panggilOllama",
+   "type": "function",
+   "name": "panggilOllama",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    585,
+    607
+   ],
+   "summary": "Fungsi panggilOllama di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:validasiChat",
+   "type": "function",
+   "name": "validasiChat",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    681,
+    701
+   ],
+   "summary": "Fungsi validasiChat di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:systemChat",
+   "type": "function",
+   "name": "systemChat",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    713,
+    741
+   ],
+   "summary": "Fungsi systemChat di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/src/routes/ai.js:panggilOllamaChat",
+   "type": "function",
+   "name": "panggilOllamaChat",
+   "filePath": "backend-nodejs/src/routes/ai.js",
+   "lineRange": [
+    743,
+    764
+   ],
+   "summary": "Fungsi panggilOllamaChat di ai.js; bagian dari logika modul ini.",
+   "tags": [
+    "api-handler",
+    "ai",
+    "routes"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/_server.js",
+   "type": "file",
+   "name": "_server.js",
+   "filePath": "backend-nodejs/test/integration/_server.js",
+   "summary": "Helper test integrasi yang menjalankan server backend pada port bebas, membaca env, dan membuat token admin.",
+   "tags": [
+    "test",
+    "test-helper",
+    "server",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:backend-nodejs/test/integration/_server.js:freePort",
+   "type": "function",
+   "name": "freePort",
+   "filePath": "backend-nodejs/test/integration/_server.js",
+   "lineRange": [
+    32,
+    41
+   ],
+   "summary": "Fungsi freePort di _server.js; bagian dari logika modul ini.",
+   "tags": [
+    "test",
+    "test-helper",
+    "server"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/test/integration/_server.js:startServer",
+   "type": "function",
+   "name": "startServer",
+   "filePath": "backend-nodejs/test/integration/_server.js",
+   "lineRange": [
+    57,
+    95
+   ],
+   "summary": "Fungsi startServer di _server.js; bagian dari logika modul ini.",
+   "tags": [
+    "test",
+    "test-helper",
+    "server"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/test/integration/_server.js:readEnv",
+   "type": "function",
+   "name": "readEnv",
+   "filePath": "backend-nodejs/test/integration/_server.js",
+   "lineRange": [
+    98,
+    107
+   ],
+   "summary": "Fungsi readEnv di _server.js; bagian dari logika modul ini.",
+   "tags": [
+    "test",
+    "test-helper",
+    "server"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/test/integration/_server.js:adminToken",
+   "type": "function",
+   "name": "adminToken",
+   "filePath": "backend-nodejs/test/integration/_server.js",
+   "lineRange": [
+    115,
+    129
+   ],
+   "summary": "Fungsi adminToken di _server.js; bagian dari logika modul ini.",
+   "tags": [
+    "test",
+    "test-helper",
+    "server"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/ai-pengaman.test.js",
+   "type": "file",
+   "name": "ai-pengaman.test.js",
+   "filePath": "backend-nodejs/test/integration/ai-pengaman.test.js",
+   "summary": "Test integrasi pengaman AI: injection, filter topik, dan penyaringan keluaran dengan mock Ollama.",
+   "tags": [
+    "test",
+    "ai",
+    "security",
+    "integration"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:backend-nodejs/test/integration/ai-pengaman.test.js:bukaMock",
+   "type": "function",
+   "name": "bukaMock",
+   "filePath": "backend-nodejs/test/integration/ai-pengaman.test.js",
+   "lineRange": [
+    220,
+    234
+   ],
+   "summary": "Fungsi bukaMock di ai-pengaman.test.js; bagian dari logika modul ini.",
+   "tags": [
+    "test",
+    "ai",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/ai.test.js",
+   "type": "file",
+   "name": "ai.test.js",
+   "filePath": "backend-nodejs/test/integration/ai.test.js",
+   "summary": "Test integrasi endpoint AI dengan mock Ollama untuk diagnosa dan chat.",
+   "tags": [
+    "test",
+    "ai",
+    "integration",
+    "mock"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:backend-nodejs/test/integration/ai.test.js:bukaMockOllama",
+   "type": "function",
+   "name": "bukaMockOllama",
+   "filePath": "backend-nodejs/test/integration/ai.test.js",
+   "lineRange": [
+    47,
+    93
+   ],
+   "summary": "Fungsi bukaMockOllama di ai.test.js; bagian dari logika modul ini.",
+   "tags": [
+    "test",
+    "ai",
+    "integration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/test/integration/ai.test.js:siapkanMock",
+   "type": "function",
+   "name": "siapkanMock",
+   "filePath": "backend-nodejs/test/integration/ai.test.js",
+   "lineRange": [
+    170,
+    181
+   ],
+   "summary": "Fungsi siapkanMock di ai.test.js; bagian dari logika modul ini.",
+   "tags": [
+    "test",
+    "ai",
+    "integration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/audit.test.js",
+   "type": "file",
+   "name": "audit.test.js",
+   "filePath": "backend-nodejs/test/integration/audit.test.js",
+   "summary": "Test integrasi log audit: memastikan aksi pengguna tercatat dan dapat dibaca.",
+   "tags": [
+    "test",
+    "audit",
+    "integration"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:backend-nodejs/test/integration/audit.test.js:tungguMuncul",
+   "type": "function",
+   "name": "tungguMuncul",
+   "filePath": "backend-nodejs/test/integration/audit.test.js",
+   "lineRange": [
+    44,
+    58
+   ],
+   "summary": "Fungsi tungguMuncul di audit.test.js; bagian dari logika modul ini.",
+   "tags": [
+    "test",
+    "audit",
+    "integration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/auth.test.js",
+   "type": "file",
+   "name": "auth.test.js",
+   "filePath": "backend-nodejs/test/integration/auth.test.js",
+   "summary": "Test integrasi autentikasi: login, token, dan penolakan kredensial salah.",
+   "tags": [
+    "test",
+    "auth",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/authz.test.js",
+   "type": "file",
+   "name": "authz.test.js",
+   "filePath": "backend-nodejs/test/integration/authz.test.js",
+   "summary": "Test integrasi otorisasi berbasis peran dan akses lintas pengguna.",
+   "tags": [
+    "test",
+    "authorization",
+    "security",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/cctv-rtsp.test.js",
+   "type": "file",
+   "name": "cctv-rtsp.test.js",
+   "filePath": "backend-nodejs/test/integration/cctv-rtsp.test.js",
+   "summary": "Test integrasi pengelolaan kamera CCTV dan URL RTSP.",
+   "tags": [
+    "test",
+    "cctv",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/chat-cctv.test.js",
+   "type": "file",
+   "name": "chat-cctv.test.js",
+   "filePath": "backend-nodejs/test/integration/chat-cctv.test.js",
+   "summary": "Test integrasi chat yang terkait CCTV dengan mock server.",
+   "tags": [
+    "test",
+    "chat",
+    "cctv",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:backend-nodejs/test/integration/chat-cctv.test.js:bukaMock",
+   "type": "function",
+   "name": "bukaMock",
+   "filePath": "backend-nodejs/test/integration/chat-cctv.test.js",
+   "lineRange": [
+    20,
+    36
+   ],
+   "summary": "Fungsi bukaMock di chat-cctv.test.js; bagian dari logika modul ini.",
+   "tags": [
+    "test",
+    "chat",
+    "cctv"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:backend-nodejs/scripts/migrate.js",
+   "target": "function:backend-nodejs/scripts/migrate.js:main",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/scripts/migrate.js",
+   "target": "file:backend-nodejs/src/config.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/src/aiDiagnosa.js",
+   "target": "function:backend-nodejs/src/aiDiagnosa.js:sensorPerMeja",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/aiDiagnosa.js",
+   "target": "function:backend-nodejs/src/aiDiagnosa.js:tabelAlert",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/aiDiagnosa.js",
+   "target": "function:backend-nodejs/src/aiDiagnosa.js:tabelPenampung",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/aiDiagnosa.js",
+   "target": "function:backend-nodejs/src/aiDiagnosa.js:diagnosaMenyeluruh",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/aiDiagnosa.js",
+   "target": "function:backend-nodejs/src/aiDiagnosa.js:deteksiNiat",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/aiDiagnosa.js",
+   "target": "function:backend-nodejs/src/aiDiagnosa.js:tabelPreset",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/aiDiagnosa.js",
+   "target": "function:backend-nodejs/src/aiDiagnosa.js:jawabNiat",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/aiDiagnosa.js",
+   "target": "function:backend-nodejs/src/aiDiagnosa.js:ekstrakTabelMarkdown",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/aiDiagnosa.js",
+   "target": "file:backend-nodejs/src/db.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/src/aiGuard.js",
+   "target": "function:backend-nodejs/src/aiGuard.js:dekodeTersembunyi",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/aiGuard.js",
+   "target": "function:backend-nodejs/src/aiGuard.js:deteksi",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/aiGuard.js",
+   "target": "function:backend-nodejs/src/aiGuard.js:dalamTopik",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/aiGuard.js",
+   "target": "function:backend-nodejs/src/aiGuard.js:catatPelanggaran",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/aiGuard.js",
+   "target": "function:backend-nodejs/src/aiGuard.js:periksaPesan",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/aiGuard.js",
+   "target": "function:backend-nodejs/src/aiGuard.js:bersihkanData",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/aiGuard.js",
+   "target": "function:backend-nodejs/src/aiGuard.js:saringRiwayat",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/aiGuard.js",
+   "target": "function:backend-nodejs/src/aiGuard.js:saringKeluaran",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/crypto.js",
+   "target": "function:backend-nodejs/src/crypto.js:decryptGcm",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/crypto.js",
+   "target": "function:backend-nodejs/src/crypto.js:decryptLegacy",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/crypto.js",
+   "target": "file:backend-nodejs/src/config.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:validasiBody",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:ambilSensor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:ambilAlert",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:ambilTahap",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:ambilDurasi",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:ambilPanen",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:evaluasiTahap",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:cekAngkaPengguna",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:temuan",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:heuristik",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:faktaTerverifikasi",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:promptRingkas",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:parseJsonLlm",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:validasiOutputLlm",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:panggilOllama",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:validasiChat",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:systemChat",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "function:backend-nodejs/src/routes/ai.js:panggilOllamaChat",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "file:backend-nodejs/src/aiDiagnosa.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "file:backend-nodejs/src/aiGuard.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "file:backend-nodejs/src/auth.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "file:backend-nodejs/src/config.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "file:backend-nodejs/src/db.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "file:backend-nodejs/src/routes/_id.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/_server.js",
+   "target": "function:backend-nodejs/test/integration/_server.js:freePort",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/_server.js",
+   "target": "function:backend-nodejs/test/integration/_server.js:startServer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/_server.js",
+   "target": "function:backend-nodejs/test/integration/_server.js:readEnv",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/_server.js",
+   "target": "function:backend-nodejs/test/integration/_server.js:adminToken",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/_server.js",
+   "target": "file:backend-nodejs/src/config.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/ai-pengaman.test.js",
+   "target": "function:backend-nodejs/test/integration/ai-pengaman.test.js:bukaMock",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/ai-pengaman.test.js",
+   "target": "file:backend-nodejs/src/aiDiagnosa.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/ai-pengaman.test.js",
+   "target": "file:backend-nodejs/src/aiGuard.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/ai-pengaman.test.js",
+   "target": "file:backend-nodejs/src/routes/ai.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/ai-pengaman.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/ai.test.js",
+   "target": "function:backend-nodejs/test/integration/ai.test.js:bukaMockOllama",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/ai.test.js",
+   "target": "function:backend-nodejs/test/integration/ai.test.js:siapkanMock",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/ai.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/audit.test.js",
+   "target": "function:backend-nodejs/test/integration/audit.test.js:tungguMuncul",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/audit.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/auth.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/authz.test.js",
+   "target": "file:backend-nodejs/src/auth.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/authz.test.js",
+   "target": "file:backend-nodejs/src/config.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/authz.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/cctv-rtsp.test.js",
+   "target": "file:backend-nodejs/src/db.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/cctv-rtsp.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/chat-cctv.test.js",
+   "target": "function:backend-nodejs/test/integration/chat-cctv.test.js:bukaMock",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/chat-cctv.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/src/aiDiagnosa.js",
+   "target": "file:backend-nodejs/test/integration/ai-pengaman.test.js",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend-nodejs/src/aiGuard.js",
+   "target": "file:backend-nodejs/test/integration/ai-pengaman.test.js",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "file:backend-nodejs/test/integration/ai-pengaman.test.js",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend-nodejs/src/routes/ai.js",
+   "target": "file:backend-nodejs/test/integration/ai.test.js",
+   "type": "tested_by",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

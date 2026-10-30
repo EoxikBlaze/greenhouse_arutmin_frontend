@@ -1,0 +1,4 @@
+# Halaman depan (Tentang) boleh diindeks; halaman aplikasi internal tidak.
+User-agent: *
+Allow: /$
+Disallow: /

@@ -1,0 +1,358 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:http/http.dart' as http;
+
+import '../config.dart';
+import '../models/meja.dart';
+import '../models/monitoring_entry.dart';
+import 'client_factory.dart';
+import 'sesi_store.dart';
+
+/// Kegagalan API dengan pesan ramah berbahasa Indonesia.
+///
+/// [statusCode] `null` berarti server tidak terjangkau (offline/timeout).
+class ApiException implements Exception {
+  const ApiException(this.statusCode, this.message);
+
+  final int? statusCode;
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
+/// Klien API GARAP.
+///
+/// Mengikuti arsitektur yang sudah ada: paket `http` murni (tanpa dio),
+/// token disimpan di memori; bila [penyimpan] diisi, sesi juga disimpan agar tetap
+/// masuk setelah aplikasi ditutup (sampai token kedaluwarsa).
+/// [client] bisa disuntikkan agar unit test dapat memakai mock tanpa server.
+class ApiService {
+  ApiService({
+    http.Client? client,
+    String? baseUrl,
+    this.timeout = const Duration(seconds: apiTimeoutSeconds),
+    this.penyimpan,
+  }) : _client = client ?? buatKlienHttp(),
+       baseUrl = baseUrl ?? apiBase;
+
+  final PenyimpanSesi? penyimpan;
+
+  final http.Client _client;
+  final String baseUrl;
+
+  /// Batas waktu tunggu tiap request (bisa dipendekkan untuk pengujian).
+  final Duration timeout;
+
+  String? _token;
+
+  /// Profil akun dari balasan login (`{status, message, token, user, redirect}`).
+  /// Hanya metadata non-sensitif (id, username, email, level, is_demo).
+  Map<String, dynamic>? _user;
+
+  /// Token JWT aktif (null = belum login).
+  String? get token => _token;
+  Map<String, dynamic>? get user => _user;
+  bool get isLoggedIn => _token != null;
+
+  /// Dipanggil otomatis saat server menjawab 401 (token kedaluwarsa/dicabut)
+  /// agar UI bisa segera kembali ke halaman login.
+  void Function()? onUnauthorized;
+
+  /// Hapus sesi (dipanggil tombol Keluar).
+  void clearSession() {
+    _token = null;
+    _user = null;
+    _simpanSesi();
+  }
+
+  /// Tulis sesi aktif ke [penyimpan] (null = hapus). Galat penyimpanan tidak menggagalkan login.
+  void _simpanSesi() {
+    final p = penyimpan;
+    if (p == null) return;
+    final isi = _token == null
+        ? null
+        : jsonEncode({'token': _token, 'user': _user});
+    p.tulis(isi).catchError((Object _) {});
+  }
+
+  /// Pulihkan sesi tersimpan bila tokennya belum kedaluwarsa (klaim `exp` JWT).
+  Future<bool> pulihkanSesi() async {
+    final p = penyimpan;
+    if (p == null) return false;
+    try {
+      final isi = await p.baca();
+      if (isi == null) return false;
+      final d = jsonDecode(isi);
+      final token = d is Map ? d['token']?.toString() : null;
+      final bagian = token?.split('.') ?? const [];
+      if (bagian.length != 3) return false;
+      final klaim = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(bagian[1]))),
+      );
+      final exp = klaim is Map && klaim['exp'] is num
+          ? (klaim['exp'] as num).toInt()
+          : 0;
+      // sisakan 5 menit agar tidak masuk dengan token yang sebentar lagi ditolak
+      if (DateTime.now().millisecondsSinceEpoch ~/ 1000 > exp - 300) {
+        await p.tulis(null);
+        return false;
+      }
+      _token = token;
+      _user = d['user'] is Map
+          ? Map<String, dynamic>.from(d['user'] as Map)
+          : null;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<Map<String, String>> _headers({bool withContentType = false}) async {
+    return {
+      'Accept': 'application/json',
+      if (withContentType) 'Content-Type': 'application/json',
+      if (_token != null) 'Authorization': 'Bearer $_token',
+    };
+  }
+
+  Future<dynamic> _request(
+    String path, {
+    Object? body,
+    Duration? batas,
+    bool put = false,
+  }) async {
+    final uri = Uri.parse('$baseUrl$path');
+    try {
+      final http.Response res;
+      if (body == null) {
+        res = await _client
+            .get(uri, headers: await _headers())
+            .timeout(batas ?? timeout);
+      } else {
+        final kirim = put ? _client.put : _client.post;
+        res = await kirim(
+          uri,
+          headers: await _headers(withContentType: true),
+          body: jsonEncode(body),
+        ).timeout(batas ?? timeout);
+      }
+      return _handle(res);
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      // Timeout / koneksi ditolak / DNS gagal — semuanya dibawa ke pesan
+      // yang menyebut alamat backend agar pengguna tahu harus menyalakan apa.
+      throw ApiException(
+        null,
+        'Backend tidak terjangkau ($baseUrl). Pastikan server sedang '
+        'berjalan dan perangkat terhubung ke jaringan yang sama.',
+      );
+    }
+  }
+
+  dynamic _handle(http.Response res) {
+    dynamic data;
+    try {
+      data = jsonDecode(res.body);
+    } catch (_) {
+      data = null;
+    }
+    final map = data is Map<String, dynamic> ? data : null;
+
+    if (res.statusCode >= 200 && res.statusCode < 300) return data;
+
+    if (res.statusCode == 401) {
+      _token = null;
+      _user = null;
+      _simpanSesi();
+      onUnauthorized?.call();
+      throw const ApiException(
+        401,
+        'Anda belum masuk atau sesi sudah berakhir. Silakan login ulang.',
+      );
+    }
+    if (res.statusCode == 403) {
+      final msg = map?['message']?.toString() ?? '';
+      throw ApiException(
+        403,
+        msg.isEmpty
+            ? 'Akses ditolak. Akun Anda tidak punya izin untuk data ini.'
+            : 'Akses ditolak. $msg',
+      );
+    }
+    if (res.statusCode == 422) {
+      throw ApiException(422, _pesan422(map));
+    }
+    if (res.statusCode == 429) {
+      // pesan server lebih tepat: sisa detik, jeda asisten AI 5 menit, antrean aktuator
+      final msg = map?['message']?.toString() ?? '';
+      throw ApiException(
+        429,
+        msg.isEmpty
+            ? 'Terlalu banyak percobaan. Coba lagi dalam satu menit.'
+            : msg,
+      );
+    }
+    if (res.statusCode == 404) {
+      throw const ApiException(404, 'Data tidak ditemukan di server (404).');
+    }
+    if (res.statusCode >= 500) {
+      throw ApiException(
+        res.statusCode,
+        'Server sedang bermasalah (HTTP ${res.statusCode}). Coba lagi nanti.',
+      );
+    }
+    throw ApiException(
+      res.statusCode,
+      map?['message']?.toString() ??
+          'Permintaan gagal (HTTP ${res.statusCode}).',
+    );
+  }
+
+  /// Gabungkan `message` + detail `errors` dari balasan 422 backend
+  /// (kontrak Laravel/Express: `{message, errors:{field:[...]}}`).
+  String _pesan422(Map<String, dynamic>? body) {
+    final msg = body?['message']?.toString().trim() ?? '';
+    final errors = body?['errors'];
+    final detail = <String>[];
+    if (errors is Map) {
+      errors.forEach((_, v) {
+        if (v is List && v.isNotEmpty) {
+          detail.add(v.first.toString());
+        } else if (v != null) {
+          detail.add(v.toString());
+        }
+      });
+    }
+    final gabungan = detail.join(' ').trim();
+    if (gabungan.isEmpty) {
+      return msg.isEmpty ? 'Data tidak valid.' : msg;
+    }
+    if (msg.isEmpty || gabungan.contains(msg)) return gabungan;
+    return '$msg $gabungan';
+  }
+
+  // ── Pembantu generik (dipakai halaman dashboard, kontrol, tanam, profil) ──
+
+  /// GET JSON mentah (butuh token bila endpoint-nya dilindungi).
+  Future<dynamic> getJson(String path) => _request(path);
+
+  /// GET biner dengan token (mis. JPEG kamera RTSP dari `GET /cctv/:id/gambar`).
+  /// Server butuh ±2–3 dtk untuk frame pertama, jadi batas tunggunya lebih longgar.
+  Future<Uint8List> getBytes(String path, {Duration? batas}) async {
+    final http.Response res;
+    try {
+      res = await _client
+          .get(
+            Uri.parse('$baseUrl$path'),
+            headers: {if (_token != null) 'Authorization': 'Bearer $_token'},
+          )
+          .timeout(batas ?? const Duration(seconds: 20));
+    } catch (_) {
+      throw ApiException(null, 'Backend tidak terjangkau ($baseUrl).');
+    }
+    if (res.statusCode != 200) {
+      throw ApiException(
+        res.statusCode,
+        'Gambar gagal dimuat (${res.statusCode}).',
+      );
+    }
+    return res.bodyBytes;
+  }
+
+  /// POST JSON; badan kosong dikirim sebagai `{}` agar tetap berupa POST.
+  Future<dynamic> postJson(
+    String path, [
+    Map<String, dynamic>? body,
+    Duration? batas,
+  ]) => _request(path, body: body ?? const <String, dynamic>{}, batas: batas);
+
+  /// PUT JSON (ubah data), mis. target nutrisi naik harian.
+  Future<dynamic> putJson(String path, Map<String, dynamic> body) =>
+      _request(path, body: body, put: true);
+
+  /// Peran efektif — meniru `roleFromLevel` di web:
+  /// demo (is_demo / level demo), admin, selain itu petani.
+  String get role {
+    final u = _user;
+    if (u == null) return 'petani';
+    final level = u['level']?.toString().toLowerCase();
+    if (u['is_demo'] == true || level == 'demo') return 'demo';
+    if (level == 'admin') return 'admin';
+    return 'petani';
+  }
+
+  // ── Endpoint ────────────────────────────────────────────────────────
+
+  /// POST /login — sukses mengembalikan token dan menyimpannya di memori.
+  Future<String> login({
+    required String username,
+    required String password,
+  }) async {
+    final data = await _request(
+      '/login',
+      body: {'username': username, 'password': password},
+    );
+    final token = data is Map<String, dynamic>
+        ? data['token']?.toString()
+        : null;
+    if (token == null || token.isEmpty) {
+      throw const ApiException(
+        200,
+        'Login berhasil tetapi token tidak diterima server.',
+      );
+    }
+    _token = token;
+    // `user` opsional dalam kontrak, tetapi selalu ada pada backend ini.
+    _user = data is Map<String, dynamic> && data['user'] is Map<String, dynamic>
+        ? Map<String, dynamic>.from(data['user'] as Map)
+        : null;
+    _simpanSesi();
+    return token;
+  }
+
+  /// GET /meja — daftar meja (13 kolom per baris, butuh token).
+  Future<List<Meja>> fetchMeja() async {
+    final data = await _request('/meja');
+    if (data is! List) {
+      throw const ApiException(
+        200,
+        'Respons daftar meja tidak sesuai kontrak.',
+      );
+    }
+    return data
+        .whereType<Map<String, dynamic>>()
+        .map(Meja.fromMap)
+        .toList(growable: false);
+  }
+
+  /// GET /monitoring/chart-data — riwayat monitoring (butuh token).
+  Future<List<MonitoringEntry>> fetchMonitoring() async {
+    final data = await _request('/monitoring/chart-data');
+    if (data is! List) {
+      throw const ApiException(
+        200,
+        'Respons daftar monitoring tidak sesuai kontrak.',
+      );
+    }
+    return data
+        .whereType<Map<String, dynamic>>()
+        .map(MonitoringEntry.fromMap)
+        .toList(growable: false);
+  }
+
+  /// GET /api/latest-sensor — polling sensor publik (tanpa token).
+  Future<Map<String, dynamic>> fetchLatestSensor() async {
+    final data = await _request('/api/latest-sensor');
+    if (data is! Map<String, dynamic>) {
+      throw const ApiException(
+        200,
+        'Respons sensor terbaru tidak sesuai kontrak.',
+      );
+    }
+    return data;
+  }
+}
