@@ -44,7 +44,15 @@ const beritahu = () => pendengar.forEach((f) => f())
 
 /** Ganti tema. `simpan = false` untuk perubahan yang berasal dari sistem (bukan pilihan pengguna). */
 export function aturTema(t: Tema, simpan = true): void {
-  terapkanTema(t)
+  const ganti = () => {
+    terapkanTema(t)
+    beritahu()
+  }
+  const vt = (document as Document & { startViewTransition?: (cb: () => void) => unknown }).startViewTransition
+  const diam = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  // Browser tanpa View Transitions (atau gerak dikurangi): ganti langsung; foto latar tetap memudar lewat CSS.
+  if (vt && !diam && ambilTema() !== t) vt.call(document, ganti)
+  else ganti()
   if (simpan) {
     try {
       localStorage.setItem(TEMA_KEY, t)
@@ -52,7 +60,6 @@ export function aturTema(t: Tema, simpan = true): void {
       /* penyimpanan tidak tersedia (mode privat): tema tetap berlaku untuk sesi ini */
     }
   }
-  beritahu()
 }
 
 export function langgananTema(f: () => void): () => void {
