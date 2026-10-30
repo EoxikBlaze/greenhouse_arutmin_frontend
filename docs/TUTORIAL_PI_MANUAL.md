@@ -259,15 +259,12 @@ NODE_ENV=production
 DATABASE_URL=postgres://vertonik:SANDI_DB@127.0.0.1:5432/vertonik_smartfarm
 JWT_SECRET=JWT_ACAK
 SECURITY_HSTS=auto
-OTOMASI=0
-OTOMASI_PENAMPUNG=
-OTOMASI_INTERVAL_DETIK=60
 AI_OLLAMA_URL=http://127.0.0.1:11434
 AI_MODEL=qwen2.5:1.5b
 ```
 
 - Server **menolak menyala** bila `JWT_SECRET` kosong atau masih nilai contoh — itu disengaja.
-- `OTOMASI=0` = dosis otomatis **mati**. Nyalakan hanya setelah sensor & pompa dikalibrasi (langkah 17).
+- `OTOMASI*` sudah **tidak dipakai** (Fase 3B.3): dosis otomatis lama dihapus. Dosing hanya lewat alur persetujuan petani (Tahap 3C, belum aktif).
 - RAM Pi < 3 GB → pakai `AI_MODEL=qwen2.5:0.5b`.
 
 Kunci izin file (hanya root yang bisa menulis, user `vertonik` hanya membaca):
@@ -549,10 +546,11 @@ curl -s -o /dev/null -w '%{http_code}\n' -H "X-API-KEY: vsf_KUNCI_SENSOR" http:/
 ```
 
 4. Nyalakan ESP32 sensor → data muncul di menu Sensor.
-5. **Aktuator:** isi penampung dengan **air biasa**, lepas selang ke tanaman. Kirim DOSIS kecil dari web,
-   ukur dengan gelas ukur, kalibrasi `ML_PER_DETIK` di firmware. Uji tombol **E-STOP** fisik dan dari web.
-6. Baru setelah langkah 5 lulus: isi target EC/pH penampung, set `OTOMASI=1` dan `OTOMASI_PENAMPUNG=<id meja>`
-   di `rahasia.env`, lalu `sudo systemctl restart vertonik-api`.
+5. **Aktuator:** isi penampung dengan **air biasa**, lepas selang ke tanaman. Kalibrasi `ML_PER_DETIK` di firmware
+   dengan gelas ukur (DOSIS dari web **sudah diblokir** sejak Fase 3B.2; prosedur kalibrasi menunggu firmware v0.3).
+   Uji tombol **E-STOP** fisik dan dari web.
+6. Dosis otomatis lama (`OTOMASI=1`) **sudah dihapus**. Dosing akan tersedia lewat alur persetujuan petani setelah
+   gerbang keselamatan Tahap 3C terpenuhi (lihat `docs/FASE3B2_GERBANG_3C.md`).
 
 ---
 
