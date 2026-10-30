@@ -9,6 +9,7 @@ import { useDialog } from '../lib/useDialog'
 import { ModalBackdrop } from '../components/ModalBackdrop'
 import { Ikon, type NamaIkon } from '../components/Ikon'
 import { PillNav } from '../components/PillNav'
+import { SaklarTema } from '../components/SaklarTema'
 import { useApiObject } from '../lib/useApiObject'
 import { mulaiKaca, pantauKaca } from '../lib/kaca'
 
@@ -445,6 +446,7 @@ export function AppShell() {
                 </span>
               )}
               <span className="hidden text-[14px] font-semibold tabular-nums text-tinta/85 sm:block">{clock}</span>
+              <SaklarTema />
               {/* Avatar inisial user (bukan emoji) + nama & role. */}
               <div className="vsf-chip-terang !gap-2 !py-1 !pl-1">
                 <span

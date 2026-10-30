@@ -20,10 +20,12 @@
     --navy2: #071527;  /* navy terdalam — ujung gradasi chrome */
     --emas: #E9CD53;   /* emas — monogram, aksen brand, sorotan status */
     --moss: #6B9D4A;   /* moss — aksen sukses/aktif + indikator fokus */
-    --tinta: #0B1A2B;  /* tinta — teks utama */
-    --abu: #4f6075;    /* abu — teks sekunder */
-    --garis: #E2E8DD;  /* garis — pemisah/border */
-    --kartu: #FFFFFF;  /* kartu — permukaan panel */
+    /* token yang berubah menurut tema: kanal RGB (dipakai Tailwind dengan alpha) + nilai penuh turunannya.
+       Mode gelap menimpa kanalnya di src/tema-gelap.css; nilai penuh ikut berubah. */
+    --tinta-rgb: 11 26 43;   --tinta: rgb(var(--tinta-rgb));   /* tinta — teks utama */
+    --abu-rgb: 79 96 117;    --abu: rgb(var(--abu-rgb));       /* abu — teks sekunder */
+    --garis: rgb(var(--ar-border));                            /* garis — pemisah/border */
+    --kartu-rgb: 255 255 255; --kartu: rgb(var(--kartu-rgb));  /* kartu — permukaan panel */
     --r: 12px;         /* radius standar (rentang 10–14px) */
     --r-sm: 12px;
     --r-lg: 20px;

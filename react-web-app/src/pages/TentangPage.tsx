@@ -12,6 +12,7 @@ import { DataLangsung } from '../components/DataLangsung'
 import { FONT_SKRIP, Percikan } from '../components/tentang/BannerKKN'
 import { GrupMerek, PilSosial } from '../components/tentang/GrupMerek'
 import { SplashTentang } from '../components/tentang/SplashTentang'
+import { SaklarTema } from '../components/SaklarTema'
 
 const BAGIAN = ['sistem', 'cara-kerja', 'data', 'aplikasi', 'mitra', 'tim']
 
@@ -297,7 +298,8 @@ export function TentangPage() {
               <a key={id} href={`#${id}`} className="vsf-bilah-tautan" aria-current={aktif === id ? 'true' : undefined}>{label}</a>
             ))}
           </nav>
-          <Link to={isAuthenticated ? '/dashboard' : '/login'} className="vsf-bilah-tombol ml-auto shrink-0 lg:ml-2">
+          <SaklarTema className="ml-auto lg:ml-2" />
+          <Link to={isAuthenticated ? '/dashboard' : '/login'} className="vsf-bilah-tombol shrink-0">
             {isAuthenticated ? 'Dashboard' : 'Login'}
           </Link>
         </div>
