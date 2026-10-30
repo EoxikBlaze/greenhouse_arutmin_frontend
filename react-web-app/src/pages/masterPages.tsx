@@ -1,20 +1,18 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { api } from '../lib/api'
 import { fieldError, useApiError, useApiList } from '../lib/crudApi'
+import { Field, FieldError } from '../components/CrudScreen'
+import { useAuth } from '../lib/authContext'
 import {
-  BtnEdit,
-  BtnHapus,
-  CrudScreen,
-  Field,
-  FieldError,
-  type Column,
+  AksiBaris,
+  DialogHapusMaster,
+  DialogMaster,
+  MasterFrame,
+  SENSOR_INFO,
+  TabelMaster,
   type HapusTarget,
-} from '../components/CrudScreen'
-
-const notesMaster = [
-  'Master data dipakai sebagai pilihan dropdown di modul lain.',
-  'Hapus = modal konfirmasi; data yang sudah dipakai tidak bisa dihapus.',
-]
+  type KolomMaster,
+} from '../components/master/MasterKit'
 
 /** Definisi satu field: dipakai bersama oleh kolom tabel DAN input form. */
 type FieldDef = {
@@ -172,17 +170,6 @@ export function JenisTanamanPage() {
     setOpen(true)
   }
 
-  /** Tombol "+ Tambah" / "Batal" dari CrudScreen → siapkan atau bersihkan form. */
-  function handleOpenChange(v: boolean) {
-    if (v) {
-      if (editingId) setOpen(true)
-      else openAdd()
-    } else {
-      setOpen(false)
-      resetForm()
-    }
-  }
-
   async function save() {
     if (submitting) return
     setFormError(null)
@@ -228,10 +215,32 @@ export function JenisTanamanPage() {
     }
   }
 
-  const columns: Column<TanamanRow>[] = [
-    { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id_tanaman)}</span> },
-    { key: 'nama', header: 'Nama Tanaman', render: (r) => <b className="text-slate-900">{cell(r.nama_tanaman)}</b> },
-    { key: 'meja', header: 'Meja Bawaan', render: (r) => mejaLabel(mejaRows, r.id_meja) },
+  const { demo } = useAuth()
+  const columns: KolomMaster<TanamanRow>[] = [
+    {
+      key: 'nama',
+      header: 'Nama tanaman',
+      render: (r) => (
+        <>
+          <b className="text-tinta">{cell(r.nama_tanaman)}</b>
+          <small className="vsf-master-id">ID {String(r.id_tanaman)}</small>
+        </>
+      ),
+    },
+    {
+      key: 'meja',
+      header: 'Meja bawaan',
+      render: (r) => {
+        const l = mejaLabel(mejaRows, r.id_meja)
+        return l === '—' ? (
+          <span className="vsf-master-chip is-kosong" title="Belum punya meja bawaan; tetap bisa ditanam di meja mana pun">
+            Belum diatur
+          </span>
+        ) : (
+          <span className="vsf-master-chip">{l}</span>
+        )
+      },
+    },
   ]
 
   // Opsi select: daftar meja live + nilai baris yang diedit bila id-nya tak lagi ada.
@@ -240,75 +249,88 @@ export function JenisTanamanPage() {
   if (currentMeja && !mejaOptions.some((o) => o.id === currentMeja)) {
     mejaOptions.push({ id: currentMeja, label: `#${currentMeja}` })
   }
+  const tutup = () => {
+    setOpen(false)
+    resetForm()
+  }
 
   return (
-    <CrudScreen<TanamanRow>
-      title="Jenis Tanaman"
-      moduleName="Jenis Tanaman"
-      addButton="+ Tambah"
-      formTitle="Tambah Jenis Tanaman"
-      columns={columns}
-      rows={rows}
-      rowKey={(r) => String(r.id_tanaman)}
-      loading={loading}
-      listError={error}
-      onRetry={reload}
-      flash={flash}
-      open={open}
-      onOpenChange={handleOpenChange}
-      formError={formError}
-      submitting={submitting}
-      onSubmit={() => void save()}
-      form={
-        <>
-          {'nama_tanaman' in form && (
-            <Field label="Nama tanaman">
-              <input
-                className="vsf-input w-full"
-                placeholder="Selada"
-                value={form.nama_tanaman}
-                onChange={(e) => setForm((s) => ({ ...s, nama_tanaman: e.target.value }))}
-              />
-              <FieldError message={fieldError(fieldErrors, 'nama_tanaman')} />
-            </Field>
+    <>
+      <MasterFrame
+        judul="Jenis Tanaman"
+        deskripsi="Tanaman yang ditanam di kebun, beserta meja bawaannya."
+        jumlah={`${rows.length} jenis`}
+        tambah="Tambah"
+        onTambah={openAdd}
+        flash={flash}
+      >
+        <TabelMaster
+          label="Jenis Tanaman"
+          kolom={columns}
+          rows={rows}
+          rowKey={(r) => String(r.id_tanaman)}
+          memuat={loading}
+          galat={error}
+          onUlang={reload}
+          kosong="Belum ada jenis tanaman — tambah yang pertama untuk memulai."
+          aksi={(r) => (
+            <AksiBaris
+              nama={cell(r.nama_tanaman)}
+              terkunci={demo}
+              onUbah={() => openEdit(r)}
+              onHapus={() => {
+                setDeleteError(null)
+                setHapus({ label: cell(r.nama_tanaman), id: String(r.id_tanaman) })
+              }}
+            />
           )}
-          {'id_meja' in form && (
-            <Field label="Meja bawaan (opsional)">
-              <select
-                className="vsf-input w-full"
-                value={currentMeja}
-                onChange={(e) => setForm((s) => ({ ...s, id_meja: e.target.value }))}
-              >
-                <option value="">— tanpa meja —</option>
-                {mejaOptions.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-              <FieldError message={fieldError(fieldErrors, 'id_meja')} />
-            </Field>
-          )}
-        </>
-      }
-      hapus={hapus}
-      onHapusChange={setHapus}
-      deleting={deleting}
-      deleteError={deleteError}
-      onDelete={(id) => void remove(id)}
-      notes={[
-        ...notesMaster,
-        'Live: GET/POST/PUT/DELETE /tanaman (Bearer JWT) — kolom whitelist backend: nama_tanaman, id_meja.',
-        'Meja bawaan diambil dari GET /meja; pilihan kosong TIDAK ikut dikirim saat simpan sehingga nilai lama tetap ada (Zod menolak null).',
-        'Error kontrak: 401 → redirect login · 422 per-field (mis. nama_tanaman terlalu panjang) → inline di bawah input · 404 → "Data tidak ditemukan." · 409 → "masih ada data terkait".',
-      ]}
-      actions={(r, ask) => (
-        <>
-          <BtnEdit name={cell(r.nama_tanaman)} onClick={() => openEdit(r)} />
-          <BtnHapus label={cell(r.nama_tanaman)} id={String(r.id_tanaman)} onPick={ask} />
-        </>
+        />
+      </MasterFrame>
+      {open && (
+        <DialogMaster
+          judul={editingId ? 'Ubah Jenis Tanaman' : 'Tambah Jenis Tanaman'}
+          sub="Meja bawaan hanya saran awal; boleh dikosongkan."
+          galat={formError}
+          menyimpan={submitting}
+          onTutup={tutup}
+          onSimpan={() => void save()}
+        >
+          <Field label="Nama tanaman">
+            <input
+              className="vsf-input w-full"
+              placeholder="Selada"
+              value={form.nama_tanaman ?? ''}
+              onChange={(e) => setForm((s) => ({ ...s, nama_tanaman: e.target.value }))}
+            />
+            <FieldError message={fieldError(fieldErrors, 'nama_tanaman')} />
+          </Field>
+          <Field label="Meja bawaan (opsional)">
+            <select
+              className="vsf-input w-full"
+              value={currentMeja}
+              onChange={(e) => setForm((s) => ({ ...s, id_meja: e.target.value }))}
+            >
+              <option value="">— tanpa meja —</option>
+              {mejaOptions.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            <FieldError message={fieldError(fieldErrors, 'id_meja')} />
+          </Field>
+        </DialogMaster>
       )}
-    />
+      {hapus && (
+        <DialogHapusMaster
+          target={hapus}
+          menghapus={deleting}
+          galat={deleteError}
+          onYa={() => void remove(hapus.id)}
+          onBatal={() => setHapus(null)}
+        />
+      )}
+    </>
   )
 }
 
@@ -451,17 +473,6 @@ export function MejaTanamanPage() {
     setOpen(true)
   }
 
-  /** Tombol "+ Tambah" / "Batal" dari CrudScreen → siapkan atau bersihkan form. */
-  function handleOpenChange(v: boolean) {
-    if (v) {
-      if (editingId) setOpen(true)
-      else openAdd()
-    } else {
-      setOpen(false)
-      resetForm()
-    }
-  }
-
   async function save() {
     if (submitting) return
     setFormError(null)
@@ -507,56 +518,88 @@ export function MejaTanamanPage() {
     }
   }
 
-  const columns: Column<MejaRow>[] = [
-    { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id_meja)}</span> },
-    { key: 'meja', header: 'Nama Meja', render: (r) => <b className="text-slate-900">{cell(r.meja)}</b> },
-    { key: 'jumlah_lubang', header: 'Jumlah Lubang', render: (r) => cell(r.jumlah_lubang) },
+  const { demo } = useAuth()
+  const columns: KolomMaster<MejaRow>[] = [
+    {
+      key: 'meja',
+      header: 'Nama meja',
+      render: (r) => (
+        <>
+          <b className="text-tinta">{cell(r.meja)}</b>
+          <small className="vsf-master-id">ID {String(r.id_meja)}</small>
+        </>
+      ),
+    },
+    {
+      key: 'jumlah_lubang',
+      header: 'Jumlah lubang',
+      kanan: true,
+      render: (r) => <span className="tabular-nums">{cell(r.jumlah_lubang)}</span>,
+    },
     ...MEJA_FIELDS.filter((f) => !f.core && present(rows, f.key)).map(
-      (f): Column<MejaRow> => ({
+      (f): KolomMaster<MejaRow> => ({
         key: f.key,
         header: f.header,
-        render: (r) => cell(r[f.key]),
+        kanan: f.kind !== 'select',
+        render: (r) => <span className="tabular-nums">{cell(r[f.key])}</span>,
       }),
     ),
   ]
+  const tutup = () => {
+    setOpen(false)
+    resetForm()
+  }
 
   return (
-    <CrudScreen<MejaRow>
-      title="Meja Tanam"
-      moduleName="Meja Tanam"
-      addButton="+ Tambah"
-      formTitle="Tambah Meja Tanaman"
-      columns={columns}
-      rows={rows}
-      rowKey={(r) => String(r.id_meja)}
-      loading={loading}
-      listError={error}
-      onRetry={reload}
-      flash={flash}
-      open={open}
-      onOpenChange={handleOpenChange}
-      formError={formError}
-      submitting={submitting}
-      onSubmit={() => void save()}
-      form={
-        <>
+    <>
+      <MasterFrame
+        judul="Meja Tanaman"
+        deskripsi="Meja hidroponik dengan jumlah lubang dan kenaikan air."
+        jumlah={`${rows.length} meja`}
+        tambah="Tambah"
+        onTambah={openAdd}
+        flash={flash}
+      >
+        <TabelMaster
+          label="Meja Tanaman"
+          kolom={columns}
+          rows={rows}
+          rowKey={(r) => String(r.id_meja)}
+          memuat={loading}
+          galat={error}
+          onUlang={reload}
+          kosong="Belum ada meja — tambah meja pertama untuk memulai."
+          aksi={(r) => (
+            <AksiBaris
+              nama={cell(r.meja)}
+              terkunci={demo}
+              onUbah={() => openEdit(r)}
+              onHapus={() => {
+                setDeleteError(null)
+                setHapus({ label: cell(r.meja), id: String(r.id_meja) })
+              }}
+            />
+          )}
+        />
+      </MasterFrame>
+      {open && (
+        <DialogMaster
+          judul={editingId ? 'Ubah Meja Tanaman' : 'Tambah Meja Tanaman'}
+          sub="Isi nama dan jumlah lubang; kolom lain muncul bila tersedia."
+          galat={formError}
+          menyimpan={submitting}
+          onTutup={tutup}
+          onSimpan={() => void save()}
+        >
           {'meja' in form && (
             <Field label="Nama meja">
-              {inputFor(
-                MEJA_FIELDS[0],
-                form.meja,
-                (v) => setForm((s) => ({ ...s, meja: v })),
-              )}
+              {inputFor(MEJA_FIELDS[0], form.meja, (v) => setForm((s) => ({ ...s, meja: v })))}
               <FieldError message={fieldError(fieldErrors, 'meja')} />
             </Field>
           )}
           {'jumlah_lubang' in form && (
             <Field label="Jumlah lubang">
-              {inputFor(
-                MEJA_FIELDS[1],
-                form.jumlah_lubang,
-                (v) => setForm((s) => ({ ...s, jumlah_lubang: v })),
-              )}
+              {inputFor(MEJA_FIELDS[1], form.jumlah_lubang, (v) => setForm((s) => ({ ...s, jumlah_lubang: v })))}
               <FieldError message={fieldError(fieldErrors, 'jumlah_lubang')} />
             </Field>
           )}
@@ -571,26 +614,18 @@ export function MejaTanamanPage() {
               <FieldError message={fieldError(fieldErrors, f.key)} />
             </Field>
           ))}
-        </>
-      }
-      hapus={hapus}
-      onHapusChange={setHapus}
-      deleting={deleting}
-      deleteError={deleteError}
-      onDelete={(id) => void remove(id)}
-      notes={[
-        ...notesMaster,
-        'Live: GET/POST/PUT/DELETE /meja (Bearer JWT) — daftar ikut segar setelah simpan/hapus.',
-        'Kolom fisik meja (jenis_talang, kapasitas_penampung_l, jumlah_talang, …) tampil otomatis bila ikut dikirim backend.',
-        'Error kontrak: 401 → redirect login · 422 → pesan per-field di bawah input · 404 → "Data tidak ditemukan." · 403 → mode demo.',
-      ]}
-      actions={(r, ask) => (
-        <>
-          <BtnEdit name={cell(r.meja)} onClick={() => openEdit(r)} />
-          <BtnHapus label={cell(r.meja)} id={String(r.id_meja)} onPick={ask} />
-        </>
+        </DialogMaster>
       )}
-    />
+      {hapus && (
+        <DialogHapusMaster
+          target={hapus}
+          menghapus={deleting}
+          galat={deleteError}
+          onYa={() => void remove(hapus.id)}
+          onBatal={() => setHapus(null)}
+        />
+      )}
+    </>
   )
 }
 
@@ -612,14 +647,14 @@ function validateAmbang(form: FormState): Record<string, string[]> {
   const errs: Record<string, string[]> = {}
   const minRaw = (form.min ?? '').trim()
   const maxRaw = (form.max ?? '').trim()
-  if (!minRaw) errs.min = ['Kolom min wajib diisi.']
-  else if (!Number.isFinite(Number(minRaw))) errs.min = ['Kolom min harus berupa angka.']
+  if (!minRaw) errs.min = ['Minimum wajib diisi.']
+  else if (!Number.isFinite(Number(minRaw))) errs.min = ['Minimum harus berupa angka.']
 
-  if (!maxRaw) errs.max = ['Kolom max wajib diisi.']
-  else if (!Number.isFinite(Number(maxRaw))) errs.max = ['Kolom max harus berupa angka.']
+  if (!maxRaw) errs.max = ['Maksimum wajib diisi.']
+  else if (!Number.isFinite(Number(maxRaw))) errs.max = ['Maksimum harus berupa angka.']
 
-  if (!errs.min && !errs.max && Number(maxRaw) < Number(minRaw)) {
-    errs.max = ['Kolom max harus lebih besar atau sama dengan min.']
+  if (!errs.min && !errs.max && Number(maxRaw) <= Number(minRaw)) {
+    errs.max = ['Maksimum harus lebih besar dari minimum.']
   }
 
   const db = (form.deadband ?? '').trim()
@@ -671,20 +706,6 @@ export function AmbangSensorPage() {
     setOpen(true)
   }
 
-  /** Tombol "Batal" dari CrudScreen → tutup + bersihkan form. */
-  function handleOpenChange(v: boolean) {
-    if (v) {
-      setOpen(true)
-      return
-    }
-    setOpen(false)
-    setForm({})
-    setEditing(null)
-    setEditingId(null)
-    setFieldErrors({})
-    setFormError(null)
-  }
-
   async function save() {
     if (submitting || !editingId) return
     setFormError(null)
@@ -724,82 +745,109 @@ export function AmbangSensorPage() {
   }
 
   const showDeadband = AMBANG_OPT.some((f) => present(rows, f.key)) || (editing?.deadband != null)
-  const showSatuan = present(rows, 'satuan')
 
-  const columns: Column<AmbangRow>[] = [
-    { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id)}</span> },
-    { key: 'sensor', header: 'Parameter', render: (r) => <b className="text-slate-900">{cell(r.sensor)}</b> },
-    { key: 'min', header: 'Minimum', render: (r) => cell(r.min) },
-    { key: 'max', header: 'Maksimum', render: (r) => cell(r.max) },
+  const { demo } = useAuth()
+  const infoDari = (r: AmbangRow) => SENSOR_INFO[String(r.sensor)]
+  const satuanDari = (r: AmbangRow) => (r.satuan ? String(r.satuan) : (infoDari(r)?.satuan ?? ''))
+
+  const columns: KolomMaster<AmbangRow>[] = [
+    {
+      key: 'sensor',
+      header: 'Parameter',
+      render: (r) => (
+        <>
+          <b className="text-tinta">{infoDari(r)?.label ?? cell(r.sensor)}</b>
+          <small className="vsf-master-id">{cell(r.sensor)}</small>
+        </>
+      ),
+    },
+    {
+      key: 'rentang',
+      header: 'Rentang aman',
+      render: (r) => (
+        <span className="tabular-nums">
+          <b className="text-tinta">{cell(r.min)}</b> – <b className="text-tinta">{cell(r.max)}</b>
+          {satuanDari(r) && <small className="ml-1 text-abu">{satuanDari(r)}</small>}
+        </span>
+      ),
+    },
     ...(showDeadband
-      ? [({ key: 'deadband', header: 'Deadband', render: (r: AmbangRow) => cell(r.deadband) } as Column<AmbangRow>)]
-      : []),
-    ...(showSatuan
-      ? [({ key: 'satuan', header: 'Satuan', render: (r: AmbangRow) => cell(r.satuan) } as Column<AmbangRow>)]
+      ? [({ key: 'deadband', header: 'Deadband', kanan: true, render: (r: AmbangRow) => cell(r.deadband) } as KolomMaster<AmbangRow>)]
       : []),
   ]
 
+  const info = editing ? infoDari(editing) : undefined
+  const namaEdit = editing ? (info?.label ?? cell(editing.sensor)) : ''
+  const satuanEdit = editing ? satuanDari(editing) : ''
+  const lbl = (t: string) => (satuanEdit ? `${t} (${satuanEdit})` : t)
+  const tutup = () => {
+    setOpen(false)
+    setForm({})
+    setEditing(null)
+    setEditingId(null)
+    setFieldErrors({})
+    setFormError(null)
+  }
+
   return (
-    <CrudScreen<AmbangRow>
-      title="Ambang Sensor"
-      moduleName="Ambang Sensor"
-      addButton="+ Tambah"
-      formTitle="Tambah Ambang Sensor"
-      hideAdd
-      columns={columns}
-      rows={rows}
-      rowKey={(r) => String(r.id)}
-      loading={loading}
-      listError={error}
-      onRetry={reload}
-      flash={flash}
-      open={open}
-      onOpenChange={handleOpenChange}
-      formError={formError}
-      submitting={submitting}
-      submitLabel="Simpan Perubahan"
-      onSubmit={() => void save()}
-      form={
-        <>
-          <Field label="Parameter sensor">
-            <div className="vsf-input w-full bg-slate-50 text-slate-600">
-              {editing ? cell(editing.sensor) : '—'}
-            </div>
-            <div className="mt-1 text-[12px] text-slate-500">
-              Nama sensor dipakai ESP32 — tidak diubah lewat layar ini.
-            </div>
-          </Field>
-          <Field label="Minimum">
-            {inputFor(
-              { key: 'min', label: 'Minimum', header: 'Minimum', placeholder: '5', kind: 'num', core: true },
-              form.min ?? '',
-              (v) => setForm((s) => ({ ...s, min: v })),
-            )}
-            <FieldError message={fieldError(fieldErrors, 'min')} />
-          </Field>
-          <Field label="Maksimum">
-            {inputFor(
-              { key: 'max', label: 'Maksimum', header: 'Maksimum', placeholder: '7', kind: 'num', core: true },
-              form.max ?? '',
-              (v) => setForm((s) => ({ ...s, max: v })),
-            )}
-            <FieldError message={fieldError(fieldErrors, 'max')} />
-          </Field>
+    <>
+      <MasterFrame
+        judul="Ambang Sensor"
+        deskripsi="Batas aman tiap sensor. Di luar rentang ini bacaan dianggap tidak normal."
+        jumlah={`${rows.length} parameter`}
+        flash={flash}
+      >
+        <TabelMaster
+          label="Ambang Sensor"
+          kolom={columns}
+          rows={rows}
+          rowKey={(r) => String(r.id)}
+          memuat={loading}
+          galat={error}
+          onUlang={reload}
+          kosong="Belum ada ambang sensor."
+          aksi={(r) => (
+            <AksiBaris nama={infoDari(r)?.label ?? cell(r.sensor)} terkunci={demo} onUbah={() => openEdit(r)} />
+          )}
+        />
+      </MasterFrame>
+      {open && editing && (
+        <DialogMaster
+          judul={`Ubah ambang · ${namaEdit}`}
+          sub={`Kunci perangkat: ${cell(editing.sensor)} (dipakai ESP32, tidak diubah).`}
+          simpan="Simpan Perubahan"
+          galat={formError}
+          menyimpan={submitting}
+          onTutup={tutup}
+          onSimpan={() => void save()}
+        >
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={lbl('Minimum')}>
+              {inputFor(
+                { key: 'min', label: 'Minimum', header: 'Minimum', placeholder: '5', kind: 'num', core: true },
+                form.min ?? '',
+                (v) => setForm((s) => ({ ...s, min: v })),
+              )}
+              <FieldError message={fieldError(fieldErrors, 'min')} />
+            </Field>
+            <Field label={lbl('Maksimum')}>
+              {inputFor(
+                { key: 'max', label: 'Maksimum', header: 'Maksimum', placeholder: '7', kind: 'num', core: true },
+                form.max ?? '',
+                (v) => setForm((s) => ({ ...s, max: v })),
+              )}
+              <FieldError message={fieldError(fieldErrors, 'max')} />
+            </Field>
+          </div>
           {AMBANG_OPT.filter((f) => f.key in form).map((f) => (
             <Field key={f.key} label={f.label}>
               {inputFor(f, form[f.key], (v) => setForm((s) => ({ ...s, [f.key]: v })))}
               <FieldError message={fieldError(fieldErrors, f.key)} />
             </Field>
           ))}
-        </>
-      }
-      notes={[
-        'Live: GET /ambang (daftar) + PUT /ambang/:id (ubah min/max/deadband) — Bearer JWT.',
-        'Hanya ubah nilai: nama sensor dipakai untuk feed ESP32 (GET /api/get-thresholds), tombol Tambah/Hapus sengaja tidak ditampilkan.',
-        'Kolom deadband/satuan tampil otomatis bila ikut dikirim backend (migrasi 2026-10-19).',
-        'Error kontrak: 401 → redirect login · 422 → pesan per-field · 404 → "Data tidak ditemukan." · 403 → mode demo.',
-      ]}
-      actions={(r) => <BtnEdit name={cell(r.sensor)} onClick={() => openEdit(r)} />}
-    />
+          <p className="text-[12px] text-abu">Nilai ini juga dipakai Asisten AI dan perangkat untuk menilai kondisi sensor.</p>
+        </DialogMaster>
+      )}
+    </>
   )
 }

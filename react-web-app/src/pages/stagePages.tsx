@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import { api } from '../lib/api'
 import { fieldError, useApiError, useApiList } from '../lib/crudApi'
@@ -12,9 +12,8 @@ import {
   type Column,
   type HapusTarget,
 } from '../components/CrudScreen'
-import { useDialog } from '../lib/useDialog'
-import { Ikon } from '../components/Ikon'
-import { ModalBackdrop } from '../components/ModalBackdrop'
+import { Segmen } from '../components/sensor/FilterBar'
+import { DetailTahap } from '../components/tahap/DetailTahap'
 
 /** Form terkontrol: kunci = nama kolom backend. */
 type FormState = Record<string, string>
@@ -48,17 +47,13 @@ function namaTanaman(rows: TanamanMini[], id: unknown): string {
  */
 function PillStatus({ nilai }: { nilai: string }) {
   const v = (nilai ?? '').trim().toLowerCase()
-  if (!v || v === '—') return <span className="text-slate-500">—</span>
-  const tone = v.includes('selesai') || v.includes('panen')
-    ? 'border-arutmin-moss bg-arutmin-mint/50 text-arutmin-forest'
+  if (!v || v === '—') return <span className="text-abu">—</span>
+  const kelas = v.includes('selesai') || v.includes('panen')
+    ? 'is-normal'
     : v.includes('gagal') || v.includes('batal')
-      ? 'vsf-tone-error'
-      : 'border-navy/25 bg-navy/[.05] text-navy'
-  return (
-    <span className={clsx('inline-flex items-center rounded-full border px-2.5 py-0.5 text-[12px] font-semibold', tone)}>
-      {nilai}
-    </span>
-  )
+      ? 'is-luar'
+      : ''
+  return <span className={clsx('vsf-chip-nilai', kelas)}>{nilai}</span>
 }
 
 /* ── S3 — modal DETAIL baris untuk 3 halaman (Peremajaan/Pendewasaan/Panen):
@@ -174,6 +169,7 @@ function IsianBerhasil({
   )
 }
 
+/** Popup detail tahap (Peremajaan/Pendewasaan/Panen). Dirender host hanya saat ada baris terpilih. */
 function ModalDetailBaris({
   data,
   aksi,
@@ -182,90 +178,50 @@ function ModalDetailBaris({
   selesaiError,
   onClose,
 }: {
-  data: DetailBaris | null
+  data: DetailBaris
   aksi?: AksiSelesai | null
   onSelesai?: (berhasil: number) => void
   selesaiBusy?: boolean
   selesaiError?: string | null
   onClose: () => void
 }) {
-  // P3 — animasi keluar 180ms sebelum host melepas modal (hook sebelum early return).
-  const [closing, setClosing] = useState(false)
   // Konfirmasi Tandai Selesai — satu langkah, di dialog yang sama (tanpa jendela baru).
   const [tanya, setTanya] = useState(false)
-  const close = () => {
-    if (closing || selesaiBusy) return
-    setTanya(false)
-    setClosing(true)
-    window.setTimeout(() => {
-      setClosing(false)
-      onClose()
-    }, 180)
-  }
-  if (!data) return null
   const bisaSelesai = !!aksi && !aksi.sudahSelesai && !!onSelesai
+  const tanyaAktif = tanya && bisaSelesai && !!aksi
   return (
-    <ModalBackdrop
-      closing={closing}
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) close()
-      }}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="vsf-baris-detail-title"
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') close()
-        }}
-        className={`w-full max-w-[420px] rounded-card bg-white p-5 vsf-modal-card max-h-[90vh] overflow-auto${closing ? ' is-closing' : ''}`}
-      >
-        <div
-          id="vsf-baris-detail-title"
-          data-dialog-title
-          tabIndex={-1}
-          className="vsf-judul-bagian outline-none"
-        >
-          {data.judul}
-        </div>
-        <dl className="mt-3 grid gap-2">
-          {data.isi.map(([k, v]) => (
-            <div key={k} className="flex items-baseline justify-between gap-3 text-[13px]">
-              <dt className="text-slate-500">{k}</dt>
-              <dd className="text-right font-semibold text-slate-900">{v}</dd>
-            </div>
-          ))}
-        </dl>
-
-        {tanya && bisaSelesai && aksi ? (
-          <IsianBerhasil
-            label={aksi.label}
-            tipe={aksi.tipe}
-            jumlah={aksi.jumlah}
-            busy={selesaiBusy}
-            error={selesaiError}
-            onBatal={() => setTanya(false)}
-            onSimpan={(b) => onSelesai?.(b)}
-          />
-        ) : (
-          <div className="mt-4 flex justify-end gap-2">
+    <DetailTahap
+      judul={data.judul}
+      onTutup={onClose}
+      sibuk={selesaiBusy}
+      isi={data.isi}
+      aksi={
+        tanyaAktif ? null : (
+          <>
             {bisaSelesai && (
               <button type="button" className="vsf-btn-primary" onClick={() => setTanya(true)}>
                 Tandai Selesai
               </button>
             )}
-            <button
-              type="button"
-              className="vsf-input rounded-full font-semibold"
-              onClick={close}
-              autoFocus={!bisaSelesai}
-            >
+            <button type="button" className="vsf-btn-secondary" onClick={onClose} autoFocus={!bisaSelesai}>
               Tutup
             </button>
-          </div>
-        )}
-      </div>
-    </ModalBackdrop>
+          </>
+        )
+      }
+    >
+      {tanyaAktif && aksi && (
+        <IsianBerhasil
+          label={aksi.label}
+          tipe={aksi.tipe}
+          jumlah={aksi.jumlah}
+          busy={selesaiBusy}
+          error={selesaiError}
+          onBatal={() => setTanya(false)}
+          onSimpan={(b) => onSelesai?.(b)}
+        />
+      )}
+    </DetailTahap>
   )
 }
 
@@ -290,34 +246,20 @@ type BatchDetail = {
   panen?: Record<string, unknown>[]
 }
 
-/** Satu baris ringkasan riwayat di modal detail (label: jumlah baris + tanggalnya). */
-function daftarTahap(
-  label: string,
-  items: Record<string, unknown>[] | undefined,
-  dateKey: string,
-): ReactNode {
-  if (!items || items.length === 0) {
-    return <div className="text-[13px] text-slate-600"><b>{label}</b>: belum ada</div>
-  }
-  return (
-    <div className="text-[13px] text-slate-700">
-      <b>{label}</b>: {items.length} baris
-      <ul className="mt-1 list-disc pl-5 text-slate-600">
-        {items.map((r) => (
-          <li key={`${dateKey}-${cell(r[dateKey])}-${cell(r.id_peremajaan ?? r.id_pendewasaan ?? r.id_panen)}`}>
-            {tgl(r[dateKey])}
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
+/** Ringkas riwayat satu tahap untuk popup: "belum ada" atau jumlah baris + tanggalnya. */
+function ringkasTahap(items: Record<string, unknown>[] | undefined, dateKey: string): string {
+  if (!items || items.length === 0) return 'belum ada'
+  return `${items.length} baris · ${items.map((r) => tgl(r[dateKey])).join(', ')}`
 }
+
+const TAMPILAN = ['Semua', 'Selesai'] as const
+type Tampilan = (typeof TAMPILAN)[number]
 
 export function SemaiPage() {
   const handleApiError = useApiError()
   // Dua endpoint baca yang didukung kontrak: daftar & daftar yang statusnya selesai.
-  const [tab, setTab] = useState<'semua' | 'selesai'>('semua')
-  const path = tab === 'selesai' ? '/semai/selesai' : '/semai'
+  const [tab, setTab] = useState<Tampilan>('Semua')
+  const path = tab === 'Selesai' ? '/semai/selesai' : '/semai'
   const { rows, loading, error, reload } = useApiList<SemaiRow>(path)
   const { rows: tanamanRows } = useApiList<TanamanMini>('/tanaman')
 
@@ -382,69 +324,43 @@ export function SemaiPage() {
     }
   }
 
-  // QW3 — modal detail aksesibel: fokus judul saat buka, kembali ke tombol
-  // "Detail" saat tutup, Escape (diblokir saat memuat), backdrop, Tab trap.
-  const {
-    dialogRef: detailRef,
-    onKeyDown: detailKeyDown,
-    backdropProps: detailBackdrop,
-    closing: detailClosing,
-    handleClose: detailClose,
-  } = useDialog({
-    open: detailId !== null,
-    onClose: closeDetail,
-    closeDisabled: detailLoading,
-  })
-
   const columns: Column<SemaiRow>[] = [
-    { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id_semai)}</span> },
-    { key: 'tanaman', header: 'Tanaman', render: (r) => <b className="text-slate-900">{namaTanaman(tanamanRows, r.id_tanaman)}</b> },
+    {
+      key: 'tanaman',
+      header: 'Tanaman',
+      peran: 'judul',
+      render: (r) => (
+        <>
+          {namaTanaman(tanamanRows, r.id_tanaman)} <span className="font-normal text-abu">#{String(r.id_semai)}</span>
+        </>
+      ),
+    },
     { key: 'siklus', header: 'Siklus', render: (r) => cell(r.id_siklus) },
-    { key: 'benih', header: 'Jumlah Benih', render: (r) => cell(r.jumlah_benih) },
-    { key: 'mulai', header: 'Mulai Semai', render: (r) => tgl(r.tgl_awal_semai) },
-    { key: 'akhir', header: 'Akhir Semai', render: (r) => tgl(r.tgl_akhir_semai) },
-    { key: 'hasil', header: 'Berhasil / Gagal', render: (r) => `${cell(r.benih_berhasil)} / ${cell(r.benih_gagal)}` },
-    { key: 'status', header: 'Status', render: (r) => <PillStatus nilai={cell(r.status)} /> },
+    { key: 'benih', header: 'Jumlah benih', render: (r) => cell(r.jumlah_benih) },
+    { key: 'mulai', header: 'Mulai', render: (r) => tgl(r.tgl_awal_semai) },
+    { key: 'akhir', header: 'Akhir', render: (r) => tgl(r.tgl_akhir_semai) },
+    { key: 'hasil', header: 'Berhasil / gagal', render: (r) => `${cell(r.benih_berhasil)} / ${cell(r.benih_gagal)}` },
+    { key: 'status', header: 'Status', peran: 'status', render: (r) => <PillStatus nilai={cell(r.status)} /> },
   ]
 
   const d = detail?.semai
 
   return (
     <div className="vsf-halaman vsf-stagger">
-      {/* Tab baca: /semai (semua) · /semai/selesai (hanya yang status selesai). */}
-      <div className="vsf-card p-4 sm:p-5 flex flex-wrap items-center gap-3">
-        <span className="vsf-judul-bagian">Tampilan</span>
-        <button
-          type="button"
-          className={tab === 'semua' ? 'vsf-btn-primary' : 'vsf-input rounded-full'}
-          onClick={() => setTab('semua')}
-        >
-          Semua
-        </button>
-        <button
-          type="button"
-          className={tab === 'selesai' ? 'vsf-btn-primary' : 'vsf-input rounded-full'}
-          onClick={() => setTab('selesai')}
-        >
-          Selesai
-        </button>
-        <span className="text-[12px] text-slate-500">
-          Sumber: <code>{path}</code> — layar ini baca saja (lihat catatan di bawah).
+      {/* Tampilan + satu baris catatan: batch baru dibuat di Dashboard / Kebun Saya. */}
+      <section className="vsf-card flex flex-wrap items-center gap-3 p-4 sm:p-5">
+        <Segmen label="Tampilan batch" pilihan={TAMPILAN} nilai={tab} onPilih={setTab} />
+        <span className="text-[12.5px] text-abu sm:ml-auto">
+          Batch baru: tombol Mulai Semai Baru di Dashboard atau Kebun Saya.
         </span>
-      </div>
-
-      {/* Catatan jujur yang tampil: kenapa tab ini tanpa tombol Tambah. */}
-      <div className="vsf-card p-4 sm:p-5 text-[13px] leading-relaxed text-slate-600">
-        <span className="font-bold text-slate-700">Catatan:</span> tab ini menampilkan daftar, detail, dan
-        penutupan tahap (Tandai Selesai). Batch semai BARU dibuat lewat tombol{' '}
-        <b>Mulai Semai Baru</b> di Dashboard atau halaman Kebun Saya.
-      </div>
+      </section>
 
       <CrudScreen<SemaiRow>
         title="Semai"
         moduleName="Semai"
         addButton="+ Tambah Semai"
         hideAdd
+        tampilan="kartu"
         columns={columns}
         rows={rows}
         rowKey={(r) => String(r.id_semai)}
@@ -452,14 +368,6 @@ export function SemaiPage() {
         listError={error}
         onRetry={reload}
         flash={flash}
-        notes={[
-          'Live: GET /semai (daftar) · GET /semai/selesai (tab) · GET /semai/batch/:id (detail) — Bearer JWT.',
-          'Kolom backend: id_tanaman, id_siklus, id_meja, jumlah_benih, tgl_awal_semai, tgl_akhir_semai, status, keterangan, benih_berhasil, benih_gagal.',
-          'Batch semai BARU dibuat lewat tombol Mulai Semai Baru (POST /tanam/mulai) di Dashboard atau halaman Kebun Saya.',
-          'Tutup tahap lewat tombol Tandai Selesai di modal detail → POST /tanam/semai/:id/selesai.',
-          'Ubah/hapus baris lewat layar ini sengaja tidak dipasang: tiap baris dapat dirujuk peremajaan (FK ON DELETE RESTRICT → 409).',
-          'Error kontrak tetap aktif: 401 → redirect login · 404 detail → "Data tidak ditemukan." · 403 → mode demo.',
-        ]}
         actions={(r) => (
           <BtnDetail
             name={`${namaTanaman(tanamanRows, r.id_tanaman)} (semai #${String(r.id_semai)})`}
@@ -468,98 +376,55 @@ export function SemaiPage() {
         )}
       />
 
-      {/* Modal detail — host di luar CrudScreen karena bukan form maupun dialog hapus. */}
       {detailId && (
-        <ModalBackdrop onMouseDown={detailBackdrop.onMouseDown} closing={detailClosing}>
-          <div
-            ref={detailRef}
-            onKeyDown={detailKeyDown}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="vsf-detail-title"
-            className={`w-full max-w-[520px] rounded-card bg-white p-5 vsf-modal-card max-h-[90vh] overflow-auto${detailClosing ? ' is-closing' : ''}`}
-          >
-            <div
-              id="vsf-detail-title"
-              data-dialog-title
-              tabIndex={-1}
-              className="vsf-judul-bagian outline-none"
-            >
-              Detail semai #{detailId}
-            </div>
-
-            {detailLoading && (
-              <div className="mt-3 grid justify-items-center gap-2 py-6">
-                <span className="vsf-spinner vsf-spinner-dark" aria-hidden />
-                <span className="text-[13px]">Memuat detail…</span>
-              </div>
-            )}
-
-            {!detailLoading && detailError && (
-              <div
-                role="alert"
-                className="vsf-banner mt-3 rounded-input vsf-tone-error px-3 py-2 text-[13px] flex items-start gap-2"
-              >
-                <Ikon nama="salah" className="h-4 w-4 mt-[2px] shrink-0" />
-                <span>{detailError}</span>
-              </div>
-            )}
-
-            {!detailLoading && !detailError && detail && (
-              <div className="mt-3 grid gap-2">
-                <div className="text-[13px] text-slate-700">
-                  <b>Tanaman</b>: {namaTanaman(tanamanRows, d?.id_tanaman)} ·{' '}
-                  <b>Siklus</b>: {cell(d?.id_siklus)} · <b>Meja</b>: {cell(d?.id_meja)}
-                </div>
-                <div className="text-[13px] text-slate-700">
-                  <b>Benih</b>: {cell(d?.jumlah_benih)} · <b>Berhasil</b>: {cell(d?.benih_berhasil)} ·{' '}
-                  <b>Gagal</b>: {cell(d?.benih_gagal)}
-                </div>
-                <div className="text-[13px] text-slate-700">
-                  <b>Mulai</b>: {tgl(d?.tgl_awal_semai)} · <b>Akhir</b>: {tgl(d?.tgl_akhir_semai)} ·{' '}
-                  <b>Status</b>: {cell(d?.status)}
-                </div>
-                <div className="text-[13px] text-slate-700">
-                  <b>Keterangan</b>: {cell(d?.keterangan)}
-                </div>
-
-                <div className="vsf-label mt-2 border-t border-arutmin-border pt-2">
-                  Riwayat tahap berikutnya
-                </div>
-                {daftarTahap('Peremajaan', detail.peremajaan, 'tgl_awal_peremajaan')}
-                {daftarTahap('Pendewasaan', detail.pendewasaan, 'tgl_awal_pendewasaan')}
-                {daftarTahap('Panen', detail.panen, 'tgl_panen')}
-              </div>
-            )}
-
-            {detail && !detailLoading && !detailError && tanyaSelesai && (
-              <IsianBerhasil
-                label={`semai #${detailId}`}
-                tipe="semai"
-                jumlah={angkaBulat(d?.jumlah_benih)}
-                busy={selesaiBusy}
-                error={selesaiError}
-                onBatal={() => setTanyaSelesai(false)}
-                onSimpan={(b) => void tandaiSelesai(b)}
-              />
-            )}
-
-            <div className="mt-4 flex justify-end gap-2">
-              {detail && !detailLoading && !detailError && !tanyaSelesai && d?.status === 'proses' && (
-                <button
-                  type="button"
-                  className="vsf-btn-primary"
-                  onClick={() => setTanyaSelesai(true)}
-                >
+        <DetailTahap
+          judul={`Detail semai #${detailId}`}
+          sub={d ? `${namaTanaman(tanamanRows, d.id_tanaman)} · Siklus ${cell(d.id_siklus)} · Meja ${cell(d.id_meja)}` : undefined}
+          onTutup={closeDetail}
+          sibuk={selesaiBusy}
+          memuat={detailLoading}
+          galat={detailError}
+          ringkasan={detail ? [
+            ['Benih', cell(d?.jumlah_benih)],
+            ['Berhasil', cell(d?.benih_berhasil)],
+            ['Gagal', cell(d?.benih_gagal)],
+          ] : undefined}
+          isi={detail ? [
+            ['Mulai', tgl(d?.tgl_awal_semai)],
+            ['Akhir', tgl(d?.tgl_akhir_semai)],
+            ['Status', cell(d?.status)],
+            ['Keterangan', cell(d?.keterangan)],
+          ] : []}
+          riwayat={detail ? [
+            ['Peremajaan', ringkasTahap(detail.peremajaan, 'tgl_awal_peremajaan')],
+            ['Pendewasaan', ringkasTahap(detail.pendewasaan, 'tgl_awal_pendewasaan')],
+            ['Panen', ringkasTahap(detail.panen, 'tgl_panen')],
+          ] : undefined}
+          aksi={tanyaSelesai ? null : (
+            <>
+              {detail && !detailLoading && !detailError && d?.status === 'proses' && (
+                <button type="button" className="vsf-btn-primary" onClick={() => setTanyaSelesai(true)}>
                   Tandai Selesai
                 </button>
               )}
-              <button className="vsf-input rounded-full" disabled={detailLoading} onClick={detailClose}>
+              <button type="button" className="vsf-btn-secondary" disabled={detailLoading} onClick={closeDetail}>
                 Tutup
               </button>
-            </div>
-          </div>
-        </ModalBackdrop>
+            </>
+          )}
+        >
+          {detail && !detailLoading && !detailError && tanyaSelesai && (
+            <IsianBerhasil
+              label={`semai #${detailId}`}
+              tipe="semai"
+              jumlah={angkaBulat(d?.jumlah_benih)}
+              busy={selesaiBusy}
+              error={selesaiError}
+              onBatal={() => setTanyaSelesai(false)}
+              onSimpan={(b) => void tandaiSelesai(b)}
+            />
+          )}
+        </DetailTahap>
       )}
     </div>
   )
@@ -808,16 +673,13 @@ function TahapCrudPage<T>({
 
   return (
     <div className="vsf-halaman vsf-stagger">
-      {catatan && (
-        <div className="vsf-card p-4 sm:p-5 text-[13px] leading-relaxed text-slate-600">
-          <span className="font-bold text-slate-700">Catatan:</span> {catatan}
-        </div>
-      )}
+      {catatan && <p className="px-1 text-[12.5px] text-abu">{catatan}</p>}
       <CrudScreen<T>
         title={title}
         moduleName={moduleName}
         addButton={addButton}
         formTitle={formTitle}
+        tampilan="kartu"
         columns={columns}
         rows={rows}
         rowKey={rowKey}
@@ -900,18 +762,17 @@ function TahapCrudPage<T>({
           </>
         )}
       />
-      <ModalDetailBaris
-        data={lihat ? detail(lihat) : null}
-        aksi={
-          lihat
-            ? { tipe, id: rowKey(lihat), label: labelBaris(lihat), sudahSelesai: sudahSelesai(lihat), jumlah: jumlah ? jumlah(lihat) : null }
-            : null
-        }
-        onSelesai={lihat ? (b) => void tandaiSelesai(lihat, b) : undefined}
-        selesaiBusy={selesaiBusy}
-        selesaiError={selesaiError}
-        onClose={() => setLihat(null)}
-      />
+      {lihat && (
+        <ModalDetailBaris
+          key={rowKey(lihat)}
+          data={detail(lihat)}
+          aksi={{ tipe, id: rowKey(lihat), label: labelBaris(lihat), sudahSelesai: sudahSelesai(lihat), jumlah: jumlah ? jumlah(lihat) : null }}
+          onSelesai={(b) => void tandaiSelesai(lihat, b)}
+          selesaiBusy={selesaiBusy}
+          selesaiError={selesaiError}
+          onClose={() => setLihat(null)}
+        />
+      )}
     </div>
   )
 }
@@ -947,7 +808,7 @@ export function PeremajaanPage() {
       jumlah={(r) => angkaBulat(r.jumlah_masuk)}
       columns={[
         { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id_peremajaan)}</span> },
-        { key: 'varietas', header: 'Varietas', render: (r) => <b className="text-slate-900">{varietasDariSiklus(r.id_semai)}</b> },
+        { key: 'varietas', header: 'Varietas', peran: 'judul', render: (r) => <b className="text-slate-900">{varietasDariSiklus(r.id_semai)}</b> },
         { key: 'meja', header: 'Meja', render: (r) => namaMeja(r.id_meja) },
         { key: 'masuk', header: 'Jumlah pindah', render: (r) => cell(r.jumlah_masuk) },
         { key: 'hasil', header: 'Berhasil / Gagal', render: (r) => `${cell(r.benih_berhasil)} / ${cell(r.benih_gagal)}` },
@@ -1025,7 +886,7 @@ export function PendewasaanPage() {
       jumlah={(r) => angkaBulat(r.jumlah_masuk)}
       columns={[
         { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id_pendewasaan)}</span> },
-        { key: 'varietas', header: 'Varietas', render: (r) => <b className="text-slate-900">{varietasDariPeremajaan(r.id_peremajaan)}</b> },
+        { key: 'varietas', header: 'Varietas', peran: 'judul', render: (r) => <b className="text-slate-900">{varietasDariPeremajaan(r.id_peremajaan)}</b> },
         { key: 'meja', header: 'Meja', render: (r) => namaMeja(r.id_meja) },
         { key: 'masuk', header: 'Jumlah masuk', render: (r) => cell(r.jumlah_masuk) },
         { key: 'hasil', header: 'Berhasil / Gagal', render: (r) => `${cell(r.tanaman_berhasil)} / ${cell(r.tanaman_gagal)}` },
@@ -1107,7 +968,7 @@ export function PanenPage() {
 
       columns={[
         { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id_panen)}</span> },
-        { key: 'varietas', header: 'Varietas', render: (r) => <b className="text-slate-900">{varietasDariPendewasaan(r.id_pendewasaan)}</b> },
+        { key: 'varietas', header: 'Varietas', peran: 'judul', render: (r) => <b className="text-slate-900">{varietasDariPendewasaan(r.id_pendewasaan)}</b> },
         { key: 'meja', header: 'Meja', render: (r) => namaMeja(ambil(pendewasaanById, r.id_pendewasaan)?.id_meja) },
         { key: 'hasil', header: 'Berhasil', render: (r) => `${cell(r.panen_berhasil)} tanaman` },
         { key: 'gagal', header: 'Gagal', render: (r) => `${cell(r.panen_gagal)} tanaman` },
@@ -1288,7 +1149,7 @@ export function DurasiSiklusPage() {
   const columns: Column<SiklusRow>[] = [
     { key: 'id', header: 'ID', render: (r) => <span className="text-slate-500">{String(r.id_siklus)}</span> },
     { key: 'tanaman', header: 'Tanaman', render: (r) => <b className="text-slate-900">{namaTanaman(tanamanRows, r.id_tanaman)}</b> },
-    { key: 'nama', header: 'Nama Siklus', render: (r) => cell(r.nama_siklus) },
+    { key: 'nama', header: 'Nama Siklus', peran: 'judul', render: (r) => cell(r.nama_siklus) },
     { key: 'waktu', header: 'Waktu (hari)', render: (r) => cell(r.waktu_siklus) },
   ]
 
@@ -1303,7 +1164,8 @@ export function DurasiSiklusPage() {
       title="Durasi Siklus"
       moduleName="Durasi Siklus"
       addButton="+ Tambah Siklus"
-      formTitle="Tambah Durasi Siklus"
+      formTitle={editingId ? 'Ubah Durasi Siklus' : 'Tambah Durasi Siklus'}
+      tampilan="kartu"
       columns={columns}
       rows={rows}
       rowKey={(r) => String(r.id_siklus)}

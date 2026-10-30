@@ -2,11 +2,14 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { useDialog } from '../lib/useDialog'
 import { ModalBackdrop } from './ModalBackdrop'
 import { Ikon } from './Ikon'
+import { DialogKaca, DialogKonfirmasi, Pesan } from './kaca/DialogKaca'
 
 export type Column<T> = {
   key: string
   header: string
   render: (row: T) => ReactNode
+  /** Mode kartu: `judul` jadi heading kartu, `status` jadi chip di pojok kanan atas. */
+  peran?: 'judul' | 'status'
 }
 
 /** Identitas baris yang akan dihapus (label untuk dialog, id untuk DELETE /x/:id). */
@@ -53,6 +56,8 @@ type Props<T> = {
   flash?: string | null
   /** Sembunyikan tombol "+ Tambah" (mis. halaman hanya GET + PUT). */
   hideAdd?: boolean
+  /** `kartu` → tiap baris jadi kartu batch (.vsf-batch); bawaan `tabel`. */
+  tampilan?: 'tabel' | 'kartu'
   /**
    * Judul dialog form SPESIFIK per jenis data (mis. "Tambah Panen") —
    * default-nya generik ("Form tambah / edit"). Satu-satunya judul di dialog.
@@ -105,6 +110,7 @@ export function CrudScreen<T>({
   moduleName,
   flash,
   hideAdd,
+  tampilan = 'tabel',
   formTitle,
   open,
   onOpenChange,
@@ -178,6 +184,41 @@ export function CrudScreen<T>({
   // QW1 — judul modul (tak lagi "Toolbar — X") & nama untuk empty-state.
   const emptyName = moduleName ?? title
 
+  // Keadaan daftar (memuat / galat / kosong); null bila ada data.
+  const keadaan = loading ? (
+    <div className="grid justify-items-center gap-2 py-4">
+      <span className="vsf-spinner vsf-spinner-dark" aria-hidden />
+      <span className="text-[13px]">Memuat data…</span>
+    </div>
+  ) : listError ? (
+    <div role="alert" className="grid justify-items-center gap-2 py-4">
+      <span className="grid h-12 w-12 place-items-center rounded-full bg-red-50 text-red-600">
+        <Ikon nama="peringatan" className="h-6 w-6" />
+      </span>
+      <b className="text-red-700">Gagal memuat data</b>
+      <span className="text-[13px] text-red-700">{listError}</span>
+      {onRetry && (
+        <button type="button" className="vsf-btn-secondary mt-1" onClick={onRetry}>
+          Muat ulang
+        </button>
+      )}
+    </div>
+  ) : rows.length === 0 ? (
+    /* State Gallery: ikon + 1 kalimat + aksi utama */
+    <div className="grid justify-items-center gap-2 py-4">
+      <span className="grid h-12 w-12 place-items-center rounded-full bg-navy/[.06] text-navy">
+        <Ikon nama="kosong" className="h-6 w-6" />
+      </span>
+      <b className="text-slate-700">Belum ada data</b>
+      <span className="text-[13px]">Belum ada data {emptyName} — tambah data pertama untuk memulai.</span>
+      {!hideAdd && (
+        <button type="button" className="vsf-btn-primary mt-1" disabled={!form} onClick={() => setFormOpen(true)}>
+          Tambah Data Pertama
+        </button>
+      )}
+    </div>
+  ) : null
+
   return (
     <div className="vsf-halaman vsf-stagger">
       <section className="vsf-card min-w-0 p-4 sm:p-5">
@@ -203,105 +244,119 @@ export function CrudScreen<T>({
           </div>
         )}
 
-        {/* QW1 — state daftar HIDUP DI tbody (satu state per layar): loading →
-            error → empty → data. Error tak lagi jadi banner terpisah di atas. */}
-        <div className="mt-4 min-w-0 overflow-auto rounded-std border border-garis bg-white vsf-table">
-          <table aria-label={title} className="w-full text-[13px]">
-            <thead>
-              <tr className="bg-navy/[.055]">
-                {columns.map((c) => (
-                  <th
-                    key={c.key}
-                    scope="col"
-                    className="vsf-eyebrow vsf-eyebrow-navy border-b border-navy/25 px-4 py-2.5 text-left"
-                  >
-                    {c.header}
-                  </th>
-                ))}
-                {actions && (
-                  <th
-                    scope="col"
-                    className="vsf-eyebrow vsf-eyebrow-navy border-b border-navy/25 px-4 py-2.5 text-left"
-                  >
-                    Aksi
-                  </th>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={colSpan} className="px-4 py-10 text-center text-slate-500">
-                    <div className="grid justify-items-center gap-2 py-4">
-                      <span className="vsf-spinner vsf-spinner-dark" aria-hidden />
-                      <span className="text-[13px]">Memuat data…</span>
-                    </div>
-                  </td>
+        {/* QW1 — satu state per layar (memuat → galat → kosong → data), dipakai tabel & kartu. */}
+        {tampilan === 'kartu' ? (
+          keadaan ? (
+            <div className="mt-4 py-10 text-center text-slate-500">{keadaan}</div>
+          ) : (
+            <ul className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {rows.map((r) => (
+                <li key={rowKey(r)} className="min-w-0">
+                  <KartuBaris r={r} columns={columns} aksi={actions?.(r, askHapus)} />
+                </li>
+              ))}
+            </ul>
+          )
+        ) : (
+          <div className="mt-4 min-w-0 overflow-auto rounded-std border border-garis bg-white vsf-table">
+            <table aria-label={title} className="w-full text-[13px]">
+              <thead>
+                <tr className="bg-navy/[.055]">
+                  {columns.map((c) => (
+                    <th
+                      key={c.key}
+                      scope="col"
+                      className="vsf-eyebrow vsf-eyebrow-navy border-b border-navy/25 px-4 py-2.5 text-left"
+                    >
+                      {c.header}
+                    </th>
+                  ))}
+                  {actions && (
+                    <th
+                      scope="col"
+                      className="vsf-eyebrow vsf-eyebrow-navy border-b border-navy/25 px-4 py-2.5 text-left"
+                    >
+                      Aksi
+                    </th>
+                  )}
                 </tr>
-              ) : listError ? (
-                <tr>
-                  <td colSpan={colSpan} className="px-4 py-10 text-center">
-                    <div role="alert" className="grid justify-items-center gap-2 py-4">
-                      <span className="grid h-12 w-12 place-items-center rounded-full bg-red-50 text-red-600">
-                        <Ikon nama="peringatan" className="h-6 w-6" />
-                      </span>
-                      <b className="text-red-700">Gagal memuat data</b>
-                      <span className="text-[13px] text-red-700">{listError}</span>
-                      {onRetry && (
-                        <button type="button" className="vsf-btn-secondary mt-1" onClick={onRetry}>
-                          Muat ulang
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ) : rows.length === 0 ? (
-                <tr>
-                  <td colSpan={colSpan} className="px-4 py-10 text-center text-slate-500">
-                    {/* State Gallery: ikon + 1 kalimat + aksi utama */}
-                    <div className="grid justify-items-center gap-2 py-4">
-                      <span className="grid h-12 w-12 place-items-center rounded-full bg-navy/[.06] text-navy">
-                        <Ikon nama="kosong" className="h-6 w-6" />
-                      </span>
-                      <b className="text-slate-700">Belum ada data</b>
-                      <span className="text-[13px]">Belum ada data {emptyName} — tambah data pertama untuk memulai.</span>
-                      {!hideAdd && (
-                        <button
-                          type="button"
-                          className="vsf-btn-primary mt-1"
-                          disabled={!form}
-                          onClick={() => setFormOpen(true)}
-                        >
-                          Tambah Data Pertama
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                rows.map((r) => (
-                  <tr key={rowKey(r)} className="border-b border-garis/70 last:border-0 transition-colors hover:bg-navy/[.04]">
-                    {columns.map((c) => (
-                      <td key={c.key} className="px-4 py-2.5 text-slate-700">
-                        {c.render(r)}
-                      </td>
-                    ))}
-                    {actions && (
-                      <td className="whitespace-nowrap px-4 py-2.5">{actions(r, askHapus)}</td>
-                    )}
+              </thead>
+              <tbody>
+                {keadaan ? (
+                  <tr>
+                    <td colSpan={colSpan} className="px-4 py-10 text-center text-slate-500">
+                      {keadaan}
+                    </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  rows.map((r) => (
+                    <tr key={rowKey(r)} className="border-b border-garis/70 last:border-0 transition-colors hover:bg-navy/[.04]">
+                      {columns.map((c) => (
+                        <td key={c.key} className="px-4 py-2.5 text-slate-700">
+                          {c.render(r)}
+                        </td>
+                      ))}
+                      {actions && (
+                        <td className="whitespace-nowrap px-4 py-2.5">{actions(r, askHapus)}</td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
 
       {/* Modal form tambah/edit — QW3: role=dialog, aria-modal, label judul,
           fokus judul saat buka & kembali ke pemicu, Escape (diblokir saat
           submitting), klik backdrop, Tab terkunci di dalam modal. */}
-      {formOpen && form && (
+      {/* Mode kartu: popup pakai kaca bersama (DialogKaca / DialogKonfirmasi). */}
+      {formOpen && form && tampilan === 'kartu' && (
+        <DialogKaca
+          judul={formTitle ?? 'Form tambah / edit'}
+          onTutup={() => setFormOpen(false)}
+          sibuk={!!submitting}
+          lebar={480}
+          onSubmit={() => (onSubmit ? onSubmit() : setFormOpen(false))}
+        >
+          {formError && <Pesan jenis="galat">{formError}</Pesan>}
+          <div className="mt-4 grid gap-3">{form}</div>
+          <div className="mt-5 flex justify-end gap-2 border-t border-garis pt-4">
+            <button
+              type="button"
+              className="vsf-btn-secondary"
+              disabled={submitting}
+              onClick={() => {
+                onFormCancel?.()
+                setFormOpen(false)
+              }}
+            >
+              Batal
+            </button>
+            <button type="submit" className="vsf-btn-primary" disabled={submitting}>
+              {submitting && <span className="vsf-spinner" aria-hidden />}
+              {submitting ? 'Menyimpan…' : (submitLabel ?? 'Simpan')}
+            </button>
+          </div>
+        </DialogKaca>
+      )}
+      {hapusTarget && tampilan === 'kartu' && (
+        <DialogKonfirmasi
+          judul="Hapus data?"
+          ya="Ya, hapus"
+          sibukTeks="Menghapus…"
+          bahaya
+          sibuk={!!deleting}
+          galat={deleteError ?? undefined}
+          onYa={() => (onDelete ? onDelete(hapusTarget.id) : setHapusTarget(null))}
+          onBatal={() => setHapusTarget(null)}
+        >
+          Konfirmasi menghapus <b>{hapusTarget.label}</b>. Tindakan ini tidak bisa dibatalkan.
+        </DialogKonfirmasi>
+      )}
+      {formOpen && form && tampilan !== 'kartu' && (
         <ModalBackdrop onMouseDown={formBackdrop.onMouseDown} closing={formClosing}>
           <div
             ref={formRef}
@@ -357,7 +412,7 @@ export function CrudScreen<T>({
 
       {/* Modal konfirmasi hapus — alertdialog (keputusan destruktif) + aturan
           QW3 yang sama; Escape/backdrop diblokir saat `deleting`. */}
-      {hapusTarget && (
+      {hapusTarget && tampilan !== 'kartu' && (
         <ModalBackdrop onMouseDown={hapusBackdrop.onMouseDown} closing={hapusClosing}>
           <div
             ref={hapusRef}
@@ -409,6 +464,30 @@ export function CrudScreen<T>({
         </ModalBackdrop>
       )}
     </div>
+  )
+}
+
+/** Satu baris daftar dalam mode kartu: judul + chip status di atas, sisa kolom sebagai daftar, aksi di bawah. */
+function KartuBaris<T>({ r, columns, aksi }: { r: T; columns: Column<T>[]; aksi?: ReactNode }) {
+  const judul = columns.find((c) => c.peran === 'judul') ?? columns[0]
+  const status = columns.find((c) => c.peran === 'status') ?? columns.find((c) => c.key === 'status')
+  const isi = columns.filter((c) => c !== judul && c !== status)
+  return (
+    <article className="vsf-batch flex h-full flex-col">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 text-[15px] font-bold text-tinta">{judul.render(r)}</div>
+        {status && <div className="shrink-0">{status.render(r)}</div>}
+      </div>
+      <dl className="mt-3 grid gap-1.5 text-[13px]">
+        {isi.map((c) => (
+          <div key={c.key} className="flex items-center justify-between gap-3">
+            <dt className="text-abu">{c.header}</dt>
+            <dd className="text-right font-semibold tabular-nums text-tinta">{c.render(r)}</dd>
+          </div>
+        ))}
+      </dl>
+      {aksi && <div className="mt-auto flex flex-wrap justify-end gap-2 pt-3">{aksi}</div>}
+    </article>
   )
 }
 
