@@ -191,20 +191,20 @@ class HeroHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     const radius = BorderRadius.vertical(bottom: Radius.circular(Tok.rChrome));
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
+      value: Tok.gelap ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.white.withValues(alpha: 0.56),
+              Tok.putih(0.56),
               const Color(0xFFCFE2CE).withValues(alpha: 0.4),
               const Color(0xFFE2F0D8).withValues(alpha: 0.4),
             ],
           ),
           borderRadius: radius,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
+          border: Border.all(color: Tok.putih(0.9)),
           boxShadow: const [
             BoxShadow(
               color: Color(0x40141E28),
@@ -284,7 +284,7 @@ class HeroHeader extends StatelessWidget {
                                   judul,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: Tok.fontJudul,
                                     color: Tok.tinta,
                                     fontSize: 22,
@@ -299,7 +299,7 @@ class HeroHeader extends StatelessWidget {
                                     subjudul!,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: Tok.abuTeks,
                                       fontSize: 13,
                                       height: 1.35,
@@ -362,7 +362,7 @@ class Panel extends StatelessWidget {
       curve: Tok.ease,
       padding: padding,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Tok.permukaan,
         borderRadius: BorderRadius.circular(Tok.rKartu),
         border: Border.all(color: warnaTepi ?? Tok.garis),
         boxShadow: Tok.soft,
@@ -414,9 +414,7 @@ class StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final latar = terang
-        ? Colors.white.withValues(alpha: 0.7)
-        : warna.withValues(alpha: 0.12);
+    final latar = terang ? Tok.putih(0.7) : warna.withValues(alpha: 0.12);
     final teksWarna = terang
         ? (Color.lerp(warna, Tok.tinta, 0.55) ?? warna)
         : warna;
@@ -426,9 +424,7 @@ class StatusPill extends StatelessWidget {
         color: latar,
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: terang
-              ? Colors.white.withValues(alpha: 0.95)
-              : warna.withValues(alpha: 0.28),
+          color: terang ? Tok.putih(0.95) : warna.withValues(alpha: 0.28),
         ),
       ),
       child: Row(

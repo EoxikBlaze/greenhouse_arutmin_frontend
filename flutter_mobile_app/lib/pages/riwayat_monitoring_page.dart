@@ -94,7 +94,7 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
     } else if (_error != null) {
       body = _tarikRefresh([ErrorPanel(pesan: _error!, onCoba: _load)]);
     } else if (_items == null || _items!.isEmpty) {
-      body = _tarikRefresh(const [
+      body = _tarikRefresh([
         Panel(child: Text('Belum ada data monitoring.', style: Tok.kecil)),
       ]);
     } else {
@@ -145,7 +145,11 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
                             shape: BoxShape.circle,
                             color: Tok.moss.withValues(alpha: 0.16),
                           ),
-                          child: Icon(Ikon.sensor, size: 16, color: Tok.forest),
+                          child: Icon(
+                            Ikon.sensor,
+                            size: 16,
+                            color: Tok.hijauTeks,
+                          ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(

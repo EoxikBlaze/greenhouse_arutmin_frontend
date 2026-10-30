@@ -276,7 +276,7 @@ class _AsistenPageState extends State<AsistenPage> {
           if (_pesan.isNotEmpty)
             IconButton(
               tooltip: 'Hapus percakapan',
-              icon: const Icon(Ikon.hapus, color: Tok.tinta),
+              icon: Icon(Ikon.hapus, color: Tok.tinta),
               onPressed: _memuat ? null : () => setState(_pesan.clear),
             ),
         ],
@@ -311,10 +311,8 @@ class _AsistenPageState extends State<AsistenPage> {
                           x.label,
                           style: const TextStyle(fontSize: 12),
                         ),
-                        backgroundColor: Colors.white.withValues(alpha: 0.7),
-                        side: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.95),
-                        ),
+                        backgroundColor: Tok.putih(0.7),
+                        side: BorderSide(color: Tok.putih(0.95)),
                         shape: const StadiumBorder(),
                         onPressed: _memuat ? null : () => _kirim(x.pesan),
                       ),
@@ -341,22 +339,18 @@ class _AsistenPageState extends State<AsistenPage> {
                           hintText: 'Tulis pertanyaan…',
                           counterText: '',
                           filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.82),
+                          fillColor: Tok.putih(0.82),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 20,
                             vertical: 14,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(999),
-                            borderSide: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.95),
-                            ),
+                            borderSide: BorderSide(color: Tok.putih(0.95)),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(999),
-                            borderSide: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.95),
-                            ),
+                            borderSide: BorderSide(color: Tok.putih(0.95)),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(999),
@@ -384,9 +378,7 @@ class _AsistenPageState extends State<AsistenPage> {
                             onTap: _memuat ? null : () => _kirim(_ctrl.text),
                             child: Icon(
                               Ikon.kirim,
-                              color: Colors.white.withValues(
-                                alpha: _memuat ? 0.5 : 1,
-                              ),
+                              color: Tok.putih(_memuat ? 0.5 : 1),
                             ),
                           ),
                         ),
@@ -420,9 +412,9 @@ class _Kosong extends StatelessWidget {
             children: [
               const Monogram(size: 56),
               const SizedBox(height: 14),
-              const Text('Tanya apa saja soal kebun Anda', style: Tok.h2),
+              Text('Tanya apa saja soal kebun Anda', style: Tok.h2),
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 'Jawaban memakai data sensor, alert, penampung, dan tahap tanam terbaru. Coba "Diagnosa menyeluruh".',
                 textAlign: TextAlign.center,
                 style: Tok.kecil,
@@ -436,10 +428,8 @@ class _Kosong extends StatelessWidget {
                   for (final s in saran)
                     ActionChip(
                       label: Text(s, style: const TextStyle(fontSize: 12.5)),
-                      backgroundColor: Colors.white.withValues(alpha: 0.7),
-                      side: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.95),
-                      ),
+                      backgroundColor: Tok.putih(0.7),
+                      side: BorderSide(color: Tok.putih(0.95)),
                       shape: const StadiumBorder(),
                       onPressed: () => onSaran(s),
                     ),
@@ -465,7 +455,7 @@ class _Gelembung extends StatelessWidget {
         ? Tok.forest
         : p.galat
         ? Tok.error.withValues(alpha: 0.08)
-        : Colors.white.withValues(alpha: 0.82);
+        : Tok.putih(0.82);
     final Color teks = user
         ? Colors.white
         : p.galat
@@ -515,7 +505,7 @@ class _Gelembung extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   _labelSumber[p.sumber]!,
-                  style: const TextStyle(fontSize: 11, color: Tok.abuTeks),
+                  style: TextStyle(fontSize: 11, color: Tok.abuTeks),
                 ),
               ],
             ],
@@ -598,7 +588,7 @@ class _TabelAi extends StatelessWidget {
         children: [
           Text(
             t.judul.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10.5,
               fontWeight: FontWeight.w700,
               color: Tok.abuTeks,
@@ -617,12 +607,12 @@ class _TabelAi extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 child: Table(
                   defaultColumnWidth: const IntrinsicColumnWidth(),
-                  border: const TableBorder(
+                  border: TableBorder(
                     horizontalInside: BorderSide(color: Tok.garis, width: 0.6),
                   ),
                   children: [
                     TableRow(
-                      decoration: const BoxDecoration(color: Tok.page),
+                      decoration: BoxDecoration(color: Tok.page),
                       children: [
                         for (final k in t.kolom) _Sel(k, kepala: true),
                       ],

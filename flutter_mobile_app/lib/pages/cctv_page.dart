@@ -92,7 +92,7 @@ class _CctvPageState extends State<CctvPage> {
       return [ErrorPanel(pesan: _galat!, onCoba: _muat)];
     }
     if (_list.isEmpty) {
-      return const [
+      return [
         Panel(
           child: Padding(
             padding: EdgeInsets.symmetric(vertical: 28),
@@ -200,7 +200,7 @@ class _KartuKamera extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (aktif) const Icon(Ikon.layarPenuh, color: Tok.abu),
+                if (aktif) Icon(Ikon.layarPenuh, color: Tok.abu),
               ],
             ),
           ),

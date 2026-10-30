@@ -120,9 +120,7 @@ class StatusPenampungPanelState extends State<StatusPenampungPanel> {
       return const SkeletonBox(height: 120, radius: 14);
     }
     if (daftar.isEmpty) {
-      return const Panel(
-        child: Text('Belum ada data penampung.', style: Tok.kecil),
-      );
+      return Panel(child: Text('Belum ada data penampung.', style: Tok.kecil));
     }
     return Column(
       children: [

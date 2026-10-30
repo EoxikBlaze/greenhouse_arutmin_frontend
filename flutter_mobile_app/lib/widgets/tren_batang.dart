@@ -212,10 +212,7 @@ class _Batang extends StatelessWidget {
               TextSpan(
                 text:
                     '${akhir.y.toStringAsFixed(param.desimal)}${param.satuan}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: Tok.tinta,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w700, color: Tok.tinta),
               ),
             ],
           ),

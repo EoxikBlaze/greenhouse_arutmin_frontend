@@ -24,7 +24,7 @@ class AppBarGlass extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final bisaKembali = Navigator.canPop(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
+      value: Tok.gelap ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: SafeArea(
         bottom: false,
         child: Padding(
@@ -41,10 +41,10 @@ class AppBarGlass extends StatelessWidget implements PreferredSizeWidget {
                   if (bisaKembali) ...[
                     IconButton(
                       tooltip: 'Kembali',
-                      icon: const Icon(Ikon.kiri, color: Tok.tinta),
+                      icon: Icon(Ikon.kiri, color: Tok.tinta),
                       style: IconButton.styleFrom(
                         minimumSize: const Size(48, 48),
-                        backgroundColor: Colors.white.withValues(alpha: 0.7),
+                        backgroundColor: Tok.putih(0.7),
                       ),
                       onPressed: () => Navigator.maybePop(context),
                     ),
@@ -60,7 +60,7 @@ class AppBarGlass extends StatelessWidget implements PreferredSizeWidget {
                             eyebrow!.toUpperCase(),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
                               letterSpacing: 1.4,

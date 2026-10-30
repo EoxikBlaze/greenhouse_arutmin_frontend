@@ -37,7 +37,7 @@ class LineChart extends StatelessWidget {
     if (data.length < 2) {
       return SizedBox(
         height: tinggi,
-        child: const Center(child: Text('Belum cukup data', style: Tok.kecil)),
+        child: Center(child: Text('Belum cukup data', style: Tok.kecil)),
       );
     }
     final grafik = SizedBox(
@@ -235,7 +235,7 @@ class RingGauge extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12.5,
               fontWeight: FontWeight.w600,
               color: Tok.tinta,

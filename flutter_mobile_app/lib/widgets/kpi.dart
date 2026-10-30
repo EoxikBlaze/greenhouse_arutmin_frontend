@@ -81,7 +81,9 @@ class KartuKpi extends StatelessWidget {
               child: Icon(
                 k.ikon,
                 size: 17,
-                color: hijau ? Colors.white : (emas ? warnaTeks : Tok.forest),
+                color: hijau
+                    ? Colors.white
+                    : (emas ? warnaTeks : Tok.hijauTeks),
               ),
             ),
           ],

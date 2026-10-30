@@ -159,7 +159,7 @@ class _KacaCairState extends State<KacaCair> {
       final warna = widget.warna;
       kaca = DecoratedBox(
         decoration: BoxDecoration(
-          color: warna == null ? (gelap ? Tok.navy : Colors.white) : null,
+          color: warna == null ? (gelap ? Tok.navy : Tok.permukaan) : null,
           gradient: warna == null
               ? null
               : LinearGradient(
@@ -191,10 +191,7 @@ class _KacaCairState extends State<KacaCair> {
                   Tok.navy.withValues(alpha: 0.66),
                   Tok.navy.withValues(alpha: 0.40),
                 ]
-              : [
-                  Colors.white.withValues(alpha: a),
-                  Colors.white.withValues(alpha: b),
-                ]);
+              : [Tok.putih(a), Tok.putih(b)]);
       final permukaan = Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -213,7 +210,7 @@ class _KacaCairState extends State<KacaCair> {
             center: const Alignment(-0.75, -1.1),
             radius: 1.25,
             colors: [
-              Colors.white.withValues(alpha: gelap ? 0.16 : 0.42),
+              Colors.white.withValues(alpha: gelap || Tok.gelap ? 0.12 : 0.42),
               Colors.white.withValues(alpha: 0),
             ],
           ),
@@ -293,7 +290,7 @@ class RimKaca extends CustomPainter {
     if (size.isEmpty) return;
     final rect = Offset.zero & size;
     final rr = RRect.fromRectAndRadius(rect, Radius.circular(radius));
-    final f = gelap ? 0.55 : 1.0;
+    final f = gelap || Tok.gelap ? 0.5 : 1.0;
 
     canvas.save();
     canvas.clipRRect(rr);
@@ -344,7 +341,10 @@ class RimKaca extends CustomPainter {
 
   @override
   bool shouldRepaint(RimKaca old) =>
-      old.radius != radius || old.gelap != gelap || old.kecil != kecil;
+      old.radius != radius ||
+      old.gelap != gelap ||
+      old.kecil != kecil ||
+      Tok.gelap;
 }
 
 /// Latar untuk ditaruh DI BELAKANG kaca: foto pegunungan yang sama dengan latar
@@ -370,6 +370,30 @@ class LatarCair extends StatelessWidget {
               excludeFromSemantics: true,
             ),
             ColoredBox(color: Colors.white.withValues(alpha: 0.12)),
+            // foto malam memudar masuk di atas foto siang
+            AnimatedOpacity(
+              opacity: Tok.gelap ? 1 : 0,
+              duration: MediaQuery.disableAnimationsOf(context)
+                  ? Duration.zero
+                  : const Duration(milliseconds: 700),
+              curve: Tok.ease,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(
+                    'assets/latar/bg-malam.jpg',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                    cacheWidth: 1280,
+                    gaplessPlayback: true,
+                    excludeFromSemantics: true,
+                  ),
+                  ColoredBox(
+                    color: const Color(0xFF04101E).withValues(alpha: 0.25),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

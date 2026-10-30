@@ -261,9 +261,7 @@ class _WaterControlPageState extends State<WaterControlPage> {
                           label: const Text('Hentikan'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Tok.error,
-                            backgroundColor: Colors.white.withValues(
-                              alpha: 0.55,
-                            ),
+                            backgroundColor: Tok.putih(0.55),
                             side: const BorderSide(color: Tok.error),
                             shape: const StadiumBorder(),
                           ),

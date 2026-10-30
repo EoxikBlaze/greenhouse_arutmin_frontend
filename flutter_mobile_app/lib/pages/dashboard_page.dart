@@ -103,6 +103,8 @@ class _DashboardPageState extends State<DashboardPage> {
   void _bukaMenu() {
     final role = widget.api.role;
     final kontrol = role == 'admin' || role == 'demo';
+    // Petani cukup Beranda, Sensor, Tanam, Akun: tanpa Asisten AI dan CCTV.
+    final petani = role == 'petani';
     void dorong(Widget w) =>
         Navigator.of(context).push(RuteHalus<void>(builder: (_) => w));
     void tab(String l) => widget.onBukaTab?.call(l);
@@ -127,18 +129,20 @@ class _DashboardPageState extends State<DashboardPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const _GrupMenu('Ikhtisar'),
-                  if (role != 'demo')
+                  if (!petani) ...[
+                    const _GrupMenu('Ikhtisar'),
+                    if (role != 'demo')
+                      _ItemMenu(
+                        Ikon.ai,
+                        'Asisten AI',
+                        () => pilih(() => dorong(AsistenPage(api: widget.api))),
+                      ),
                     _ItemMenu(
-                      Ikon.ai,
-                      'Asisten AI',
-                      () => pilih(() => dorong(AsistenPage(api: widget.api))),
+                      Ikon.cctv,
+                      'CCTV',
+                      () => pilih(() => dorong(CctvPage(api: widget.api))),
                     ),
-                  _ItemMenu(
-                    Ikon.cctv,
-                    'CCTV',
-                    () => pilih(() => dorong(CctvPage(api: widget.api))),
-                  ),
+                  ],
                   const _GrupMenu('Kebun & sensor'),
                   _ItemMenu(
                     Ikon.sensor,
@@ -475,10 +479,10 @@ class _TombolMenu extends StatelessWidget {
           height: 48,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white.withValues(alpha: 0.7),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.95)),
+            color: Tok.putih(0.7),
+            border: Border.all(color: Tok.putih(0.95)),
           ),
-          child: const Icon(Ikon.menu, color: Tok.tinta, size: 22),
+          child: Icon(Ikon.menu, color: Tok.tinta, size: 22),
         ),
       ),
     );
@@ -496,7 +500,7 @@ class _GrupMenu extends StatelessWidget {
       padding: const EdgeInsets.only(top: 14, bottom: 4, left: 4),
       child: Text(
         teks.toUpperCase(),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w800,
           letterSpacing: 1.4,
@@ -537,7 +541,7 @@ class _ItemMenu extends StatelessWidget {
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
-            const Icon(Ikon.kanan, size: 18, color: Tok.abu),
+            Icon(Ikon.kanan, size: 18, color: Tok.abu),
           ],
         ),
       ),
@@ -570,9 +574,9 @@ class _HeroStatus extends StatelessWidget {
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.55),
+        color: Tok.putih(0.55),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.85)),
+        border: Border.all(color: Tok.putih(0.85)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -580,11 +584,11 @@ class _HeroStatus extends StatelessWidget {
           Text(label, style: Tok.kecil.copyWith(fontSize: 11.5)),
           CountUp(
             nilai: nilai.toDouble(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: Tok.fontJudul,
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: Tok.forest,
+              color: Tok.hijauTeks,
             ),
           ),
         ],
@@ -600,14 +604,14 @@ class _HeroStatus extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'STATUS GREENHOUSE',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1.4,
-                    color: Tok.olive,
+                    color: Tok.hijauTeks,
                   ),
                 ),
               ),
@@ -623,7 +627,7 @@ class _HeroStatus extends StatelessWidget {
           Text('Batch tanam berjalan', style: Tok.kecil),
           CountUp(
             nilai: batchAktif.toDouble(),
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: Tok.fontJudul,
               fontSize: 52,
               height: 1.05,
@@ -683,12 +687,10 @@ class _Tombol extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           gradient: primer ? Tok.activePill : null,
-          color: primer ? null : Colors.white.withValues(alpha: 0.62),
+          color: primer ? null : Tok.putih(0.62),
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: primer
-                ? Colors.transparent
-                : Colors.white.withValues(alpha: 0.95),
+            color: primer ? Colors.transparent : Tok.putih(0.95),
           ),
           boxShadow: primer
               ? const [
@@ -778,7 +780,7 @@ class _BarisTahap extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.85),
+        color: Tok.putih(0.85),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Tok.garis),
       ),
@@ -818,11 +820,11 @@ class _BarisTahap extends StatelessWidget {
               ),
               CountUp(
                 nilai: t.total.toDouble(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: Tok.fontJudul,
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
-                  color: Tok.forest,
+                  color: Tok.hijauTeks,
                 ),
               ),
             ],

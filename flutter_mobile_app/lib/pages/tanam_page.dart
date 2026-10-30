@@ -165,10 +165,8 @@ class _TanamPageState extends State<TanamPage> {
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(50),
                     foregroundColor: Tok.tinta,
-                    backgroundColor: Colors.white.withValues(alpha: 0.6),
-                    side: BorderSide(
-                      color: Colors.white.withValues(alpha: 0.95),
-                    ),
+                    backgroundColor: Tok.putih(0.6),
+                    side: BorderSide(color: Tok.putih(0.95)),
                     shape: const StadiumBorder(),
                   ),
                   onPressed: () => Navigator.of(context).push(
@@ -203,7 +201,7 @@ class _TanamPageState extends State<TanamPage> {
       return ErrorPanel(pesan: _galat!, onCoba: _muat);
     }
     if (tampil.isEmpty) {
-      return const Panel(
+      return Panel(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 24),
           child: Center(
@@ -707,13 +705,10 @@ class _SheetMulaiState extends State<_SheetMulai> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('Mulai tanam baru', style: Tok.h3),
-                  const Text(
-                    'Tanggal semai otomatis hari ini.',
-                    style: Tok.kecil,
-                  ),
+                  Text('Mulai tanam baru', style: Tok.h3),
+                  Text('Tanggal semai otomatis hari ini.', style: Tok.kecil),
                   const SizedBox(height: 16),
-                  const Text('Tanaman', style: Tok.eyebrow),
+                  Text('Tanaman', style: Tok.eyebrow),
                   const SizedBox(height: 8),
                   _chips(_tanaman, _idTanaman, _pilihTanaman),
                   if (durasi != null && durasi.every((d) => d != null)) ...[
@@ -724,11 +719,11 @@ class _SheetMulaiState extends State<_SheetMulai> {
                     ),
                   ],
                   const SizedBox(height: 16),
-                  const Text('Meja', style: Tok.eyebrow),
+                  Text('Meja', style: Tok.eyebrow),
                   const SizedBox(height: 8),
                   _chips(_meja, _idMeja, (m) => _idMeja = _angka(m['id'])),
                   const SizedBox(height: 16),
-                  const Text('Jumlah benih', style: Tok.eyebrow),
+                  Text('Jumlah benih', style: Tok.eyebrow),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,

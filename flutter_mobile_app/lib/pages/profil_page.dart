@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/api_service.dart';
+import '../theme/tema.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/brand.dart';
@@ -159,10 +160,7 @@ class _ProfilPageState extends State<ProfilPage> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Tok.emas,
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            width: 3,
-                          ),
+                          border: Border.all(color: Tok.putih(0.9), width: 3),
                         ),
                         child: Text(
                           nama
@@ -214,7 +212,7 @@ class _ProfilPageState extends State<ProfilPage> {
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Column(
                     children: [
-                      if (!demo)
+                      if (!demo && role != 'petani')
                         _Pintas(
                           ikon: Ikon.ai,
                           label: 'Asisten AI',
@@ -224,15 +222,16 @@ class _ProfilPageState extends State<ProfilPage> {
                             ),
                           ),
                         ),
-                      _Pintas(
-                        ikon: Ikon.cctv,
-                        label: 'CCTV greenhouse',
-                        onTap: () => Navigator.of(context).push(
-                          RuteHalus<void>(
-                            builder: (_) => CctvPage(api: widget.api),
+                      if (role != 'petani')
+                        _Pintas(
+                          ikon: Ikon.cctv,
+                          label: 'CCTV greenhouse',
+                          onTap: () => Navigator.of(context).push(
+                            RuteHalus<void>(
+                              builder: (_) => CctvPage(api: widget.api),
+                            ),
                           ),
                         ),
-                      ),
                       if (role == 'admin')
                         _Pintas(
                           ikon: Ikon.meja,
@@ -368,7 +367,7 @@ class _ProfilPageState extends State<ProfilPage> {
               ),
               if (demo) ...[
                 const SizedBox(height: Tok.sp3),
-                const Text(
+                Text(
                   'Akun demo tidak dapat mengubah profil atau kata sandi.',
                   style: Tok.kecil,
                 ),
@@ -415,7 +414,7 @@ class _ProfilPageState extends State<ProfilPage> {
                     label: const Text('Keluar'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Tok.error,
-                      backgroundColor: Colors.white.withValues(alpha: 0.6),
+                      backgroundColor: Tok.putih(0.6),
                       side: const BorderSide(color: Tok.error),
                       shape: const StadiumBorder(),
                     ),
@@ -446,9 +445,9 @@ class _Pintas extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.7),
+          color: Tok.putih(0.7),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.95)),
+          border: Border.all(color: Tok.putih(0.95)),
         ),
         child: Row(
           children: [
@@ -459,7 +458,7 @@ class _Pintas extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: Tok.moss.withValues(alpha: 0.16),
               ),
-              child: Icon(ikon, size: 18, color: Tok.forest),
+              child: Icon(ikon, size: 18, color: Tok.hijauTeks),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -468,7 +467,7 @@ class _Pintas extends StatelessWidget {
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
-            const Icon(Ikon.kanan, size: 18, color: Tok.abu),
+            Icon(Ikon.kanan, size: 18, color: Tok.abu),
           ],
         ),
       ),
@@ -490,9 +489,23 @@ class _PilihKaca extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Tampilan kaca', style: Tok.h3),
+          Text('Tema', style: Tok.h3),
           const SizedBox(height: 2),
-          const Text(
+          Text(
+            'Terang atau gelap. Tersimpan di perangkat ini.',
+            style: Tok.kecil,
+          ),
+          const SizedBox(height: Tok.sp3),
+          PilPilih(
+            label: const ['Terang', 'Gelap'],
+            pilih: Tok.gelap ? 1 : 0,
+            rata: true,
+            onPilih: (i) => PreferensiTema.atur(i == 1),
+          ),
+          const SizedBox(height: Tok.sp4),
+          Text('Tampilan kaca', style: Tok.h3),
+          const SizedBox(height: 2),
+          Text(
             'Atur seberapa tembus pandang kartu dan menu. Pilih Pekat bila teks sulit dibaca.',
             style: Tok.kecil,
           ),

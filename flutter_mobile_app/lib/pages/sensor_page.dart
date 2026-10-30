@@ -311,7 +311,7 @@ class _SensorPageState extends State<SensorPage> {
           ),
         ),
         const SizedBox(height: Tok.sp2),
-        const Text('Ketuk kartu untuk melihat grafiknya.', style: Tok.kecil),
+        Text('Ketuk kartu untuk melihat grafiknya.', style: Tok.kecil),
         const SizedBox(height: Tok.sp4),
         FadeUp(
           delay: FadeUp.urutan(2),
@@ -336,11 +336,11 @@ class _SensorPageState extends State<SensorPage> {
                     ),
                     Text(
                       terakhir,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: Tok.fontJudul,
                         fontSize: 26,
                         fontWeight: FontWeight.w700,
-                        color: Tok.forest,
+                        color: Tok.hijauTeks,
                       ),
                     ),
                   ],

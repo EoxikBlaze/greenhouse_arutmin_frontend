@@ -89,7 +89,7 @@ class _MejaPageState extends State<MejaPage>
     } else if (_error != null) {
       body = tarikRefresh([ErrorPanel(pesan: _error!, onCoba: _load)]);
     } else if (_items == null || _items!.isEmpty) {
-      body = tarikRefresh(const [
+      body = tarikRefresh([
         Panel(child: Text('Belum ada data meja.', style: Tok.kecil)),
       ]);
     } else {
@@ -127,7 +127,11 @@ class _MejaPageState extends State<MejaPage>
                             shape: BoxShape.circle,
                             color: Tok.moss.withValues(alpha: 0.16),
                           ),
-                          child: Icon(Ikon.meja, size: 18, color: Tok.forest),
+                          child: Icon(
+                            Ikon.meja,
+                            size: 18,
+                            color: Tok.hijauTeks,
+                          ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(

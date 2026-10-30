@@ -162,12 +162,12 @@ class TentangPage extends StatelessWidget {
                   children: [
                     Image.asset('assets/tentang/logo/kkn.png', height: 76),
                     const SizedBox(height: Tok.sp3),
-                    const Text(
+                    Text(
                       'Merawat nutrisi tanaman, tanpa petani harus menakar sendiri.',
                       style: Tok.h2,
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Vertonik Smart Farm (GARAP) adalah sistem IoT untuk greenhouse hidroponik multi-penampung. '
                       'Satu alat kontrol menjaga kadar nutrisi dan pH tiap meja, lalu mengabarkan semua kejadian ke aplikasi petani.',
                       style: Tok.body,
@@ -212,7 +212,7 @@ class TentangPage extends StatelessWidget {
                             _mitra[i].nama,
                             textAlign: TextAlign.center,
                             maxLines: 2,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w700,
                               color: Tok.tinta,
                               fontSize: 13.5,
@@ -250,7 +250,7 @@ class TentangPage extends StatelessWidget {
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     subtitle: const Text(_akun),
-                    trailing: const Icon(Ikon.salin, size: 18, color: Tok.abu),
+                    trailing: Icon(Ikon.salin, size: 18, color: Tok.abu),
                     onTap: () => _salin(
                       context,
                       'https://instagram.com/kkn.arutminidn2026',
@@ -264,7 +264,7 @@ class TentangPage extends StatelessWidget {
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     subtitle: const Text(_akun),
-                    trailing: const Icon(Ikon.salin, size: 18, color: Tok.abu),
+                    trailing: Icon(Ikon.salin, size: 18, color: Tok.abu),
                     onTap: () => _salin(
                       context,
                       'https://www.tiktok.com/@kkn.arutminidn2026',
@@ -275,7 +275,7 @@ class TentangPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: Tok.sp6),
-            const Center(
+            Center(
               child: Text(
                 '© 2026 PT Arutmin Indonesia · Vertonik Smart Farm',
                 style: Tok.kecil,

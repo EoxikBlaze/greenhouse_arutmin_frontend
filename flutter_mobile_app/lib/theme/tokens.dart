@@ -5,6 +5,20 @@ import 'package:flutter/material.dart';
 class Tok {
   Tok._();
 
+  /// Tema aktif. Diatur oleh [PreferensiTema]; token netral di bawah ini
+  /// (tinta, abu, garis, page, permukaan) mengikutinya.
+  static bool gelap = false;
+
+  /// Permukaan solid (kartu, dialog, kolom isian): putih / navy gelap.
+  static Color get permukaan => gelap ? const Color(0xFF132A44) : Colors.white;
+
+  /// Putih untuk lapisan kaca: pada tema gelap hanya tint tipis (padanan `--k` web).
+  static Color putih(double alpha) =>
+      Colors.white.withValues(alpha: gelap ? alpha * 0.1 : alpha);
+
+  /// Hijau tua untuk teks/ikon di atas kaca; pada tema gelap diganti hijau muda.
+  static Color get hijauTeks => gelap ? const Color(0xFF9CCB7A) : forest;
+
   // ── Warna ────────────────────────────────────────────────────────────
   static const Color navy = Color(0xFF0A1F38);
   static const Color navy2 = Color(0xFF071527);
@@ -16,15 +30,21 @@ class Tok {
   static const Color forest = Color(0xFF2D452F);
   static const Color olive = Color(0xFF4C6A4B);
   static const Color mint = Color(0xFFCFE2CE);
-  static const Color page = Color(0xFFF4F7F2);
-  static const Color garis = Color(0xFFE2E8DD);
-  static const Color garis2 = Color(0xFFD7E0D2);
-  static const Color tinta = Color(0xFF0B1A2B);
-  static const Color abu = Color(0xFF64748B);
+  static Color get page =>
+      gelap ? const Color(0xFF071527) : const Color(0xFFF4F7F2);
+  static Color get garis =>
+      gelap ? const Color(0x29FFFFFF) : const Color(0xFFE2E8DD);
+  static Color get garis2 =>
+      gelap ? const Color(0x3DFFFFFF) : const Color(0xFFD7E0D2);
+  static Color get tinta =>
+      gelap ? const Color(0xFFE8EFF7) : const Color(0xFF0B1A2B);
+  static Color get abu =>
+      gelap ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
   /// Abu untuk TEKS kecil; [abu] untuk ikon/dekorasi. Digelapkan dari 0xFF556277 karena
   /// teks ini sering berada di atas kaca bening (foto di belakang): target ≥4,5:1.
-  static const Color abuTeks = Color(0xFF2F3D52);
+  static Color get abuTeks =>
+      gelap ? const Color(0xFFC3CEDC) : const Color(0xFF2F3D52);
   static const Color error = Color(0xFFC0392B);
   static const Color warning = Color(0xFFE0A42B);
 
@@ -106,7 +126,7 @@ class Tok {
   static const String fontIsi = 'Inter';
   static const String fontJudul = 'SpaceGrotesk';
 
-  static const TextStyle h1 = TextStyle(
+  static TextStyle get h1 => TextStyle(
     fontFamily: fontJudul,
     fontSize: 26,
     height: 1.25,
@@ -115,7 +135,7 @@ class Tok {
     color: tinta,
   );
 
-  static const TextStyle h2 = TextStyle(
+  static TextStyle get h2 => TextStyle(
     fontFamily: fontJudul,
     fontSize: 19,
     height: 1.3,
@@ -124,7 +144,7 @@ class Tok {
     color: tinta,
   );
 
-  static const TextStyle h3 = TextStyle(
+  static TextStyle get h3 => TextStyle(
     fontFamily: fontJudul,
     fontSize: 16,
     height: 1.35,
@@ -132,19 +152,13 @@ class Tok {
     color: tinta,
   );
 
-  static const TextStyle body = TextStyle(
-    fontSize: 14.5,
-    height: 1.4,
-    color: tinta,
-  );
+  static TextStyle get body =>
+      TextStyle(fontSize: 14.5, height: 1.4, color: tinta);
 
-  static const TextStyle kecil = TextStyle(
-    fontSize: 12,
-    height: 1.35,
-    color: abuTeks,
-  );
+  static TextStyle get kecil =>
+      TextStyle(fontSize: 12, height: 1.35, color: abuTeks);
 
-  static const TextStyle eyebrow = TextStyle(
+  static TextStyle get eyebrow => TextStyle(
     fontSize: 11,
     fontWeight: FontWeight.w700,
     letterSpacing: 1.3,

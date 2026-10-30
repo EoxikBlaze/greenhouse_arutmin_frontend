@@ -128,7 +128,7 @@ class _LoginPageState extends State<LoginPage>
           children: [
             FadeUp(
               delay: FadeUp.urutan(1),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Eyebrow('Akses sistem'),
@@ -406,10 +406,7 @@ class _Kabar extends StatelessWidget {
           Icon(ikon, size: 18, color: warna),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              teks,
-              style: const TextStyle(color: Tok.tinta, height: 1.35),
-            ),
+            child: Text(teks, style: TextStyle(color: Tok.tinta, height: 1.35)),
           ),
         ],
       ),

@@ -9,6 +9,7 @@ import 'pages/tanam_page.dart';
 import 'pages/watercontrol_page.dart';
 import 'services/api_service.dart';
 import 'services/sesi_store.dart';
+import 'theme/tema.dart';
 import 'theme/tokens.dart';
 import 'widgets/dock.dart';
 import 'widgets/ikon.dart';
@@ -26,15 +27,17 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await apiService.pulihkanSesi();
   await PreferensiKaca.muat();
+  await PreferensiTema.muat();
   runApp(const GarapApp());
 }
 
 ThemeData _buatTema() {
   final skema = ColorScheme.fromSeed(
+    brightness: Tok.gelap ? Brightness.dark : Brightness.light,
     seedColor: Tok.forest,
-    primary: Tok.forest,
+    primary: Tok.gelap ? Tok.moss : Tok.forest,
     secondary: Tok.moss,
-    surface: Colors.white,
+    surface: Tok.permukaan,
     error: Tok.error,
   );
   OutlineInputBorder garis(Color c, [double w = 1]) => OutlineInputBorder(
@@ -54,16 +57,16 @@ ThemeData _buatTema() {
       systemOverlayStyle: SystemUiOverlayStyle.light,
     ),
     cardTheme: CardThemeData(
-      color: Colors.white,
+      color: Tok.permukaan,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(Tok.rLg),
-        side: const BorderSide(color: Tok.garis),
+        side: BorderSide(color: Tok.garis),
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Colors.white,
+      fillColor: Tok.permukaan,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
       border: garis(Tok.garis2),
       enabledBorder: garis(Tok.garis2),
@@ -71,7 +74,7 @@ ThemeData _buatTema() {
       focusedBorder: garis(Tok.moss, 1.8),
       errorBorder: garis(Tok.error),
       focusedErrorBorder: garis(Tok.error, 1.8),
-      labelStyle: const TextStyle(color: Tok.abuTeks),
+      labelStyle: TextStyle(color: Tok.abuTeks),
       prefixIconColor: Tok.abu,
     ),
     filledButtonTheme: FilledButtonThemeData(
@@ -83,7 +86,7 @@ ThemeData _buatTema() {
       ),
     ),
     dialogTheme: DialogThemeData(
-      backgroundColor: Colors.white,
+      backgroundColor: Tok.permukaan,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(Tok.rLg + 4),
@@ -98,6 +101,13 @@ class GarapApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: PreferensiTema.gelap,
+      builder: (context, _, _) => _bangunApp(),
+    );
+  }
+
+  Widget _bangunApp() {
     return MaterialApp(
       title: 'GARAP',
       debugShowCheckedModeBanner: false,
@@ -111,7 +121,7 @@ class GarapApp extends StatelessWidget {
           child: MediaQuery.withClampedTextScaling(
             minScaleFactor: 1.0,
             maxScaleFactor: 1.3,
-            child: child!,
+            child: TransisiTema(child: child!),
           ),
         ),
       ),

@@ -23,16 +23,13 @@ class PageTop extends StatelessWidget {
   Widget build(BuildContext context) {
     final atas = MediaQuery.paddingOf(context).top;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
+      value: Tok.gelap ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Padding(
         padding: EdgeInsets.fromLTRB(16, atas + 12, 16, 0),
         child: KacaCair(
           radius: 24,
           padding: const EdgeInsets.fromLTRB(18, 12, 12, 12),
-          warna: [
-            Colors.white.withValues(alpha: 0.56),
-            Colors.white.withValues(alpha: 0.38),
-          ],
+          warna: [Tok.putih(0.56), Tok.putih(0.38)],
           child: Row(
             children: [
               Expanded(
@@ -43,7 +40,7 @@ class PageTop extends StatelessWidget {
                       eyebrow.toUpperCase(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1.4,
@@ -56,7 +53,7 @@ class PageTop extends StatelessWidget {
                         judul,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: Tok.fontJudul,
                           fontSize: 24,
                           height: 1.2,
@@ -105,7 +102,7 @@ class PilPilih extends StatelessWidget {
     final pil = Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.45),
+        color: Tok.putih(0.45),
         borderRadius: BorderRadius.circular(999),
       ),
       foregroundDecoration: const _RimPil(),
@@ -180,7 +177,7 @@ class HeroKartu extends StatelessWidget {
         radius: 28,
         padding: EdgeInsets.all(padding),
         warna: [
-          Colors.white.withValues(alpha: 0.5),
+          Tok.putih(0.5),
           const Color(0xFFCFE2CE).withValues(alpha: 0.34),
           const Color(0xFFF6EDBE).withValues(alpha: 0.38),
         ],
@@ -207,7 +204,7 @@ class MiniNilai extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: solid ? 1 : 0.56),
+          color: Tok.putih(solid ? 1 : 0.56),
           borderRadius: BorderRadius.circular(14),
           border: solid ? Border.all(color: Tok.garis) : null,
         ),
@@ -215,13 +212,10 @@ class MiniNilai extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              label,
-              style: const TextStyle(fontSize: 11, color: Tok.abuTeks),
-            ),
+            Text(label, style: TextStyle(fontSize: 11, color: Tok.abuTeks)),
             Text(
               nilai,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14.5,
                 fontWeight: FontWeight.w700,
                 color: Tok.tinta,

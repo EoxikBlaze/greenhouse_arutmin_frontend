@@ -116,7 +116,7 @@ class _NaikHarianPageState extends State<NaikHarianPage> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
             physics: const AlwaysScrollableScrollPhysics(),
             children: [
-              const Text(
+              Text(
                 'Cukup isi target akhir tiap tanaman. Mulai hari pindah netpot, target ppm penampung '
                 'naik sedikit tiap hari sampai target akhir, lalu ditahan sampai panen. '
                 'Tahap semai tetap memakai preset.',
@@ -174,14 +174,14 @@ class _Kartu extends StatelessWidget {
                 Text('${t['nama_tanaman']}', style: Tok.h3),
                 const SizedBox(height: 2),
                 if (target == null)
-                  const Text(
+                  Text(
                     'Belum diatur — memakai preset per tahap.',
                     style: Tok.kecil,
                   )
                 else ...[
                   Text(
                     '${_angka(awal!)} → ${_angka(target)} ppm',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w700,
                       color: Tok.tinta,
                     ),
@@ -205,7 +205,7 @@ class _Kartu extends StatelessWidget {
               ],
             ),
           ),
-          if (onTap != null) const Icon(Ikon.kanan, color: Tok.abu),
+          if (onTap != null) Icon(Ikon.kanan, color: Tok.abu),
         ],
       ),
     );
