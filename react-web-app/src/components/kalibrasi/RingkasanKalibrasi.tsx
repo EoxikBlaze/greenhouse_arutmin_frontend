@@ -31,7 +31,7 @@ export function RingkasanKalibrasi({
     <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
       <h2 className="font-display text-[20px] font-bold leading-tight text-tinta">Kalibrasi alat</h2>
       <p className="mt-1.5 max-w-[68ch] text-[13px] leading-relaxed text-slate-600">
-        Sensor yang tidak dikalibrasi tetap mengirim angka yang tampak wajar tetapi salah, dan dosing otomatis mengikutinya.
+        Sensor yang tidak dikalibrasi dapat mengirim angka yang tampak wajar tetapi salah. Eksekusi dosing otomatis saat ini dinonaktifkan.
         Ketuk satu status untuk menyaring daftar.
       </p>
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">

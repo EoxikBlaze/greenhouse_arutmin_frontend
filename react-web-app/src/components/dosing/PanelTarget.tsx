@@ -555,7 +555,7 @@ export function PresetNutrisi({ data, onUbah }: { data: Daftar<Preset>; onUbah: 
         <DialogKaca judul="Hapus preset?" onTutup={() => setHapus(null)} sibuk={sibuk}>
           <p className="mt-3 text-[13px] leading-relaxed text-abu">
             Preset <b className="text-tinta">{hapus.nama_tanaman ?? 'Semua tanaman'} · {hapus.tahap}</b> dihapus. Penampung otomatis yang
-            memakainya akan mencari preset lain; bila tidak ada, targetnya dikosongkan dan dosing otomatis diam.
+            memakainya akan mencari preset lain; bila tidak ada, targetnya dikosongkan dan konfigurasi tidak dapat memulai dosing.
           </p>
           <div className="mt-5 flex flex-wrap justify-end gap-2">
             <button type="button" className="vsf-btn-secondary" onClick={() => setHapus(null)} disabled={sibuk}>

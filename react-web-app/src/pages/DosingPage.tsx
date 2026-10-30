@@ -11,7 +11,7 @@ import { PresetNutrisi, TargetPenampung, type Preset, type TargetMeja } from '..
 import { Segmen } from '../components/sensor/FilterBar'
 
 /**
- * Dosing otomatis — terhubung ke endpoint KONFIGURASI V2 riil (routes/konfigurasi.js, routes/preset.js).
+ * Konfigurasi dosing — terhubung ke endpoint KONFIGURASI V2 riil (routes/konfigurasi.js, routes/preset.js).
  * Empat tab: Target & Nutrisi · Parameter · Keamanan · Perawatan. Semua angka berasal dari server.
  * Rute hanya untuk admin & demo (router.tsx); ubah/hapus/sinkron = admin saja.
  */
@@ -61,8 +61,8 @@ export default function DosingPage() {
   return (
     <div className="vsf-halaman vsf-stagger">
       <PageHeader
-        judul="Dosing otomatis"
-        deskripsi="Target EC/pH tiap penampung diambil dari preset nutrisi sesuai tanaman, tahap, dan umur batch, lalu pompa dosing mengejarnya dengan jeda dan batas harian."
+        judul="Konfigurasi dosing"
+        deskripsi="Target EC/pH tiap penampung diambil dari preset nutrisi sesuai tanaman, tahap, dan umur batch. Halaman ini hanya menyimpan konfigurasi: eksekusi dosis oleh pompa sedang dinonaktifkan sampai validasi keselamatan selesai, sehingga tidak ada injeksi nutrisi otomatis yang berjalan."
         aksi={
           <Link to="/watercontrol" className="vsf-btn-secondary">
             Buka Water Control

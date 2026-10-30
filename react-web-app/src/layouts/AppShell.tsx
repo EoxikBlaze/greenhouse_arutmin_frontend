@@ -36,7 +36,7 @@ const TITLES: Record<string, string> = {
   '/profil': 'Profile',
   '/cctv': 'CCTV',
   '/asisten-ai': 'Asisten AI',
-  '/dosing': 'Dosing Otomatis',
+  '/dosing': 'Konfigurasi Dosing',
   '/kalibrasi': 'Kalibrasi Alat',
   '/audit': 'Riwayat Audit',
 }
@@ -76,7 +76,7 @@ const NAV: NavGroup[] = [
       { to: '/sensor-realtime', label: 'Sensor Real-Time', ikon: 'sensor' },
       { to: '/tanam', label: 'Kebun Saya', ikon: 'tanam' },
       { to: '/watercontrol', label: 'Water Control', ikon: 'air', allow: ADMIN_DEMO },
-      { to: '/dosing', label: 'Dosing Otomatis', ikon: 'dosing', allow: ADMIN_DEMO },
+      { to: '/dosing', label: 'Konfigurasi Dosing', ikon: 'dosing', allow: ADMIN_DEMO },
       { to: '/kalibrasi', label: 'Kalibrasi Alat', ikon: 'kalibrasi', allow: ADMIN_DEMO },
       { to: '/cctv', label: 'CCTV', ikon: 'cctv' },
     ],

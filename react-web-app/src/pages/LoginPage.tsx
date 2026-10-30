@@ -17,7 +17,7 @@ function IconEye({ off }: { off?: boolean }) {
 
 const KEUNGGULAN = [
   { label: 'Sensor real-time', detail: 'pH, TDS, dan suhu air tiap meja' },
-  { label: 'Dosing otomatis', detail: 'Nutrisi ditakar sistem, aman berlapis' },
+  { label: 'Konfigurasi dosing', detail: 'Pantau parameter; eksekusi pompa dinonaktifkan' },
   { label: 'Siklus tanam', detail: 'Semai sampai panen, cukup isi hasilnya' },
 ]
 
@@ -114,7 +114,7 @@ export default function LoginPage() {
             </span>
           </h1>
           <p className="mt-4 hidden max-w-[52ch] text-[16px] leading-relaxed text-white/90 [text-shadow:0_2px_12px_rgba(7,21,39,.6)] sm:block">
-            Merawat nutrisi tanaman tanpa petani harus menakar sendiri — pantau sensor, dosing, dan siklus tanam dari satu tempat.
+            Pantau sensor, konfigurasi target nutrisi, dan siklus tanam dari satu tempat. Eksekusi dosing otomatis saat ini dinonaktifkan.
           </p>
 
           <ul className="mt-6 hidden gap-3 lg:grid lg:max-w-[560px] lg:grid-cols-3">

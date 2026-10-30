@@ -149,7 +149,7 @@ const APLIKASI = [
     ikon: <><rect x="7" y="2.5" width="10" height="19" rx="2.5" /><path d="M11 18.5h2" /></> },
   { judul: 'Sensor Real-time', info: 'Grafik dan angka EC, pH, suhu air, serta suhu dan kelembapan ruang yang diperbarui terus. Perlu login.', href: '/sensor-realtime', tag: 'Web · Mobile', teks: 'EC, pH, suhu, dan kelembapan tiap penampung dengan riwayat grafik.',
     ikon: <><path d="M12 3c3 4 5 6.6 5 9.5a5 5 0 0 1-10 0C7 9.600 9 7 12 3z" /></> },
-  { judul: 'Dosing Otomatis', info: 'Atur dan pantau dosing nutrisi A/B. Perangkat ESP32 menjalankan pompa, aplikasi hanya mengatur target. Perlu login.', href: '/dosing', tag: 'Perangkat ESP32', teks: 'Nutrisi A dan B disuntik terukur, dibilas, lalu diverifikasi ulang.',
+  { judul: 'Konfigurasi Dosing', info: 'Atur preset dan pantau parameter nutrisi A/B. Eksekusi pompa dinonaktifkan sampai validasi keselamatan selesai. Perlu login.', href: '/dosing', tag: 'Pompa nonaktif', teks: 'Halaman untuk konfigurasi dan pemantauan; tidak menjalankan pompa.',
     ikon: <><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.800 3h10.400A2 2 0 0 0 19 18l-5-9V3" /><path d="M7.500 15h9" /></> },
   { judul: 'CCTV Kebun', info: 'Tampilan kamera greenhouse langsung dari aplikasi. Perlu login.', href: '/cctv', tag: 'Web · Mobile', teks: 'Lihat kondisi tanaman langsung dari kamera tanpa ke lokasi.',
     ikon: <><path d="M3 8l12-3 2 5-12 3zM17 10l4 1v4l-4-1M8 17l-1 4" /></> },
@@ -159,8 +159,8 @@ const APLIKASI = [
 
 const ALUR = [
   { no: '01', judul: 'Baca', info: 'Pembacaan dilakukan saat air diam di botol sampel agar nilai EC, pH, dan suhu stabil dan akurat.', teks: 'Air tiap penampung diambil ke botol sampel, lalu EC, pH, dan suhu dibaca saat air diam.' },
-  { no: '02', judul: 'Putuskan', info: 'Sistem membandingkan hasil bacaan dengan target. Keputusannya hanya tiga: istirahat, dosing, atau alert.', teks: 'Sesuai target → istirahat 60 menit. Kurang → antre dosing. Di luar batas aman → kirim alert.' },
-  { no: '03', judul: 'Bertindak', info: 'Dosing dibagi per ronde (65% dari kekurangan) lalu diverifikasi ulang, sehingga nutrisi tidak pernah berlebih.', teks: 'Suntik A, bilas, jeda 2 menit, suntik B, bilas, tunggu 15 menit, lalu baca ulang.' },
+  { no: '02', judul: 'Rencana penilaian', info: 'Rancangan dosing akan membandingkan bacaan dengan target dan batas yang disetujui. Penilaian ini belum mengaktifkan eksekusi.', teks: 'Target, batas operasi, dan status keselamatan harus tervalidasi sebelum keputusan dosing dapat digunakan.' },
+  { no: '03', judul: 'Eksekusi dinonaktifkan', info: 'Pompa belum dijalankan oleh aplikasi. Eksekusi tetap diblokir sampai validasi, protokol, dan perangkat memenuhi persyaratan keselamatan.', teks: 'Tidak ada perintah dosing yang dikirim ke perangkat pada tahap ini.' },
 ]
 
 /** Palet blok kolase per anggota (a→b gradasi blok utama, x/y blok aksen). */
@@ -310,7 +310,7 @@ export function TentangPage() {
             <GrupMerek ref={heroGrup} animasi={!awal} interaktif judul />
           </div>
           <p className="vsf-sp mt-5 max-w-[560px] text-[15px] leading-relaxed text-white [text-shadow:0_2px_12px_rgba(7,21,39,.7)]" style={{ ['--sd' as string]: '.5s' }}>
-            Merawat nutrisi tanaman, tanpa petani harus menakar sendiri.
+            Pantau nutrisi tanaman dan tentukan tindak lanjut berdasarkan data.
           </p>
           <div className="vsf-sp mt-5 flex flex-wrap justify-center gap-2" style={{ ['--sd' as string]: '.6s' }}>
             <Link to={isAuthenticated ? '/dashboard' : '/login'} className="vsf-btn-primary">
@@ -330,11 +330,12 @@ export function TentangPage() {
           <section className="vsf-card vsf-muncul flex flex-col justify-center p-6 sm:p-8" aria-labelledby="vsf-intro-title">
             <div className="vsf-eyebrow">Tentang Kami</div>
             <h2 id="vsf-intro-title" className="mt-2 max-w-[760px] text-[22px] leading-snug sm:text-[28px]">
-              Merawat nutrisi tanaman, tanpa petani harus menakar sendiri.
+              Pantau nutrisi tanaman dan tentukan tindak lanjut berdasarkan data.
             </h2>
             <p className="mt-3 max-w-[760px] text-[14.5px] leading-relaxed text-slate-600">
-              Vertonik Smart Farm (GARAP) adalah sistem IoT untuk greenhouse hidroponik multi-penampung. Satu alat kontrol
-              menjaga kadar nutrisi dan pH tiap meja, lalu mengabarkan semua kejadian ke aplikasi petani.
+              Vertonik Smart Farm (GARAP) adalah sistem IoT untuk memantau greenhouse hidroponik multi-penampung dan
+              mengelola konfigurasi target nutrisi. Eksekusi dosing otomatis saat ini dinonaktifkan; tindak lanjut tetap
+              memerlukan keputusan petani.
             </p>
             <p className="mt-4 text-[12px] text-slate-500">Tekan kartu untuk membuka tautan, tahan untuk membaca penjelasannya.</p>
           </section>
@@ -490,7 +491,7 @@ export function TentangPage() {
         {/* Ajakan penutup */}
         <section className="vsf-muncul vsf-kaca vsf-kaca-netral mt-16 flex flex-col items-center gap-4 rounded-[32px] px-6 py-10 text-center" aria-labelledby="vsf-cta-title">
           <h2 id="vsf-cta-title" className="font-display text-[24px] font-bold text-white sm:text-[30px]">Siap memantau kebun Anda?</h2>
-          <p className="max-w-[520px] text-[14px] leading-relaxed text-white/80">Login untuk melihat sensor, mengatur dosing, dan bertanya pada asisten AI.</p>
+          <p className="max-w-[520px] text-[14px] leading-relaxed text-white/80">Login untuk melihat sensor, mengatur konfigurasi dosing (pompa nonaktif), dan bertanya pada asisten AI.</p>
           <Link to={isAuthenticated ? '/dashboard' : '/login'} className="vsf-btn-primary">{isAuthenticated ? 'Dashboard' : 'Login'}</Link>
           <PilSosial interaktif netral />
         </section>

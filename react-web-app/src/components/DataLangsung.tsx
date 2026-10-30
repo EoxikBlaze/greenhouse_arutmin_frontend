@@ -24,7 +24,7 @@ export function DataLangsung() {
   const tren = data?.tren_24_jam ?? []
   const kartu = [
     { k: 'pH air', v: fmt(r?.ph), ket: 'ideal 5,5–6,5', w: '#2f6bff', seri: tren.map((t) => t.ph), tip: 'Rata-rata pH larutan nutrisi 6 jam terakhir. Di luar 5,5–6,5 tanaman sulit menyerap nutrisi.' },
-    { k: 'TDS', v: fmt(r?.tds, ' ppm'), ket: 'kepekatan nutrisi', w: '#0f9d6b', seri: tren.map((t) => t.tds), tip: 'Total padatan terlarut — gambaran kepekatan nutrisi. Dosing otomatis menjaganya dekat target.' },
+    { k: 'TDS', v: fmt(r?.tds, ' ppm'), ket: 'kepekatan nutrisi', w: '#0f9d6b', seri: tren.map((t) => t.tds), tip: 'Total padatan terlarut — gambaran kepekatan nutrisi. Eksekusi dosing otomatis saat ini dinonaktifkan.' },
     { k: 'Suhu air', v: fmt(r?.suhu_air, ' °C'), ket: 'penampung', w: '#e08a00', seri: tren.map((t) => t.suhu_air), tip: 'Suhu larutan di penampung. Terlalu panas menurunkan oksigen terlarut.' },
     { k: 'Udara & lembap', v: `${fmt(r?.suhu_udara, ' °C')} · ${fmt(r?.kelembapan, '%')}`, ket: 'ruang greenhouse', w: '#7a5cff', seri: [], tip: 'Suhu dan kelembapan udara di dalam greenhouse (rata-rata 6 jam).' },
   ]
