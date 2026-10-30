@@ -1895,3 +1895,195 @@ html.vsf-splash-aktif { overflow: hidden; }
 .vsf-ikon-btn { min-height: 40px; min-width: 40px; justify-content: center; }
 .vsf-label-tinta { color: var(--tinta); }
 .vsf-btn-secondary.vsf-teks-bahaya { color: #b4291c; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Master Data — tabel kaca (Jenis Tanaman, Meja Tanaman, Ambang Sensor).
+   Baris = tint putih + rim tanpa blur sendiri; di HP tiap baris jadi kartu berlabel.
+   ══════════════════════════════════════════════════════════════════════════ */
+.vsf-master-tabel { min-width: 0; overflow-x: auto; }
+.vsf-master-tabel table { width: 100%; border-collapse: separate; border-spacing: 0 8px; font-size: 13px; }
+.vsf-master-tabel th {
+  padding: 0 14px 2px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--abu, #64748b);
+}
+.vsf-master-tabel td {
+  padding: 12px 14px;
+  vertical-align: middle;
+  color: var(--tinta);
+  background: rgb(255 255 255 / 0.56);
+  border-block: 1px solid rgb(255 255 255 / 0.55);
+  transition: background-color 150ms ease;
+}
+.vsf-master-tabel td:first-child { border-radius: 16px 0 0 16px; border-left: 1px solid rgb(255 255 255 / 0.55); }
+.vsf-master-tabel td:last-child { border-radius: 0 16px 16px 0; border-right: 1px solid rgb(255 255 255 / 0.55); }
+.vsf-master-tabel tbody tr:hover td { background: rgb(255 255 255 / 0.74); }
+.vsf-master-tabel .is-kanan { text-align: right; }
+.vsf-master-id { display: block; margin-top: 1px; font-size: 11px; font-weight: 400; color: var(--abu, #64748b); }
+.vsf-master-aksi { white-space: nowrap; text-align: right; }
+.vsf-master-aksi > * + * { margin-left: 6px; }
+.vsf-master-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgb(255 255 255 / 0.7);
+  box-shadow: var(--lg-rim-kecil);
+}
+.vsf-master-chip.is-kosong { font-weight: 500; color: var(--abu, #64748b); background: rgb(255 255 255 / 0.4); }
+@media (max-width: 639px) {
+  .vsf-master-tabel table, .vsf-master-tabel tbody { display: block; }
+  .vsf-master-tabel thead { display: none; }
+  .vsf-master-tabel tr {
+    display: block;
+    margin-bottom: 10px;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgb(255 255 255 / 0.55);
+    box-shadow: var(--lg-rim-kecil);
+  }
+  .vsf-master-tabel td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 0;
+    border-radius: 0 !important;
+    text-align: right;
+  }
+  .vsf-master-tabel td::before { content: attr(data-label); font-size: 12px; color: var(--abu, #64748b); text-align: left; }
+  .vsf-master-tabel td.vsf-master-aksi { justify-content: flex-end; }
+  .vsf-master-tabel td.vsf-master-aksi::before { content: none; }
+}
+/* tutup celah subpiksel antar sel (latar tembus pandang) */
+.vsf-master-tabel td:not(:last-child) { box-shadow: 1px 0 0 rgb(255 255 255 / 0.56); }
+.vsf-master-tabel tbody tr:hover td:not(:last-child) { box-shadow: 1px 0 0 rgb(255 255 255 / 0.74); }
+@media (max-width: 639px) { .vsf-master-tabel td:not(:last-child) { box-shadow: none; } }
+@media (max-width: 639px) {
+  .vsf-master-tabel td:first-child::before { content: none; }
+  .vsf-master-tabel td:first-child { justify-content: flex-start; text-align: left; font-size: 15px; }
+}
+
+/* ── Laporan (Laporan & Sistem) ─────────────────────────────────────── */
+.vsf-laporan-ringkas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 900px) { .vsf-laporan-ringkas { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.vsf-laporan-kartu { display: grid; gap: 4px; padding: 14px 16px; }
+.vsf-laporan-angka { font-size: 26px; font-weight: 700; line-height: 1.15; color: #1f2d24; font-variant-numeric: tabular-nums; }
+.vsf-laporan-tabel table thead th {
+  text-align: left; padding: 10px 12px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+  color: #2d452f; background: rgb(255 255 255 / 0.55); border-bottom: 2px solid rgb(45 69 47 / 0.55);
+  position: sticky; top: 0;
+}
+.vsf-laporan-tabel table tbody td {
+  padding: 10px 12px; color: #334155; font-variant-numeric: tabular-nums; border-bottom: 1px solid rgb(255 255 255 / 0.6);
+}
+.vsf-laporan-tabel table tbody tr { cursor: pointer; transition: background 0.15s ease; }
+.vsf-laporan-tabel table tbody tr:hover { background: rgb(255 255 255 / 0.55); }
+.vsf-laporan-tabel table tbody tr:focus-visible { outline: 2px solid var(--moss); outline-offset: -2px; }
+.vsf-laporan-tag {
+  margin-left: 8px; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase; color: #2d452f; background: rgb(255 255 255 / 0.7);
+  box-shadow: var(--lg-rim-kecil);
+}
+.vsf-laporan-popup-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.vsf-laporan-popup-sel { padding: 12px 14px; border-radius: 16px; background: rgb(255 255 255 / 0.5); box-shadow: var(--lg-rim-kecil); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Manajemen User — avatar, lencana level, chip filter, kartu level, kolom password.
+   Di dalam kartu kaca/popup = tint + rim tanpa blur.
+   ══════════════════════════════════════════════════════════════════════════ */
+.vsf-avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(145deg, #6B9D4A, #3c6b2b);
+  box-shadow: var(--lg-rim-kecil);
+}
+.vsf-avatar.is-besar { width: 56px; height: 56px; font-size: 19px; }
+.vsf-pengguna { display: flex; align-items: center; gap: 10px; min-width: 0; text-align: left; border-radius: 12px; }
+.vsf-pengguna:hover b { text-decoration: underline; }
+.vsf-pengguna:focus-visible { outline: 2px solid var(--moss); outline-offset: 3px; }
+.vsf-lencana-level {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  background: rgb(255 255 255 / 0.7);
+  box-shadow: var(--lg-rim-kecil);
+}
+.vsf-lencana-level.is-admin { color: #2c5a1d; background: rgb(214 236 196 / 0.85); }
+.vsf-lencana-level.is-user { color: #1e4f7a; background: rgb(204 226 247 / 0.85); }
+.vsf-lencana-level.is-petani { color: #7a4a0c; background: rgb(250 232 196 / 0.9); }
+.vsf-chip-ringkas {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--tinta);
+  background: rgb(255 255 255 / 0.5);
+  box-shadow: var(--lg-rim-kecil);
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+.vsf-chip-ringkas:hover { background: rgb(255 255 255 / 0.74); }
+.vsf-chip-ringkas[aria-pressed='true'] { color: #fff; background: linear-gradient(145deg, #4f7f35, #2f5a22); }
+.vsf-chip-ringkas:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
+.vsf-label-form { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 700; color: var(--tinta); }
+.vsf-kartu-level-grup { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.vsf-kartu-level { position: relative; display: block; cursor: pointer; }
+.vsf-kartu-level input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.vsf-kartu-level-isi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  height: 100%;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.6);
+  box-shadow: var(--lg-rim-kecil);
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+.vsf-kartu-level-isi b { font-size: 13px; color: var(--tinta); }
+.vsf-kartu-level-isi small { font-size: 11px; line-height: 1.35; color: var(--abu); }
+.vsf-kartu-level input:checked + .vsf-kartu-level-isi { background: rgb(214 236 196 / 0.85); box-shadow: 0 0 0 2px var(--moss); }
+.vsf-kartu-level input:focus-visible + .vsf-kartu-level-isi { outline: 2px solid var(--moss); outline-offset: 2px; }
+@media (max-width: 479px) { .vsf-kartu-level-grup { grid-template-columns: 1fr; } }
+.vsf-sandi { position: relative; }
+.vsf-sandi .vsf-input { padding-right: 40px; }
+.vsf-sandi-mata { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: 36px; height: 36px; border-radius: 999px; color: var(--abu); }
+.vsf-sandi-mata:hover { color: var(--tinta); background: rgb(255 255 255 / 0.7); }
+.vsf-sandi-mata:focus-visible { outline: 2px solid var(--moss); }
+.vsf-meter-sandi { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 12px; color: var(--abu); }
+.vsf-meter-sandi span { display: inline-flex; gap: 3px; }
+.vsf-meter-sandi i { width: 28px; height: 5px; border-radius: 999px; background: rgb(100 116 139 / 0.25); }
+.vsf-meter-sandi[data-skor='1'] i:nth-child(-n+1) { background: #dc2626; }
+.vsf-meter-sandi[data-skor='2'] i:nth-child(-n+2) { background: #d97706; }
+.vsf-meter-sandi[data-skor='3'] i { background: #3f8a2a; }
+.vsf-saklar { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 16px; cursor: pointer; background: rgb(255 255 255 / 0.5); box-shadow: var(--lg-rim-kecil); }
+.vsf-saklar input { margin-top: 3px; width: 16px; height: 16px; accent-color: #4f7f35; }
+.vsf-saklar-isi { display: flex; flex-direction: column; gap: 1px; }
+.vsf-saklar-isi b { font-size: 13px; color: var(--tinta); }
+.vsf-saklar-isi small { font-size: 12px; color: var(--abu); }
+.vsf-detail-blok { margin-top: 16px; padding: 12px 14px; border-radius: 16px; background: rgb(255 255 255 / 0.55); box-shadow: var(--lg-rim-kecil); }
+.vsf-detail-blok ul { display: grid; gap: 6px; margin: 6px 0 0; padding: 0; list-style: none; font-size: 13px; color: var(--tinta); }
+.vsf-detail-blok li { display: flex; align-items: center; gap: 8px; }
+.vsf-detail-blok li svg { flex: none; color: #3f8a2a; }
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-kartu-level-isi, .vsf-saklar, .vsf-detail-blok, .vsf-chip-ringkas { background: #fff; }
+}

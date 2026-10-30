@@ -23,7 +23,8 @@ import {
   AmbangSensorPage,
 } from './pages/masterPages'
 import { LaporanPage } from './pages/notifLaporanPages'
-import { ManajemenUserPage, ProfilPage } from './pages/userProfilPages'
+import { ManajemenUserPage } from './pages/ManajemenUserPage'
+import { ProfilPage } from './pages/userProfilPages'
 import AuditPage from './pages/AuditPage'
 import TentangPage from './pages/TentangPage'
 import { GalatHalaman } from './components/GalatHalaman'
