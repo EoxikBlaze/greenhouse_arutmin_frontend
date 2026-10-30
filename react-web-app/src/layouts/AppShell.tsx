@@ -33,7 +33,7 @@ const TITLES: Record<string, string> = {
   '/ambang': 'Ambang Sensor',
   '/laporan': 'Laporan',
   '/user': 'Manajemen User',
-  '/profil': 'Profil',
+  '/profil': 'Profile',
   '/cctv': 'CCTV',
   '/asisten-ai': 'Asisten AI',
   '/dosing': 'Dosing Otomatis',
@@ -109,7 +109,7 @@ const NAV: NavGroup[] = [
       { to: '/user', label: 'Manajemen User', ikon: 'user', allow: ADMIN_DEMO },
       // Riwayat Audit — baca saja; guard setara backend (requireRole admin).
       { to: '/audit', label: 'Riwayat Audit', ikon: 'audit', allow: ADMIN_DEMO },
-      { to: '/profil', label: 'Profil', ikon: 'profil' },
+      { to: '/profil', label: 'Profile', ikon: 'profil' },
     ],
   },
 ]

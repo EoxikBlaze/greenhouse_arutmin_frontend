@@ -1,9 +1,8 @@
-import { useState } from 'react'
 import { fieldError } from '../../lib/crudApi'
-import { buatPassword, kekuatanPassword, LEVELS, LEVEL_INFO } from '../../lib/pengguna'
+import { LEVELS, LEVEL_INFO } from '../../lib/pengguna'
 import { FieldError } from '../CrudScreen'
-import { Ikon } from '../Ikon'
 import { DialogMaster } from '../master/MasterKit'
+import { KolomSandi } from './KolomSandi'
 
 export type FormUser = { username: string; email: string; level: string; password: string; demo: boolean }
 
@@ -27,8 +26,6 @@ export function DialogUser({
   onTutup: () => void
   onSimpan: () => void
 }) {
-  const [lihat, setLihat] = useState(false)
-  const kuat = kekuatanPassword(form.password)
   const ubah = (p: Partial<FormUser>) => setForm({ ...form, ...p })
 
   return (
@@ -90,52 +87,15 @@ export function DialogUser({
         <FieldError message={fieldError(fieldErrors, 'level')} />
       </fieldset>
 
-      <div>
-        <label htmlFor="user-password" className="vsf-label-form">
-          {mengubah ? 'Password baru' : 'Password'}
-        </label>
-        <div className="flex gap-2">
-          <div className="vsf-sandi min-w-0 flex-1">
-            <input
-              id="user-password"
-              className="vsf-input w-full"
-              type={lihat ? 'text' : 'password'}
-              placeholder="min 8 karakter"
-              autoComplete="new-password"
-              aria-invalid={!!fieldError(fieldErrors, 'password')}
-              value={form.password}
-              onChange={(e) => ubah({ password: e.target.value })}
-            />
-            <button
-              type="button"
-              className="vsf-sandi-mata"
-              aria-label={lihat ? 'Sembunyikan password' : 'Tampilkan password'}
-              aria-pressed={lihat}
-              onClick={() => setLihat((v) => !v)}
-            >
-              <Ikon nama={lihat ? 'mataCoret' : 'mata'} className="h-4 w-4" />
-            </button>
-          </div>
-          <button
-            type="button"
-            className="vsf-btn-secondary vsf-btn-kecil"
-            onClick={() => {
-              ubah({ password: buatPassword() })
-              setLihat(true)
-            }}
-          >
-            <Ikon nama="siklus" className="h-4 w-4" />
-            Acak
-          </button>
-        </div>
-        {form.password && (
-          <div className="vsf-meter-sandi" data-skor={kuat.skor} role="status">
-            <span aria-hidden><i /><i /><i /></span>
-            {kuat.label}
-          </div>
-        )}
-        <FieldError message={fieldError(fieldErrors, 'password')} />
-      </div>
+      <KolomSandi
+        id="user-password"
+        label={mengubah ? 'Password baru' : 'Password'}
+        nilai={form.password}
+        onUbah={(v) => ubah({ password: v })}
+        galat={fieldError(fieldErrors, 'password')}
+        meter
+        acak
+      />
 
       <label className="vsf-saklar">
         <input type="checkbox" checked={form.demo} onChange={(e) => ubah({ demo: e.target.checked })} />

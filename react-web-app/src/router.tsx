@@ -24,7 +24,7 @@ import {
 } from './pages/masterPages'
 import { LaporanPage } from './pages/notifLaporanPages'
 import { ManajemenUserPage } from './pages/ManajemenUserPage'
-import { ProfilPage } from './pages/userProfilPages'
+import { ProfilePage } from './pages/ProfilePage'
 import AuditPage from './pages/AuditPage'
 import TentangPage from './pages/TentangPage'
 import { GalatHalaman } from './components/GalatHalaman'
@@ -56,7 +56,7 @@ export const router = createBrowserRouter([
           { path: '/tanam', element: <RequireAuth allow={ALL} element={<KebunSayaPage />} /> },
           { path: '/cctv', element: <RequireAuth allow={ALL} element={<CctvPage />} /> },
           { path: '/asisten-ai', element: <RequireAuth allow={ALL} element={<AsistenAiPage />} /> },
-          { path: '/profil', element: <RequireAuth allow={ALL} element={<ProfilPage />} /> },
+          { path: '/profil', element: <RequireAuth allow={ALL} element={<ProfilePage />} /> },
           { path: '/dosing', element: <RequireAuth allow={ADMIN_DEMO} element={<DosingPage />} /> },
           { path: '/kalibrasi', element: <RequireAuth allow={ADMIN_DEMO} element={<KalibrasiPage />} /> },
 

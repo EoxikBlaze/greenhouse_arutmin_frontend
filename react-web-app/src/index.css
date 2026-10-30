@@ -2136,3 +2136,26 @@ html.vsf-splash-aktif { overflow: hidden; }
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
   .vsf-beda-baris { background: #fff; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Profile — kartu profil, segmen & pratinjau tampilan kaca.
+   Di dalam kartu kaca = tint + rim tanpa blur.
+   ══════════════════════════════════════════════════════════════════════════ */
+.vsf-kartu-profil .vsf-detail-blok { margin-top: 18px; }
+.vsf-segmen-kaca { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 999px; background: rgb(255 255 255 / 0.45); box-shadow: var(--lg-rim-kecil); }
+.vsf-segmen-kaca button { display: flex; flex-direction: column; align-items: center; min-height: 44px; padding: 6px 16px; border-radius: 999px; color: var(--tinta); transition: background-color 150ms ease; }
+.vsf-segmen-kaca button b { font-size: 13px; }
+.vsf-segmen-kaca button small { font-size: 11px; color: var(--abu); }
+.vsf-segmen-kaca button:hover { background: rgb(255 255 255 / 0.6); }
+.vsf-segmen-kaca button[aria-checked='true'] { color: #fff; background: linear-gradient(145deg, #4f7f35, #2f5a22); }
+.vsf-segmen-kaca button[aria-checked='true'] small { color: rgb(255 255 255 / 0.85); }
+.vsf-segmen-kaca button:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
+.vsf-pratinjau-kaca { display: flex; align-items: center; gap: 10px; min-width: 170px; padding: 12px 14px; border-radius: 18px; font-size: 13px; color: var(--tinta); box-shadow: var(--lg-rim-kecil); background: linear-gradient(90deg, #6B9D4A, #2f5a22 55%, #d9a441); background-size: 100% 100%; position: relative; isolation: isolate; overflow: hidden; }
+.vsf-pratinjau-kaca::before { content: ''; position: absolute; inset: 0; z-index: -1; background: rgb(255 255 255 / 0.55); }
+.vsf-pratinjau-kaca.is-jernih::before { background: rgb(255 255 255 / 0.28); }
+.vsf-pratinjau-kaca.is-pekat::before { background: rgb(255 255 255 / 0.9); }
+.vsf-pratinjau-kaca span { width: 22px; height: 22px; border-radius: 999px; background: linear-gradient(145deg, #6B9D4A, #3c6b2b); }
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-pratinjau-kaca::before, .vsf-pratinjau-kaca.is-jernih::before, .vsf-pratinjau-kaca.is-pekat::before { background: #fff; }
+  .vsf-segmen-kaca { background: #fff; }
+}
