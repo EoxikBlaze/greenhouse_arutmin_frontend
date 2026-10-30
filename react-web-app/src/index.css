@@ -2087,3 +2087,52 @@ html.vsf-splash-aktif { overflow: hidden; }
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
   .vsf-kartu-level-isi, .vsf-saklar, .vsf-detail-blok, .vsf-chip-ringkas { background: #fff; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Riwayat Audit — lencana aksi, baris klik, sebelum/sesudah, paginasi.
+   Di dalam kartu kaca/popup = tint + rim tanpa blur.
+   ══════════════════════════════════════════════════════════════════════════ */
+.vsf-aksi-lencana {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  background: rgb(255 255 255 / 0.7);
+  box-shadow: var(--lg-rim-kecil);
+}
+.vsf-aksi-lencana.is-create { color: #2c5a1d; background: rgb(214 236 196 / 0.85); }
+.vsf-aksi-lencana.is-update { color: #1e4f7a; background: rgb(204 226 247 / 0.85); }
+.vsf-aksi-lencana.is-delete { color: #9b2218; background: rgb(254 215 210 / 0.9); }
+.vsf-aksi-lencana.is-login { color: #7a5a0c; background: rgb(250 238 190 / 0.9); }
+.vsf-baris-klik { cursor: pointer; }
+.vsf-baris-klik:focus-visible { outline: 2px solid var(--moss); outline-offset: -2px; border-radius: 16px; }
+.vsf-ringkas { display: block; max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--abu); }
+@media (max-width: 639px) { .vsf-ringkas { max-width: 60vw; } }
+.vsf-pilih-pendek { width: auto; min-width: 120px; min-height: 40px; border-radius: 999px; }
+.vsf-beda { display: grid; gap: 6px; margin-top: 6px; font-size: 13px; }
+.vsf-beda-baris { display: grid; grid-template-columns: minmax(90px, 0.8fr) 1fr 1fr; gap: 8px; align-items: start; padding: 6px 8px; border-radius: 12px; background: rgb(255 255 255 / 0.5); }
+.vsf-beda-baris.is-satu { grid-template-columns: minmax(90px, 0.8fr) 2fr; }
+.vsf-beda-baris.is-kepala { background: none; padding-block: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--abu); }
+.vsf-beda-kunci { font-weight: 600; color: var(--tinta); }
+.vsf-beda-lama, .vsf-beda-baru { min-width: 0; overflow-wrap: anywhere; }
+.vsf-beda-lama { color: #9b2218; text-decoration: line-through; text-decoration-color: rgb(155 34 24 / 0.5); }
+.vsf-beda-baru { color: #2c5a1d; font-weight: 600; }
+@media (max-width: 479px) {
+  .vsf-beda-baris, .vsf-beda-baris.is-satu { grid-template-columns: 1fr; gap: 2px; }
+  .vsf-beda-baris.is-kepala { display: none; }
+}
+.vsf-lipat summary { cursor: pointer; margin-bottom: 0; }
+.vsf-lipat[open] summary { margin-bottom: 6px; }
+.vsf-lipat dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; margin: 0; font-size: 13px; color: var(--tinta); }
+.vsf-lipat dt { color: var(--abu); }
+.vsf-lipat dd { margin: 0; overflow-wrap: anywhere; }
+.vsf-paginasi { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; font-size: 13px; color: var(--abu); }
+.vsf-paginasi-nomor { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.vsf-chip-nomor { min-width: 36px; justify-content: center; padding-inline: 8px; }
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .vsf-beda-baris { background: #fff; }
+}

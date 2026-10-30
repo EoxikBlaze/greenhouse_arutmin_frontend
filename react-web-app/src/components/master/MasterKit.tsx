@@ -70,6 +70,7 @@ export function TabelMaster<T>({
   rows,
   rowKey,
   aksi,
+  onBaris,
   memuat,
   galat,
   onUlang,
@@ -80,6 +81,8 @@ export function TabelMaster<T>({
   rows: T[]
   rowKey: (r: T) => string
   aksi?: (r: T) => ReactNode
+  /** Baris bisa diklik / Enter (mis. buka popup detail). */
+  onBaris?: (r: T) => void
   memuat: boolean
   galat: string | null
   onUlang: () => void
@@ -117,7 +120,22 @@ export function TabelMaster<T>({
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={rowKey(r)}>
+            <tr
+              key={rowKey(r)}
+              className={onBaris ? 'vsf-baris-klik' : undefined}
+              tabIndex={onBaris ? 0 : undefined}
+              onClick={onBaris ? () => onBaris(r) : undefined}
+              onKeyDown={
+                onBaris
+                  ? (e) => {
+                      if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                        e.preventDefault()
+                        onBaris(r)
+                      }
+                    }
+                  : undefined
+              }
+            >
               {kolom.map((k) => (
                 <td key={k.key} data-label={k.header} className={k.kanan ? 'is-kanan' : undefined}>
                   {k.render(r)}
