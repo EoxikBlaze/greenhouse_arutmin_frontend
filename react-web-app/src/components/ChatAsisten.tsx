@@ -3,7 +3,8 @@ import clsx from 'clsx'
 import { api } from '../lib/api'
 import { useApiError } from '../lib/crudApi'
 import { Ikon } from './Ikon'
-import { riwayatUntukServer, type Pesan, type Tabel } from '../lib/riwayatChat'
+import { Link } from 'react-router-dom'
+import { riwayatUntukServer, tautanAman, type Pesan, type Tabel } from '../lib/riwayatChat'
 
 /**
  * Chat bebas dengan asisten AI — POST /api/ai/chat
@@ -131,12 +132,13 @@ export function ChatAsisten({ saran }: { saran: string[] }) {
         sumber: string
         status?: 'OK' | 'PERHATIAN' | 'KRITIS'
         tabel?: Tabel[]
+        tautan?: unknown
       }
       if (sesi !== sesiRef.current) return
       const waktu = sekarang()
       setPesan((l) => [
         ...l,
-        { id: ++idRef.current, peran: 'ai', teks: d.jawaban, waktu, sumber: d.sumber, status: d.status, tabel: d.tabel ?? [] },
+        { id: ++idRef.current, peran: 'ai', teks: d.jawaban, waktu, sumber: d.sumber, status: d.status, tabel: d.tabel ?? [], tautan: tautanAman(d.tautan) },
       ])
     } catch (err) {
       if (sesi !== sesiRef.current) return
@@ -251,6 +253,16 @@ export function ChatAsisten({ saran }: { saran: string[] }) {
                   )}
                   {p.teks}
                   {p.tabel?.map((t, i) => <TabelAi key={i} t={t} />)}
+                  {p.tautan && p.tautan.length > 0 && (
+                    <nav aria-label="Buka halaman terkait" className="mt-2.5 flex flex-wrap gap-2">
+                      {p.tautan.map((t) => (
+                        <Link key={t.to} to={t.to} className="vsf-btn-secondary vsf-btn-kecil inline-flex items-center gap-1">
+                          {t.label}
+                          <span aria-hidden>→</span>
+                        </Link>
+                      ))}
+                    </nav>
+                  )}
                   {p.galat && p.ulang && (
                     <div className="mt-2">
                       <button
