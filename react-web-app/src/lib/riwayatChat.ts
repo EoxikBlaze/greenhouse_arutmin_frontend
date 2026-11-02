@@ -55,3 +55,50 @@ export function riwayatUntukServer(pesan: Pesan[]) {
   return out.slice(-8).map((p) => ({ peran: p.peran, teks: p.teks }))
 }
 
+
+/* ── Riwayat chat per tab: tetap ada saat pindah halaman (mis. klik tautan) lalu kembali ── */
+const AWALAN_CHAT = 'vsf-chat:'
+const MAKS_SIMPAN = 40
+
+/** sessionStorage: hilang saat tab ditutup; kunci per pengguna supaya akun lain di tab yang sama tidak melihatnya. */
+export const kunciChat = (username: string) => `${AWALAN_CHAT}${username || '-'}`
+
+export function muatChat(username: string): Pesan[] {
+  try {
+    const raw = sessionStorage.getItem(kunciChat(username))
+    const data: unknown = raw ? JSON.parse(raw) : []
+    if (!Array.isArray(data)) return []
+    return data
+      .filter(
+        (p): p is Pesan =>
+          !!p && typeof p === 'object' && (p.peran === 'user' || p.peran === 'ai') && typeof p.teks === 'string' &&
+          typeof p.id === 'number' && typeof p.waktu === 'number',
+      )
+      .map((p) => ({ ...p, tautan: tautanAman(p.tautan) }))
+      .slice(-MAKS_SIMPAN)
+  } catch {
+    return []
+  }
+}
+
+export function simpanChat(username: string, pesan: Pesan[]): void {
+  try {
+    const k = kunciChat(username)
+    if (pesan.length === 0) sessionStorage.removeItem(k)
+    else sessionStorage.setItem(k, JSON.stringify(pesan.slice(-MAKS_SIMPAN)))
+  } catch {
+    /* penyimpanan tidak tersedia (mode privat/penuh): chat tetap jalan, hanya tidak bertahan */
+  }
+}
+
+/** Dipanggil saat keluar: hapus semua riwayat chat di tab ini. */
+export function hapusSemuaChat(): void {
+  try {
+    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+      const k = sessionStorage.key(i)
+      if (k && k.startsWith(AWALAN_CHAT)) sessionStorage.removeItem(k)
+    }
+  } catch {
+    /* abaikan */
+  }
+}

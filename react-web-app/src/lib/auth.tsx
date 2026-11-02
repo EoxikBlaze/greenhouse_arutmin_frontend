@@ -2,6 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { api } from './api'
 import { AuthCtx, defaultAuth, roleFromLevel, type AuthValue } from './authContext'
 import { AUTH_KEY } from './token'
+import { hapusSemuaChat } from './riwayatChat'
 
 /** Klaim JWT (payload base64url) — dipakai untuk MEMPERBAIKI sesi lama di storage. */
 function claimsOf(token: string): { level?: string; demo?: boolean } | null {
@@ -94,6 +95,7 @@ export function AuthProvider({ children, value }: { children: ReactNode; value?:
         // best-effort — token JWT bersifat stateless, yang penting sesi lokal dibuang
         api.get('/logout').catch(() => {})
         save({})
+        hapusSemuaChat() // riwayat Asisten AI tidak boleh terlihat oleh akun berikutnya di tab ini
         setState((s) => ({
           ...s,
           isAuthenticated: false,

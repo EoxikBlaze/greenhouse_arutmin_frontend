@@ -4,7 +4,8 @@ import { api } from '../lib/api'
 import { useApiError } from '../lib/crudApi'
 import { Ikon } from './Ikon'
 import { Link } from 'react-router-dom'
-import { riwayatUntukServer, tautanAman, type Pesan, type Tabel } from '../lib/riwayatChat'
+import { muatChat, riwayatUntukServer, simpanChat, tautanAman, type Pesan, type Tabel } from '../lib/riwayatChat'
+import { useAuth } from '../lib/authContext'
 
 /**
  * Chat bebas dengan asisten AI — POST /api/ai/chat
@@ -93,14 +94,20 @@ function jam(ms: number): string {
 
 export function ChatAsisten({ saran }: { saran: string[] }) {
   const handleApiError = useApiError()
-  const [pesan, setPesan] = useState<Pesan[]>([])
+  const { username } = useAuth()
+  // riwayat dipulihkan dari tab ini, jadi klik tautan lalu kembali tidak menghapus percakapan
+  const [pesan, setPesan] = useState<Pesan[]>(() => muatChat(username))
   const [isi, setIsi] = useState('')
   const [memuat, setMemuat] = useState(false)
   const akhirRef = useRef<HTMLDivElement>(null)
   const kolomRef = useRef<HTMLTextAreaElement>(null)
-  const idRef = useRef(0)
+  const idRef = useRef(pesan.reduce((m, p) => Math.max(m, p.id), 0))
   // naik setiap "Hapus percakapan" → jawaban yang datang terlambat dari percakapan lama dibuang
   const sesiRef = useRef(0)
+
+  useEffect(() => {
+    simpanChat(username, pesan)
+  }, [username, pesan])
 
   // Gulir halaman ke pesan terbaru (tidak saat masih kosong: jangan menggeser halaman waktu dibuka).
   useEffect(() => {

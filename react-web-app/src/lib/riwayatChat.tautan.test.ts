@@ -26,3 +26,31 @@ describe('tautanAman', () => {
     expect(tautanAman('bukan array')).toEqual([])
   })
 })
+
+import { beforeEach } from 'vitest'
+import { hapusSemuaChat, muatChat, simpanChat, type Pesan } from './riwayatChat'
+
+describe('riwayat chat per tab', () => {
+  beforeEach(() => sessionStorage.clear())
+  const p = (id: number, peran: 'user' | 'ai', teks: string): Pesan => ({ id, peran, teks, waktu: 1 })
+
+  it('pindah halaman lalu kembali: percakapan dipulihkan', () => {
+    simpanChat('petani1', [p(1, 'user', 'cara menyemai'), { ...p(2, 'ai', 'langkah...'), tautan: [{ label: 'Kebun Saya', to: '/tanam' }] }])
+    const balik = muatChat('petani1')
+    expect(balik.map((x) => x.teks)).toEqual(['cara menyemai', 'langkah...'])
+    expect(balik[1].tautan).toEqual([{ label: 'Kebun Saya', to: '/tanam' }])
+  })
+  it('akun lain di tab yang sama tidak melihat percakapan', () => {
+    simpanChat('petani1', [p(1, 'user', 'rahasia')])
+    expect(muatChat('admin')).toEqual([])
+  })
+  it('keluar menghapus semua riwayat; data rusak diabaikan', () => {
+    simpanChat('petani1', [p(1, 'user', 'x')])
+    hapusSemuaChat()
+    expect(muatChat('petani1')).toEqual([])
+    sessionStorage.setItem('vsf-chat:petani1', '{rusak')
+    expect(muatChat('petani1')).toEqual([])
+    sessionStorage.setItem('vsf-chat:petani1', JSON.stringify([{ peran: 'ai', teks: 1 }, { ...p(3, 'ai', 'ok'), tautan: [{ label: 'x', to: 'https://jahat' }] }]))
+    expect(muatChat('petani1')).toEqual([{ ...p(3, 'ai', 'ok'), tautan: [] }])
+  })
+})
