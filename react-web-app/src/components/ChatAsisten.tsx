@@ -20,12 +20,17 @@ const PINTASAN = [
   { label: 'Alert terbuka', pesan: 'Tampilkan daftar alert terbuka' },
   { label: 'Status penampung', pesan: 'Tampilkan status penampung dan dosing' },
   { label: 'Tahap tanam', pesan: 'Tampilkan status tahap tanam' },
+  { label: 'Cara menyemai', pesan: 'Bagaimana cara menyemai?' },
+  { label: 'Alur aplikasi', pesan: 'Jelaskan alur aplikasi' },
+  { label: 'Sudah fase berapa?', pesan: 'Ini sudah sampai fase berapa?' },
+  { label: 'Keputusan menunggu', pesan: 'Apa keputusan yang belum diputuskan?' },
 ]
 
 const SUMBER: Record<string, string> = {
   heuristik: 'Saran berbasis aturan dari data terbaru',
   sapaan: 'Asisten GARAP',
   diagnosa: 'Diagnosa otomatis dari database',
+  panduan: 'Panduan aplikasi (jawaban tetap, bukan tebakan AI)',
   data: 'Data langsung dari database',
   ollama: 'Dijawab AI lokal — cek ulang sebelum bertindak',
   tolak: 'Permintaan ditolak oleh pengaman',
