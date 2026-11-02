@@ -960,6 +960,9 @@
   transition: transform var(--dur-normal) var(--ease-v2), box-shadow var(--dur-normal) var(--ease-v2);
 }
 .vsf-kpi:hover { transform: translateY(-3px); }
+/* Alat tidak mengirim data: angka dipudarkan supaya tidak terbaca sebagai kondisi sekarang. */
+.vsf-kpi[data-usang='true'] { filter: saturate(0.4); }
+.vsf-kpi[data-usang='true'] .vsf-kpi-angka { opacity: 0.55; }
 .vsf-kpi-kaca {
   color: var(--tinta);
   -webkit-backdrop-filter: blur(var(--glass-blur)) brightness(1.06);

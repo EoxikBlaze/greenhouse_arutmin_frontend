@@ -38,8 +38,16 @@ export function waktuMs(t: Titik): number | null {
   return Number.isNaN(ms) ? null : ms
 }
 
+/** Batas aman yang masuk akal: min < maks. Batas terbalik/sama (mis. 100–100) dianggap belum diatur. */
+export function batasSah(batas: BatasSatu): boolean {
+  const min = nilaiAngka(batas?.min)
+  const maks = nilaiAngka(batas?.max)
+  return min === null || maks === null || min < maks
+}
+
 export function statusNilai(v: number | null, batas: BatasSatu): StatusNilai {
   if (v === null) return 'kosong'
+  if (!batasSah(batas)) return 'normal'
   const min = nilaiAngka(batas?.min)
   const maks = nilaiAngka(batas?.max)
   if (min !== null && v < min) return 'rendah'

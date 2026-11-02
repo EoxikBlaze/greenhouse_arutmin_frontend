@@ -187,7 +187,7 @@ export function NaikHarian() {
                     </>
                   ) : (
                     <div className="mt-1 text-[13px] text-abu">
-                      Belum diatur — memakai preset per tahap.
+                      Belum diatur — memakai target bawaan tiap tahap tanam.
                     </div>
                   )}
                 </div>

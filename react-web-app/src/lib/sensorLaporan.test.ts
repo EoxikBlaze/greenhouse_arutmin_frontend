@@ -47,6 +47,9 @@ describe('statusNilai', () => {
     expect(statusNilai(5.5, AMBANG?.ph)).toBe('normal')
     expect(statusNilai(null, AMBANG?.ph)).toBe('kosong')
     expect(statusNilai(9, undefined)).toBe('normal')
+    // batas tidak masuk akal (min = maks) tidak boleh membuat setiap bacaan "di luar batas"
+    expect(statusNilai(59, { min: 100, max: 100 })).toBe('normal')
+    expect(statusNilai(59, { min: 80, max: 20 })).toBe('normal')
   })
 
   it('ambang berupa string numerik tetap terbaca', () => {

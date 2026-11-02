@@ -3,6 +3,7 @@ import { Ikon, type NamaIkon } from '../Ikon'
 import { relatif } from '../../lib/waktu'
 import {
   PARAMS,
+  batasSah,
   nilaiAngka,
   statusNilai,
   type Ambang,
@@ -81,7 +82,9 @@ export function KartuNilai({
               <span className={clsx('vsf-chip-nilai', CHIP[s].kelas)}>{CHIP[s].teks}</span>
               {t && kini > 0 && <span className="text-[12px] text-abu">{relatif(Math.max(0, kini - t.t))}</span>}
             </span>
-            {(min !== null || maks !== null) && (
+            {!batasSah(batas) ? (
+              <span className="mt-1 text-[12px] text-abu">Batas aman perlu dicek admin</span>
+            ) : (min !== null || maks !== null) && (
               <span className="mt-1 text-[12px] text-abu">
                 Aman {min !== null ? angkaId(min, p.digit) : '…'}–{maks !== null ? angkaId(maks, p.digit) : '…'}
                 {p.satuan ? ` ${p.satuan}` : ''}

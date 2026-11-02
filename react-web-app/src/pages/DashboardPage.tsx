@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/authContext'
 import { useApiObject, useFlashOnChange } from '../lib/useApiObject'
-import { waktuBasi } from '../lib/waktu'
+import { relatif, waktuBasi } from '../lib/waktu'
 import { Ikon, type NamaIkon } from '../components/Ikon'
 import { AngkaHidup } from '../components/AngkaHidup'
 import { TrenBatang } from '../components/TrenBatang'
@@ -88,18 +88,22 @@ export default function DashboardPage() {
   const iot = data?.iotStatus ?? null
   const online = !!iot?.online
   const statusKata = online ? 'perangkat online' : 'perangkat offline'
+  // Alat tidak mengirim data: angka sensor yang tampil adalah bacaan TERAKHIR, bukan kondisi kebun sekarang.
+  const usang = !loading && !error && !!data && !online
+  const umurTeks = iot?.seconds_ago != null ? relatif(iot.seconds_ago * 1000) : null
 
   // batas aman dari halaman Ambang Sensor (server) — dulu angka target ditulis tetap di kode
   const batas = (k: string) => {
     const a = data?.ambang?.[k]
     if (!a || a.min == null || a.max == null) return 'batas aman belum diatur'
+    if (Number(a.min) >= Number(a.max)) return 'batas aman perlu dicek'
     const f = (v: number | string) => String(Number(v)).replace('.', ',')
     return `batas aman ${f(a.min)}–${f(a.max)}`
   }
   const metrik = [
     { k: 'ph', label: 'pH (Asam-Basa)', nilai: angka(s?.ph, 2), num: s?.ph, digit: 2, akhiran: '', target: batas('ph') },
     { k: 'waterTemp', label: 'Suhu Air Tandon', nilai: `${angka(s?.waterTemp, 1)} °C`, num: s?.waterTemp, digit: 1, akhiran: ' °C', target: batas('waterTemp') },
-    { k: 'tds', label: 'TDS Nutrisi', nilai: `${angka(s?.tds)} ppm`, num: s?.tds, digit: 0, akhiran: ' ppm', target: batas('tds') },
+    { k: 'tds', label: 'Nutrisi (TDS)', nilai: `${angka(s?.tds)} ppm`, num: s?.tds, digit: 0, akhiran: ' ppm', target: batas('tds') },
     { k: 'airTemp', label: 'Suhu Udara', nilai: `${angka(s?.airTemp, 1)} °C`, num: s?.airTemp, digit: 1, akhiran: ' °C', target: batas('airTemp') },
     { k: 'humidity', label: 'Kelembapan', nilai: `${angka(s?.humidity)} %`, num: s?.humidity, digit: 0, akhiran: ' %', target: batas('humidity') },
     {
@@ -151,6 +155,25 @@ export default function DashboardPage() {
           <button type="button" className="vsf-input rounded-full font-semibold" onClick={reload}>
             Coba lagi
           </button>
+        </div>
+      )}
+
+      {usang && (
+        <div role="alert" className="vsf-banner vsf-tone-warn flex flex-wrap items-center gap-x-4 gap-y-2 rounded-input px-4 py-3 text-[13px]">
+          <span className="flex min-w-0 flex-1 items-start gap-2">
+            <Ikon nama="peringatan" className="mt-[1px] h-4 w-4 shrink-0" />
+            <span>
+              <b>
+                {iot?.last_seen
+                  ? `Alat tidak mengirim data sejak ${waktuBasi((iot.seconds_ago ?? 0) * 1000, iot.last_seen)}.`
+                  : 'Belum ada data dari alat sensor.'}
+              </b>{' '}
+              Angka di bawah adalah <b>bacaan terakhir</b>, bukan kondisi kebun sekarang. Cek apakah alat menyala dan tersambung ke Wi-Fi.
+            </span>
+          </span>
+          <Link to="/sensor-realtime" className="font-semibold underline underline-offset-2">
+            Lihat riwayat
+          </Link>
         </div>
       )}
 
@@ -249,6 +272,7 @@ export default function DashboardPage() {
                     <Link
                       key={m.k}
                       to="/sensor-realtime"
+                      data-usang={usang && m.k !== 'level' ? 'true' : undefined}
                       className={`vsf-kpi ${sorot} group flex min-h-[132px] flex-col justify-between p-4 sm:p-5`}
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -258,11 +282,17 @@ export default function DashboardPage() {
                         </span>
                       </div>
                       <div>
-                        <div className={`font-display text-[28px] font-bold leading-tight tabular-nums sm:text-[32px] ${sensorFlash}`}>
+                        <div className={`vsf-kpi-angka font-display text-[28px] font-bold leading-tight tabular-nums sm:text-[32px] ${sensorFlash}`}>
                           {adaAngka(m.num) ? <AngkaHidup nilai={Number(m.num)} digit={m.digit} akhiran={m.akhiran} /> : m.nilai}
                         </div>
                         <div className="mt-0.5 text-[12px] opacity-75">
-                          {m.target} • {statusKata}
+                          {usang && m.k !== 'level' && adaAngka(m.num) ? (
+                            <>Bacaan lama{umurTeks ? ` · ${umurTeks}` : ''}</>
+                          ) : (
+                            <>
+                              {m.target} • {statusKata}
+                            </>
+                          )}
                         </div>
                       </div>
                     </Link>

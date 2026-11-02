@@ -233,7 +233,9 @@ export default function SensorRealtimePage() {
         meta={
           rentang === 'Kustom'
             ? kustom && `${kustom.rows.length} dari ${kustom.total} bacaan dimuat`
-            : `${terlihat.length} titik pada rentang ini · diperbarui otomatis tiap 15 detik`
+            : loading && live.length === 0
+              ? 'Memuat data…'
+              : `${terlihat.length} bacaan pada rentang ini · diperbarui otomatis tiap 15 detik`
         }
       />
 

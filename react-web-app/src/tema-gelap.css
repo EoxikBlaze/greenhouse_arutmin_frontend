@@ -177,3 +177,9 @@ html[data-tema='gelap'] .vsf-btn-secondary { background-color: rgb(255 255 255 /
 html[data-tema='gelap'] .vsf-input { background-color: rgb(255 255 255 / 0.06); }
 html[data-tema='gelap'] .vsf-input:focus { background-color: rgb(255 255 255 / 0.1); }
 html[data-tema='gelap'] select.vsf-input option { background-color: rgb(var(--ar-card)); color: rgb(var(--tinta-rgb)); }
+
+/* Banner di atas foto malam: kaburkan latar agar teks peringatan tetap terbaca (bulan/lampu di belakangnya). */
+html[data-tema='gelap'] .vsf-banner {
+  -webkit-backdrop-filter: blur(14px) brightness(0.7);
+  backdrop-filter: blur(14px) brightness(0.7);
+}
