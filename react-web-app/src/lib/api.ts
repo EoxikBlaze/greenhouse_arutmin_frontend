@@ -1,5 +1,5 @@
 import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios'
-import { currentToken } from './token'
+import { currentToken, tokenCsrf } from './token'
 
 /**
  * Same-origin (default) — request dilewatkan proxy Vite ke backend
@@ -34,12 +34,12 @@ export function bersihkanCacheApi() {
   getCacheSingkat.clear()
 }
 
-// Lampirkan token sesi (Bearer) di setiap request — dibaca segar dari storage.
+// Sesi lewat cookie HttpOnly (dikirim otomatis, same-origin). Mutasi wajib membawa token CSRF.
 api.interceptors.request.use((config) => {
-  const token = currentToken()
-  if (token) config.headers.Authorization = `Bearer ${token}`
   const method = (config.method ?? 'get').toLowerCase()
   if (method !== 'get' && method !== 'head') {
+    const csrf = tokenCsrf()
+    if (csrf) config.headers['X-CSRF-Token'] = csrf
     bersihkanCacheApi()
   }
   return config

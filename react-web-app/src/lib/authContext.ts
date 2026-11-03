@@ -10,7 +10,6 @@ export type AuthValue = {
   role: Role
   username: string
   demo: boolean
-  token: string
   /**
    * Login ke backend. Mengembalikan redirect dari server
    * ('/dashboard' atau '/tanam'). Melempar AxiosError bila gagal.
@@ -24,7 +23,6 @@ export const defaultAuth: AuthValue = {
   role: 'admin',
   username: '',
   demo: false,
-  token: '',
   login: async () => '/dashboard',
   logout: () => {},
 }

@@ -4,40 +4,23 @@ import { AuthCtx, defaultAuth, roleFromLevel, type AuthValue } from './authConte
 import { AUTH_KEY } from './token'
 import { hapusSemuaChat } from './riwayatChat'
 
-/** Klaim JWT (payload base64url) — dipakai untuk MEMPERBAIKI sesi lama di storage. */
-function claimsOf(token: string): { level?: string; demo?: boolean } | null {
-  try {
-    const seg = token.split('.')[1]
-    if (!seg) return null
-    const b64 = seg.replace(/-/g, '+').replace(/_/g, '/')
-    const bin = atob(b64)
-    const json = decodeURIComponent(
-      bin.split('').map((c) => `%${c.charCodeAt(0).toString(16).padStart(2, '0')}`).join(''),
-    )
-    return JSON.parse(json) as { level?: string; demo?: boolean }
-  } catch {
-    return null
-  }
-}
-
-/** Persist data auth + token (localStorage — selamat saat tab ditutup). */
+/** Persist data tampilan sesi (tanpa token — token ada di cookie HttpOnly). */
 function load(): Partial<AuthValue> {
   try {
-    const raw = localStorage.getItem(AUTH_KEY) ?? sessionStorage.getItem(AUTH_KEY)
+    const raw = localStorage.getItem(AUTH_KEY)
     if (!raw) return {}
     const d = JSON.parse(raw)
-    const token = String(d.token ?? '')
-    // QW7 — role dihitung ULANG dari klaim JWT {level, demo} bila token ada:
-    // storage lama menyimpan hasil mapping salah ('user' → 'admin') dan akun
-    // demo (level 'user' + is_demo) tersimpan sebagai admin.
-    const c = token ? claimsOf(token) : null
-    const role = c ? roleFromLevel(c.level, c.demo) : (d.role ?? 'admin')
+    // Sesi lama menyimpan token di sini: dibuang (token kini hanya di cookie HttpOnly).
+    if (d.token !== undefined) {
+      delete d.token
+      localStorage.setItem(AUTH_KEY, JSON.stringify(d))
+    }
+    const role = d.role ?? 'admin'
     return {
       isAuthenticated: !!d.isAuthenticated,
       username: String(d.username ?? ''),
       role,
       demo: role === 'demo',
-      token,
     }
   } catch {
     return {}
@@ -53,7 +36,6 @@ function save(data: Partial<AuthValue>) {
         username: data.username,
         role: data.role,
         demo: data.demo,
-        token: data.token,
       }),
     )
     // bersihkan sesi lama (migrasi localStorage)
@@ -70,9 +52,8 @@ export function AuthProvider({ children, value }: { children: ReactNode; value?:
     () => {
       const login = async (username: string, password: string): Promise<string> => {
         // Login NYATA — backend memverifikasi bcrypt + rate limit anti brute-force
-        const res = await api.post('/login', { username, password })
+        const res = await api.post('/login', { username, password, sesi: 'cookie' })
         const d = (res.data ?? {}) as {
-          token?: string
           user?: { username?: string; level?: string; is_demo?: boolean }
           redirect?: string
         }
@@ -84,7 +65,6 @@ export function AuthProvider({ children, value }: { children: ReactNode; value?:
           username: String(d.user?.username ?? username),
           role,
           demo: role === 'demo',
-          token: String(d.token ?? ''),
         }
         save(next)
         setState((s) => ({ ...s, ...next }))
@@ -92,8 +72,8 @@ export function AuthProvider({ children, value }: { children: ReactNode; value?:
       }
 
       const logout = () => {
-        // best-effort — token JWT bersifat stateless, yang penting sesi lokal dibuang
-        api.get('/logout').catch(() => {})
+        // best-effort — server menghapus cookie sesi; sesi lokal dibuang
+        api.post('/logout').catch(() => {})
         save({})
         hapusSemuaChat() // riwayat Asisten AI tidak boleh terlihat oleh akun berikutnya di tab ini
         setState((s) => ({
@@ -101,7 +81,6 @@ export function AuthProvider({ children, value }: { children: ReactNode; value?:
           isAuthenticated: false,
           username: '',
           demo: false,
-          token: '',
           role: 'admin',
         }))
       }

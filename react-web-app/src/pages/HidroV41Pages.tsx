@@ -27,6 +27,7 @@ export function SaklarModePage() {
         judul="Saklar & Mode"
         deskripsi="Izin jenis tindakan dan cara pengisian air pada penampung utama."
       />
+      {iot.error && <Pesan jenis="galat">{iot.error}</Pesan>}
       <PanelSaklarMode iot={iot.data} loading={iot.loading} onReload={() => void iot.reload()} />
     </div>
   )
@@ -41,6 +42,7 @@ export function PengaturanAlatPage() {
         judul="Pengaturan Alat"
         deskripsi="Volume efektif penampung, jumlah talang, waktu kerja sirkulasi, batas aman, dan laju pompa."
       />
+      {iot.error && <Pesan jenis="galat">{iot.error}</Pesan>}
       <PanelPengaturanAlat iot={iot.data} loading={iot.loading} onReload={() => void iot.reload()} />
     </div>
   )
@@ -55,6 +57,7 @@ export function UjiLabPage() {
         judul="Uji Lab"
         deskripsi="Mengubah hasil penakaran nyata (ppm per mL dan mL per 1 pH per 1 L) menjadi angka yang dipakai alat."
       />
+      {iot.error && <Pesan jenis="galat">{iot.error}</Pesan>}
       <PanelUjiLab iot={iot.data} loading={iot.loading} onReload={() => void iot.reload()} />
     </div>
   )
