@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../lib/authContext'
 import { useApiList } from '../lib/crudApi'
+import { useIotV41State } from '../lib/iotV41'
 import { useApiObject } from '../lib/useApiObject'
 import { KELOMPOK, saring, urutUrgensi, type Alat, type Kelompok, type StatusAlat, type Terkini } from '../lib/kalibrasi'
 import { Segmen } from '../components/sensor/FilterBar'
 import { Pesan } from '../components/kaca/DialogKaca'
+import { PanelKalibrasiLangsungV41 } from '../components/kalibrasi/PanelKalibrasiLangsungV41'
 import { RingkasanKalibrasi } from '../components/kalibrasi/RingkasanKalibrasi'
 import { KartuAlat } from '../components/kalibrasi/KartuAlat'
 import { DialogCatat } from '../components/kalibrasi/DialogCatat'
@@ -12,14 +14,16 @@ import { DialogRiwayat } from '../components/kalibrasi/DialogRiwayat'
 import { DialogAtur } from '../components/kalibrasi/DialogAtur'
 
 /**
- * Kalibrasi alat IoT — routes/kalibrasi.js (GET daftar/riwayat: admin & demo; POST/PUT: admin sungguhan).
- * Ringkasan status (klik = saring), segmen kelompok, kartu alat urut urgensi, popup catat/riwayat/atur.
+ * Kalibrasi alat IoT — routes/kalibrasi.js & routes/iotV41.js (GET daftar/riwayat: admin & demo; POST/PUT: admin sungguhan).
+ * Meliputi Kalibrasi 2-titik langsung (EC 1.413/12.880 µS/cm, pH 4,0/7,0, Kalibrasi pompa N detik), Mode pemeliharaan,
+ * Pemulihan papan ESP32, serta jadwal & kartu kalibrasi per sensor/aktuator.
  */
 export default function KalibrasiPage() {
   const { role } = useAuth()
   const bolehTulis = role === 'admin'
   const { rows, loading, error, reload } = useApiList<Alat>('/kalibrasi')
   const { data: terkini } = useApiObject<Terkini>('/api/latest-sensor', { pollMs: 5_000 })
+  const iotV41 = useIotV41State()
   const [kelompok, setKelompok] = useState<Kelompok>('Semua')
   const [status, setStatus] = useState<StatusAlat | null>(null)
   const [catat, setCatat] = useState<Alat | null>(null)
@@ -34,9 +38,16 @@ export default function KalibrasiPage() {
 
   const tampil = useMemo(() => saring(urutUrgensi(rows), kelompok, status), [rows, kelompok, status])
 
+  const muatSemua = () => {
+    reload()
+    void iotV41.reload()
+  }
+
   return (
     <div className="vsf-halaman vsf-stagger">
       <RingkasanKalibrasi rows={rows} terkini={terkini ?? null} status={status} onStatus={setStatus} />
+
+      <PanelKalibrasiLangsungV41 iot={iotV41.data} loading={iotV41.loading} onReload={muatSemua} />
 
       <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">

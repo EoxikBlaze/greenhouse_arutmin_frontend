@@ -61,6 +61,8 @@ const API_PATHS = [
   '/dosing',
   // ── Kalibrasi alat IoT — juga rute SPA /kalibrasi ──
   '/kalibrasi',
+  // ── IoT Hidroponik 1 Penampung v4.1 (saklar, pengaturan, ujilab, kalibrasi langsung, pulihkan) ──
+  '/iot-v41',
 ]
 
 export default defineConfig({

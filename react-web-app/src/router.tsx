@@ -11,6 +11,16 @@ import AsistenAiPage from './pages/AsistenAiPage'
 import DosingPage from './pages/DosingPage'
 import KalibrasiPage from './pages/KalibrasiPage'
 import {
+  DosingManualPage,
+  KurasGantiAirPage,
+  MqttDiagnostikPage,
+  PemulihanPapanPage,
+  PengaturanAlatPage,
+  PeringatanPage,
+  SaklarModePage,
+  UjiLabPage,
+} from './pages/HidroV41Pages'
+import {
   SemaiPage,
   PeremajaanPage,
   PendewasaanPage,
@@ -52,13 +62,30 @@ export const router = createBrowserRouter([
           // 00/01 · semua role
           { path: '/dashboard', element: <RequireAuth allow={ALL} element={<DashboardPage />} /> },
           { path: '/sensor', element: <Navigate to="/sensor-realtime" replace /> },
+          { path: '/telemetri', element: <Navigate to="/sensor-realtime" replace /> },
           { path: '/sensor-realtime', element: <RequireAuth allow={ALL} element={<SensorRealtimePage />} /> },
+          { path: '/peringatan', element: <RequireAuth allow={ALL} element={<PeringatanPage />} /> },
           { path: '/tanam', element: <RequireAuth allow={ALL} element={<KebunSayaPage />} /> },
           { path: '/cctv', element: <RequireAuth allow={ALL} element={<CctvPage />} /> },
           { path: '/asisten-ai', element: <RequireAuth allow={ALL} element={<AsistenAiPage />} /> },
           { path: '/profil', element: <RequireAuth allow={ALL} element={<ProfilePage />} /> },
           { path: '/dosing', element: <RequireAuth allow={ADMIN_DEMO} element={<DosingPage />} /> },
           { path: '/kalibrasi', element: <RequireAuth allow={ADMIN_DEMO} element={<KalibrasiPage />} /> },
+
+          // Halaman mandiri IoT Hidroponik 1 Penampung v4.1 (sesuai menu sidebar Hidro Control)
+          { path: '/saklar', element: <RequireAuth allow={ADMIN_DEMO} element={<SaklarModePage />} /> },
+          { path: '/dosing-manual', element: <RequireAuth allow={ADMIN_DEMO} element={<DosingManualPage />} /> },
+          { path: '/pompa', element: <Navigate to="/dosing-manual" replace /> },
+          { path: '/kuras-air', element: <RequireAuth allow={ADMIN_DEMO} element={<KurasGantiAirPage />} /> },
+          { path: '/air', element: <Navigate to="/kuras-air" replace /> },
+          { path: '/ujilab', element: <RequireAuth allow={ADMIN_DEMO} element={<UjiLabPage />} /> },
+          { path: '/pengaturan-alat', element: <RequireAuth allow={ADMIN_DEMO} element={<PengaturanAlatPage />} /> },
+          { path: '/pengaturan', element: <Navigate to="/pengaturan-alat" replace /> },
+          { path: '/pemulihan-papan', element: <RequireAuth allow={ADMIN_DEMO} element={<PemulihanPapanPage />} /> },
+          { path: '/pulihkan', element: <Navigate to="/pemulihan-papan" replace /> },
+          { path: '/mqtt-diagnostik', element: <RequireAuth allow={ADMIN_DEMO} element={<MqttDiagnostikPage />} /> },
+          { path: '/mqtt', element: <Navigate to="/mqtt-diagnostik" replace /> },
+          { path: '/log', element: <Navigate to="/audit" replace /> },
 
           // 02 · Kebun & Sensor — admin (demo read-only)
           { path: '/watercontrol', element: <RequireAuth allow={ADMIN_DEMO} element={<WaterControlPage />} /> },

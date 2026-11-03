@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { SiteFooter } from '../components/SiteFooter'
 import { Monogram } from '../components/Monogram'
@@ -18,12 +18,23 @@ type DashboardStatus = { iotStatus?: { online?: boolean } | null }
 
 export { Monogram } from '../components/Monogram'
 
-/** Judul halaman dinamis (sesuai topbar wireframe .pen) */
+/** Judul halaman dinamis (sesuai topbar wireframe .pen & Hidro Control v4.1) */
 const TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
-  '/sensor-realtime': 'Sensor Real-Time',
+  '/sensor-realtime': 'Telemetri & Sensor Real-Time',
+  '/peringatan': 'Peringatan',
   '/watercontrol': 'Water Control',
-  '/tanam': 'Kebun Saya',
+  '/tanam': 'Tanam (Kebun Saya)',
+  '/saklar': 'Saklar & Mode',
+  '/dosing-manual': 'Dosing Manual',
+  '/kuras-air': 'Kuras & Ganti Air',
+  '/dosing': 'Konfigurasi Dosing',
+  '/kalibrasi': 'Kalibrasi',
+  '/ujilab': 'Uji Lab',
+  '/audit': 'Log Aktivitas & Audit',
+  '/pengaturan-alat': 'Pengaturan Alat',
+  '/pemulihan-papan': 'Pemulihan Papan',
+  '/mqtt-diagnostik': 'MQTT & Diagnostik',
   '/semai': 'Semai',
   '/peremajaan': 'Peremajaan',
   '/pendewasaan': 'Pendewasaan',
@@ -37,16 +48,9 @@ const TITLES: Record<string, string> = {
   '/profil': 'Profile',
   '/cctv': 'CCTV',
   '/asisten-ai': 'Asisten AI',
-  '/dosing': 'Konfigurasi Dosing',
-  '/kalibrasi': 'Kalibrasi Alat',
-  '/audit': 'Riwayat Audit',
 }
 
-/* ── Menu per role ────────────────────────────────────────────────────
- * Desktop: rail ikon di kiri = menu utama (satu ikon per grup); nav pill di
- * atas = submenu grup yang sedang aktif. Mobile: laci berisi semua grup.
- * `allow` = role yang boleh LIHAT menu — sengaja disamakan dengan guard
- * router (router.tsx): ALL = semua role, ADMIN_DEMO = admin + demo. */
+/* ── Menu per role (menggabungkan struktur sidebar Hidro Control v4.1 + Vertonik) ── */
 type RoleSet = Role[]
 const ADMIN_DEMO: RoleSet = ['admin', 'demo']
 
@@ -63,27 +67,51 @@ type NavGroup = { label: string; ikon: NamaIkon; items: NavItem[] }
 
 const NAV: NavGroup[] = [
   {
-    label: 'Ikhtisar',
+    label: 'PANTAU',
     ikon: 'dashboard',
     items: [
       { to: '/dashboard', label: 'Dashboard', ikon: 'dashboard' },
+      { to: '/sensor-realtime', label: 'Telemetri & Sensor', ikon: 'sensor' },
+      { to: '/peringatan', label: 'Peringatan', ikon: 'peringatan' },
+      { to: '/cctv', label: 'CCTV', ikon: 'cctv' },
       { to: '/asisten-ai', label: 'Asisten AI', ikon: 'ai' },
     ],
   },
   {
-    label: 'Kebun & Sensor',
-    ikon: 'sensor',
+    label: 'KENDALI',
+    ikon: 'dosing',
     items: [
-      { to: '/sensor-realtime', label: 'Sensor Real-Time', ikon: 'sensor' },
-      { to: '/tanam', label: 'Kebun Saya', ikon: 'tanam' },
-      { to: '/watercontrol', label: 'Water Control', ikon: 'air', allow: ADMIN_DEMO },
+      { to: '/tanam', label: 'Tanam (Kebun Saya)', ikon: 'tanam' },
+      { to: '/saklar', label: 'Saklar & Mode', ikon: 'ambang', allow: ADMIN_DEMO },
+      { to: '/dosing-manual', label: 'Dosing Manual', ikon: 'tetes', allow: ADMIN_DEMO },
+      { to: '/kuras-air', label: 'Kuras & Ganti Air', ikon: 'air', allow: ADMIN_DEMO },
       { to: '/dosing', label: 'Konfigurasi Dosing', ikon: 'dosing', allow: ADMIN_DEMO },
-      { to: '/kalibrasi', label: 'Kalibrasi Alat', ikon: 'kalibrasi', allow: ADMIN_DEMO },
-      { to: '/cctv', label: 'CCTV', ikon: 'cctv' },
+      { to: '/watercontrol', label: 'Water Control', ikon: 'air', allow: ADMIN_DEMO },
     ],
   },
   {
-    label: 'Siklus Tanam',
+    label: 'DATA',
+    ikon: 'kalibrasi',
+    items: [
+      { to: '/kalibrasi', label: 'Kalibrasi', ikon: 'kalibrasi', allow: ADMIN_DEMO },
+      { to: '/ujilab', label: 'Uji Lab', ikon: 'dosing', allow: ADMIN_DEMO },
+      { to: '/audit', label: 'Log Aktivitas', ikon: 'audit', allow: ADMIN_DEMO },
+      { to: '/laporan', label: 'Laporan', ikon: 'laporan', allow: ADMIN_DEMO },
+    ],
+  },
+  {
+    label: 'SISTEM',
+    ikon: 'ambang',
+    items: [
+      { to: '/pengaturan-alat', label: 'Pengaturan Alat', ikon: 'ambang', allow: ADMIN_DEMO },
+      { to: '/pemulihan-papan', label: 'Pemulihan Papan', ikon: 'siklus', allow: ADMIN_DEMO },
+      { to: '/mqtt-diagnostik', label: 'MQTT & Diagnostik', ikon: 'online', allow: ADMIN_DEMO },
+      { to: '/user', label: 'Manajemen User', ikon: 'user', allow: ADMIN_DEMO },
+      { to: '/profil', label: 'Profile', ikon: 'profil' },
+    ],
+  },
+  {
+    label: 'SIKLUS TANAM',
     ikon: 'siklus',
     items: [
       { to: '/semai', label: 'Semai', ikon: 'tanam', langkah: 1, allow: ADMIN_DEMO },
@@ -94,23 +122,12 @@ const NAV: NavGroup[] = [
     ],
   },
   {
-    label: 'Master Data',
+    label: 'MASTER DATA',
     ikon: 'meja',
     items: [
       { to: '/tanaman', label: 'Jenis Tanaman', ikon: 'daun', allow: ADMIN_DEMO },
       { to: '/meja', label: 'Meja Tanaman', ikon: 'meja', allow: ADMIN_DEMO },
       { to: '/ambang', label: 'Ambang Sensor', ikon: 'ambang', allow: ADMIN_DEMO },
-    ],
-  },
-  {
-    label: 'Laporan & Sistem',
-    ikon: 'laporan',
-    items: [
-      { to: '/laporan', label: 'Laporan', ikon: 'laporan', allow: ADMIN_DEMO },
-      { to: '/user', label: 'Manajemen User', ikon: 'user', allow: ADMIN_DEMO },
-      // Riwayat Audit — baca saja; guard setara backend (requireRole admin).
-      { to: '/audit', label: 'Riwayat Audit', ikon: 'audit', allow: ADMIN_DEMO },
-      { to: '/profil', label: 'Profile', ikon: 'profil' },
     ],
   },
 ]
@@ -188,16 +205,28 @@ function formatClock(): string {
   }).format(new Date())
 }
 
+/** Komponen terisolasi agar detak 1 detik tidak me-render ulang seluruh AppShell & ratusan NavLink. */
+function JamTopbar() {
+  const [clock, setClock] = useState(() => formatClock())
+  useEffect(() => {
+    const id = setInterval(() => setClock(formatClock()), 1000)
+    return () => clearInterval(id)
+  }, [])
+  return <span className="hidden text-[14px] font-semibold tabular-nums text-tinta/85 sm:block">{clock}</span>
+}
+
 export function AppShell() {
   const { demo, role, username, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
-  const [clock, setClock] = useState(() => formatClock())
   const [confirmKeluar, setConfirmKeluar] = useState(false)
   // Laci menu di layar kecil (hamburger + backdrop).
   const [navOpen, setNavOpen] = useState(false)
 
-  const grupTampil = NAV.map((gr) => ({ ...gr, items: visibleItems(gr, role) })).filter((gr) => gr.items.length > 0)
+  const grupTampil = useMemo(
+    () => NAV.map((gr) => ({ ...gr, items: visibleItems(gr, role) })).filter((gr) => gr.items.length > 0),
+    [role],
+  )
   const grupAktif = grupTampil.find((gr) =>
     gr.items.some((it) => location.pathname === it.to || location.pathname.startsWith(`${it.to}/`)),
   )
@@ -209,11 +238,6 @@ export function AppShell() {
   const iotOnline = dash?.iotStatus?.online
   const namaUser = (username || role || '').trim()
   const inisial = (namaUser || '?').slice(0, 2).toUpperCase()
-
-  useEffect(() => {
-    const id = setInterval(() => setClock(formatClock()), 1000)
-    return () => clearInterval(id)
-  }, [])
 
   // Laci mobile terbuka → kunci scroll latar agar tidak "bocor" ke halaman.
   useEffect(() => {
@@ -319,7 +343,7 @@ export function AppShell() {
         Lewati ke konten utama
       </a>
 
-      {/* Rail desktop — menu utama: satu ikon per grup, tooltip kaca di kanan. */}
+      {/* Rail desktop — menu utama: satu ikon per grup, tooltip kaca di kanan; submenu muncul di header PillNav. */}
       <aside
         aria-label="Menu utama"
         onPointerMove={ikutiKursor}
@@ -445,7 +469,7 @@ export function AppShell() {
                   </span>
                 </span>
               )}
-              <span className="hidden text-[14px] font-semibold tabular-nums text-tinta/85 sm:block">{clock}</span>
+              <JamTopbar />
               <SaklarTema />
               {/* Avatar inisial user (bukan emoji) + nama & role. */}
               <div className="vsf-chip-terang !gap-2 !py-1 !pl-1">

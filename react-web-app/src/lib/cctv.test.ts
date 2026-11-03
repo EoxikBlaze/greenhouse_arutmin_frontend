@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formDari, labelTipe, sambung } from './cctv'
+import { formDari, labelTipe, sambung, urlAmanBrowser } from './cctv'
 
 describe('cctv', () => {
   it('sambung menambah penanda waktu dengan pemisah yang tepat', () => {
@@ -15,5 +15,10 @@ describe('cctv', () => {
     expect(formDari().aktif).toBe(true)
     const f = formDari({ id: 1, nama: 'A', lokasi: null, tipe: 'rtsp', url: null, interval_detik: 7, aktif: false })
     expect(f).toMatchObject({ nama: 'A', lokasi: '', url: '', interval_detik: '7', aktif: false })
+  })
+  it('urlAmanBrowser menolak port berbahaya Chrome (ERR_UNSAFE_PORT seperti port 9)', () => {
+    expect(urlAmanBrowser('http://127.0.0.1:9/stream')).toBe(false)
+    expect(urlAmanBrowser('http://192.168.1.50:81/stream')).toBe(true)
+    expect(urlAmanBrowser('/cctv/18/demo.svg')).toBe(true)
   })
 })

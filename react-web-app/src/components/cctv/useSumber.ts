@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { api } from '../../lib/api'
-import { sambung, type Kamera } from '../../lib/cctv'
+import { sambung, urlAmanBrowser, type Kamera } from '../../lib/cctv'
 
 /**
  * Sumber gambar satu kamera. http(s): URL langsung (+ penanda waktu untuk snapshot).
@@ -39,5 +39,6 @@ export function useSumber(k: Kamera, coba: number): { src: string | null; gagal:
   useEffect(() => () => { if (blobRef.current) URL.revokeObjectURL(blobRef.current) }, [])
 
   if (k.tipe === 'rtsp') return { src: blob, gagal: gagal && !blob }
+  if (!urlAmanBrowser(k.url)) return { src: null, gagal: true }
   return { src: sambung(k.url ?? '', k.tipe === 'snapshot' ? tik : coba), gagal: false }
 }

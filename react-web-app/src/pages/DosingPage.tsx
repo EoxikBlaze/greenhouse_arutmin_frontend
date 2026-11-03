@@ -2,23 +2,43 @@ import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useApiList } from '../lib/crudApi'
 import { belumDiatur, type FailSafeRow, type JadwalRow, type ParameterRow } from '../lib/dosing'
+import { useIotV41State } from '../lib/iotV41'
 import { NaikHarian } from '../components/NaikHarian'
 import { PageHeader } from '../components/PageHeader'
 import { PanelFailSafe } from '../components/dosing/PanelFailSafe'
 import { PanelParameter } from '../components/dosing/PanelParameter'
+import { PanelPengaturanAlat } from '../components/dosing/PanelPengaturanAlat'
 import { PanelPerawatan } from '../components/dosing/PanelPerawatan'
+import { PanelSaklarMode } from '../components/dosing/PanelSaklarMode'
 import { PresetNutrisi, TargetPenampung, type Preset, type TargetMeja } from '../components/dosing/PanelTarget'
+import { PanelUjiLab } from '../components/dosing/PanelUjiLab'
 import { Segmen } from '../components/sensor/FilterBar'
 
 /**
- * Konfigurasi dosing — terhubung ke endpoint KONFIGURASI V2 riil (routes/konfigurasi.js, routes/preset.js).
- * Empat tab: Target & Nutrisi · Parameter · Keamanan · Perawatan. Semua angka berasal dari server.
+ * Konfigurasi dosing — terhubung ke endpoint KONFIGURASI V2 riil (routes/konfigurasi.js, routes/preset.js, routes/iotV41.js).
+ * Tujuh tab terpadu: Target & Nutrisi · Saklar & Mode · Pengaturan Alat · Uji Lab · Parameter · Keamanan · Perawatan.
  * Rute hanya untuk admin & demo (router.tsx); ubah/hapus/sinkron = admin saja.
  */
 
-const TAB = ['Target & Nutrisi', 'Parameter', 'Keamanan', 'Perawatan'] as const
+const TAB = [
+  'Target & Nutrisi',
+  'Saklar & Mode',
+  'Pengaturan Alat',
+  'Uji Lab',
+  'Parameter',
+  'Keamanan',
+  'Perawatan',
+] as const
 type Tab = (typeof TAB)[number]
-const KUNCI: Record<Tab, string> = { 'Target & Nutrisi': 'target', Parameter: 'parameter', Keamanan: 'keamanan', Perawatan: 'perawatan' }
+const KUNCI: Record<Tab, string> = {
+  'Target & Nutrisi': 'target',
+  'Saklar & Mode': 'saklar',
+  'Pengaturan Alat': 'pengaturan',
+  'Uji Lab': 'ujilab',
+  Parameter: 'parameter',
+  Keamanan: 'keamanan',
+  Perawatan: 'perawatan',
+}
 
 function Stat({ label, nilai, sub }: { label: string; nilai: string; sub: string }) {
   return (
@@ -43,6 +63,13 @@ export default function DosingPage() {
   const timing = useApiList<ParameterRow>('/timing-operasi')
   const failSafe = useApiList<FailSafeRow>('/aturan-fail-safe')
   const jadwal = useApiList<JadwalRow>('/jadwal-perawatan')
+  const iotV41 = useIotV41State()
+
+  const muatUlangV41 = () => {
+    void iotV41.reload()
+    dosis.reload()
+    timing.reload()
+  }
 
   const ring = useMemo(() => {
     const aktif = target.rows.filter((r) => r.batch || r.target_mode === 'manual' || r.target_ec_ppm != null)
@@ -88,6 +115,15 @@ export default function DosingPage() {
           <NaikHarian />
           <PresetNutrisi data={preset} onUbah={ubahTarget} />
         </>
+      )}
+      {tab === 'Saklar & Mode' && (
+        <PanelSaklarMode iot={iotV41.data} loading={iotV41.loading} onReload={muatUlangV41} />
+      )}
+      {tab === 'Pengaturan Alat' && (
+        <PanelPengaturanAlat iot={iotV41.data} loading={iotV41.loading} onReload={muatUlangV41} />
+      )}
+      {tab === 'Uji Lab' && (
+        <PanelUjiLab iot={iotV41.data} loading={iotV41.loading} onReload={muatUlangV41} />
       )}
       {tab === 'Parameter' && <PanelParameter dosis={dosis} timing={timing} />}
       {tab === 'Keamanan' && <PanelFailSafe data={failSafe} />}
