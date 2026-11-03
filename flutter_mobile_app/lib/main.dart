@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'pages/beranda_petani.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/login_page.dart';
 import 'pages/profil_page.dart';
@@ -226,7 +227,9 @@ class _MainShellState extends State<_MainShell>
       _Tab(
         'Beranda',
         Ikon.beranda,
-        (a) => DashboardPage(api: apiService, aktif: a, onBukaTab: _bukaTab),
+        (a) => role == 'petani'
+            ? BerandaPetani(api: apiService, aktif: a, onBukaTab: _bukaTab)
+            : DashboardPage(api: apiService, aktif: a, onBukaTab: _bukaTab),
       ),
       _Tab('Sensor', Ikon.sensor, (a) => SensorPage(api: apiService, aktif: a)),
       if (kontrol)

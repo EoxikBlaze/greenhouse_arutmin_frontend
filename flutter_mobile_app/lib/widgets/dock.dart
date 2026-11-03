@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../theme/tokens.dart';
 import 'kaca.dart';
@@ -15,7 +16,10 @@ class DockItem {
 
 /// Navigasi bawah desain v2: kaca chrome (blur asli) mengambang, pil indikator
 /// hijau SOLID yang meluncur ke tab aktif, ikon + label selalu terlihat.
-class DockNav extends StatelessWidget {
+///
+/// Tahan pil hijau (sentuh lama) lalu geser: pil terangkat dan mengikuti jari seperti dock macOS /
+/// tab bar iOS; lepas untuk berpindah ke tab terdekat. Ketuk biasa tetap berpindah tab.
+class DockNav extends StatefulWidget {
   const DockNav({
     super.key,
     required this.item,
@@ -38,54 +42,119 @@ class DockNav extends StatelessWidget {
       tinggi + 16 + math.max(MediaQuery.viewPaddingOf(context).bottom, 12);
 
   @override
+  State<DockNav> createState() => _DockNavState();
+}
+
+class _DockNavState extends State<DockNav> {
+  /// Posisi kiri pil saat ditahan dan digeser; null = pil mengikuti tab aktif.
+  double? _geser;
+  int? _sementara;
+
+  void _mulai(Offset p, double lebar) {
+    final kiri = widget.indeks * lebar;
+    if (p.dx < kiri || p.dx > kiri + lebar) {
+      return; // hanya pil hijau yang bisa ditahan
+    }
+    HapticFeedback.mediumImpact();
+    setState(() {
+      _geser = kiri;
+      _sementara = widget.indeks;
+    });
+  }
+
+  void _gerak(Offset p, double lebar) {
+    if (_geser == null) return;
+    final maks = lebar * (widget.item.length - 1);
+    final kiri = (p.dx - lebar / 2).clamp(0.0, maks);
+    final i = (kiri / lebar).round().clamp(0, widget.item.length - 1);
+    if (i != _sementara) {
+      HapticFeedback.selectionClick();
+    }
+    setState(() {
+      _geser = kiri;
+      _sementara = i;
+    });
+  }
+
+  void _lepas() {
+    final tujuan = _sementara;
+    if (_geser == null) return;
+    setState(() {
+      _geser = null;
+      _sementara = null;
+    });
+    if (tujuan != null && tujuan != widget.indeks) widget.onPilih(tujuan);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final kurangiGerak = MediaQuery.disableAnimationsOf(context);
+    final diangkat = _geser != null;
     return KacaCair(
       varian: KacaVarian.chrome,
       radius: Tok.rChrome,
-      padding: const EdgeInsets.all(_padding),
+      padding: const EdgeInsets.all(DockNav._padding),
       child: LayoutBuilder(
         builder: (context, k) {
-          final lebar = k.maxWidth / item.length;
-          return SizedBox(
-            height: _tinggiItem,
-            child: Stack(
-              children: [
-                AnimatedPositioned(
-                  duration: kurangiGerak ? Duration.zero : Tok.dLambat,
-                  curve: Tok.ease,
-                  left: indeks * lebar,
-                  width: lebar,
-                  top: 0,
-                  bottom: 0,
-                  child: const DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: Tok.activePill,
-                      borderRadius: BorderRadius.all(Radius.circular(22)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Color(0x596B9D4A),
-                          blurRadius: 16,
-                          spreadRadius: -4,
-                          offset: Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Row(
-                  children: [
-                    for (var i = 0; i < item.length; i++)
-                      Expanded(
-                        child: _ItemDock(
-                          item: item[i],
-                          aktif: i == indeks,
-                          onTap: () => onPilih(i),
+          final lebar = k.maxWidth / widget.item.length;
+          final aktif = _sementara ?? widget.indeks;
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onLongPressStart: (d) => _mulai(d.localPosition, lebar),
+            onLongPressMoveUpdate: (d) => _gerak(d.localPosition, lebar),
+            onLongPressEnd: (_) => _lepas(),
+            onLongPressCancel: _lepas,
+            child: SizedBox(
+              height: DockNav._tinggiItem,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  AnimatedPositioned(
+                    // saat digeser pil mengikuti jari tanpa jeda; saat lepas meluncur ke tab tujuan
+                    duration: kurangiGerak || diangkat
+                        ? Duration.zero
+                        : Tok.dLambat,
+                    curve: Tok.ease,
+                    left: _geser ?? widget.indeks * lebar,
+                    width: lebar,
+                    top: 0,
+                    bottom: 0,
+                    child: AnimatedScale(
+                      scale: diangkat && !kurangiGerak ? 1.14 : 1,
+                      duration: Tok.dCepat,
+                      curve: Curves.easeOutBack,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: Tok.activePill,
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(22),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0x596B9D4A),
+                              blurRadius: diangkat ? 26 : 16,
+                              spreadRadius: diangkat ? 0 : -4,
+                              offset: Offset(0, diangkat ? 10 : 6),
+                            ),
+                          ],
                         ),
                       ),
-                  ],
-                ),
-              ],
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      for (var i = 0; i < widget.item.length; i++)
+                        Expanded(
+                          child: _ItemDock(
+                            item: widget.item[i],
+                            aktif: i == aktif,
+                            onTap: () => widget.onPilih(i),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           );
         },
