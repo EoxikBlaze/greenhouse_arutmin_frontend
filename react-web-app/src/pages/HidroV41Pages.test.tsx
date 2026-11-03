@@ -127,7 +127,7 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
     return ketemu
   }
 
-  it('Langkah 1 — PanelPengaturanAlat: tombol [pakai] saran otomatis, [Simpan di server], dan [Batalkan] bisa diklik', async () => {
+  it('Langkah 1 — PanelPengaturanAlat: tombol [pakai] saran otomatis, [Simpan pengaturan], dan [Batalkan] bisa diklik', async () => {
     const onReload = vi.fn()
     await act(async () => {
       root.render(
@@ -152,7 +152,7 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
       btnPakai.click()
     })
 
-    const btnSimpan = cariTombol('Simpan di server')
+    const btnSimpan = cariTombol('Simpan pengaturan')
     await act(async () => {
       btnSimpan.click()
     })
@@ -260,7 +260,7 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
     )
   })
 
-  it('Langkah 4 — PanelSaklarMode: ke-5 switch saklar, tombol [Simpan di server], dan [Batalkan] bisa diklik', async () => {
+  it('Langkah 4 — PanelSaklarMode: ke-5 switch saklar, tombol [Simpan pengaturan], dan [Batalkan] bisa diklik', async () => {
     const onReload = vi.fn()
     await act(async () => {
       root.render(<PanelSaklarMode iot={BAWAAN_V41} loading={false} onReload={onReload} />)
@@ -276,7 +276,7 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
     expect(container.textContent).toContain('Pengenceran menyala tetapi isi air otomatis mati')
 
     await act(async () => {
-      cariTombol('Simpan di server').click()
+      cariTombol('Simpan pengaturan').click()
     })
     expect(mockApiPut).toHaveBeenCalledWith(
       '/iot-v41/saklar',
@@ -294,7 +294,7 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
       )
     })
     await act(async () => {
-      cariTombol('Dosing A + B (dikunci)').click()
+      cariTombol('Nutrisi A + B (dikunci)').click()
     })
     expect(mockApiPost).toHaveBeenCalledWith('/iot-v41/dosing-manual', { aksi: 'dosing_ab', ppm: 50 })
 

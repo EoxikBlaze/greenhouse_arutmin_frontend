@@ -20,7 +20,7 @@ const PINTASAN = [
   { label: 'Diagnosa menyeluruh', pesan: 'Lakukan diagnosa menyeluruh', utama: true },
   { label: 'Tabel sensor', pesan: 'Tampilkan tabel sensor terbaru' },
   { label: 'Alert terbuka', pesan: 'Tampilkan daftar alert terbuka' },
-  { label: 'Status penampung', pesan: 'Tampilkan status penampung dan dosing' },
+  { label: 'Status penampung', pesan: 'Tampilkan status penampung dan dosis nutrisi' },
   { label: 'Tahap tanam', pesan: 'Tampilkan status tahap tanam' },
   { label: 'Cara menyemai', pesan: 'Bagaimana cara menyemai?' },
   { label: 'Alur aplikasi', pesan: 'Jelaskan alur aplikasi' },
@@ -31,9 +31,9 @@ const PINTASAN = [
 const SUMBER: Record<string, string> = {
   heuristik: 'Saran berbasis aturan dari data terbaru',
   sapaan: 'Asisten GARAP',
-  diagnosa: 'Diagnosa otomatis dari database',
+  diagnosa: 'Diagnosa otomatis dari catatan sensor kebun',
   panduan: 'Panduan aplikasi (jawaban tetap, bukan tebakan AI)',
-  data: 'Data langsung dari database',
+  data: 'Diambil langsung dari catatan kebun',
   ollama: 'Dijawab AI lokal — cek ulang sebelum bertindak',
   tolak: 'Permintaan ditolak oleh pengaman',
 }

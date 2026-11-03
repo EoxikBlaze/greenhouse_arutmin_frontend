@@ -11,7 +11,7 @@ export type KonteksKebun = {
 }
 
 /** Data yang benar-benar dibaca asisten (routes/ai.js). */
-const SUMBER_DATA = ['Sensor terakhir', 'Ambang sensor', 'Alert terbuka', 'Penampung & dosing', 'Tahap tanam', 'Panen terakhir']
+const SUMBER_DATA = ['Sensor terakhir', 'Ambang sensor', 'Alert terbuka', 'Penampung & dosis nutrisi', 'Tahap tanam', 'Panen terakhir']
 
 function angka(v: number | null | undefined, digit: number): string {
   return typeof v === 'number' && Number.isFinite(v) ? v.toFixed(digit) : '—'

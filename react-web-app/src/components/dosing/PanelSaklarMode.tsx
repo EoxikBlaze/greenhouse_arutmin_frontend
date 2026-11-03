@@ -22,7 +22,7 @@ type SaklarItem = {
 const DAFTAR_SAKLAR: readonly SaklarItem[] = [
   {
     kunci: 'saklar_ab',
-    judul: 'Dosing A + B',
+    judul: 'Nutrisi A + B',
     ket: 'Kalau mati: EC kurang hanya jadi peringatan, tanpa suntikan.',
   },
   {
@@ -118,7 +118,7 @@ export function PanelSaklarMode({
       await api.put('/iot-v41/saklar', payload)
       simpanCacheLokal(payload)
       setDraf({})
-      setPesan('Saklar dan mode isi air disimpan di server. Alat belum diberi tahu.')
+      setPesan('Saklar dan mode isi air tersimpan di sistem, tetapi alat belum diberi tahu.')
       onReload()
     } catch (err) {
       const f = handleApiError(err)
@@ -209,7 +209,7 @@ export function PanelSaklarMode({
                 onClick={() => void simpan()}
               >
                 {sibuk && <span className="vsf-spinner" aria-hidden />}
-                {sibuk ? 'Menyimpan…' : 'Simpan di server'}
+                {sibuk ? 'Menyimpan…' : 'Simpan pengaturan'}
               </button>
               <button
                 type="button"

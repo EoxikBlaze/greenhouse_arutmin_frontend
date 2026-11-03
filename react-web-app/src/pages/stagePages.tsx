@@ -828,10 +828,10 @@ export function PeremajaanPage() {
         { key: 'keterangan', label: 'Keterangan', kind: 'text', placeholder: 'Opsional' },
       ]}
       notes={[
-        'Live: GET/POST/DELETE /peremajaan — tombol Simpan benar-benar menyimpan (POST), Hapus benar-benar menghapus.',
-        'Pilihan Batch semai & Meja diambil dari server (tak perlu hafal ID); kolom wajib mengikuti kolom NOT NULL backend.',
-        'Baris yang masih dirujuk pendewasaan tidak bisa dihapus (409 "Tidak bisa menghapus…" dari backend).',
-        'Status dari server: berjalan / selesai / gagal. Tandai Selesai di detail baris meminta jumlah berhasil, lalu server membuat tahap berikutnya otomatis.',
+        'Tombol Simpan langsung mencatat data peremajaan; tombol Hapus menghapusnya secara permanen.',
+        'Pilih batch semai dan meja dari daftar — tidak perlu menghafal nomornya. Kolom bertanda wajib harus diisi.',
+        'Data peremajaan yang sudah berlanjut ke tahap pendewasaan tidak dapat dihapus.',
+        'Status tahap: berjalan, selesai, atau gagal. Saat menandai Selesai, isi jumlah bibit yang berhasil; tahap berikutnya dibuat otomatis.',
       ]}
       detail={(r) => ({
         judul: `Detail peremajaan #${r.id_peremajaan}`,
@@ -906,10 +906,10 @@ export function PendewasaanPage() {
         { key: 'keterangan', label: 'Keterangan', kind: 'text', placeholder: 'Opsional' },
       ]}
       notes={[
-        'Live: GET/POST/DELETE /pendewasaan — tombol Simpan benar-benar menyimpan (POST), Hapus benar-benar menghapus.',
-        'Pilihan Batch peremajaan & Meja diambil dari server (tak perlu hafal ID); kolom wajib mengikuti kolom NOT NULL backend.',
-        'Baris yang masih dirujuk panen tidak bisa dihapus (409 dari backend).',
-        'Status dari server: berjalan / selesai / gagal. Tandai Selesai di detail baris meminta jumlah berhasil, lalu server membuat tahap berikutnya otomatis.',
+        'Tombol Simpan langsung mencatat data pendewasaan; tombol Hapus menghapusnya secara permanen.',
+        'Pilih batch peremajaan dan meja dari daftar — tidak perlu menghafal nomornya. Kolom bertanda wajib harus diisi.',
+        'Data pendewasaan yang sudah tercatat panennya tidak dapat dihapus.',
+        'Status tahap: berjalan, selesai, atau gagal. Saat menandai Selesai, isi jumlah bibit yang berhasil; tahap berikutnya dibuat otomatis.',
       ]}
       detail={(r) => ({
         judul: `Detail pendewasaan #${r.id_pendewasaan}`,
@@ -983,10 +983,10 @@ export function PanenPage() {
         { key: 'keterangan', label: 'Keterangan', kind: 'text', placeholder: 'Opsional' },
       ]}
       notes={[
-        'Live: GET/POST/DELETE /panen — tombol Simpan benar-benar menyimpan (POST), Hapus benar-benar menghapus.',
-        'Pilihan Batch pendewasaan diambil dari GET /pendewasaan (tak perlu hafal ID).',
+        'Tombol Simpan langsung mencatat data panen; tombol Hapus menghapusnya secara permanen.',
+        'Pilih batch pendewasaan dari daftar — tidak perlu menghafal nomornya.',
         'Baris panen dibuat otomatis saat pendewasaan diselesaikan; tombol Tambah Panen untuk catatan manual.',
-        'Baris yang masih dirujuk tidak bisa dihapus (409 dari backend).',
+        'Data panen yang masih dipakai catatan lain tidak dapat dihapus.',
       ]}
       detail={(r) => ({
         judul: `Detail panen #${r.id_panen}`,
@@ -1230,11 +1230,11 @@ export function DurasiSiklusPage() {
       deleteError={deleteError}
       onDelete={(id) => void remove(id)}
       notes={[
-        'Live: GET/POST/PUT/DELETE /siklus (Bearer JWT) — kolom whitelist backend: id_tanaman, nama_siklus, waktu_siklus.',
-        'Pilihan tanaman diambil dari GET /tanaman; nama FK ditampilkan sebagai nama, bukan angka.',
-        'Hapus baris yang masih dirujuk semai dijawab 409 "Tidak bisa menghapus siklus: masih ada data terkait…" (bukan 500).',
-        'Error kontrak: 401 → redirect login · 422 per-field (mis. nama_siklus terlalu panjang) → inline di bawah input · 404 → "Data tidak ditemukan." · 403 → mode demo.',
-        'Dipakai perhitungan estimasi panen di dashboard & laporan; export CSV: GET /siklus/csv.',
+        'Siklus berisi jenis tanaman, nama siklus, dan lama siklus dalam hari.',
+        'Pilih tanaman dari daftar; yang tampil adalah nama tanaman, bukan nomornya.',
+        'Siklus yang sudah dipakai untuk penyemaian tidak dapat dihapus.',
+        'Isian yang belum sesuai (mis. nama siklus terlalu panjang) ditandai langsung di bawah kolomnya. Mode demo hanya dapat melihat.',
+        'Lama siklus dipakai untuk memperkirakan tanggal panen di dashboard dan laporan; data dapat diunduh sebagai CSV.',
       ]}
       actions={(r, ask) => (
         <>

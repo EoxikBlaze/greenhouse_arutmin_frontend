@@ -33,10 +33,10 @@ type Riwayat = Hasil & { urut: number }
 
 /** Penjelasan jujur kenapa jawaban berasal dari heuristik, bukan model. */
 const ALASAN_FALLBACK: Record<string, string> = {
-  koneksi: 'AI lokal tidak dapat dihubungi — jawaban diambil dari aturan heuristik transparan.',
-  timeout: 'AI lokal tidak merespons dalam batas 30 detik — jawaban diambil dari aturan heuristik transparan.',
-  respons_ollama_tidak_valid: 'AI lokal mengirim balasan tidak valid — jawaban diambil dari aturan heuristik transparan.',
-  output_tidak_sah: 'Balasan AI tidak lolos pemeriksaan format — jawaban diambil dari aturan heuristik transparan.',
+  koneksi: 'AI lokal tidak dapat dihubungi — jawaban diambil dari aturan budidaya baku.',
+  timeout: 'AI lokal tidak merespons dalam batas 30 detik — jawaban diambil dari aturan budidaya baku.',
+  respons_ollama_tidak_valid: 'AI lokal mengirim balasan tidak valid — jawaban diambil dari aturan budidaya baku.',
+  output_tidak_sah: 'Balasan AI tidak lolos pemeriksaan format — jawaban diambil dari aturan budidaya baku.',
 }
 
 const GAYA_PRIORITAS: Record<Prioritas, string> = {
@@ -55,7 +55,7 @@ function KartuHasil({ hasil, menonjol }: { hasil: Hasil; menonjol?: boolean }) {
           Prioritas {hasil.prioritas}
         </span>
         <span className="vsf-pill border-white bg-white/70 text-[12px] text-tinta">
-          {konsol ? `AI lokal (Ollama) · ${hasil.model ?? 'model tidak diketahui'}` : 'Aturan heuristik'}
+          {konsol ? `AI lokal · ${hasil.model ?? 'model tidak diketahui'}` : 'Aturan budidaya'}
         </span>
         <span className="flex-1" />
         <span className="text-[12px] text-abu">{tglJam(hasil.generated_at ?? null)}</span>
@@ -68,7 +68,7 @@ function KartuHasil({ hasil, menonjol }: { hasil: Hasil; menonjol?: boolean }) {
 
       {!konsol && hasil.fallback_karena && (
         <p className="mt-2 rounded-input border border-amber-500/50 bg-amber-50 px-3 py-2 text-[12px] leading-relaxed text-amber-900">
-          {ALASAN_FALLBACK[hasil.fallback_karena] ?? 'Model AI tidak dipakai — jawaban berasal dari aturan heuristik.'}
+          {ALASAN_FALLBACK[hasil.fallback_karena] ?? 'Model AI tidak dipakai — jawaban berasal dari aturan budidaya baku.'}
         </p>
       )}
       {!konsol && (hasil.aturan?.length ?? 0) > 0 && (

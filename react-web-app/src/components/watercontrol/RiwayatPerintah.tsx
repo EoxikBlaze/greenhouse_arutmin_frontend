@@ -24,7 +24,7 @@ export function RiwayatPerintah({ rows }: { rows: Riwayat[] }) {
       {rows.length === 0 ? (
         <div className="mt-3 flex flex-col items-center gap-2 rounded-card bg-white/55 px-4 py-8 text-center text-[13px] text-tinta">
           <Ikon nama="kosong" className="h-8 w-8 text-arutmin-olive" />
-          Belum ada perintah — perintah terakhir dari server akan tampil di sini.
+          Belum ada perintah — perintah terakhir akan tampil di sini.
         </div>
       ) : (
         <div role="table" aria-label="Riwayat perintah" className="vsf-riwayat-air mt-3">

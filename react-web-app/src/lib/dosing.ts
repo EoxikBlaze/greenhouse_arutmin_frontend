@@ -60,7 +60,7 @@ const PARAM: Record<string, [string, string]> = {
   min_progres_persen: ['Progres minimal per percobaan', 'Batas dosis'],
   maks_volume_ab_hari_ml: ['Batas volume nutrisi A+B per hari', 'Batas harian'],
   maks_volume_ph_hari_ml: ['Batas volume pH per hari', 'Batas harian'],
-  maks_kejadian_per_hari: ['Batas kejadian dosing per hari', 'Batas harian'],
+  maks_kejadian_per_hari: ['Batas kejadian dosis per hari', 'Batas harian'],
   peringatan_dini_kejadian: ['Peringatan dini kejadian', 'Batas harian'],
   maks_suntikan_per_kejadian: ['Batas suntikan per kejadian', 'Batas harian'],
   maks_retry_ec: ['Batas ulang koreksi EC', 'Percobaan ulang'],
@@ -76,13 +76,13 @@ const PARAM: Record<string, [string, string]> = {
   k_faktor: ['Faktor sel EC (K)', 'Kalibrasi & konversi'],
   ppm_per_detik_pulsa: ['Laju pompa per detik', 'Kalibrasi & konversi'],
   antrian_alert_maks: ['Antrean alert saat WiFi mati', 'Sistem'],
-  maks_masa_persetujuan_menit: ['Masa berlaku persetujuan dosing', 'Sistem'],
+  maks_masa_persetujuan_menit: ['Masa berlaku persetujuan dosis', 'Sistem'],
   wajib_firmware_v03: ['Wajib firmware 0.3', 'Sistem'],
   // ── Parameter v4.1 (1-Penampung, Uji Lab, Saklar, & Laju Pompa)
   volume_efektif_l: ['Volume efektif penampung', 'Sistem'],
   jumlah_talang: ['Jumlah talang meja', 'Sistem'],
   debit_per_talang_lpm: ['Debit aliran per talang', 'Sistem'],
-  saklar_ab: ['Saklar izin dosing A + B', 'Sistem'],
+  saklar_ab: ['Saklar izin nutrisi A + B', 'Sistem'],
   saklar_ph_up: ['Saklar izin koreksi pH up', 'Sistem'],
   saklar_ph_down: ['Saklar izin koreksi pH down', 'Sistem'],
   saklar_pengenceran: ['Saklar izin pengenceran air', 'Sistem'],
@@ -103,21 +103,21 @@ const PARAM: Record<string, [string, string]> = {
   maks_pengenceran_hari: ['Batas pengenceran per hari', 'Batas harian'],
   maks_koreksi_ph_hari: ['Batas koreksi pH per hari', 'Batas harian'],
   // ── Timing operasi
-  jeda_ec_menit: ['Jeda antar tindakan EC', 'Ronde & jeda dosing'],
-  jeda_koreksi_ph_menit: ['Jeda antar koreksi pH', 'Ronde & jeda dosing'],
+  jeda_ec_menit: ['Jeda antar tindakan EC', 'Ronde & jeda dosis'],
+  jeda_koreksi_ph_menit: ['Jeda antar koreksi pH', 'Ronde & jeda dosis'],
   pemeliharaan_maks_menit: ['Batas waktu mode pemeliharaan', 'Sistem'],
   baca_stabil_timeout_detik: ['Batas waktu bacaan stabil', 'Pembacaan sensor'],
   median_pembacaan_n: ['Jumlah bacaan untuk median', 'Pembacaan sensor'],
   stabil_menit: ['Jendela bacaan stabil', 'Pembacaan sensor'],
   stabil_n_bacaan: ['Jumlah bacaan stabil', 'Pembacaan sensor'],
-  ronde_dosing_menit: ['Lama satu ronde dosing', 'Ronde & jeda dosing'],
-  mixing_menit: ['Waktu pencampuran', 'Ronde & jeda dosing'],
-  monitoring_menit: ['Masa istirahat setelah target', 'Ronde & jeda dosing'],
-  gap_besar_menit: ['Perkiraan gap besar', 'Ronde & jeda dosing'],
-  jeda_ab_menit: ['Jeda nutrisi A ke B', 'Ronde & jeda dosing'],
-  jeda_a_ke_bilas_detik: ['Jeda A ke bilas', 'Ronde & jeda dosing'],
-  jeda_pasca_bilas_detik: ['Jeda setelah bilas', 'Ronde & jeda dosing'],
-  volume_bilas_ml: ['Volume bilas', 'Ronde & jeda dosing'],
+  ronde_dosing_menit: ['Lama satu ronde dosis', 'Ronde & jeda dosis'],
+  mixing_menit: ['Waktu pencampuran', 'Ronde & jeda dosis'],
+  monitoring_menit: ['Masa istirahat setelah target', 'Ronde & jeda dosis'],
+  gap_besar_menit: ['Perkiraan jeda besar', 'Ronde & jeda dosis'],
+  jeda_ab_menit: ['Jeda nutrisi A ke B', 'Ronde & jeda dosis'],
+  jeda_a_ke_bilas_detik: ['Jeda A ke bilas', 'Ronde & jeda dosis'],
+  jeda_pasca_bilas_detik: ['Jeda setelah bilas', 'Ronde & jeda dosis'],
+  volume_bilas_ml: ['Volume bilas', 'Ronde & jeda dosis'],
   isi_air_timeout_menit: ['Batas waktu isi air', 'Pengisian air'],
   isi_botol_normal_detik: ['Waktu isi botol normal', 'Pengisian air'],
   isi_botol_timeout_detik: ['Batas waktu isi botol', 'Pengisian air'],
@@ -137,11 +137,11 @@ export const kelompokParam = (kode: string) => PARAM[kode]?.[1] ?? 'Lainnya'
 /** Kelompok fail-safe menurut kode FS-… */
 export function kelompokFailSafe(kode: string): string {
   if (/SANITY|SENSOR|TIMEOUT-BACA|LONJAKAN|EC-TINGGI/.test(kode)) return 'Sensor & bacaan'
-  if (/JATAH|INFO-DINI|RETRY|RESET/.test(kode)) return 'Dosing & jatah harian'
+  if (/JATAH|INFO-DINI|RETRY|RESET/.test(kode)) return 'Dosis & jatah harian'
   if (/DEAD-HEAD|TIMEOUT-ISI/.test(kode)) return 'Air & pompa'
   return 'Sistem'
 }
-export const URUT_FAILSAFE = ['Sensor & bacaan', 'Dosing & jatah harian', 'Air & pompa', 'Sistem']
+export const URUT_FAILSAFE = ['Sensor & bacaan', 'Dosis & jatah harian', 'Air & pompa', 'Sistem']
 
 /** Kelompokkan baris; urutan kelompok mengikuti kemunculan pertama, "Lainnya" terakhir. */
 export function kelompokkan<T>(rows: T[], kelompok: (r: T) => string, urut?: string[]): Array<[string, T[]]> {

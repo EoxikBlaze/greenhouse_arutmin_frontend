@@ -95,8 +95,8 @@ export function PanelKalibrasiLangsungV41({
       simpanCacheLokal({ pemeliharaan: aktif })
       setPesan(
         aktif
-          ? 'Mode pemeliharaan aktif di server (tindakan otomatis dijeda). Aplikasi tidak mematikan pompa: matikan dengan tombol fisik bila perlu.'
-          : 'Mode pemeliharaan dimatikan di server. Alat belum diberi tahu.',
+          ? 'Mode pemeliharaan aktif (tindakan otomatis dijeda). Aplikasi tidak mematikan pompa: matikan dengan tombol fisik bila perlu.'
+          : 'Mode pemeliharaan dimatikan. Alat belum diberi tahu.',
       )
       onReload()
     } catch (err) {
@@ -132,7 +132,7 @@ export function PanelKalibrasiLangsungV41({
         })
         setEc1413(null)
         setEc12880(null)
-        setPesan(`Kalibrasi EC 2-titik (${fmt(next1413, 0)} & ${fmt(next12880, 0)} µS/cm) disimpan di server dan riwayat. Belum dikirim ke alat.`)
+        setPesan(`Kalibrasi EC 2-titik (${fmt(next1413, 0)} & ${fmt(next12880, 0)} µS/cm) tersimpan beserta riwayatnya. Belum dikirim ke alat.`)
         onReload()
       } catch (err) {
         const f = handleApiError(err)
@@ -172,7 +172,7 @@ export function PanelKalibrasiLangsungV41({
         })
         setPh40(null)
         setPh70(null)
-        setPesan(`Kalibrasi pH 2-titik (pH 4,0=${fmt(next40, 2)} & 7,0=${fmt(next70, 2)}) disimpan di server dan riwayat. Belum dikirim ke alat.`)
+        setPesan(`Kalibrasi pH 2-titik (pH 4,0=${fmt(next40, 2)} & 7,0=${fmt(next70, 2)}) tersimpan beserta riwayatnya. Belum dikirim ke alat.`)
         onReload()
       } catch (err) {
         const f = handleApiError(err)
@@ -263,7 +263,7 @@ export function PanelKalibrasiLangsungV41({
     setPesan(null)
     try {
       await api.post('/iot-v41/pulihkan')
-      setPesan('Paket parameter, saklar, target, dan laju pompa disiapkan di server. BELUM dikirim ke papan ESP32.')
+      setPesan('Paket parameter, saklar, target, dan laju pompa sudah disiapkan, tetapi BELUM dikirim ke alat.')
       onReload()
     } catch (err) {
       const f = handleApiError(err)
@@ -593,7 +593,7 @@ export function PanelKalibrasiLangsungV41({
             <span className="vsf-chip-nilai is-normal">{papan?.kode ?? 'HIDRO-01'} · {papan?.versi ?? 'v4.1'}</span>
           </div>
           <p className="mt-0.5 text-[12.5px] leading-relaxed text-abu">
-            Saat ganti papan ESP32 baru atau setelah flash ulang, kirim kembali seluruh parameter, target, saklar, dan laju pompa dari basis data web ke alat dalam satu paket.
+            Saat papan pengendali diganti atau diprogram ulang, kirim kembali seluruh parameter, target, saklar, dan laju pompa yang tersimpan ke alat dalam satu paket.
           </p>
 
           <dl className="mt-3 grid grid-cols-2 gap-2 text-[12.5px]">

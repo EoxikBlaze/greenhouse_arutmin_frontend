@@ -54,8 +54,8 @@ export function parseApiFailure(err: unknown): ApiFailure {
     if (status === 404) message = 'Data tidak ditemukan.'
     else if (status === 401) message = 'Tidak terautentikasi.'
     else if (status === 403) message = 'Akses ditolak.'
-    else if (status === 0) message = 'Tidak dapat terhubung ke server. Periksa koneksi lalu coba lagi.'
-    else if (status >= 500) message = 'Terjadi kesalahan pada server.'
+    else if (status === 0) message = 'Tidak dapat terhubung ke sistem. Periksa koneksi lalu coba lagi.'
+    else if (status >= 500) message = 'Terjadi kesalahan pada sistem. Coba lagi sebentar.'
     else message = 'Permintaan gagal diproses.'
   }
   // 404 tanpa pesan → selalu memakai teks kontrak.

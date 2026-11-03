@@ -88,16 +88,16 @@ export default function DosingPage() {
   return (
     <div className="vsf-halaman vsf-stagger">
       <PageHeader
-        judul="Konfigurasi dosing"
+        judul="Pengaturan nutrisi"
         deskripsi="Target EC/pH tiap penampung diambil dari preset nutrisi sesuai tanaman, tahap, dan umur batch. Halaman ini hanya menyimpan konfigurasi: eksekusi dosis oleh pompa sedang dinonaktifkan sampai validasi keselamatan selesai, sehingga tidak ada injeksi nutrisi otomatis yang berjalan."
         aksi={
           <Link to="/watercontrol" className="vsf-btn-secondary">
-            Buka Water Control
+            Buka Pengairan
           </Link>
         }
       />
 
-      <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Ringkasan dosing">
+      <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Ringkasan nutrisi">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Stat label="Penampung" nilai={String(ring.meja)} sub={`${ring.terkunci} terkunci`} />
           <Stat label="Mode target" nilai={`${ring.otomatis} otomatis`} sub={`${ring.manual} manual`} />
@@ -105,7 +105,7 @@ export default function DosingPage() {
           <Stat label="Parameter" nilai={String(ring.param)} sub={`${ring.kosong} belum diatur`} />
         </div>
         <div className="mt-4">
-          <Segmen label="Bagian dosing" pilihan={TAB} nilai={tab} onPilih={(t: Tab) => setParams({ tab: KUNCI[t] }, { replace: true })} />
+          <Segmen label="Bagian pengaturan nutrisi" pilihan={TAB} nilai={tab} onPilih={(t: Tab) => setParams({ tab: KUNCI[t] }, { replace: true })} />
         </div>
       </section>
 

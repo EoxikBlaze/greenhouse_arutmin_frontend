@@ -17,16 +17,16 @@ import { Ikon } from '../Ikon'
 import { Segmen } from '../sensor/FilterBar'
 import { DialogKaca, Kosong, Pesan, Rangka } from '../kaca/DialogKaca'
 
-type Sumber = 'Dosing' | 'Timing'
-const SUMBER: readonly Sumber[] = ['Dosing', 'Timing']
-const PATH: Record<Sumber, string> = { Dosing: '/konfigurasi-dosis', Timing: '/timing-operasi' }
+type Sumber = 'Dosis nutrisi' | 'Jadwal operasi'
+const SUMBER: readonly Sumber[] = ['Dosis nutrisi', 'Jadwal operasi']
+const PATH: Record<Sumber, string> = { 'Dosis nutrisi': '/konfigurasi-dosis', 'Jadwal operasi': '/timing-operasi' }
 const URUT: Record<Sumber, string[]> = {
-  Dosing: ['Batas dosis', 'Batas harian', 'Percobaan ulang', 'Pita mati & kestabilan', 'Kalibrasi & konversi', 'Sistem'],
-  Timing: ['Pembacaan sensor', 'Ronde & jeda dosing', 'Pengisian air', 'Konfirmasi', 'Sistem'],
+  'Dosis nutrisi': ['Batas dosis', 'Batas harian', 'Percobaan ulang', 'Pita mati & kestabilan', 'Kalibrasi & konversi', 'Sistem'],
+  'Jadwal operasi': ['Pembacaan sensor', 'Ronde & jeda dosis', 'Pengisian air', 'Konfirmasi', 'Sistem'],
 }
 const KETERANGAN: Record<Sumber, string> = {
-  Dosing: 'Batas dan angka racikan yang dipakai pompa dosing.',
-  Timing: 'Durasi dan jeda operasi pompa, sensor, dan pengisian.',
+  'Dosis nutrisi': 'Batas dan angka racikan yang dipakai pompa nutrisi.',
+  'Jadwal operasi': 'Durasi dan jeda operasi pompa, sensor, dan pengisian.',
 }
 
 /** Panel Parameter: parameter dosing + timing operasi sebagai kartu, dikelompokkan dan bisa dicari. Ubah nilai = admin. */
@@ -34,7 +34,7 @@ export function PanelParameter({ dosis, timing }: { dosis: Daftar<ParameterRow>;
   const { role } = useAuth()
   const bolehUbah = role === 'admin'
   const handleApiError = useApiError()
-  const [sumber, setSumber] = useState<Sumber>('Dosing')
+  const [sumber, setSumber] = useState<Sumber>('Dosis nutrisi')
   const [cari, setCari] = useState('')
   const [edit, setEdit] = useState<ParameterRow | null>(null)
   const [nilai, setNilai] = useState('')
@@ -42,7 +42,7 @@ export function PanelParameter({ dosis, timing }: { dosis: Daftar<ParameterRow>;
   const [galat, setGalat] = useState<string | null>(null)
   const [catatan, setCatatan] = useState<string | null>(null)
 
-  const aktif = sumber === 'Dosing' ? dosis : timing
+  const aktif = sumber === 'Dosis nutrisi' ? dosis : timing
 
   useEffect(() => {
     if (!catatan) return
@@ -124,7 +124,7 @@ export function PanelParameter({ dosis, timing }: { dosis: Daftar<ParameterRow>;
       {aktif.loading && aktif.rows.length === 0 ? (
         <Rangka />
       ) : tampil === 0 ? (
-        <Kosong>{cari ? `Tidak ada parameter yang cocok dengan “${cari}”.` : 'Server belum mengirim parameter untuk modul ini.'}</Kosong>
+        <Kosong>{cari ? `Tidak ada parameter yang cocok dengan “${cari}”.` : 'Parameter untuk bagian ini belum tersedia.'}</Kosong>
       ) : (
         <div className="mt-4">
           {grup.map(([nama, rows]) => (

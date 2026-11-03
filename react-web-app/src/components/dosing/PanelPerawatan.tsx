@@ -15,7 +15,7 @@ export function PanelPerawatan({ data }: { data: Daftar<JadwalRow> }) {
       {data.loading && rows.length === 0 ? (
         <Rangka />
       ) : rows.length === 0 ? (
-        <Kosong>Server belum mengirim jadwal perawatan.</Kosong>
+        <Kosong>Jadwal perawatan belum tersedia.</Kosong>
       ) : (
         <div className="vsf-daftar mt-4">
           {rows.map((r) => (

@@ -33,7 +33,7 @@ export function PanelFailSafe({ data }: { data: Daftar<FailSafeRow> }) {
             type="search"
             className="vsf-input"
             placeholder="Cari aturan…"
-            aria-label="Cari aturan fail-safe"
+            aria-label="Cari aturan pengaman"
             value={cari}
             onChange={(e) => setCari(e.target.value)}
           />
@@ -45,7 +45,7 @@ export function PanelFailSafe({ data }: { data: Daftar<FailSafeRow> }) {
       {data.loading && data.rows.length === 0 ? (
         <Rangka />
       ) : tampil === 0 ? (
-        <Kosong>{cari ? `Tidak ada aturan yang cocok dengan “${cari}”.` : 'Server belum mengirim aturan fail-safe.'}</Kosong>
+        <Kosong>{cari ? `Tidak ada aturan yang cocok dengan “${cari}”.` : 'Aturan pengaman belum tersedia.'}</Kosong>
       ) : (
         <div className="mt-4">
           {grup.map(([nama, rows]) => (

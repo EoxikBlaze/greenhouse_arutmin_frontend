@@ -50,7 +50,7 @@ export function StripStatus({
       {basi && (
         <p className="mt-2 flex items-start gap-2 text-[12px] text-amber-900">
           <Ikon nama="peringatan" className="mt-[1px] h-4 w-4" />
-          <span>Grafik dan tabel menampilkan riwayat terakhir yang tersedia di server.</span>
+          <span>Grafik dan tabel menampilkan riwayat terakhir yang tercatat.</span>
         </p>
       )}
     </section>

@@ -183,3 +183,8 @@ html[data-tema='gelap'] .vsf-banner {
   -webkit-backdrop-filter: blur(14px) brightness(0.7);
   backdrop-filter: blur(14px) brightness(0.7);
 }
+
+/* Tombol Login/Dashboard di bilah atas: aturan otomatis membuat latarnya kaca 15% tetapi teks tetap navy
+   → hampir tak terbaca di langit malam. Latar emas + teks navy (kontras ±10:1). */
+html[data-tema='gelap'] .vsf-bilah-tombol { color: #0a1f38; background: var(--emas); }
+html[data-tema='gelap'] .vsf-bilah-tombol:hover { background: #f1da74; }

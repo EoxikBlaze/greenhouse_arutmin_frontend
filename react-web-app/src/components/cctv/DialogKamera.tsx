@@ -9,7 +9,7 @@ import { Pilihan } from './Pilihan'
 
 const LABEL = 'block min-w-0 text-[13px] font-semibold text-slate-700'
 const OPSI_TIPE: Array<{ nilai: Tipe; teks: string }> = [
-  { nilai: 'rtsp', teks: 'RTSP lewat server (EZVIZ / kamera IP)' },
+  { nilai: 'rtsp', teks: 'RTSP lewat sistem (EZVIZ / kamera IP)' },
   { nilai: 'snapshot', teks: 'Snapshot (JPEG dimuat ulang)' },
   { nilai: 'mjpeg', teks: 'Aliran MJPEG' },
 ]
@@ -89,7 +89,7 @@ export function DialogKamera({ kamera, onSelesai, onTutup }: { kamera?: Kamera; 
             onChange={(e) => ubah({ url: e.target.value })} />
           <span className="mt-1 block text-[12px] font-normal leading-relaxed text-abu">
             {form.tipe === 'rtsp'
-              ? 'Kamera RTSP (EZVIZ) diambil lewat server. Sandi = kode verifikasi 6 huruf di stiker kamera; tersimpan di server dan tampil sebagai *** — biarkan *** saat mengubah bila sandinya tetap.'
+              ? 'Kamera RTSP (EZVIZ) diambil lewat sistem. Sandi = kode verifikasi 6 huruf di stiker kamera; tersimpan di sistem dan tampil sebagai *** — biarkan *** saat mengubah bila sandinya tetap.'
               : 'Snapshot dan MJPEG ditarik langsung dari kamera di jaringan Anda.'}
           </span>
           {galat('url')}

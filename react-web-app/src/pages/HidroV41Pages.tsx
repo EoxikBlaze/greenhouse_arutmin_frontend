@@ -155,7 +155,7 @@ export function DosingManualPage() {
       // 423 = dosing dikunci (gerbang keselamatan): tampilkan alasan server apa adanya; tidak ada "sukses" cadangan
       const f = handleApiError(err)
       setGalat(f.message)
-      setCmds(tambahJejakLokal({ cmd: cmdLabel, payload: payloadStr, status: 'ditolak', ack: f.status === 423 ? 'dosing dikunci' : 'gagal' }))
+      setCmds(tambahJejakLokal({ cmd: cmdLabel, payload: payloadStr, status: 'ditolak', ack: f.status === 423 ? 'dosis dikunci' : 'gagal' }))
     } finally {
       setSibuk(null)
     }
@@ -164,8 +164,8 @@ export function DosingManualPage() {
   return (
     <div className="vsf-halaman vsf-stagger">
       <PageHeader
-        judul="Dosing Manual"
-        deskripsi="Dosing dari aplikasi DIKUNCI: aplikasi hanya memberi saran, tombol dosing ditolak server. STOP hanya mengantre perintah dan tidak menjamin pompa mati; gunakan tombol darurat fisik."
+        judul="Nutrisi Manual"
+        deskripsi="Pemberian nutrisi dari aplikasi DIKUNCI: aplikasi hanya memberi saran dan tombol dosis ditolak sistem. STOP hanya mengantrekan perintah dan tidak menjamin pompa mati; gunakan tombol darurat fisik."
       />
 
       {pesan && <Pesan jenis="ok">{pesan}</Pesan>}
@@ -173,12 +173,12 @@ export function DosingManualPage() {
 
       <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Halaman ini untuk apa">
         <div className="vsf-judul-bagian">Halaman ini untuk apa</div>
-        <p className="mt-0.5 text-[13px] text-abu">Halaman ini dikunci untuk dosing; hanya STOP yang bisa diantre.</p>
+        <p className="mt-0.5 text-[13px] text-abu">Halaman ini dikunci untuk pemberian nutrisi; hanya STOP yang bisa diantrekan.</p>
         <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
           <div className="vsf-blok p-3.5">
-            <div className="text-[13.5px] font-bold text-tinta">Dosing manual</div>
+            <div className="text-[13.5px] font-bold text-tinta">Nutrisi manual</div>
             <p className="mt-1 text-[12.5px] leading-relaxed text-abu">
-              Menyuntik nutrisi A+B atau pH up/down saat Anda memutuskan sendiri — misalnya setelah ganti air atau setelah membaca hasil uji lab. SAAT INI DIKUNCI: tombol dosing ditolak server dan tidak mengubah hitungan apa pun.
+              Menyuntik nutrisi A+B atau pH up/down saat Anda memutuskan sendiri — misalnya setelah ganti air atau setelah membaca hasil uji lab. SAAT INI DIKUNCI: tombol dosis ditolak sistem dan tidak mengubah hitungan apa pun.
             </p>
           </div>
           <div className="vsf-blok p-3.5">
@@ -196,8 +196,8 @@ export function DosingManualPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
         {/* Kolom Kiri: Form Dosing A+B, Koreksi pH, STOP */}
-        <section className="vsf-card w-full min-w-0 p-4 sm:p-5 lg:col-span-7" aria-label="Form dosing manual">
-          <div className="vsf-judul-bagian">Dosing A + B</div>
+        <section className="vsf-card w-full min-w-0 p-4 sm:p-5 lg:col-span-7" aria-label="Form nutrisi manual">
+          <div className="vsf-judul-bagian">Nutrisi A + B</div>
           <p className="mt-0.5 text-[13px] text-abu">Satu kali suntikan, A dulu lalu jeda lalu B.</p>
 
           <form
@@ -219,7 +219,7 @@ export function DosingManualPage() {
                   value={ppm}
                   onChange={(e) => setPpm(e.target.value)}
                 />
-                <span className="mt-1 block text-[11.5px] text-abu">Dibatasi 300 ppm per dosing oleh firmware.</span>
+                <span className="mt-1 block text-[11.5px] text-abu">Dibatasi 300 ppm per dosis oleh program alat.</span>
               </label>
               <div className="block">
                 <span className="vsf-label vsf-label-tinta">Laju pompa A (hasil kalibrasi)</span>
@@ -235,7 +235,7 @@ export function DosingManualPage() {
             {bolehUbah && (
               <button type="submit" className="vsf-btn-primary" disabled={sibuk !== null}>
                 {sibuk === 'dosing_ab' && <span className="vsf-spinner" aria-hidden />}
-                Dosing A + B (dikunci)
+                Nutrisi A + B (dikunci)
               </button>
             )}
           </form>
@@ -356,7 +356,7 @@ export function DosingManualPage() {
               <div className="vsf-stat">
                 <dt className="vsf-label">Mode pemeliharaan</dt>
                 <dd className="mt-0.5 font-semibold text-tinta">
-                  {p?.pemeliharaan ? 'aktif (dosing ditolak)' : 'mati'}
+                  {p?.pemeliharaan ? 'aktif (dosis ditolak)' : 'mati'}
                 </dd>
               </div>
             </dl>
@@ -443,10 +443,10 @@ export function KurasGantiAirPage() {
       ])
       setPesan(
         aksi === 'kuras_mulai'
-          ? 'Mode pemeliharaan dinyalakan di server (tindakan otomatis dijeda). Aplikasi TIDAK mematikan pompa: matikan dengan tombol fisik bila perlu. Tekan "Selesai & lanjutkan" setelah air baru terisi.'
+          ? 'Mode pemeliharaan dinyalakan (tindakan otomatis dijeda). Aplikasi TIDAK mematikan pompa: matikan dengan tombol fisik bila perlu. Tekan "Selesai & lanjutkan" setelah air baru terisi.'
           : aksi === 'air_diganti'
-            ? 'Air baru dikonfirmasi di server; hitungan harian mulai dari nol. Alat belum diberi tahu.'
-            : 'Mode pemeliharaan dibatalkan di server.',
+            ? 'Air baru sudah dikonfirmasi; hitungan harian mulai dari nol. Alat belum diberi tahu.'
+            : 'Mode pemeliharaan dibatalkan.',
       )
       void iot.reload()
     } catch (err) {
@@ -509,7 +509,7 @@ export function KurasGantiAirPage() {
                 <dd className="mt-0.5 font-bold tabular-nums text-tinta">{fmt(p?.volume_l)} L</dd>
               </div>
               <div className="vsf-stat">
-                <dt className="vsf-label">Dosing ditahan?</dt>
+                <dt className="vsf-label">Dosis ditahan?</dt>
                 <dd className="mt-0.5 font-semibold text-tinta">
                   {p?.tahan_dosing ? `ya — ${p?.tahan_alasan ?? 'ditahan'}` : 'tidak'}
                 </dd>
@@ -637,7 +637,7 @@ export function KurasGantiAirPage() {
               </div>
             </dl>
             <p className="mt-3 text-[12px] leading-relaxed text-abu">
-              Hitungan dibuat dari catatan kejadian di database, jadi otomatis mulai dari nol pukul 00:00 — tidak perlu tombol reset.
+              Hitungan dibuat dari catatan kejadian, jadi otomatis mulai dari nol pukul 00:00 — tidak perlu tombol reset.
             </p>
           </section>
 
@@ -680,7 +680,7 @@ export function PemulihanPapanPage() {
     try {
       const res = await api.post('/iot-v41/pulihkan')
       const d = (res.data ?? {}) as { message?: string }
-      setPesan(String(d.message ?? 'Paket pemulihan disiapkan di server. Belum dikirim ke papan.'))
+      setPesan(String(d.message ?? 'Paket pemulihan sudah disiapkan, tetapi belum dikirim ke alat.'))
       setJejak((lama) => [
         { waktu: new Date().toISOString(), status: 'disiapkan', ack: 'BELUM dikirim ke papan' },
         ...lama,
@@ -697,7 +697,7 @@ export function PemulihanPapanPage() {
     <div className="vsf-halaman vsf-stagger">
       <PageHeader
         judul="Pemulihan Papan"
-        deskripsi="Mengirim ulang parameter dan kalibrasi ke papan ESP32 pengganti dalam satu paket."
+        deskripsi="Mengirim ulang parameter dan kalibrasi ke papan pengendali pengganti dalam satu paket."
       />
 
       {pesan && <Pesan jenis="ok">{pesan}</Pesan>}
@@ -829,12 +829,12 @@ export function PemulihanPapanPage() {
             <div className="vsf-judul-bagian">Urutan yang benar saat ganti papan</div>
             <ol className="mt-2.5 list-decimal space-y-1.5 pl-5 text-[13px] leading-relaxed text-abu">
               <li>Matikan alat dan lepas E-STOP.</li>
-              <li>Ganti papan, unggah firmware dengan ID alat yang sama.</li>
+              <li>Ganti papan, lalu pasang program alat dengan ID alat yang sama.</li>
               <li>Nyalakan, buka halaman ini sampai status <b className="text-tinta">BARU</b> muncul.</li>
               <li>Tekan tombol pemulihan, tunggu ack <b className="text-tinta">ok</b>.</li>
               <li>Kalibrasi ulang probe yang ikut diganti (tidak bisa dipulihkan).</li>
               <li>Uji tiap pompa, angkat float atas, tekan E-STOP.</li>
-              <li>Baru kirim target dari menu Kebun Saya / Konfigurasi Dosing.</li>
+              <li>Baru kirim target dari menu Kebun Saya / Pengaturan Nutrisi.</li>
             </ol>
             <p className="mt-3 text-[12px] text-abu">
               Satu hal yang tidak dipulihkan: kecocokan probe. Angka lama hanya berlaku untuk probe lama.
@@ -897,7 +897,7 @@ export function MqttDiagnostikPage() {
           cmd: 'publish_manual',
           payload: `${topic} → ${payload}`,
           status: 'dicatat',
-          ack: 'TIDAK diterbitkan ke broker',
+          ack: 'TIDAK dikirim ke alat',
         }),
       )
       setPesan(String(d.message ?? `Pesan untuk ${topic} hanya dicatat; tidak diterbitkan.`))
@@ -911,19 +911,19 @@ export function MqttDiagnostikPage() {
   return (
     <div className="vsf-halaman vsf-stagger">
       <PageHeader
-        judul="MQTT & Diagnostik"
-        deskripsi="Status broker, kontrak topik komunikasi v4.1, uji kirim manual, dan jejak perintah."
+        judul="Koneksi Alat"
+        deskripsi="Status jalur komunikasi alat, uji kirim pesan, dan jejak perintah."
       />
 
       {pesan && <Pesan jenis="ok">{pesan}</Pesan>}
       {galat && <Pesan jenis="galat" onTutup={() => setGalat(null)}>{galat}</Pesan>}
 
-      <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Ringkasan broker">
+      <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Ringkasan koneksi alat">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="vsf-stat">
             <div className="vsf-label">Broker</div>
             <div className="mt-1">
-              <StatusBadge tone="online" label="Siap (Jembatan MQTT)" />
+              <StatusBadge tone="online" label="Siap (jalur komunikasi alat)" />
             </div>
             <div className="mt-1 text-[12px] text-abu">Aedes / Mosquitto lokal siap meneruskan topik</div>
           </div>
@@ -943,7 +943,7 @@ export function MqttDiagnostikPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
         <section className="vsf-card w-full min-w-0 p-4 sm:p-5 lg:col-span-7" aria-label="Kontrak topik dan uji kirim">
           <div className="vsf-judul-bagian">Kontrak topik</div>
-          <p className="mt-0.5 text-[13px] text-abu">Sesuai Kontrak MQTT Hidro Control v4.1.</p>
+          <p className="mt-0.5 text-[13px] text-abu">Daftar jalur pesan yang dipakai alat.</p>
 
           <div className="vsf-daftar mt-3">
             {KONTRAK_TOPIK.map((t) => (
@@ -1002,7 +1002,7 @@ export function MqttDiagnostikPage() {
           <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Jejak perintah">
             <div className="vsf-judul-bagian">Jejak perintah (terakhir)</div>
             <p className="mt-0.5 text-[12.5px] text-abu">
-              Status: terkirim = sudah masuk broker, ok/ditolak = ack dari alat.
+              Status: terkirim = sudah masuk jalur komunikasi, ok/ditolak = balasan dari alat.
             </p>
             {cmds.length === 0 ? (
               <div className="vsf-blok mt-3 px-4 py-6 text-center text-[13px] text-abu">
@@ -1074,7 +1074,7 @@ export function PeringatanPage() {
             waktu: waktuAcuan,
             level: 'merah' as const,
             kode: 'AIR_DIGANTI',
-            pesan: p.tahan_alasan ?? 'Dosing ditahan otomatis karena perubahan drastis EC/pH.',
+            pesan: p.tahan_alasan ?? 'Pemberian nutrisi ditahan otomatis karena perubahan EC/pH yang drastis.',
             aktif: true,
           },
         ]

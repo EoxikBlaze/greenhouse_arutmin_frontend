@@ -37,7 +37,7 @@ export function PilSosial({ interaktif = false, netral = false }: { interaktif?:
 }
 
 /**
- * Grup merek di gambar acuan: pil logo, banner percikan, pil perusahaan, judul skrip "Our Team".
+ * Grup merek di gambar acuan: pil logo, banner percikan, pil perusahaan, judul skrip "Tim Kami".
  * Dipakai dua kali: di splash (animasi masuk) dan di hero halaman (tujuan terbang splash).
  */
 export function GrupMerek({
@@ -72,13 +72,13 @@ export function GrupMerek({
       </div>
 
       <div className={`${item} vsf-kaca vsf-kaca-gelap mt-2 -rotate-2 rounded-full px-7 py-2.5 text-[13px] font-extrabold uppercase tracking-[.06em] sm:text-[15px]`} style={tunda('.6s')}>
-        PT. Arutmin Indonesia
+        PT Arutmin Indonesia
       </div>
 
       <div className="mt-5 flex items-center gap-2">
         <Percikan kiri />
         <span className={`${animasi ? 'vsf-sp-tulis' : ''} text-[46px] leading-none text-white [text-shadow:0_3px_20px_rgba(7,21,39,.6)] sm:text-[68px]`} style={{ ...tunda('.85s'), fontFamily: FONT_SKRIP }}>
-          Our Team
+          Tim Kami
         </span>
         <Percikan />
       </div>

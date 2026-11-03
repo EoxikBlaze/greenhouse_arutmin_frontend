@@ -126,7 +126,7 @@ export default function WaterControlPage() {
   const aksiOff = alasanNonaktif !== null || busy !== null
 
   const stat: Array<{ label: string; nilai: string; ket: string; flash?: boolean }> = [
-    { label: 'Perintah terakhir', nilai: status?.command ?? '—', ket: 'tercatat di server', flash: true },
+    { label: 'Perintah terakhir', nilai: status?.command ?? '—', ket: 'tercatat di sistem', flash: true },
     { label: 'Katup', nilai: status?.valve_state ?? '—', ket: 'status katup tandon', flash: true },
     {
       label: 'Mode',

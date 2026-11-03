@@ -30,7 +30,7 @@ export function validasiTargetDosing(f: TargetDosingForm): Record<string, string
   const err: Record<string, string[]> = {}
   if (KUNCI.every((k) => kosong(f[k]))) return err
   for (const k of KUNCI) {
-    if (kosong(f[k])) err[k] = ['Isi ketiga kolom target dosing, atau kosongkan semuanya.']
+    if (kosong(f[k])) err[k] = ['Isi ketiga kolom target nutrisi, atau kosongkan semuanya.']
     else if (Number.isNaN(angkaOpsional(f[k]))) err[k] = ['Harus berupa angka.']
   }
   return err

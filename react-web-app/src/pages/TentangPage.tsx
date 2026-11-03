@@ -15,6 +15,7 @@ import { SplashTentang } from '../components/tentang/SplashTentang'
 import { SaklarTema } from '../components/SaklarTema'
 
 const BAGIAN = ['sistem', 'cara-kerja', 'data', 'aplikasi', 'mitra', 'tim']
+const LABEL_BAGIAN: Record<string, string> = { sistem: 'Sistem', 'cara-kerja': 'Cara kerja', data: 'Data', aplikasi: 'Aplikasi', mitra: 'Mitra', tim: 'Tim' }
 
 /** Bagian yang sedang di tengah layar — untuk menandai tautan header (aria-current). */
 function useScrollspy(ids: string[]) {
@@ -73,7 +74,7 @@ const PERAN: Peran[] = [
   {
     jabatan: 'Project Manager',
     nama: 'Rivi Ramdani',
-    foto: '/tim/rivi-ramdani.png',
+    foto: '/tim/rivi-ramdani.webp',
     deskripsi:
       'Memimpin arah proyek Vertonik Smart Farm: menyusun rencana kerja, membagi tugas, dan memastikan seluruh tim bergerak menuju tujuan yang sama.',
     ikon: <Ikon><path d="m12 3 2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.4 6.8 19.2l1-5.9L3.5 9.2l5.9-.8z" /></Ikon>,
@@ -81,7 +82,7 @@ const PERAN: Peran[] = [
   {
     jabatan: 'Finance',
     nama: 'Nova Atika Angelia',
-    foto: '/tim/nova-atika-angelia.png',
+    foto: '/tim/nova-atika-angelia.webp',
     deskripsi:
       'Mengelola anggaran proyek dan mencatat setiap pengeluaran — dari pengadaan sensor, perangkat IoT, sampai kebutuhan operasional greenhouse.',
     ikon: <Ikon><rect x="2.5" y="6" width="19" height="12" rx="2.5" /><circle cx="12" cy="12" r="2.6" /><path d="M6 10v4M18 10v4" /></Ikon>,
@@ -89,7 +90,7 @@ const PERAN: Peran[] = [
   {
     jabatan: 'Secretary',
     nama: 'Putri Nadilatu Zahra',
-    foto: '/tim/putri-nadilatu-zahra.png',
+    foto: '/tim/putri-nadilatu-zahra.webp',
     deskripsi:
       'Menata dokumentasi proyek, menyusun notulen rapat, dan menjaga komunikasi antaranggota tim tetap teratur dan mudah ditemukan.',
     ikon: <Ikon><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h4" /></Ikon>,
@@ -97,7 +98,7 @@ const PERAN: Peran[] = [
   {
     jabatan: 'Creative & Public Relations',
     nama: 'Siti Azizahtusholihah',
-    foto: '/tim/siti-azizahtusholihah.png',
+    foto: '/tim/siti-azizahtusholihah.webp',
     deskripsi:
       'Merancang identitas visual dan kabar terbaru proyek, serta menjaga hubungan baik dengan pengguna dan mitra Vertonik Smart Farm.',
     ikon: <Ikon><path d="M4 10v4a1 1 0 0 0 1 1h2l6 4V5L7 9H5a1 1 0 0 0-1 1z" /><path d="M17.5 9.5a4 4 0 0 1 0 5" /></Ikon>,
@@ -105,7 +106,7 @@ const PERAN: Peran[] = [
   {
     jabatan: 'Backend Engineering',
     nama: 'Muhammad Rizki Maulana',
-    foto: '/tim/muhammad-rizki-maulana.png',
+    foto: '/tim/muhammad-rizki-maulana.webp',
     deskripsi:
       'Membangun dan merawat API GARAP beserta basis data greenhouse, agar data sensor dan budidaya tersimpan aman, konsisten, dan andal.',
     ikon: <Ikon><ellipse cx="12" cy="6" rx="7.5" ry="3" /><path d="M4.5 6v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6" /><path d="M4.5 12v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-6" /></Ikon>,
@@ -113,15 +114,15 @@ const PERAN: Peran[] = [
   {
     jabatan: 'IoT Engineer',
     nama: 'Muhammad Zainal Haqi',
-    foto: '/tim/muhammad-zainal-haqi.png',
+    foto: '/tim/muhammad-zainal-haqi.webp',
     deskripsi:
-      'Merancang perangkat ESP32 dan rangkaian sensor hidroponik yang mengirim suhu, pH, dan TDS greenhouse secara real-time ke sistem.',
+      'Merancang perangkat ESP32 dan rangkaian sensor hidroponik yang mengirim suhu, pH, dan TDS greenhouse secara langsung ke sistem.',
     ikon: <Ikon><rect x="7" y="7" width="10" height="10" rx="2" /><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4" /></Ikon>,
   },
   {
     jabatan: 'Web & Application Developer',
     nama: 'Eka Ridhoni August Firmansyah',
-    foto: '/tim/eka-ridhoni-august-firmansyah.png',
+    foto: '/tim/eka-ridhoni-august-firmansyah.webp',
     deskripsi:
       'Mengembangkan antarmuka web dan aplikasi yang membuat petani mudah memantau kondisi serta mengatur tanam dari mana saja.',
     ikon: <Ikon><rect x="2.5" y="4.5" width="19" height="13" rx="2" /><path d="M8 21h8M12 17.5V21" /><path d="m10 9-2 2 2 2M14 9l2 2-2 2" /></Ikon>,
@@ -130,27 +131,25 @@ const PERAN: Peran[] = [
 
 /** Angka sistem dari dokumen Perancangan Sistem IoT Hidroponik (FINAL). */
 const MITRA = [
-  { nama: 'KKN Arutmin Asik 2026', peran: 'Program KKN Industri', src: '/logo/kkn.png', teks: 'Program Kuliah Kerja Nyata Industri mahasiswa Politeknik Negeri Tanah Laut di PT Arutmin Indonesia tahun 2026. Vertonik Smart Farm adalah salah satu hasil kerjanya.', href: 'https://instagram.com/kkn.arutminidn2026' },
-  { nama: 'PT Arutmin Indonesia', peran: 'Mitra industri', src: '/logo/arutmin.png', teks: 'Perusahaan pertambangan batubara tempat program KKN dijalankan dan mitra penyedia lokasi greenhouse.', href: 'https://www.arutmin.com' },
-  { nama: 'Politeknik Negeri Tanah Laut', peran: 'Perguruan tinggi', src: '/logo/polytala.png', teks: 'Perguruan tinggi asal para mahasiswa KKN yang merancang dan membangun sistem ini.', href: 'https://polytala.ac.id' },
-  { nama: 'TRKJ', peran: 'Program studi', src: '/logo/trkj.png', teks: 'Program studi Teknologi Rekayasa Komputer dan Jaringan — bidang keilmuan di balik perangkat IoT, jaringan, dan aplikasi proyek ini.' } as { nama: string; peran: string; src: string; teks: string; href?: string },
+  { nama: 'KKN Arutmin Asik 2026', peran: 'Program KKN Industri', src: '/logo/kkn.webp', teks: 'Program Kuliah Kerja Nyata Industri mahasiswa Politeknik Negeri Tanah Laut di PT Arutmin Indonesia tahun 2026. Vertonik Smart Farm adalah salah satu hasil kerjanya.', href: 'https://instagram.com/kkn.arutminidn2026' },
+  { nama: 'PT Arutmin Indonesia', peran: 'Mitra industri', src: '/logo/arutmin.webp', teks: 'Perusahaan pertambangan batubara tempat program KKN dijalankan dan mitra penyedia lokasi greenhouse.', href: 'https://www.arutmin.com' },
+  { nama: 'Politeknik Negeri Tanah Laut', peran: 'Perguruan tinggi', src: '/logo/polytala.webp', teks: 'Perguruan tinggi asal para mahasiswa KKN yang merancang dan membangun sistem ini.', href: 'https://polytala.ac.id' },
+  { nama: 'TRKJ', peran: 'Program studi', src: '/logo/trkj.webp', teks: 'Program studi Teknologi Rekayasa Komputer dan Jaringan — bidang keilmuan di balik perangkat IoT, jaringan, dan aplikasi proyek ini.' } as { nama: string; peran: string; src: string; teks: string; href?: string },
 ]
 
 const ANGKA = [
-  { nilai: '4', label: 'meja hidroponik', info: 'Tiga meja sistem NFT (aliran tipis) dan satu meja DFT (genangan dalam), masing-masing dengan penampung dan pengaturan sendiri.', ket: '3 NFT + 1 DFT' },
-  { nilai: '1.220', label: 'lubang tanam', info: 'Jumlah seluruh lubang tanam di keempat meja. Dari sinilah kapasitas panen dihitung.', ket: 'total keempat meja' },
-  { nilai: '±70 L', label: 'penampung per meja', info: 'Setiap meja punya penampung ±70 liter dengan target (setpoint) nutrisi dan kunci pengaman (LOCK) sendiri.', ket: 'setpoint & LOCK sendiri' },
-  { nilai: '1', label: 'pengendali ESP32', info: 'Satu mikrokontroler ESP32 mengurus semua meja secara bergiliran: satu aksi pada satu waktu supaya arus pompa aman.', ket: 'bergiliran, satu aksi satu waktu' },
+  { nilai: '±70 L', label: 'penampung per meja', info: 'Setiap meja punya penampung ±70 liter dengan target nutrisi dan pengunci pengaman sendiri.', ket: 'target & pengunci sendiri' },
+  { nilai: '1', label: 'pengendali (ESP32)', info: 'Satu papan pengendali membaca sensor sekaligus mengurus pompa semua meja secara bergiliran: satu aksi pada satu waktu supaya arus pompa aman.', ket: 'sensor & pompa, bergiliran' },
 ]
 
 const APLIKASI = [
   { judul: 'Dashboard Web', info: 'Ringkasan semua meja: status sensor, alert terbuka, dan panen terakhir. Perlu login.', href: '/dashboard', tag: 'Web', teks: 'Ringkasan kebun, alert terbuka, dan status tiap meja dalam satu layar.',
     ikon: <><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M7 14l3-3 3 2 4-5M8 21h8" /></> },
-  { judul: 'Aplikasi Mobile', info: 'Versi ponsel (Flutter) untuk petani: notifikasi alert, siklus tanam, CCTV, dan asisten AI.', tag: 'Android · iOS', teks: 'Pantau dan terima notifikasi dari kebun lewat ponsel, di mana saja.',
+  { judul: 'Aplikasi Mobile', info: 'Versi ponsel untuk petani: kondisi sensor, peringatan, siklus tanam, CCTV, dan asisten AI.', tag: 'Android · iOS', teks: 'Pantau kondisi kebun dan peringatan lewat ponsel, di mana saja.',
     ikon: <><rect x="7" y="2.5" width="10" height="19" rx="2.5" /><path d="M11 18.5h2" /></> },
-  { judul: 'Sensor Real-time', info: 'Grafik dan angka EC, pH, suhu air, serta suhu dan kelembapan ruang yang diperbarui terus. Perlu login.', href: '/sensor-realtime', tag: 'Web · Mobile', teks: 'EC, pH, suhu, dan kelembapan tiap penampung dengan riwayat grafik.',
+  { judul: 'Sensor Langsung', info: 'Grafik dan angka EC/TDS, pH, suhu air, serta suhu dan kelembapan ruang yang diperbarui terus. Perlu login.', href: '/sensor-realtime', tag: 'Web · Mobile', teks: 'EC/TDS, pH, suhu, dan kelembapan tiap penampung dengan riwayat grafik.',
     ikon: <><path d="M12 3c3 4 5 6.6 5 9.5a5 5 0 0 1-10 0C7 9.600 9 7 12 3z" /></> },
-  { judul: 'Konfigurasi Dosing', info: 'Atur preset dan pantau parameter nutrisi A/B. Eksekusi pompa dinonaktifkan sampai validasi keselamatan selesai. Perlu login.', href: '/dosing', tag: 'Pompa nonaktif', teks: 'Halaman untuk konfigurasi dan pemantauan; tidak menjalankan pompa.',
+  { judul: 'Pengaturan Nutrisi', info: 'Atur preset dan pantau parameter nutrisi A/B. Eksekusi pompa dinonaktifkan sampai validasi keselamatan selesai. Perlu login.', href: '/dosing', tag: 'Pompa nonaktif', teks: 'Halaman untuk konfigurasi dan pemantauan; tidak menjalankan pompa.',
     ikon: <><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.800 3h10.400A2 2 0 0 0 19 18l-5-9V3" /><path d="M7.500 15h9" /></> },
   { judul: 'CCTV Kebun', info: 'Tampilan kamera greenhouse langsung dari aplikasi. Perlu login.', href: '/cctv', tag: 'Web · Mobile', teks: 'Lihat kondisi tanaman langsung dari kamera tanpa ke lokasi.',
     ikon: <><path d="M3 8l12-3 2 5-12 3zM17 10l4 1v4l-4-1M8 17l-1 4" /></> },
@@ -160,7 +159,7 @@ const APLIKASI = [
 
 const ALUR = [
   { no: '01', judul: 'Baca', info: 'Pembacaan dilakukan saat air diam di botol sampel agar nilai EC, pH, dan suhu stabil dan akurat.', teks: 'Air tiap penampung diambil ke botol sampel, lalu EC, pH, dan suhu dibaca saat air diam.' },
-  { no: '02', judul: 'Rencana penilaian', info: 'Rancangan dosing akan membandingkan bacaan dengan target dan batas yang disetujui. Penilaian ini belum mengaktifkan eksekusi.', teks: 'Target, batas operasi, dan status keselamatan harus tervalidasi sebelum keputusan dosing dapat digunakan.' },
+  { no: '02', judul: 'Rencana penilaian', info: 'Rancangan pemberian nutrisi akan membandingkan bacaan dengan target dan batas yang disetujui. Penilaian ini belum mengaktifkan eksekusi.', teks: 'Target, batas operasi, dan status keselamatan harus tervalidasi sebelum keputusan dosing dapat digunakan.' },
   { no: '03', judul: 'Eksekusi dinonaktifkan', info: 'Pompa belum dijalankan oleh aplikasi. Eksekusi tetap diblokir sampai validasi, protokol, dan perangkat memenuhi persyaratan keselamatan.', teks: 'Tidak ada perintah dosing yang dikirim ke perangkat pada tahap ini.' },
 ]
 
@@ -230,6 +229,13 @@ export function TentangPage() {
   const akar = useRef<HTMLDivElement>(null)
   const heroGrup = useRef<HTMLDivElement>(null)
   const aktif = useScrollspy(BAGIAN)
+  const [menu, setMenu] = useState(false)
+  useEffect(() => {
+    if (!menu) return undefined
+    const tutup = (e: KeyboardEvent) => e.key === 'Escape' && setMenu(false)
+    window.addEventListener('keydown', tutup)
+    return () => window.removeEventListener('keydown', tutup)
+  }, [menu])
   usePudarTepi(fase === 'selesai')
 
   // selama splash: halaman diam (tanpa gulir) dan tidak bisa difokus/ditekan
@@ -281,28 +287,48 @@ export function TentangPage() {
         <div className="vsf-bilah mx-auto flex min-h-[60px] max-w-[1180px] items-center gap-3 py-2 pl-3 pr-2 sm:pl-4">
           <Link to="/" className="flex min-w-0 items-center gap-3" aria-label="Vertonik Smart Farm">
             <Monogram className="h-10 w-14 shrink-0" />
-            <span className="min-w-0">
+            {/* <420px: tombol menu ikut di bilah → nama terpotong "V…"; cukup monogram (aria-label di tautan) */}
+            <span className="hidden min-w-0 min-[420px]:block">
               <span className="block truncate font-display text-[17px] font-bold leading-tight text-white">Vertonik</span>
               <span className="block truncate text-[12px] font-semibold text-[var(--emas)]">Smart Farm</span>
             </span>
           </Link>
           <nav className="ml-auto hidden items-center gap-1 text-[14px] font-medium lg:flex" aria-label="Bagian halaman">
-            {[
-              ['sistem', 'Sistem'],
-              ['cara-kerja', 'Cara kerja'],
-              ['data', 'Data'],
-              ['aplikasi', 'Aplikasi'],
-              ['mitra', 'Mitra'],
-              ['tim', 'Tim'],
-            ].map(([id, label]) => (
-              <a key={id} href={`#${id}`} className="vsf-bilah-tautan" aria-current={aktif === id ? 'true' : undefined}>{label}</a>
+            {BAGIAN.map((id) => (
+              <a key={id} href={`#${id}`} className="vsf-bilah-tautan" aria-current={aktif === id ? 'true' : undefined}>{LABEL_BAGIAN[id]}</a>
             ))}
           </nav>
           <SaklarTema className="ml-auto lg:ml-2" />
+          {/* HP/tablet: menu bagian di balik tombol (nav lebar disembunyikan di bawah lg) */}
+          <button
+            type="button"
+            className="vsf-bilah-tombol-kaca grid h-11 w-11 shrink-0 place-items-center rounded-full lg:hidden"
+            aria-expanded={menu}
+            aria-controls="menu-bagian"
+            aria-label={menu ? 'Tutup menu bagian' : 'Buka menu bagian'}
+            onClick={() => setMenu((v) => !v)}
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+              {menu ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+            </svg>
+          </button>
           <Link to={isAuthenticated ? '/dashboard' : '/login'} className="vsf-bilah-tombol shrink-0">
             {isAuthenticated ? 'Dashboard' : 'Login'}
           </Link>
         </div>
+        {menu && (
+          <nav id="menu-bagian" aria-label="Bagian halaman" className="vsf-bilah mx-auto mt-2 max-w-[1180px] p-2 lg:hidden">
+            <ul className="grid grid-cols-2 gap-1 sm:grid-cols-3">
+              {BAGIAN.map((id) => (
+                <li key={id}>
+                  <a href={`#${id}`} onClick={() => setMenu(false)} className="vsf-bilah-tautan min-h-[44px] w-full" aria-current={aktif === id ? 'true' : undefined}>
+                    {LABEL_BAGIAN[id]}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
       </header>
 
       <main ref={refMuncul} onPointerMove={kilau} className="vsf-satu mx-auto w-full max-w-[1180px] flex-1 px-4 py-6 sm:px-6">
@@ -335,9 +361,9 @@ export function TentangPage() {
               Pantau nutrisi tanaman dan tentukan tindak lanjut berdasarkan data.
             </h2>
             <p className="mt-3 max-w-[760px] text-[14.5px] leading-relaxed text-slate-600">
-              Vertonik Smart Farm (GARAP) adalah sistem IoT untuk memantau greenhouse hidroponik multi-penampung dan
-              mengelola konfigurasi target nutrisi. Eksekusi dosing otomatis saat ini dinonaktifkan; tindak lanjut tetap
-              memerlukan keputusan petani.
+              Vertonik Smart Farm (GARAP) memantau greenhouse hidroponik dengan beberapa penampung nutrisi lewat sensor
+              pH, EC/TDS, dan suhu, lalu menyimpan target nutrisi tiap meja. Pemberian nutrisi otomatis saat ini
+              dinonaktifkan; tindak lanjut tetap diputuskan petani.
             </p>
             <p className="mt-4 text-[12px] text-slate-500">Tekan kartu untuk membuka tautan, tahan untuk membaca penjelasannya.</p>
           </section>
@@ -420,13 +446,13 @@ export function TentangPage() {
           </div>
         </section>
 
-        {/* Tim — poster "Our Team": langit + gunung, kartu jaket almamater (marun) */}
+        {/* Tim — poster "Tim Kami": langit + gunung, kartu jaket almamater (marun) */}
         <section id="tim" className="mt-16 scroll-mt-24 pb-6" aria-labelledby="vsf-peran-title">
           <div>
             <div className="vsf-muncul flex items-center justify-center gap-2 text-center">
               <Percikan kiri />
               <h2 id="vsf-peran-title" className="text-[44px] font-normal leading-none text-white [text-shadow:0_3px_20px_rgba(7,21,39,.6)] sm:text-[64px]" style={{ fontFamily: FONT_SKRIP }}>
-                Our Team
+                Tim Kami
               </h2>
               <Percikan />
             </div>
@@ -493,7 +519,7 @@ export function TentangPage() {
         {/* Ajakan penutup */}
         <section className="vsf-muncul vsf-kaca vsf-kaca-netral mt-16 flex flex-col items-center gap-4 rounded-[32px] px-6 py-10 text-center" aria-labelledby="vsf-cta-title">
           <h2 id="vsf-cta-title" className="font-display text-[24px] font-bold text-white sm:text-[30px]">Siap memantau kebun Anda?</h2>
-          <p className="max-w-[520px] text-[14px] leading-relaxed text-white/80">Login untuk melihat sensor, mengatur konfigurasi dosing (pompa nonaktif), dan bertanya pada asisten AI.</p>
+          <p className="max-w-[520px] text-[14px] leading-relaxed text-white/80">Login untuk melihat sensor, mengatur nutrisi (pompa nonaktif), dan bertanya pada asisten AI.</p>
           <Link to={isAuthenticated ? '/dashboard' : '/login'} className="vsf-btn-primary">{isAuthenticated ? 'Dashboard' : 'Login'}</Link>
           <PilSosial interaktif netral />
         </section>

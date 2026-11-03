@@ -16,17 +16,17 @@ function IconEye({ off }: { off?: boolean }) {
 }
 
 const KEUNGGULAN = [
-  { label: 'Sensor real-time', detail: 'pH, TDS, dan suhu air tiap meja' },
-  { label: 'Konfigurasi dosing', detail: 'Pantau parameter; eksekusi pompa dinonaktifkan' },
+  { label: 'Sensor langsung', detail: 'pH, TDS, dan suhu air tiap meja' },
+  { label: 'Pengaturan nutrisi', detail: 'Pantau parameter; eksekusi pompa dinonaktifkan' },
   { label: 'Siklus tanam', detail: 'Semai sampai panen, cukup isi hasilnya' },
 ]
 
 /** Judul poster — sama dengan hero halaman Tentang (TentangPage.tsx FONT_POSTER). */
 const FONT_POSTER = "'Oswald','Anton',Impact,'Arial Narrow',sans-serif"
 const LOGO_MITRA = [
-  { src: '/logo/arutmin.png', alt: 'PT Arutmin Indonesia' },
-  { src: '/logo/polytala.png', alt: 'Politeknik Negeri Tanah Laut' },
-  { src: '/logo/trkj.png', alt: 'TRKJ' },
+  { src: '/logo/arutmin.webp', alt: 'PT Arutmin Indonesia' },
+  { src: '/logo/polytala.webp', alt: 'Politeknik Negeri Tanah Laut' },
+  { src: '/logo/trkj.webp', alt: 'TRKJ' },
 ]
 
 export default function LoginPage() {
@@ -59,12 +59,12 @@ export default function LoginPage() {
       const data = (
         err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } }
       )?.response?.data
-      setServerError(data?.message || 'Login gagal — periksa koneksi ke server.')
+      const pesan = data?.message || 'Login gagal — periksa koneksi ke sistem.'
+      setServerError(pesan)
       if (data?.errors) {
-        setErrors({
-          username: data.errors.username?.[0],
-          password: data.errors.password?.[0],
-        })
+        // pesan kolom yang sama persis dengan banner tidak ditampilkan dua kali
+        const kolom = (v?: string[]) => (v?.[0] && v[0] !== pesan ? v[0] : undefined)
+        setErrors({ username: kolom(data.errors.username), password: kolom(data.errors.password) })
       }
     } finally {
       setSubmitting(false)
@@ -155,7 +155,7 @@ export default function LoginPage() {
           {/* S8 — error server diumumkan ke screen reader */}
           {serverError && (
             <div
-              key={serverError}
+              key={`server-${serverError}`}
               role="alert"
               aria-live="assertive"
               className="vsf-banner-danger mt-5 flex items-start gap-2 rounded-std vsf-tone-error px-3 py-2.5 text-[13px] font-medium"
@@ -184,7 +184,7 @@ export default function LoginPage() {
           />
           {errors.username && (
             <div
-              key={errors.username}
+              key={`username-${errors.username}`}
               id="login-username-error"
               role="alert"
               className="vsf-banner mt-1.5 flex items-center gap-1.5 text-[12px] font-medium text-red-700"
@@ -222,7 +222,7 @@ export default function LoginPage() {
           </div>
           {errors.password && (
             <div
-              key={errors.password}
+              key={`password-${errors.password}`}
               id="login-password-error"
               role="alert"
               className="vsf-banner mt-1.5 flex items-center gap-1.5 text-[12px] font-medium text-red-700"
@@ -238,7 +238,7 @@ export default function LoginPage() {
           </button>
 
           <p className="mt-3 min-h-[18px] text-center text-[12px] text-slate-500" aria-live="polite">
-            {submitting ? 'Memverifikasi kredensial ke server…' : 'Lupa kata sandi? Hubungi admin greenhouse.'}
+            {submitting ? 'Memeriksa akun…' : 'Lupa kata sandi? Hubungi admin greenhouse.'}
           </p>
         </form>
       </main>

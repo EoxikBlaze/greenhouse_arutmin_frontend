@@ -52,7 +52,7 @@ export function Pratinjau({
               <div className="font-bold text-white">Feed terputus</div>
               <div className="mt-1">
                 {k.tipe === 'rtsp'
-                  ? 'Kamera tidak merespons ke server. Periksa kamera menyala dan URL RTSP-nya.'
+                  ? 'Kamera tidak merespons. Periksa kamera menyala dan URL RTSP-nya.'
                   : 'Periksa kamera dan URL-nya.'}
               </div>
               <button

@@ -42,11 +42,11 @@ export function DataLangsung() {
           <h2 id="vsf-data-title" className="vsf-judul-latar mt-2 text-[22px] sm:text-[28px]">Kondisi kebun saat ini</h2>
         </div>
         <span
-          {...info('Status perangkat', 'Hijau berarti ESP32 mengirim data dalam 2 menit terakhir. Merah berarti perangkat belum mengirim data baru.')}
+          {...info('Status perangkat', 'Hijau berarti alat sensor mengirim data dalam 2 menit terakhir. Merah berarti perangkat belum mengirim data baru.')}
           className="vsf-kaca vsf-kaca-netral inline-flex items-center gap-2 rounded-full px-4 py-2 text-[12.5px] font-bold"
         >
           <span className={`h-2.5 w-2.5 rounded-full ${galat ? 'bg-slate-400' : data?.iot.online ? 'animate-pulse bg-moss' : 'bg-arutmin-error'}`} aria-hidden />
-          {galat ? 'Server tidak terjangkau' : memuat ? 'Memuat…' : data?.iot.online ? 'Perangkat online' : 'Perangkat offline'}
+          {galat ? 'Sistem tidak terjangkau' : memuat ? 'Memuat…' : data?.iot.online ? 'Perangkat online' : 'Perangkat offline'}
         </span>
       </div>
 
@@ -70,7 +70,7 @@ export function DataLangsung() {
         ))}
       </div>
       <p className="vsf-judul-latar mt-3 text-center text-[12px] !text-white/85">
-        Rata-rata 6 jam terakhir dari {fmt(r?.jumlah)} pembacaan sensor{data ? ` · diperbarui ${new Date(data.diperbarui).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}` : ''}
+        {r?.jumlah ? `Rata-rata 6 jam terakhir dari ${fmt(r.jumlah)} pembacaan sensor` : 'Belum ada pembacaan sensor dalam 6 jam terakhir'}{data ? ` · diperbarui ${new Date(data.diperbarui).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}` : ''}
       </p>
     </section>
   )

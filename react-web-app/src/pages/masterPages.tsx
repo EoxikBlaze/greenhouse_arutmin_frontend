@@ -276,7 +276,7 @@ export function JenisTanamanPage() {
     },
     {
       key: 'target-awal',
-      header: 'Target awal dosing',
+      header: 'Target awal nutrisi',
       render: (r) => {
         const n = naikPer.get(String(r.id_tanaman))
         return n?.ppm_awal == null ? (
@@ -288,7 +288,7 @@ export function JenisTanamanPage() {
     },
     {
       key: 'target-akhir',
-      header: 'Target akhir dosing',
+      header: 'Target akhir nutrisi',
       render: (r) => {
         const n = naikPer.get(String(r.id_tanaman))
         return n?.ppm_target == null ? (
@@ -318,7 +318,7 @@ export function JenisTanamanPage() {
     <>
       <MasterFrame
         judul="Jenis Tanaman"
-        deskripsi="Tanaman yang ditanam di kebun, meja bawaannya, serta target awal dan akhir dosing nutrisi."
+        deskripsi="Tanaman yang ditanam di kebun, meja bawaannya, serta target awal dan akhir nutrisi."
         jumlah={`${rows.length} jenis`}
         tambah="Tambah"
         onTambah={openAdd}
@@ -380,14 +380,14 @@ export function JenisTanamanPage() {
             <FieldError message={fieldError(fieldErrors, 'id_meja')} />
           </Field>
           <div className="mt-4 border-t border-black/10 pt-3">
-            <div className="text-[12px] font-bold text-slate-700">Target dosing nutrisi (opsional)</div>
+            <div className="text-[12px] font-bold text-slate-700">Target nutrisi (opsional)</div>
             <p className="mt-1 text-[12px] leading-relaxed text-slate-600">
               Target ppm penampung naik rata tiap hari dari <b>target awal</b> sampai <b>target akhir</b> dalam sekian hari sejak pindah
               netpot. Isi ketiga kolom, atau kosongkan semuanya untuk memakai preset per tahap. Menyimpan langsung memperbarui target
               penampung yang memakai tanaman ini; ini hanya pengaturan target, eksekusi pompa saat ini dinonaktifkan.
             </p>
             <div className="mt-2 grid gap-3 sm:grid-cols-3">
-              <Field label="Target awal dosing (ppm)">
+              <Field label="Target awal nutrisi (ppm)">
                 <input
                   className="vsf-input w-full"
                   inputMode="decimal"
@@ -397,7 +397,7 @@ export function JenisTanamanPage() {
                 />
                 <FieldError message={fieldError(fieldErrors, 'ppm_awal')} />
               </Field>
-              <Field label="Target akhir dosing (ppm)">
+              <Field label="Target akhir nutrisi (ppm)">
                 <input
                   className="vsf-input w-full"
                   inputMode="decimal"
@@ -919,7 +919,7 @@ export function AmbangSensorPage() {
       {open && editing && (
         <DialogMaster
           judul={`Ubah ambang · ${namaEdit}`}
-          sub={`Kunci perangkat: ${cell(editing.sensor)} (dipakai ESP32, tidak diubah).`}
+          sub={`Kode sensor: ${cell(editing.sensor)} (dipakai alat, tidak dapat diubah).`}
           simpan="Simpan Perubahan"
           galat={formError}
           menyimpan={submitting}

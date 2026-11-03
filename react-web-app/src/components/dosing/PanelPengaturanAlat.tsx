@@ -125,7 +125,7 @@ export function PanelPengaturanAlat({
       await api.put('/iot-v41/pengaturan', payload)
       simpanCacheLokal(payload)
       setDraf({})
-      setPesan('Pengaturan alat disimpan di server. Belum dikirim ke alat.')
+      setPesan('Pengaturan tersimpan di sistem, tetapi belum dikirim ke alat.')
       onReload()
     } catch (err) {
       const g = handleApiError(err)
@@ -441,7 +441,7 @@ export function PanelPengaturanAlat({
           <div className="flex flex-wrap items-center gap-2">
             <button type="submit" className="vsf-btn-primary" disabled={sibuk}>
               {sibuk && <span className="vsf-spinner" aria-hidden />}
-              {sibuk ? 'Menyimpan…' : 'Simpan di server'}
+              {sibuk ? 'Menyimpan…' : 'Simpan pengaturan'}
             </button>
             <button type="button" className="vsf-btn-secondary" disabled={sibuk} onClick={resetForm}>
               Batalkan
