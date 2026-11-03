@@ -122,14 +122,7 @@ export function PanelSaklarMode({
       onReload()
     } catch (err) {
       const f = handleApiError(err)
-      if (f.status === 404) {
-        simpanCacheLokal(payload)
-        setDraf({})
-        setPesan('Saklar dan mode isi air disimpan pada konfigurasi lokal.')
-        onReload()
-      } else {
-        setGalat(f.message)
-      }
+      setGalat(f.message)
     } finally {
       setSibuk(false)
     }

@@ -101,13 +101,7 @@ export function PanelKalibrasiLangsungV41({
       onReload()
     } catch (err) {
       const f = handleApiError(err)
-      if (f.status === 404) {
-        simpanCacheLokal({ pemeliharaan: aktif })
-        setPesan(aktif ? 'Mode pemeliharaan diaktifkan (lokal).' : 'Mode pemeliharaan dimatikan (lokal).')
-        onReload()
-      } else {
-        setGalat(f.message)
-      }
+      setGalat(f.message)
     } finally {
       setSibuk(null)
     }
@@ -142,14 +136,7 @@ export function PanelKalibrasiLangsungV41({
         onReload()
       } catch (err) {
         const f = handleApiError(err)
-        if (f.status === 404) {
-          setEc1413(null)
-          setEc12880(null)
-          setPesan(`Kalibrasi EC 2-titik (${fmt(next1413, 0)} & ${fmt(next12880, 0)} µS/cm) tercatat.`)
-          onReload()
-        } else {
-          setGalat(f.message)
-        }
+        setGalat(f.message)
       } finally {
         setSibuk(null)
       }
@@ -189,14 +176,7 @@ export function PanelKalibrasiLangsungV41({
         onReload()
       } catch (err) {
         const f = handleApiError(err)
-        if (f.status === 404) {
-          setPh40(null)
-          setPh70(null)
-          setPesan(`Kalibrasi pH 2-titik (pH 4,0=${fmt(next40, 2)} & 7,0=${fmt(next70, 2)}) tercatat.`)
-          onReload()
-        } else {
-          setGalat(f.message)
-        }
+        setGalat(f.message)
       } finally {
         setSibuk(null)
       }
@@ -225,11 +205,7 @@ export function PanelKalibrasiLangsungV41({
       onReload()
     } catch (err) {
       const f = handleApiError(err)
-      if (f.status === 404) {
-        setPesan(`Kalibrasi ${sensor.toUpperCase()} dikembalikan ke nilai sebelumnya.`)
-      } else {
-        setGalat(f.message)
-      }
+      setGalat(f.message)
     } finally {
       setSibuk(null)
     }
@@ -274,15 +250,7 @@ export function PanelKalibrasiLangsungV41({
       onReload()
     } catch (err) {
       const f = handleApiError(err)
-      if (f.status === 404) {
-        if (infoPompa) simpanCacheLokal({ [infoPompa.paramLaju]: laju })
-        setPesan(`Laju ${infoPompa?.label ?? sesiPompa.pompa} = ${fmt(laju, 2)} mL/detik disimpan pada konfigurasi lokal.`)
-        setSesiPompa(null)
-        setMlTakar('')
-        onReload()
-      } else {
-        setGalat(f.message)
-      }
+      setGalat(f.message)
     } finally {
       setSibuk(null)
     }
@@ -299,11 +267,7 @@ export function PanelKalibrasiLangsungV41({
       onReload()
     } catch (err) {
       const f = handleApiError(err)
-      if (f.status === 404) {
-        setPesan('Paket pemulihan papan disiapkan dari konfigurasi tersimpan.')
-      } else {
-        setGalat(f.message)
-      }
+      setGalat(f.message)
     } finally {
       setSibuk(null)
     }

@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { api } from '../lib/api'
 import { useApiError } from '../lib/crudApi'
 import { useAuth } from '../lib/authContext'
-import { simpanCacheLokal, useIotV41State } from '../lib/iotV41'
+import { Link } from 'react-router-dom'
 import { useApiObject, useFlashOnChange } from '../lib/useApiObject'
 import { StatusBadge } from '../components/StatusBadge'
 import { StatusPenampung } from '../components/StatusPenampung'
@@ -29,10 +29,8 @@ type Status = {
 const KONTROL_AKTIF = false
 
 export default function WaterControlPage() {
-  const { username, role } = useAuth()
-  const bolehUbah = role === 'admin'
+  const { username } = useAuth()
   const handleApiError = useApiError()
-  const iotV41 = useIotV41State()
 
   // Status live + polling senyap tiap 5 dtk (skeleton hanya saat muat pertama).
   const { data: status, loading, error, reload } = useApiObject<Status>('/watercontrol/status', { pollMs: 5_000 })
@@ -42,7 +40,7 @@ export default function WaterControlPage() {
   const mode = (status?.mode === 'AUTO' ? 'AUTO' : status?.mode === 'MANUAL' ? 'MANUAL' : null) as Mode | null
   const terjangkau = !error
 
-  const [busy, setBusy] = useState<null | 'fill' | 'stop' | 'mode' | 'kuras_mulai' | 'air_diganti'>(null)
+  const [busy, setBusy] = useState<null | 'fill' | 'stop' | 'mode'>(null)
   const [pesan, setPesan] = useState<{ teks: string; ok: boolean } | null>(null)
   const [riwayat, setRiwayat] = useState<Riwayat[]>([])
   const [konfirmasi, setKonfirmasi] = useState<null | 'fill' | 'stop'>(null)
@@ -101,48 +99,6 @@ export default function WaterControlPage() {
       const f = handleApiError(err)
       setPesan({ teks: f.message, ok: false })
       catat(label, f.message, false)
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  async function aksiKurasV41(aksi: 'kuras_mulai' | 'air_diganti') {
-    if (!bolehUbah || busy) return
-    setBusy(aksi)
-    try {
-      await api.post('/iot-v41/pemeliharaan', { aksi })
-      simpanCacheLokal(
-        aksi === 'kuras_mulai'
-          ? { pemeliharaan: true }
-          : { pemeliharaan: false, tahan_dosing: false, tahan_alasan: null },
-      )
-      const teks =
-        aksi === 'kuras_mulai'
-          ? 'Mode kuras aktif di server (pemeliharaan ON). Silakan kuras penampung, isi air bersih, lalu tekan "Air sudah diganti".'
-          : 'Air baru dikonfirmasi. Hitungan harian EC, pH, dan pengenceran direset ke 0, mode pemeliharaan dimatikan.'
-      setPesan({ teks, ok: true })
-      catat(aksi === 'kuras_mulai' ? 'KURAS_MULAI' : 'AIR_DIGANTI', teks, true)
-      reload()
-      void iotV41.reload()
-    } catch (err) {
-      const f = handleApiError(err)
-      if (f.status === 404) {
-        simpanCacheLokal(
-          aksi === 'kuras_mulai'
-            ? { pemeliharaan: true }
-            : { pemeliharaan: false, tahan_dosing: false, tahan_alasan: null },
-        )
-        const teks =
-          aksi === 'kuras_mulai'
-            ? 'Mode kuras diaktifkan (lokal).'
-            : 'Air baru dikonfirmasi & hitungan direset (lokal).'
-        setPesan({ teks, ok: true })
-        catat(aksi === 'kuras_mulai' ? 'KURAS_MULAI' : 'AIR_DIGANTI', teks, true)
-        void iotV41.reload()
-      } else {
-        setPesan({ teks: f.message, ok: false })
-        catat(aksi, f.message, false)
-      }
     } finally {
       setBusy(null)
     }
@@ -307,105 +263,9 @@ export default function WaterControlPage() {
 
       <StatusPenampung onPesan={(teks, ok) => setPesan({ teks, ok })} />
 
-      {/* Kuras & Ganti Air + Status Pelampung v4.1 (adaptasi air.php & saklar.php) */}
-      <section aria-label="Kuras dan ganti air penampung" className="vsf-card p-4 sm:p-5">
-        <div className="vsf-judul-bagian">Kuras &amp; ganti air penampung (Alur v4.1)</div>
-        <p className="mt-0.5 text-[13px] text-abu">
-          Dua langkah ganti air tandon: aktifkan mode kuras agar pompa nutrisi &amp; koreksi pH ditahan selama pengurasan, lalu konfirmasi setelah air bersih terisi agar hitungan harian (EC, pH, pengenceran) direset ke nol.
-        </p>
-
-        {iotV41.data?.params.tahan_dosing && (
-          <div role="alert" className="vsf-tone-warn mt-3 flex items-start gap-2 rounded-input px-3 py-2.5 text-[13px]">
-            <Ikon nama="peringatan" className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>
-              <b>Dosing sedang ditahan otomatis:</b> {iotV41.data.params.tahan_alasan ?? 'Terdeteksi perubahan drastis EC/pH (kemungkinan air baru diganti).'} Tekan tombol <b>2. Air sudah diganti — Selesai &amp; lanjutkan</b> di bawah untuk membuka kunci dan mereset hitungan.
-            </span>
-          </div>
-        )}
-
-        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
-          <div className="vsf-blok p-4 lg:col-span-6">
-            <div className="text-[14px] font-bold text-tinta">Langkah kuras &amp; ganti air</div>
-            <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-[12.5px] leading-relaxed text-abu">
-              <li>Tekan <b>1. Mulai kuras</b> — sistem masuk <i>mode pemeliharaan</i> (batas {iotV41.data?.params.pemeliharaan_maks_menit ?? 120} menit), tindakan otomatis dijeda dan hitungan dibekukan (aplikasi tidak mematikan pompa fisik).</li>
-              <li>Matikan pompa sirkulasi fisik, kuras tandon, bersihkan penampung, lalu isi air baku sampai pelampung bawah terangkat.</li>
-              <li>Nyalakan kembali pompa sirkulasi, lalu tekan <b>2. Air sudah diganti</b> — hitungan harian direset ke 0 dan penjagaan kembali normal.</li>
-            </ol>
-
-            {bolehUbah && (
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="vsf-btn-secondary"
-                  disabled={busy !== null}
-                  onClick={() => void aksiKurasV41('kuras_mulai')}
-                >
-                  {busy === 'kuras_mulai' && <span className="vsf-spinner vsf-spinner-dark" aria-hidden />}
-                  1. Mulai kuras (aktifkan pemeliharaan)
-                </button>
-                <button
-                  type="button"
-                  className="vsf-btn-primary"
-                  disabled={busy !== null}
-                  onClick={() => void aksiKurasV41('air_diganti')}
-                >
-                  {busy === 'air_diganti' && <span className="vsf-spinner" aria-hidden />}
-                  2. Air sudah diganti — Selesai &amp; lanjutkan
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="vsf-blok p-4 lg:col-span-6">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[14px] font-bold text-tinta">Kondisi air &amp; hitungan hari ini</span>
-              <StatusBadge
-                tone={iotV41.data?.params.pemeliharaan ? 'warning' : 'online'}
-                label={iotV41.data?.params.pemeliharaan ? 'Mode kuras / pemeliharaan' : 'Normal'}
-              />
-            </div>
-
-            <dl className="mt-3 grid grid-cols-2 gap-2 text-[12.5px] sm:grid-cols-3">
-              <div className="vsf-stat">
-                <dt className="vsf-label">Float bawah</dt>
-                <dd className="mt-0.5 font-semibold text-tinta">
-                  {iotV41.data?.kondisi.float_bawah === 0 ? 'turun (air kurang)' : 'mengambang (cukup)'}
-                </dd>
-              </div>
-              <div className="vsf-stat">
-                <dt className="vsf-label">Float atas</dt>
-                <dd className="mt-0.5 font-semibold text-tinta">
-                  {iotV41.data?.kondisi.float_atas === 1 ? 'mengambang (penuh)' : 'turun (belum penuh)'}
-                </dd>
-              </div>
-              <div className="vsf-stat">
-                <dt className="vsf-label">Mode isi air</dt>
-                <dd className="mt-0.5 font-semibold text-tinta">
-                  {iotV41.data?.params.mode_isi === 'otomatis' ? 'Otomatis' : 'Manual'}
-                </dd>
-              </div>
-              <div className="vsf-stat">
-                <dt className="vsf-label">Penjagaan EC</dt>
-                <dd className="mt-0.5 font-bold tabular-nums text-tinta">
-                  {iotV41.data?.kondisi.hit_ec ?? 0} / {iotV41.data?.params.maks_ec_hari ?? 10}
-                </dd>
-              </div>
-              <div className="vsf-stat">
-                <dt className="vsf-label">Pengenceran</dt>
-                <dd className="mt-0.5 font-bold tabular-nums text-tinta">
-                  {iotV41.data?.kondisi.hit_encer ?? 0} / {iotV41.data?.params.maks_encer_hari ?? 3}
-                </dd>
-              </div>
-              <div className="vsf-stat">
-                <dt className="vsf-label">Koreksi pH</dt>
-                <dd className="mt-0.5 font-bold tabular-nums text-tinta">
-                  {iotV41.data?.kondisi.hit_ph ?? 0} / {iotV41.data?.params.maks_ph_hari ?? 5}
-                </dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-      </section>
+      <p className="text-[13px] text-abu">
+        Kuras dan ganti air penampung ada di halaman <Link to="/kuras-air" className="underline">Kuras &amp; Ganti Air</Link>.
+      </p>
 
       <RiwayatPerintah rows={barisRiwayat} />
 

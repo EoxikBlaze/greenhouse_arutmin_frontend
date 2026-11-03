@@ -129,14 +129,7 @@ export function PanelPengaturanAlat({
       onReload()
     } catch (err) {
       const g = handleApiError(err)
-      if (g.status === 404) {
-        simpanCacheLokal(payload)
-        setDraf({})
-        setPesan('Pengaturan alat disimpan pada konfigurasi lokal.')
-        onReload()
-      } else {
-        setGalat(g.message)
-      }
+      setGalat(g.message)
     } finally {
       setSibuk(false)
     }

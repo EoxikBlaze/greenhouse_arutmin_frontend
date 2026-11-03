@@ -98,13 +98,7 @@ export function PanelUjiLab({
       onReload()
     } catch (err) {
       const f = handleApiError(err)
-      if (f.status === 404) {
-        simpanCacheLokal({ ppm_per_ml: pratinjauEc })
-        setPesan(`ppm per mL = ${fmt(pratinjauEc, 2)} disimpan pada konfigurasi lokal.`)
-        onReload()
-      } else {
-        setGalat(f.message)
-      }
+      setGalat(f.message)
     } finally {
       setSibuk(null)
     }
@@ -133,13 +127,7 @@ export function PanelUjiLab({
       onReload()
     } catch (err) {
       const f = handleApiError(err)
-      if (f.status === 404) {
-        simpanCacheLokal(arah === 'up' ? { ph_up_ml: pratinjauPh } : { ph_down_ml: pratinjauPh })
-        setPesan(`pH ${arah} = ${fmt(pratinjauPh, 3)} mL/pH/L disimpan pada konfigurasi lokal.`)
-        onReload()
-      } else {
-        setGalat(f.message)
-      }
+      setGalat(f.message)
     } finally {
       setSibuk(null)
     }
