@@ -121,12 +121,12 @@ html[data-tema='gelap'] .border-black\/10 { border-color: rgb(255 255 255 / 0.12
 html[data-tema='gelap'] .bg-white { background-color: rgb(var(--ar-card)); }
 html[data-tema='gelap'] .hover\:bg-white:hover { background-color: rgb(var(--ar-card)); }
 /* bg-white/NN (permukaan kaca terang) → permukaan gelap dengan alpha sama */
-html[data-tema='gelap'] [class~='bg-white/45'] { background-color: rgb(var(--ar-card) / 0.45); }
-html[data-tema='gelap'] [class~='bg-white/50'] { background-color: rgb(var(--ar-card) / 0.5); }
-html[data-tema='gelap'] [class~='bg-white/55'] { background-color: rgb(var(--ar-card) / 0.55); }
-html[data-tema='gelap'] [class~='bg-white/60'] { background-color: rgb(var(--ar-card) / 0.6); }
-html[data-tema='gelap'] [class~='bg-white/70'] { background-color: rgb(var(--ar-card) / 0.7); }
-html[data-tema='gelap'] [class~='bg-white/75'] { background-color: rgb(var(--ar-card) / 0.75); }
+html[data-tema='gelap'] [class~='bg-white/45'] { background-color: rgb(var(--ar-card) / 0.82); }
+html[data-tema='gelap'] [class~='bg-white/50'] { background-color: rgb(var(--ar-card) / 0.82); }
+html[data-tema='gelap'] [class~='bg-white/55'] { background-color: rgb(var(--ar-card) / 0.82); }
+html[data-tema='gelap'] [class~='bg-white/60'] { background-color: rgb(var(--ar-card) / 0.82); }
+html[data-tema='gelap'] [class~='bg-white/70'] { background-color: rgb(var(--ar-card) / 0.82); }
+html[data-tema='gelap'] [class~='bg-white/75'] { background-color: rgb(var(--ar-card) / 0.82); }
 html[data-tema='gelap'] [class~='bg-white/80'] { background-color: rgb(var(--ar-card) / 0.8); }
 html[data-tema='gelap'] [class~='bg-white/85'] { background-color: rgb(var(--ar-card) / 0.85); }
 html[data-tema='gelap'] [class~='bg-white/90'] { background-color: rgb(var(--ar-card) / 0.9); }

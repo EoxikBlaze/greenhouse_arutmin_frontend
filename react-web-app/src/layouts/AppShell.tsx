@@ -21,10 +21,10 @@ export { Monogram } from '../components/Monogram'
 /** Judul halaman dinamis (sesuai topbar wireframe .pen & Hidro Control v4.1) */
 const TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
-  '/sensor-realtime': 'Telemetri & Sensor Real-Time',
+  '/sensor-realtime': 'Sensor Langsung',
   '/peringatan': 'Peringatan',
   '/watercontrol': 'Water Control',
-  '/tanam': 'Tanam (Kebun Saya)',
+  '/tanam': 'Kebun Saya',
   '/saklar': 'Saklar & Mode',
   '/dosing-manual': 'Dosing Manual',
   '/kuras-air': 'Kuras & Ganti Air',
@@ -45,7 +45,7 @@ const TITLES: Record<string, string> = {
   '/ambang': 'Ambang Sensor',
   '/laporan': 'Laporan',
   '/user': 'Manajemen User',
-  '/profil': 'Profile',
+  '/profil': 'Akun Saya',
   '/cctv': 'CCTV',
   '/asisten-ai': 'Asisten AI',
 }
@@ -71,7 +71,7 @@ const NAV: NavGroup[] = [
     ikon: 'dashboard',
     items: [
       { to: '/dashboard', label: 'Dashboard', ikon: 'dashboard' },
-      { to: '/sensor-realtime', label: 'Telemetri & Sensor', ikon: 'sensor' },
+      { to: '/sensor-realtime', label: 'Sensor', ikon: 'sensor' },
       { to: '/peringatan', label: 'Peringatan', ikon: 'peringatan' },
       { to: '/cctv', label: 'CCTV', ikon: 'cctv' },
       { to: '/asisten-ai', label: 'Asisten AI', ikon: 'ai' },
@@ -81,7 +81,7 @@ const NAV: NavGroup[] = [
     label: 'KENDALI',
     ikon: 'dosing',
     items: [
-      { to: '/tanam', label: 'Tanam (Kebun Saya)', ikon: 'tanam' },
+      { to: '/tanam', label: 'Kebun Saya', ikon: 'tanam' },
       { to: '/saklar', label: 'Saklar & Mode', ikon: 'ambang', allow: ADMIN_DEMO },
       { to: '/dosing-manual', label: 'Dosing Manual', ikon: 'tetes', allow: ADMIN_DEMO },
       { to: '/kuras-air', label: 'Kuras & Ganti Air', ikon: 'air', allow: ADMIN_DEMO },
@@ -107,7 +107,7 @@ const NAV: NavGroup[] = [
       { to: '/pemulihan-papan', label: 'Pemulihan Papan', ikon: 'siklus', allow: ADMIN_DEMO },
       { to: '/mqtt-diagnostik', label: 'MQTT & Diagnostik', ikon: 'online', allow: ADMIN_DEMO },
       { to: '/user', label: 'Manajemen User', ikon: 'user', allow: ADMIN_DEMO },
-      { to: '/profil', label: 'Profile', ikon: 'profil' },
+      { to: '/profil', label: 'Akun Saya', ikon: 'profil' },
     ],
   },
   {
