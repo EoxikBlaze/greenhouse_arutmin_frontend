@@ -14,7 +14,9 @@ import '../widgets/rute.dart';
 import '../widgets/tren_batang.dart';
 import 'asisten_page.dart';
 import 'cctv_page.dart';
-import 'meja_page.dart';
+import 'nutrisi_manual_page.dart';
+import 'saklar_page.dart';
+import 'uji_lab_page.dart';
 import 'riwayat_monitoring_page.dart';
 import 'tentang_page.dart';
 
@@ -160,12 +162,27 @@ class _DashboardPageState extends State<DashboardPage> {
                     'Tanam saya',
                     () => pilih(() => tab('Tanam')),
                   ),
-                  const _GrupMenu('Data'),
-                  if (role == 'admin')
+                  if (kontrol) ...[
+                    const _GrupMenu('Kendali'),
                     _ItemMenu(
-                      Ikon.meja,
-                      'Meja tanaman',
-                      () => pilih(() => dorong(MejaPage(api: widget.api))),
+                      Ikon.ambang,
+                      'Saklar',
+                      () => pilih(() => dorong(SaklarPage(api: widget.api))),
+                    ),
+                    _ItemMenu(
+                      Ikon.tetes,
+                      'Nutrisi manual',
+                      () => pilih(
+                        () => dorong(NutrisiManualPage(api: widget.api)),
+                      ),
+                    ),
+                  ],
+                  const _GrupMenu('Data'),
+                  if (kontrol)
+                    _ItemMenu(
+                      Ikon.dosing,
+                      'Uji lab',
+                      () => pilih(() => dorong(UjiLabPage(api: widget.api))),
                     ),
                   _ItemMenu(
                     Ikon.laporan,
@@ -267,7 +284,6 @@ class _DashboardPageState extends State<DashboardPage> {
     final s = sensor is Map ? sensor : const {};
     final kontrol = widget.api.role == 'admin' || widget.api.role == 'demo';
     final katup = wc is Map ? '${wc['valve_state'] ?? '—'}' : '—';
-    final modeAir = wc is Map ? 'Mode ${wc['mode'] ?? '—'}' : '';
     final ket = online ? 'perangkat online' : 'perangkat offline';
 
     final kpi = <Kpi>[
@@ -301,14 +317,14 @@ class _DashboardPageState extends State<DashboardPage> {
         Sorot.kaca,
       ),
       Kpi(
-        'Katup air',
-        Ikon.tetes,
+        'Level tandon',
+        Ikon.air,
         null,
         0,
         '',
-        modeAir,
+        katup == '—' ? 'Katup —' : 'Katup $katup',
         Sorot.kaca,
-        teks: katup,
+        teks: '${s['water_level'] ?? '—'}',
       ),
     ];
 

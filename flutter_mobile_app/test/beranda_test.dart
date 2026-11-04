@@ -116,27 +116,33 @@ void main() {
     Finder diSheet(String teks) =>
         find.descendant(of: find.byType(SheetKaca), matching: find.text(teks));
 
-    testWidgets('admin melihat Meja tanaman dan Kontrol air', (tester) async {
-      await bukaMenu(tester, 'admin');
-      expect(diSheet('Meja tanaman'), findsOneWidget);
-      expect(diSheet('Kontrol air'), findsOneWidget);
-    });
+    testWidgets(
+      'admin melihat Saklar, Nutrisi manual, Uji lab, Kontrol air; tanpa Meja tanaman',
+      (tester) async {
+        await bukaMenu(tester, 'admin');
+        expect(diSheet('Saklar'), findsOneWidget);
+        expect(diSheet('Nutrisi manual'), findsOneWidget);
+        expect(diSheet('Uji lab'), findsOneWidget);
+        expect(diSheet('Kontrol air'), findsOneWidget);
+        expect(diSheet('Meja tanaman'), findsNothing);
+      },
+    );
 
-    testWidgets('petani tidak melihat Meja tanaman maupun Kontrol air', (
-      tester,
-    ) async {
-      await bukaMenu(tester, 'user');
-      expect(diSheet('Meja tanaman'), findsNothing);
-      expect(diSheet('Kontrol air'), findsNothing);
-      expect(diSheet('Sensor realtime'), findsOneWidget);
-    });
+    testWidgets(
+      'petani tidak melihat menu kendali (Saklar, Nutrisi manual, Uji lab, Kontrol air)',
+      (tester) async {
+        await bukaMenu(tester, 'user');
+        expect(diSheet('Saklar'), findsNothing);
+        expect(diSheet('Nutrisi manual'), findsNothing);
+        expect(diSheet('Uji lab'), findsNothing);
+        expect(diSheet('Kontrol air'), findsNothing);
+        expect(diSheet('Sensor realtime'), findsOneWidget);
+      },
+    );
 
-    testWidgets('demo tidak melihat Asisten AI dan Meja tanaman', (
-      tester,
-    ) async {
+    testWidgets('demo tidak melihat Asisten AI', (tester) async {
       await bukaMenu(tester, 'demo');
       expect(diSheet('Asisten AI'), findsNothing);
-      expect(diSheet('Meja tanaman'), findsNothing);
     });
   });
 }

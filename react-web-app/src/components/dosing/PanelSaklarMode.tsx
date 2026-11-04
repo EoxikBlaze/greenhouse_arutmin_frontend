@@ -23,7 +23,7 @@ const DAFTAR_SAKLAR: readonly SaklarItem[] = [
   {
     kunci: 'saklar_ab',
     judul: 'Nutrisi A + B',
-    ket: 'Kalau mati: EC kurang hanya jadi peringatan, tanpa suntikan.',
+    ket: 'Kalau OFF: otomasi tidak menyuntik nutrisi; EC kurang hanya jadi peringatan.',
   },
   {
     kunci: 'saklar_ph_up',
@@ -48,8 +48,9 @@ const DAFTAR_SAKLAR: readonly SaklarItem[] = [
 ]
 
 const ATURAN_SAKLAR = [
-  'Saklar mati = alat tidak bertindak untuk jenis itu, hanya peringatan.',
-  'Saklar berlaku sama di mode manual maupun otomatis, termasuk perintah dosing manual.',
+  'Saklar OFF = otomasi (preset, jadwal, AI) tidak boleh menyalakan aktuator itu; hanya jadi peringatan.',
+  'Halaman Nutrisi Manual tetap boleh menyalakan aktuator walau saklarnya OFF (override manual). Fail-safe dan LOCK tetap berlaku.',
+  'Setiap perubahan saklar dicatat di Catatan Aktivitas (siapa, kapan, dari/ke).',
   'Mode pemeliharaan mematikan semua tindakan dan membekukan hitungan.',
   'Saklar pH mati juga berfungsi sebagai tidur pH.',
 ]
@@ -223,7 +224,7 @@ export function PanelSaklarMode({
               </button>
             </div>
             <p className="mt-2 text-[12px] text-abu">
-              Geser saklarnya dulu — belum ada yang disimpan sampai tombol di atas ditekan. Alat tidak diberi tahu.
+              Geser saklarnya dulu — belum ada yang disimpan sampai tombol di atas ditekan. Perubahan tersimpan di server dan tampil di Dashboard.
             </p>
           </div>
         )}

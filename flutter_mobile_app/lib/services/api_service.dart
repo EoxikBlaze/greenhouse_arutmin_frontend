@@ -240,6 +240,13 @@ class ApiService {
   /// GET JSON mentah (butuh token bila endpoint-nya dilindungi).
   Future<dynamic> getJson(String path) => _request(path);
 
+  /// POST/PUT JSON (butuh token). Galat 4xx dibawa apa adanya lewat [ApiException].
+  Future<dynamic> kirimJson(
+    String path,
+    Map<String, dynamic> body, {
+    bool put = false,
+  }) => _request(path, body: body, put: put);
+
   /// GET biner dengan token (mis. JPEG kamera RTSP dari `GET /cctv/:id/gambar`).
   /// Server butuh ±2–3 dtk untuk frame pertama, jadi batas tunggunya lebih longgar.
   Future<Uint8List> getBytes(String path, {Duration? batas}) async {

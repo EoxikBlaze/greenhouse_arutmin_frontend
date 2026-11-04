@@ -13,7 +13,6 @@ import '../widgets/motion.dart';
 import '../widgets/rute.dart';
 import 'asisten_page.dart';
 import 'cctv_page.dart';
-import 'meja_page.dart';
 import 'riwayat_monitoring_page.dart';
 import 'tentang_page.dart';
 
@@ -229,16 +228,6 @@ class _ProfilPageState extends State<ProfilPage> {
                           onTap: () => Navigator.of(context).push(
                             RuteHalus<void>(
                               builder: (_) => CctvPage(api: widget.api),
-                            ),
-                          ),
-                        ),
-                      if (role == 'admin')
-                        _Pintas(
-                          ikon: Ikon.meja,
-                          label: 'Daftar meja',
-                          onTap: () => Navigator.of(context).push(
-                            RuteHalus<void>(
-                              builder: (_) => MejaPage(api: widget.api),
                             ),
                           ),
                         ),

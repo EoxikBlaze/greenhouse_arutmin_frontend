@@ -10,15 +10,14 @@ import CctvPage from './pages/CctvPage'
 import AsistenAiPage from './pages/AsistenAiPage'
 import DosingPage from './pages/DosingPage'
 import KalibrasiPage from './pages/KalibrasiPage'
+import NutrisiManualPage from './pages/NutrisiManualPage'
+import DataPage from './pages/DataPage'
 import {
-  DosingManualPage,
-  KurasGantiAirPage,
   MqttDiagnostikPage,
   PemulihanPapanPage,
   PengaturanAlatPage,
   PeringatanPage,
   SaklarModePage,
-  UjiLabPage,
 } from './pages/HidroV41Pages'
 import {
   SemaiPage,
@@ -29,7 +28,6 @@ import {
 } from './pages/stagePages'
 import {
   JenisTanamanPage,
-  MejaTanamanPage,
   AmbangSensorPage,
 } from './pages/masterPages'
 import { LaporanPage } from './pages/notifLaporanPages'
@@ -74,11 +72,13 @@ export const router = createBrowserRouter([
 
           // Halaman mandiri IoT Hidroponik 1 Penampung v4.1 (sesuai menu sidebar Hidro Control)
           { path: '/saklar', element: <RequireAuth allow={ADMIN_DEMO} element={<SaklarModePage />} /> },
-          { path: '/dosing-manual', element: <RequireAuth allow={ADMIN_DEMO} element={<DosingManualPage />} /> },
+          { path: '/dosing-manual', element: <RequireAuth allow={ADMIN_DEMO} element={<NutrisiManualPage />} /> },
           { path: '/pompa', element: <Navigate to="/dosing-manual" replace /> },
-          { path: '/kuras-air', element: <RequireAuth allow={ADMIN_DEMO} element={<KurasGantiAirPage />} /> },
-          { path: '/air', element: <Navigate to="/kuras-air" replace /> },
-          { path: '/ujilab', element: <RequireAuth allow={ADMIN_DEMO} element={<UjiLabPage />} /> },
+          // Halaman Kuras dihapus; alamat lama diarahkan ke Pengairan.
+          { path: '/kuras-air', element: <Navigate to="/watercontrol" replace /> },
+          { path: '/air', element: <Navigate to="/watercontrol" replace /> },
+          { path: '/data', element: <RequireAuth allow={ADMIN_DEMO} element={<DataPage />} /> },
+          { path: '/ujilab', element: <Navigate to="/data" replace /> },
           { path: '/pengaturan-alat', element: <RequireAuth allow={ADMIN_DEMO} element={<PengaturanAlatPage />} /> },
           { path: '/pengaturan', element: <Navigate to="/pengaturan-alat" replace /> },
           { path: '/pemulihan-papan', element: <RequireAuth allow={ADMIN_DEMO} element={<PemulihanPapanPage />} /> },
@@ -99,7 +99,8 @@ export const router = createBrowserRouter([
 
           // 04 · Master Data — admin (demo read-only)
           { path: '/tanaman', element: <RequireAuth allow={ADMIN_DEMO} element={<JenisTanamanPage />} /> },
-          { path: '/meja', element: <RequireAuth allow={ADMIN_DEMO} element={<MejaTanamanPage />} /> },
+          // Fitur Meja dihapus (satu kebun melon); alamat lama diarahkan ke Jenis Tanaman.
+          { path: '/meja', element: <Navigate to="/tanaman" replace /> },
           { path: '/ambang', element: <RequireAuth allow={ADMIN_DEMO} element={<AmbangSensorPage />} /> },
 
           // 05 · Laporan — admin (demo read-only)
@@ -112,7 +113,7 @@ export const router = createBrowserRouter([
 
           // alias gaya .pen / mockup → resource route Laravel
           { path: '/master/jenis-tanaman', element: <Navigate to="/tanaman" replace /> },
-          { path: '/master/meja-tanaman', element: <Navigate to="/meja" replace /> },
+          { path: '/master/meja-tanaman', element: <Navigate to="/tanaman" replace /> },
           { path: '/master/ambang-sensor', element: <Navigate to="/ambang" replace /> },
           { path: '/water-control', element: <Navigate to="/watercontrol" replace /> },
           { path: '/tanam-saya', element: <Navigate to="/tanam" replace /> },

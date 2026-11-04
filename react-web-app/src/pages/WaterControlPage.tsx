@@ -3,7 +3,6 @@ import clsx from 'clsx'
 import { api } from '../lib/api'
 import { useApiError } from '../lib/crudApi'
 import { useAuth } from '../lib/authContext'
-import { Link } from 'react-router-dom'
 import { useApiObject, useFlashOnChange } from '../lib/useApiObject'
 import { StatusBadge } from '../components/StatusBadge'
 import { StatusPenampung } from '../components/StatusPenampung'
@@ -262,10 +261,6 @@ export default function WaterControlPage() {
       </section>
 
       <StatusPenampung onPesan={(teks, ok) => setPesan({ teks, ok })} />
-
-      <p className="text-[13px] text-abu">
-        Kuras dan ganti air penampung ada di halaman <Link to="/kuras-air" className="underline">Kuras &amp; Ganti Air</Link>.
-      </p>
 
       <RiwayatPerintah rows={barisRiwayat} />
 

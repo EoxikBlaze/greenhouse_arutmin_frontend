@@ -18,8 +18,14 @@ type SensorTerkini = {
   tds?: number | null
   airTemp?: number | null
   humidity?: number | null
+  /** EC dalam mS/cm (kolom ec_ms_cm); TDS tetap dalam ppm. */
+  ec_ms_cm?: number | null
+  /** Level tandon dari sensor level (teks, mis. "Sedang"). */
+  water_level?: string | null
   created_at?: string | null
 }
+
+type SaklarAktuator = { kode: string; nama: string; aktif: boolean }
 
 type IotStatus = {
   online?: boolean
@@ -39,6 +45,8 @@ type DashboardData = {
   iotStatus?: IotStatus | null
   latest_sensor?: SensorTerkini | null
   water_control?: WaterControl | null
+  /** Status saklar tiap aktuator (tabel saklar_aktuator) — tidak ikut cache server. */
+  saklar?: SaklarAktuator[] | null
   total_semai?: number | null
   semai_aktif?: number | null
   total_peremajaan?: number | null
@@ -70,6 +78,7 @@ const IKON_METRIK: Record<string, NamaIkon> = {
   airTemp: 'matahari',
   humidity: 'tetes',
   level: 'air',
+  ec: 'dosing',
 }
 
 function IkonMetrik({ kind }: { kind: string }) {
@@ -78,7 +87,7 @@ function IkonMetrik({ kind }: { kind: string }) {
 
 export default function DashboardPage() {
   const { role, username } = useAuth()
-  const { data, loading, error, reload } = useApiObject<DashboardData>('/dashboard')
+  const { data, loading, error, reload } = useApiObject<DashboardData>('/dashboard', { pollMs: 10_000 })
   // P4 — sorot kilat 0.5s saat data sensor terkini berubah (refresh senyap).
   const sensorFlash = useFlashOnChange(JSON.stringify(data?.latest_sensor ?? null))
 
@@ -106,11 +115,12 @@ export default function DashboardPage() {
     { k: 'tds', label: 'Nutrisi (TDS)', nilai: `${angka(s?.tds)} ppm`, num: s?.tds, digit: 0, akhiran: ' ppm', target: batas('tds') },
     { k: 'airTemp', label: 'Suhu Udara', nilai: `${angka(s?.airTemp, 1)} °C`, num: s?.airTemp, digit: 1, akhiran: ' °C', target: batas('airTemp') },
     { k: 'humidity', label: 'Kelembapan', nilai: `${angka(s?.humidity)} %`, num: s?.humidity, digit: 0, akhiran: ' %', target: batas('humidity') },
+    { k: 'ec', label: 'EC (mS/cm)', nilai: `${angka(s?.ec_ms_cm, 2)} mS/cm`, num: s?.ec_ms_cm, digit: 2, akhiran: ' mS/cm', target: 'daya hantar larutan' },
     {
       k: 'level',
-      label: 'Katup Air',
-      nilai: wc?.valve_state ? String(wc.valve_state) : '—',
-      target: `Mode ${wc?.mode ?? '—'}`,
+      label: 'Level Tandon',
+      nilai: s?.water_level ? String(s.water_level) : '—',
+      target: wc?.valve_state ? `Katup ${wc.valve_state}` : 'Katup —',
     },
   ]
 
@@ -261,11 +271,11 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* KPI: enam metrik; pH dan TDS disorot (hijau dan emas) */}
+        {/* KPI: tujuh metrik + saklar; pH dan TDS disorot (hijau dan emas) */}
         <section className="xl:col-span-7" aria-label="Kondisi air dan tanaman">
           <div className="grid h-full grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
             {loading && !data
-              ? Array.from({ length: 6 }, (_, i) => <div key={i} className="vsf-skeleton min-h-[132px]" />)
+              ? Array.from({ length: 8 }, (_, i) => <div key={i} className="vsf-skeleton min-h-[132px]" />)
               : metrik.map((m) => {
                   const sorot = m.k === 'ph' ? 'vsf-kpi-hijau' : m.k === 'tds' ? 'vsf-kpi-emas' : 'vsf-kpi-kaca'
                   return (
@@ -298,6 +308,20 @@ export default function DashboardPage() {
                     </Link>
                   )
                 })}
+            {!(loading && !data) && (
+              <Link to="/saklar" className="vsf-kpi vsf-kpi-kaca flex min-h-[132px] flex-col justify-between p-4 sm:p-5" aria-label="Status saklar aktuator">
+                <div className="text-[13px] font-semibold opacity-80">Saklar Aktuator</div>
+                <ul className="mt-2 grid gap-1 text-[12px]">
+                  {(data?.saklar ?? []).length === 0 && <li className="opacity-75">Belum ada data saklar.</li>}
+                  {(data?.saklar ?? []).map((k) => (
+                    <li key={k.kode} className="flex items-center justify-between gap-2">
+                      <span className="truncate">{k.nama}</span>
+                      <span className={`vsf-chip-nilai ${k.aktif ? 'is-normal' : 'is-luar'}`}>{k.aktif ? 'ON' : 'OFF'}</span>
+                    </li>
+                  ))}
+                </ul>
+              </Link>
+            )}
           </div>
         </section>
 

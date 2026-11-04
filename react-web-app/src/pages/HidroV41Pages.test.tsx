@@ -13,8 +13,6 @@ import { PanelSaklarMode } from '../components/dosing/PanelSaklarMode'
 import { PanelUjiLab } from '../components/dosing/PanelUjiLab'
 import { PanelKalibrasiLangsungV41 } from '../components/kalibrasi/PanelKalibrasiLangsungV41'
 import {
-  DosingManualPage,
-  KurasGantiAirPage,
   MqttDiagnostikPage,
   PemulihanPapanPage,
   PeringatanPage,
@@ -284,52 +282,7 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
     )
   })
 
-  it('Langkah 6, 7, 8 — Halaman Dosing Manual, Kuras Air, Pemulihan Papan, MQTT Diagnostik, dan Peringatan: semua tombol aksi bisa diklik', async () => {
-    // 6. DosingManualPage
-    await act(async () => {
-      root.render(
-        <MemoryRouter>
-          <DosingManualPage />
-        </MemoryRouter>,
-      )
-    })
-    await act(async () => {
-      cariTombol('Nutrisi A + B (dikunci)').click()
-    })
-    expect(mockApiPost).toHaveBeenCalledWith('/iot-v41/dosing-manual', { aksi: 'dosing_ab', ppm: 50 })
-
-    await act(async () => {
-      cariTombol('Koreksi pH (dikunci)').click()
-    })
-    expect(mockApiPost).toHaveBeenCalledWith('/iot-v41/dosing-manual', {
-      aksi: 'dosis_ph',
-      arah: 'up',
-      ml: 5,
-    })
-
-    await act(async () => {
-      cariTombol('STOP — antre perintah berhenti').click()
-    })
-    expect(mockApiPost).toHaveBeenCalledWith('/iot-v41/dosing-manual', { aksi: 'stop' })
-
-    // 7. KurasGantiAirPage
-    await act(async () => {
-      root.render(
-        <MemoryRouter>
-          <KurasGantiAirPage />
-        </MemoryRouter>,
-      )
-    })
-    await act(async () => {
-      cariTombol('Mulai kuras').click()
-    })
-    expect(mockApiPost).toHaveBeenCalledWith('/iot-v41/pemeliharaan', { aksi: 'kuras_mulai' })
-
-    await act(async () => {
-      cariTombol('Selesai & lanjutkan').click()
-    })
-    expect(mockApiPost).toHaveBeenCalledWith('/iot-v41/pemeliharaan', { aksi: 'air_diganti' })
-
+  it('Langkah 8 — Halaman Pemulihan Papan, MQTT Diagnostik, dan Peringatan: semua tombol aksi bisa diklik', async () => {
     // 8a. PemulihanPapanPage
     await act(async () => {
       root.render(
