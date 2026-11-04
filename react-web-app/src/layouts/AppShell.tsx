@@ -193,13 +193,15 @@ function DrawerItem({ item }: { item: NavItem }) {
 }
 
 /** jam live HH:MM:SS (format .pen: 14:02:33) */
+// Dibuat sekali: membuat Intl.DateTimeFormat baru tiap detik memakan ±2 ms per panggilan.
+const FORMAT_JAM = new Intl.DateTimeFormat('en-GB', {
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: false,
+})
 function formatClock(): string {
-  return new Intl.DateTimeFormat('en-GB', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  }).format(new Date())
+  return FORMAT_JAM.format(new Date())
 }
 
 /** Komponen terisolasi agar detak 1 detik tidak me-render ulang seluruh AppShell & ratusan NavLink. */

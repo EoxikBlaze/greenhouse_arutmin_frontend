@@ -5,7 +5,7 @@ import path from 'node:path'
 
 const base = process.argv[2] ?? 'http://127.0.0.1:4173'
 const out = process.argv[3] ?? './trace'
-const rute = (process.argv[4] ?? '/dashboard,/saklar,/peringatan,/tanam,/laporan,/ambang,/profil,/').split(',')
+const rute = (process.argv[4] ?? '/dashboard,/saklar,/peringatan,/tanam,/laporan,/ambang,/profil,/').split(',').map((r) => (r.startsWith('/') ? r : '/' + r))
 const pass = process.env.ADMIN_PASSWORD
 fs.mkdirSync(out, { recursive: true })
 

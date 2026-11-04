@@ -32,3 +32,19 @@ variasi antar-run besar (lihat ledger), jadi selisih kecil bukan bukti.
 
 ## Sisa biaya (build sesudah, dashboard)
 Compile modul 0,9–1,6 dtk, render React shell 1,4–1,7 dtk, satu layout ±1,3 dtk (167 objek) setelah render pertama.
+
+## Dev server (`npm run dev`) di 20x, DevTools merekam
+| Rute | FCP dtk | TBT dtk |
+|---|---|---|
+| dashboard | 24,0 -> 2,0 | 33,8 -> 32,8 |
+| laporan | 32,6 -> 2,6 | 33,8 -> 31,9 |
+| saklar | 28,9 -> 2,2 | 32,5 -> 31,4 |
+| tanam | 26,1 -> 2,4 | 30,0 -> 31,1 |
+
+FCP turun (kerangka statis di index.html), TBT tidak berubah: main thread sibuk ±37 dtk karena React mode dev
+(`jsxDEV`, `createElement`, `logComponentRender/Effect` = pencatat track performa React saat merekam, StrictMode
+render ganda). Itu tidak ada di build produksi. Ukur performa dengan `npm run build && npm run preview`.
+
+| Ide | Hasil | Verdict |
+|---|---|---|
+| Hoist `Intl.DateTimeFormat` di `formatClock` (AppShell) | self time `formatClock` 1.449 ms -> 11 ms di profil dev | kept |
