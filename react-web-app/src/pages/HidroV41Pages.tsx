@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api'
 import { useAuth } from '../lib/authContext'
 import { useApiError } from '../lib/crudApi'
@@ -468,16 +468,12 @@ type PeringatanItem = {
   aktif: boolean
 }
 
-const BAWAAN_PERINGATAN: PeringatanItem[] = [
-  {
-    id: 'al-1',
-    waktu: new Date().toISOString(),
-    level: 'kuning',
-    kode: 'TARGET_TIDUR',
-    pesan: 'Target EC bernilai 0 ppm (mode tidur): alat memantau sensor tanpa menyuntik nutrisi.',
-    aktif: true,
-  },
-]
+/** Baris GET /alert-logs (tabel alert_logs) → item tampilan. */
+type BarisAlert = { id: number | string; type: string; value: string; severity: string; acknowledged: boolean; created_at: string }
+const LEVEL_ALERT: Record<string, PeringatanItem['level']> = { critical: 'merah', warning: 'kuning', info: 'info' }
+export function dariBarisAlert(r: BarisAlert): PeringatanItem {
+  return { id: `a-${r.id}`, waktu: r.created_at, level: LEVEL_ALERT[r.severity] ?? 'info', kode: r.type.toUpperCase(), pesan: r.value, aktif: !r.acknowledged }
+}
 
 export function PeringatanPage() {
   const { role } = useAuth()
@@ -485,37 +481,40 @@ export function PeringatanPage() {
   const handleApiError = useApiError()
   const iot = useIotV41State()
 
-  const [daftar, setDaftar] = useState<PeringatanItem[]>(BAWAAN_PERINGATAN)
+  const [daftar, setDaftar] = useState<PeringatanItem[]>([])
   const [sibuk, setSibuk] = useState(false)
   const [pesan, setPesan] = useState<string | null>(null)
   const [galat, setGalat] = useState<string | null>(null)
 
+  // handler galat disimpan di ref supaya muat() stabil (efek tidak berulang bila identitas handler berganti)
+  const galatRef = useRef(handleApiError)
+  galatRef.current = handleApiError
+  const muat = useCallback(async () => {
+    try {
+      const res = await api.get('/alert-logs', { params: { limit: 100 } })
+      const baris = Array.isArray(res.data?.data) ? (res.data.data as BarisAlert[]) : []
+      setDaftar(baris.map(dariBarisAlert))
+    } catch (err) {
+      setGalat(galatRef.current(err).message)
+    }
+  }, [])
+
+  useEffect(() => {
+    void muat()
+  }, [muat])
+
   const p = iot.data?.params
-  const waktuAcuan = iot.data?.kondisi.updated_at ?? BAWAAN_PERINGATAN[0].waktu
+  const waktuAcuan = iot.data?.kondisi.updated_at ?? new Date().toISOString()
+  // kondisi saat ini dari status alat (bukan data tetap): hanya tampil selama kondisinya benar
   const semuaPeringatan: PeringatanItem[] = [
     ...(p?.tahan_dosing
-      ? [
-          {
-            id: 'al-tahan',
-            waktu: waktuAcuan,
-            level: 'merah' as const,
-            kode: 'AIR_DIGANTI',
-            pesan: p.tahan_alasan ?? 'Pemberian nutrisi ditahan otomatis karena perubahan EC/pH yang drastis.',
-            aktif: true,
-          },
-        ]
+      ? [{ id: 'kondisi-tahan', waktu: waktuAcuan, level: 'merah' as const, kode: 'AIR_DIGANTI', pesan: p.tahan_alasan ?? 'Pemberian nutrisi ditahan otomatis karena perubahan EC/pH yang drastis.', aktif: true }]
       : []),
     ...(p?.pemeliharaan
-      ? [
-          {
-            id: 'al-pemeliharaan',
-            waktu: waktuAcuan,
-            level: 'kuning' as const,
-            kode: 'MODE_PEMELIHARAAN',
-            pesan: 'Mode pemeliharaan sedang aktif — semua pompa dimatikan dan hitungan dibekukan.',
-            aktif: true,
-          },
-        ]
+      ? [{ id: 'kondisi-pemeliharaan', waktu: waktuAcuan, level: 'kuning' as const, kode: 'MODE_PEMELIHARAAN', pesan: 'Mode pemeliharaan sedang aktif — semua pompa dimatikan dan hitungan dibekukan.', aktif: true }]
+      : []),
+    ...(p && p.ec_setpoint === 0
+      ? [{ id: 'kondisi-tidur', waktu: waktuAcuan, level: 'kuning' as const, kode: 'TARGET_TIDUR', pesan: 'Target EC bernilai 0 ppm (mode tidur): alat memantau sensor tanpa menyuntik nutrisi.', aktif: true }]
       : []),
     ...daftar,
   ]
@@ -538,9 +537,14 @@ export function PeringatanPage() {
     }
   }
 
-  function tandaiSelesai(id: string) {
-    setDaftar((lama) => lama.map((a) => (a.id === id ? { ...a, aktif: false } : a)))
-    setPesan('Peringatan ditandai selesai.')
+  async function tandaiSelesai(id: string) {
+    try {
+      await api.post(`/alert-logs/${id.replace(/^a-/, '')}/ack`)
+      setPesan('Peringatan ditandai selesai.')
+      await muat()
+    } catch (err) {
+      setGalat(handleApiError(err).message)
+    }
   }
 
   return (
@@ -579,7 +583,7 @@ export function PeringatanPage() {
               </button>
             )}
             <div className="mt-1.5 text-[11.5px] text-abu">
-              RESET bukan pembersih riwayat: peringatan tetap tersimpan di web.
+              RESET hanya dicatat di server dan tidak menghapus riwayat. "Tandai selesai" menandai peringatan sudah ditangani di database.
             </div>
           </div>
         </div>
@@ -609,11 +613,11 @@ export function PeringatanPage() {
                 </span>
               </div>
               <div className="vsf-param-sel">
-                {a.aktif && bolehUbah && a.id.startsWith('al-') && (
+                {a.aktif && bolehUbah && a.id.startsWith('a-') && (
                   <button
                     type="button"
                     className="inline-flex min-h-[44px] items-center text-[12px] font-semibold text-arutmin-forest underline"
-                    onClick={() => tandaiSelesai(a.id)}
+                    onClick={() => void tandaiSelesai(a.id)}
                   >
                     tandai selesai
                   </button>

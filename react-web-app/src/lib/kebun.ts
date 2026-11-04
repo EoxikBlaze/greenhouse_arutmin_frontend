@@ -79,3 +79,24 @@ export function kenaikanPerHari(awal: number | null, target: number | null, hari
   if (awal == null || target == null || !hari || hari <= 0 || target < awal) return null
   return (target - awal) / hari
 }
+
+/**
+ * Contoh kurva naik harian — rumus SAMA dengan server (presetDosing.naikHarian):
+ * target hari ke-h = min(target, awal + (target − awal) / hari × h), dibulatkan ke ppm.
+ * Mengembalikan hari 0, 1, 2, 3, … (dipadatkan) sampai hari tercapai; null bila isian belum lengkap.
+ */
+export function kurvaNaikHarian(
+  awal: number | null,
+  target: number | null,
+  hari: number | null,
+  maksBaris = 8,
+): Array<{ hari: number; ppm: number }> | null {
+  if (awal == null || target == null || !hari || hari <= 0 || !Number.isInteger(hari) || target < awal) return null
+  const per = (target - awal) / hari
+  const nilai = (h: number) => ({ hari: h, ppm: Math.round(Math.min(target, awal + per * h)) })
+  if (hari + 1 <= maksBaris) return Array.from({ length: hari + 1 }, (_, h) => nilai(h))
+  const awalan = [0, 1, 2, 3].map(nilai)
+  const sisa = maksBaris - awalan.length - 1
+  const tengah = Array.from({ length: sisa }, (_, i) => nilai(Math.round(((i + 1) * hari) / (sisa + 1))))
+  return [...awalan, ...tengah.filter((t) => t.hari > 3 && t.hari < hari), nilai(hari)]
+}

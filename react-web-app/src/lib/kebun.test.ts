@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   kenaikanPerHari,
+  kurvaNaikHarian,
   labelSiap,
   perkiraanSelesai,
   progres,
@@ -109,5 +110,27 @@ describe('kenaikanPerHari', () => {
     expect(kenaikanPerHari(400, null, 60)).toBeNull()
     expect(kenaikanPerHari(400, 2400, 0)).toBeNull()
     expect(kenaikanPerHari(2500, 2400, 60)).toBeNull()
+  })
+})
+
+describe('kurvaNaikHarian', () => {
+  it('400 → 1000 ppm dalam 30 hari = +20/hari, hari ke-7 = 540, hari ke-30 = 1000', () => {
+    const k = kurvaNaikHarian(400, 1000, 30)!
+    expect(k[0]).toEqual({ hari: 0, ppm: 400 })
+    expect(k[1]).toEqual({ hari: 1, ppm: 420 })
+    expect(k[k.length - 1]).toEqual({ hari: 30, ppm: 1000 })
+    expect(k.every((t, i) => i === 0 || t.hari > k[i - 1].hari)).toBe(true)
+    expect(k.length).toBeLessThanOrEqual(8)
+  })
+  it('hari pendek ditampilkan semua, dibulatkan seperti server (700 → 1200 dalam 7 hari, hari ke-3 = 914)', () => {
+    const k = kurvaNaikHarian(700, 1200, 7)!
+    expect(k).toHaveLength(8)
+    expect(k[3]).toEqual({ hari: 3, ppm: 914 })
+  })
+  it('isian belum lengkap atau tidak sah → null', () => {
+    expect(kurvaNaikHarian(null, 1000, 30)).toBeNull()
+    expect(kurvaNaikHarian(400, 1000, 0)).toBeNull()
+    expect(kurvaNaikHarian(400, 1000, 2.5)).toBeNull()
+    expect(kurvaNaikHarian(1200, 1000, 30)).toBeNull()
   })
 })

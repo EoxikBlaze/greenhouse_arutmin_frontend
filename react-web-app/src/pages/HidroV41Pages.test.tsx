@@ -102,7 +102,11 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
     mockApiGet.mockReset()
     mockApiPut.mockReset()
     mockApiPost.mockReset()
-    mockApiGet.mockResolvedValue({ data: BAWAAN_V41 })
+    mockApiGet.mockImplementation(async (url: string) =>
+      url === '/alert-logs'
+        ? { data: { data: [{ id: 5, type: 'sensor', value: 'pH di luar batas', severity: 'warning', acknowledged: false, created_at: '2026-11-04T05:00:00' }] } }
+        : { data: BAWAAN_V41 },
+    )
     mockApiPut.mockResolvedValue({ data: { status: true, message: 'Tersimpan' } })
     mockApiPost.mockResolvedValue({ data: { status: true, message: 'Terkirim' } })
   })
@@ -328,5 +332,6 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
     await act(async () => {
       cariTombol('tandai selesai').click()
     })
+    expect(mockApiPost).toHaveBeenCalledWith('/alert-logs/5/ack')
   })
 })

@@ -63,6 +63,10 @@ const API_PATHS = [
   '/kalibrasi',
   // ── IoT Hidroponik 1 Penampung v4.1 (saklar, pengaturan, ujilab, kalibrasi langsung, pulihkan) ──
   '/iot-v41',
+  // ── Saklar aktuator (juga rute SPA /saklar), Uji Lab hasil panen, dan daftar peringatan ──
+  '/saklar',
+  '/uji-lab',
+  '/alert-logs',
 ]
 
 export default defineConfig({

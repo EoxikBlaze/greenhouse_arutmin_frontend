@@ -5,7 +5,7 @@ import { useAuth } from '../lib/authContext'
 import { fieldError, useApiError } from '../lib/crudApi'
 import { useApiObject } from '../lib/useApiObject'
 import { angkaMaks } from '../lib/format'
-import { kenaikanPerHari } from '../lib/kebun'
+import { kenaikanPerHari, kurvaNaikHarian } from '../lib/kebun'
 import { Ikon } from './Ikon'
 import { DialogKaca, Pesan } from './kaca/DialogKaca'
 
@@ -126,6 +126,7 @@ export function NaikHarian() {
   const pa = angka(awal.replace(',', '.'))
   const pt = angka(target.replace(',', '.'))
   const perHari = kenaikanPerHari(pa, pt, angka(hari))
+  const kurva = kurvaNaikHarian(pa, pt, angka(hari))
   const targetLewat = pt != null && maksAmbang != null && pt > maksAmbang
 
   return (
@@ -225,6 +226,15 @@ export function NaikHarian() {
                 : `Naik ±${tampil(perHari)} ppm per hari, dari ${tampil(pa ?? 0)} ke ${tampil(pt ?? 0)} ppm.`}
             </span>
           </div>
+          {kurva && (
+            <table className="mt-2 w-full text-left text-[12px]" aria-label="Contoh target per hari">
+              <caption className="pb-1 text-left text-abu">Contoh target per hari sejak pindah netpot (dihitung otomatis)</caption>
+              <tbody>
+                <tr>{kurva.map((t) => (<th key={t.hari} scope="col" className="pr-2 font-semibold text-abu">Hari {t.hari}</th>))}</tr>
+                <tr>{kurva.map((t) => (<td key={t.hari} className="pr-2 tabular-nums text-tinta">{tampil(t.ppm)}</td>))}</tr>
+              </tbody>
+            </table>
+          )}
           {targetLewat && (
             <div className="vsf-tone-warn mt-2 rounded-input px-3 py-2 text-[12px]" role="status">
               Target di atas ambang alert TDS ({tampil(maksAmbang ?? 0)} ppm) — alert "di luar batas" akan muncul.
