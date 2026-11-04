@@ -399,7 +399,7 @@ export function PanelKalibrasiLangsungV41({
             {bolehUbah && (
               <button
                 type="button"
-                className="mt-2 text-[12px] font-semibold text-arutmin-forest underline disabled:opacity-50"
+                className="mt-1 inline-flex min-h-[44px] items-center text-[12px] font-semibold text-arutmin-forest underline disabled:opacity-50"
                 disabled={!pemeliharaanAktif || sibuk !== null}
                 onClick={() => void balikKalibrasi('ec')}
               >
@@ -475,7 +475,7 @@ export function PanelKalibrasiLangsungV41({
             {bolehUbah && (
               <button
                 type="button"
-                className="mt-2 text-[12px] font-semibold text-arutmin-forest underline disabled:opacity-50"
+                className="mt-1 inline-flex min-h-[44px] items-center text-[12px] font-semibold text-arutmin-forest underline disabled:opacity-50"
                 disabled={!pemeliharaanAktif || sibuk !== null}
                 onClick={() => void balikKalibrasi('ph')}
               >

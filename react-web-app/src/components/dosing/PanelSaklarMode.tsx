@@ -171,7 +171,9 @@ export function PanelSaklarMode({
                   disabled={!bolehUbah || sibuk}
                   onClick={() => setDraf((s) => ({ ...s, [item.kunci]: !form[item.kunci] }))}
                   className={clsx(
-                    'relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full border transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-arutmin-forest disabled:cursor-not-allowed disabled:opacity-60',
+                    // before: = zona sentuh 44×64 px tak terlihat (tampilan tetap 28×48) untuk jari di HP
+                    "relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full border before:absolute before:-inset-2 before:content-['']",
+                    'transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-arutmin-forest disabled:cursor-not-allowed disabled:opacity-60',
                     nyala
                       ? 'border-arutmin-forest bg-arutmin-forest'
                       : 'border-slate-300 bg-slate-200/80',

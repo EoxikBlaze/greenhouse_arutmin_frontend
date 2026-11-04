@@ -2046,6 +2046,8 @@ html.vsf-splash-aktif { overflow: hidden; }
   box-shadow: var(--lg-rim-kecil);
   transition: background-color 150ms ease, box-shadow 150ms ease;
 }
+/* HP: target sentuh 44 px untuk chip filter (desktop tetap 36 px) */
+@media (max-width: 639.98px) { .vsf-chip-ringkas { min-height: 44px; } }
 .vsf-chip-ringkas:hover { background: rgb(255 255 255 / 0.74); }
 .vsf-chip-ringkas[aria-pressed='true'] { color: #fff; background: linear-gradient(145deg, #4f7f35, #2f5a22); }
 .vsf-chip-ringkas:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }

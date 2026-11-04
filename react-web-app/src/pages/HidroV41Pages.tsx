@@ -1186,7 +1186,7 @@ export function PeringatanPage() {
                 {a.aktif && bolehUbah && a.id.startsWith('al-') && (
                   <button
                     type="button"
-                    className="text-[12px] font-semibold text-arutmin-forest underline"
+                    className="inline-flex min-h-[44px] items-center text-[12px] font-semibold text-arutmin-forest underline"
                     onClick={() => tandaiSelesai(a.id)}
                   >
                     tandai selesai

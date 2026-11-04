@@ -334,7 +334,7 @@ export default function DashboardPage() {
                             <Link
                               to={p.to}
                               aria-label={`Buka ${p.label}`}
-                              className="-mr-1 inline-flex min-h-[28px] items-center px-1 text-[12px] font-semibold text-arutmin-forest underline underline-offset-2 hover:text-arutmin-moss"
+                              className="-my-2 -mr-1 inline-flex min-h-[44px] items-center px-1 text-[12px] font-semibold text-arutmin-forest underline underline-offset-2 hover:text-arutmin-moss"
                             >
                               Buka →
                             </Link>

@@ -153,7 +153,7 @@ export function TargetPenampung({ data, onUbah }: { data: Daftar<TargetMeja>; on
   return (
     <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Target tiap penampung">
       <div className="flex flex-wrap items-start gap-3">
-        <div className="min-w-0 max-w-[720px] flex-1">
+        <div className="min-w-0 max-w-[720px] flex-1 basis-[14rem]">
           <div className="vsf-judul-bagian">Target tiap penampung</div>
           <p className="mt-0.5 text-[13px] leading-relaxed text-abu">
             <b className="text-tinta">Otomatis</b>: target EC/pH mengikuti preset sesuai batch yang sedang berjalan.{' '}
@@ -415,7 +415,7 @@ export function PresetNutrisi({ data, onUbah }: { data: Daftar<Preset>; onUbah: 
   return (
     <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Preset nutrisi">
       <div className="flex flex-wrap items-start gap-3">
-        <div className="min-w-0 max-w-[720px] flex-1">
+        <div className="min-w-0 max-w-[720px] flex-1 basis-[14rem]">
           <div className="vsf-judul-bagian">Preset nutrisi</div>
           <p className="mt-0.5 text-[13px] leading-relaxed text-abu">
             Satu preset = rentang EC dan pH untuk satu tahap. Target penampung = titik tengah rentang. Hanya preset{' '}

@@ -417,7 +417,7 @@ export function AppShell() {
               onClick={() => setConfirmKeluar(true)}
               aria-label="Keluar"
               title="Keluar"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-tinta/70 hover:bg-white/75 hover:text-tinta"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-tinta/70 hover:bg-white/75 hover:text-tinta"
             >
               <Ikon nama="keluar" />
             </button>
@@ -448,7 +448,7 @@ export function AppShell() {
             >
               <Ikon nama={navOpen ? 'tutup' : 'menu'} className="h-5 w-5" />
             </button>
-            <div className="min-w-0 xl:hidden 2xl:block 2xl:w-[190px] 2xl:shrink-0">
+            <div className="min-w-0 flex-1 xl:hidden xl:flex-none 2xl:block 2xl:w-[190px] 2xl:shrink-0">
               <div className="truncate font-display text-[16px] font-bold leading-tight text-tinta">Vertonik Smart Farm</div>
               <div className="hidden truncate text-[12px] text-abu sm:block">GARAP · greenhouse hidroponik</div>
             </div>
@@ -479,14 +479,17 @@ export function AppShell() {
                 >
                   {inisial}
                 </span>
-                <span className="text-[14px] font-semibold text-tinta">{namaUser || role}</span>
+                {/* HP: cukup inisial (nama tetap terbaca pembaca layar) → header tidak pecah jadi 3 baris */}
+                <span className="sr-only text-[14px] font-semibold text-tinta sm:not-sr-only">{namaUser || role}</span>
                 <span className="hidden text-[12px] text-abu lg:block">{role}</span>
               </div>
             </div>
           </div>
         </header>
 
-        <div className="min-w-0 flex-1 overflow-x-clip p-4 sm:p-6">
+        {/* HP: konten minimal setinggi layar → footer sudah di bawah layar sejak awal, tidak terdorong (CLS 0,135)
+            saat tabel/kartu selesai dimuat. */}
+        <div className="min-w-0 flex-1 overflow-x-clip p-4 sm:p-6 max-lg:min-h-dvh">
           {/* QW5 — notice redirect role (state dari RequireAuth). */}
           {notice && (
             <div

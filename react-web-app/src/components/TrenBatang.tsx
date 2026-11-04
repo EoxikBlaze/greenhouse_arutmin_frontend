@@ -62,7 +62,7 @@ export function TrenBatang() {
               aria-selected={p === param}
               type="button"
               onClick={() => setParam(p)}
-              className={`min-h-[36px] rounded-full px-3 text-[13px] font-semibold transition-colors duration-[var(--dur-normal)] ${
+              className={`min-h-[44px] sm:min-h-[36px] rounded-full px-3 text-[13px] font-semibold transition-colors duration-[var(--dur-normal)] ${
                 p === param ? 'bg-activePill text-white shadow-[0_6px_14px_-8px_rgba(78,119,51,.9)]' : 'text-tinta/70 hover:bg-white/70'
               }`}
             >

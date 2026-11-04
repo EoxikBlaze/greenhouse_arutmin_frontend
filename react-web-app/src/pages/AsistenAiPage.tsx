@@ -132,7 +132,8 @@ export default function AsistenAiPage() {
       {/* Langkah berikutnya: satu rekomendasi prioritas, ringkas */}
       <section className="vsf-card px-4 py-3.5 sm:px-5" aria-labelledby="vsf-langkah-title">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="min-w-0 flex-1">
+          {/* basis 12rem: di HP sempit tombol turun ke bawah, bukan memeras teks jadi satu kata per baris */}
+          <div className="min-w-0 flex-1 basis-[12rem]">
             <div id="vsf-langkah-title" className="vsf-judul-bagian">Langkah berikutnya</div>
             {!hasil && !memuat && (
               <p className="mt-0.5 text-[12.5px] leading-relaxed text-abu">

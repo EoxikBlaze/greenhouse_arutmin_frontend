@@ -19,6 +19,8 @@
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.9), 0 4px 14px -8px rgba(40, 80, 130, 0.3);
   transition: background-color 150ms ease, transform 150ms ease, color 150ms ease;
 }
+/* HP: target sentuh 44 px (desktop tetap 36 px) */
+@media (max-width: 639.98px) { .vsf-saklar-tema { width: 44px; height: 44px; } }
 .vsf-saklar-tema:hover { background: rgba(255, 255, 255, 0.85); }
 .vsf-saklar-tema:active { transform: scale(0.94); }
 .vsf-saklar-tema:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }

@@ -50,7 +50,8 @@ export function KartuNilai({
   return (
     <div role="group" aria-label="Pilih sensor untuk grafik" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
       {PARAMS.map((p) => {
-        if (memuat && !terakhir[p.kunci]) return <div key={p.kunci} className="vsf-skeleton h-[136px] rounded-card" />
+        // tinggi kerangka = tinggi kartu (156 px, diukur 320–768 px) supaya kartu tidak melompat saat data datang
+        if (memuat && !terakhir[p.kunci]) return <div key={p.kunci} className="vsf-skeleton h-[156px] rounded-card max-sm:last:col-span-2" />
         const t = terakhir[p.kunci]
         const batas = ambang?.[p.kunci]
         const s = statusNilai(t?.y ?? null, batas)
@@ -63,7 +64,7 @@ export function KartuNilai({
             type="button"
             aria-pressed={aktif}
             onClick={() => onToggle(p.kunci)}
-            className={clsx('vsf-nilai vsf-kpi-kaca max-sm:last:col-span-2', aktif && 'is-aktif')}
+            className={clsx('vsf-nilai vsf-kpi-kaca min-h-[156px] max-sm:last:col-span-2', aktif && 'is-aktif')}
           >
             <span className="flex items-center justify-between gap-2">
               <span className="vsf-label flex items-center gap-1.5 vsf-label-tinta">
@@ -78,9 +79,12 @@ export function KartuNilai({
               </span>
               {p.satuan && <span className="text-[13px] text-abu">{p.satuan}</span>}
             </span>
-            <span className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="mt-2 flex items-center">
               <span className={clsx('vsf-chip-nilai', CHIP[s].kelas)}>{CHIP[s].teks}</span>
-              {t && kini > 0 && <span className="text-[12px] text-abu">{relatif(Math.max(0, kini - t.t))}</span>}
+            </span>
+            {/* baris waktu selalu disediakan: dulu muncul belakangan di samping chip → baris pecah, kartu meninggi (CLS) */}
+            <span className="mt-1 block truncate text-[12px] text-abu">
+              {t && kini > 0 ? relatif(Math.max(0, kini - t.t)) : ' '}
             </span>
             {!batasSah(batas) ? (
               <span className="mt-1 text-[12px] text-abu">Batas aman perlu dicek admin</span>

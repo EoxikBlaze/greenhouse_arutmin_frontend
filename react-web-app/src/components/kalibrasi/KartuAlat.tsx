@@ -35,8 +35,9 @@ export function KartuAlat({
   const tombol = 'min-h-[44px] sm:min-h-[38px] px-3 py-1 text-[13px]'
   return (
     <article className={clsx('vsf-batch', a.status === 'terlambat' && 'is-lock')}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
+      {/* flex-wrap + basis: di HP sempit pil status turun, nama perangkat tidak terperas jadi kolom ±100 px */}
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0 flex-1 basis-[11rem]">
           <div className="text-[16px] font-bold text-tinta">{a.label ?? a.sensor}</div>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[12px] text-abu">
             <Ikon nama={adalahSensor(a) ? 'sensor' : 'dosing'} className="h-3.5 w-3.5" />

@@ -16,12 +16,14 @@ export function PageHeader({
   deskripsi?: ReactNode
   aksi?: ReactNode
 }) {
+  // Judul halaman sudah tampil sebagai h1 di AppShell → di sini hanya untuk pembaca layar (dulu judul dobel, ±70 px di HP)
+  if (!eyebrow && !deskripsi && !aksi) return judul ? <h2 className="sr-only">{judul}</h2> : null
   return (
     <section className="vsf-card flex flex-wrap items-start justify-between gap-x-6 gap-y-3 p-4 sm:p-5">
       <div className="min-w-0 flex-1 basis-[280px]">
         {eyebrow && <div className="vsf-eyebrow">{eyebrow}</div>}
-        {judul && <h2 className="font-display text-[20px] font-bold leading-tight text-tinta">{judul}</h2>}
-        {deskripsi && <p className="mt-1.5 max-w-[68ch] text-[13px] leading-relaxed text-slate-600">{deskripsi}</p>}
+        {judul && <h2 className="sr-only">{judul}</h2>}
+        {deskripsi && <p className={`${eyebrow ? 'mt-1.5' : ''} max-w-[68ch] text-[13px] leading-relaxed text-slate-600`}>{deskripsi}</p>}
       </div>
       {aksi && <div className="flex shrink-0 flex-wrap items-center gap-2">{aksi}</div>}
     </section>
