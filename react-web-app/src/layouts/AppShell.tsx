@@ -382,19 +382,28 @@ export function AppShell() {
           </div>
         </div>
         <nav aria-label="Menu utama" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-3">
-          {grupTampil.map((gr) => (
-            <div key={gr.label}>
-              <div className="vsf-eyebrow vsf-eyebrow-chrome mb-1 mt-4 flex items-center gap-2 px-1">
-                <span aria-hidden className="h-px w-3 bg-emas/70" />
-                {gr.label}
-              </div>
-              <div className="grid gap-0.5">
-                {gr.items.map((item) => (
-                  <DrawerItem key={item.to} item={item} />
-                ))}
-              </div>
-            </div>
-          ))}
+          {/* HP: hanya nama grup; submenu grup yang aktif tampil di footer. */}
+          <div className="mt-4 grid gap-1">
+            {grupTampil.map((gr) => {
+              const aktif = gr === grupAktif
+              return (
+                <Link
+                  key={gr.label}
+                  to={gr.items[0].to}
+                  aria-current={aktif ? 'true' : undefined}
+                  className={[
+                    'flex min-h-[48px] items-center gap-3 rounded-std-sm px-3 py-2 text-[14px] font-semibold capitalize transition-all duration-[var(--dur-normal)] ease-[var(--ease-v2)]',
+                    aktif
+                      ? 'bg-activePill text-white shadow-[0_8px_18px_-10px_rgba(78,119,51,.9)]'
+                      : 'text-tinta/80 hover:bg-white/70 hover:text-tinta',
+                  ].join(' ')}
+                >
+                  <Ikon nama={gr.ikon} className={`h-[20px] w-[20px] ${aktif ? 'text-emas' : ''}`} />
+                  <span className="truncate">{gr.label.toLowerCase()}</span>
+                </Link>
+              )
+            })}
+          </div>
         </nav>
         <div className="px-4 pb-2">
           <DrawerItem item={{ to: '/', label: 'Tentang Kami', ikon: 'info' }} />
@@ -430,7 +439,7 @@ export function AppShell() {
         />
       )}
 
-      <main id="vsf-main" tabIndex={-1} onPointerMove={ikutiKursor} className="flex min-h-dvh min-w-0 flex-col outline-none lg:pl-[92px]">
+      <main id="vsf-main" tabIndex={-1} onPointerMove={ikutiKursor} className="flex min-h-dvh min-w-0 flex-col pb-[88px] outline-none lg:pl-[92px]">
         {/* Bilah atas: merek, nav pill submenu grup aktif, status. */}
         <header ref={topbar} className="vsf-topbar sticky top-0 z-20 px-4 pt-3 sm:px-6">
           <div className="glass-chrome flex flex-wrap items-center gap-x-3 gap-y-2 py-2 pl-2 pr-2 sm:pl-3 xl:flex-nowrap">
@@ -448,13 +457,6 @@ export function AppShell() {
               <div className="truncate font-display text-[16px] font-bold leading-tight text-tinta">Vertonik Smart Farm</div>
               <div className="hidden truncate text-[12px] text-abu sm:block">GARAP · greenhouse hidroponik</div>
             </div>
-            {grupAktif && (
-              <PillNav
-                items={grupAktif.items}
-                label={`Submenu ${grupAktif.label}`}
-                className="order-last w-full xl:order-none xl:w-auto xl:min-w-0 xl:flex-1"
-              />
-            )}
             <div className="ml-auto flex items-center gap-2 sm:gap-3">
               {/* S6 — status IoT dari data live /dashboard (lihat useApiObject di atas). */}
               {dash && (
@@ -520,6 +522,13 @@ export function AppShell() {
         </div>
         <SiteFooter pekat />
       </main>
+
+      {/* Submenu grup aktif di footer: ikon dengan nama halaman di bawahnya. */}
+      {grupAktif && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center px-2 pb-[max(8px,env(safe-area-inset-bottom))] lg:pl-[92px]">
+          <PillNav items={grupAktif.items} label={`Submenu ${grupAktif.label}`} className="vsf-pillnav-bawah pointer-events-auto max-w-full" />
+        </div>
+      )}
 
       {/* Confirm sheet: Keluar — QW3: alertdialog + label + fokus + trap. */}
       {confirmKeluar && (

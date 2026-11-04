@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import clsx from 'clsx'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/authContext'
 import { useApiError } from '../../lib/crudApi'
@@ -7,6 +6,7 @@ import { simpanCacheLokal, type IotV41State } from '../../lib/iotV41'
 import { Ikon } from '../Ikon'
 import { Pesan, Rangka } from '../kaca/DialogKaca'
 import { StatusBadge } from '../StatusBadge'
+import { SwitchKaca } from '../SwitchKaca'
 
 const fmt = (v: number | null | undefined, d = 0): string => {
   if (v === null || v === undefined || !Number.isFinite(v)) return '—'
@@ -164,30 +164,12 @@ export function PanelSaklarMode({
                   <div className="text-[14px] font-bold text-tinta">{item.judul}</div>
                   <div className="mt-0.5 text-[12.5px] leading-relaxed text-abu">{item.ket}</div>
                 </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={nyala}
-                  aria-label={item.judul}
+                <SwitchKaca
+                  nyala={nyala}
+                  label={item.judul}
                   disabled={!bolehUbah || sibuk}
-                  onClick={() => setDraf((s) => ({ ...s, [item.kunci]: !form[item.kunci] }))}
-                  className={clsx(
-                    // before: = zona sentuh 44×64 px tak terlihat (tampilan tetap 28×48) untuk jari di HP
-                    "relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full border before:absolute before:-inset-2 before:content-['']",
-                    'transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-arutmin-forest disabled:cursor-not-allowed disabled:opacity-60',
-                    nyala
-                      ? 'border-arutmin-forest bg-arutmin-forest'
-                      : 'border-slate-300 bg-slate-200/80',
-                  )}
-                >
-                  <span
-                    aria-hidden
-                    className={clsx(
-                      'inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200',
-                      nyala ? 'translate-x-6' : 'translate-x-1',
-                    )}
-                  />
-                </button>
+                  onUbah={() => setDraf((s) => ({ ...s, [item.kunci]: !form[item.kunci] }))}
+                />
               </div>
             )
           })}

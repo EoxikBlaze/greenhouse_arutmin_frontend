@@ -52,7 +52,7 @@ export function PillNav({ items, label, className = '' }: { items: PillItem[]; l
             aria-current={i === aktif ? 'page' : undefined}
             className={`vsf-pillnav-item${i === aktif ? ' is-aktif' : ''}`}
           >
-            {it.ikon && <Ikon nama={it.ikon} className="h-4 w-4 shrink-0" />}
+            {it.ikon && <Ikon nama={it.ikon} className="h-5 w-5 shrink-0" />}
             <span>{it.label}</span>
           </Link>
         ))}

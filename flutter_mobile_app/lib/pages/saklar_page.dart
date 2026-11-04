@@ -5,6 +5,7 @@ import '../theme/tokens.dart';
 import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
 import '../widgets/kaca.dart';
+import '../widgets/switch_kaca.dart';
 
 /// Saklar aktuator — GET /saklar, PUT /saklar/:kode {aktif}. Hanya admin yang boleh mengubah.
 /// OFF = otomasi (preset/jadwal/AI) tidak boleh menyalakannya; Nutrisi Manual tetap boleh (override).
@@ -98,9 +99,10 @@ class _SaklarPageState extends State<SaklarPage> {
                       Expanded(child: Text('${s['nama']}', style: Tok.h3)),
                       Text(s['aktif'] == true ? 'ON' : 'OFF', style: Tok.kecil),
                       const SizedBox(width: 8),
-                      Switch(
-                        value: s['aktif'] == true,
-                        onChanged: _bolehUbah && _sibuk == null
+                      SwitchKaca(
+                        label: '${s['nama']}',
+                        nyala: s['aktif'] == true,
+                        onUbah: _bolehUbah && _sibuk == null
                             ? (v) => _ubah('${s['kode']}', v)
                             : null,
                       ),
