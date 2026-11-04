@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, startTransition } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
 import '@fontsource/inter/latin-400.css'
@@ -18,10 +18,17 @@ import { mulaiTema } from './lib/tema'
 
 mulaiTema()
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
-  </StrictMode>,
-)
+const akar = createRoot(document.getElementById('root')!)
+
+// Render pertama sebagai transisi: React memotongnya per ±5 ms (bisa menyela) sehingga tidak
+// ada satu task panjang yang memblokir main thread di perangkat lambat. Kerangka statis di
+// #root tetap tampil sampai hasil render siap.
+startTransition(() => {
+  akar.render(
+    <StrictMode>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </StrictMode>,
+  )
+})
