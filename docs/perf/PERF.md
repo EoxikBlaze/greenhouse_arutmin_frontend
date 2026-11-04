@@ -48,3 +48,11 @@ render ganda). Itu tidak ada di build produksi. Ukur performa dengan `npm run bu
 | Ide | Hasil | Verdict |
 |---|---|---|
 | Hoist `Intl.DateTimeFormat` di `formatClock` (AppShell) | self time `formatClock` 1.449 ms -> 11 ms di profil dev | kept |
+
+## Putaran 2 (trace user: dashboard TBT 7,5 dtk, dua task ±2,7 dtk)
+| Ide | Hasil | Verdict | Catatan |
+|---|---|---|---|
+| Render awal di `startTransition` (main.tsx) | task React 2,5 dtk -> banyak task 60-150 ms; max task 1,7 -> 1,6 dtk | dipertahankan | TBT harness A/B 8,0 vs 8,1/12,3 dtk (noise besar); verifikasi dengan trace user |
+| Hapus axios, pakai fetch tipis (lib/api.ts) | chunk index 300 -> 251 kB (gzip 97 -> 78) | dipertahankan | 155 tes lolos; login + GET diuji di browser; mutasi/CSRF belum diuji manual |
+| Varian CSS: font sistem, tanpa animasi, tanpa content-visibility, tanpa bayangan, tanpa SVG, tanpa kartu, containment | Layout pertama tetap ±1,25 dtk | dibuang | Layout 3 dtk juga muncul di /login dan dengan `body{display:none}`: artefak headless Chrome di harness saya, bukan kode app (trace user: Layout 0,32 dtk) |
+| TundaRender per bagian halaman | tidak dikerjakan | ditunda | Transisi sudah memotong render; kerjakan hanya bila trace user masih menunjukkan task > 200 ms |
