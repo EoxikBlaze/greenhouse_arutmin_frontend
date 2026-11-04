@@ -471,8 +471,16 @@ export function useIotV41State(pollMs = 8_000) {
     // eslint-disable-next-line react/set-state-in-effect
     void reload()
     if (pollMs <= 0) return
-    const id = window.setInterval(() => void reload(), pollMs)
-    return () => window.clearInterval(id)
+    // Tab tersembunyi tidak perlu polling; saat kembali terlihat, segarkan sekali.
+    const tick = () => {
+      if (!document.hidden) void reload()
+    }
+    const id = window.setInterval(tick, pollMs)
+    document.addEventListener('visibilitychange', tick)
+    return () => {
+      window.clearInterval(id)
+      document.removeEventListener('visibilitychange', tick)
+    }
   }, [reload, pollMs])
 
   return { data, loading, error, reload }
