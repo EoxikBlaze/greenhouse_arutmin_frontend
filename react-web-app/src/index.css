@@ -476,11 +476,8 @@
   position: fixed;
   inset: -3%;
   z-index: -2;
-  background: #4b9bdc url('/bg-lanskap.jpg') center / cover no-repeat;
-  animation: vsf-zoom 48s ease-in-out infinite alternate;
-  will-change: transform;
+  background: #4b9bdc url('/bg-lanskap.webp') center / cover no-repeat;
 }
-@keyframes vsf-zoom { from { transform: scale(1); } to { transform: scale(1.06) translateY(-1%); } }
   .vsf-kabut {
   position: fixed;
   inset: 0;
@@ -633,7 +630,6 @@
   /* ══ Performa 60 fps ══
    Biang lag: elemen kaca (backdrop-filter) menghitung ulang blur SETIAP frame bila apa pun di belakangnya bergerak.
    Karena itu latar & bola cair dibuat statis; gerak dipindah ke elemen kecil di atas kaca (compositor-only). */
-  .vsf-latar { animation: none; will-change: auto; transform: none; }
   .vsf-satu .vsf-card,
   .vsf-kaca {
   -webkit-backdrop-filter: blur(12px) brightness(1.08);
@@ -799,7 +795,7 @@
     /* Foto pegunungan yang sama dengan halaman Tentang Kami; kerudung putih tipis menjaga teks tetap terbaca. */
     background:
       linear-gradient(rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.1)),
-      #4b9bdc url('/bg-lanskap.jpg') center / cover no-repeat;
+      #4b9bdc url('/bg-lanskap.webp') center / cover no-repeat;
   }
   /* Chrome (material "regular"): rail, topbar, laci, footer. */
   .glass-chrome {

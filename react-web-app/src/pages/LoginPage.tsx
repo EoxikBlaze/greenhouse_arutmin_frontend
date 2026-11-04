@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/authContext'
 import { Monogram } from '../layouts/AppShell'
 import { Ikon } from '../components/Ikon'
+import '@fontsource/oswald/latin-600.css'
+import '@fontsource/oswald/latin-700.css'
 
 /** Ikon SVG inline (R3 — tanpa emoji agar konsisten & terbaca screen reader). */
 function IconAlert({ className = 'h-4 w-4' }: { className?: string }) {

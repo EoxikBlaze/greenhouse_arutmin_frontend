@@ -1,7 +1,7 @@
 /**
  * Tema terang/gelap. Sumber kebenaran = atribut `html[data-tema]` ("terang" | "gelap"); pilihan pengguna disimpan di
  * localStorage (`vsf-tema`). Selama pengguna belum memilih, tema mengikuti sistem (prefers-color-scheme).
- * Dipasang sebelum cat pertama oleh public/tema-awal.js (mencegah kedipan); modul ini menjaga sinkron sesudahnya.
+ * Dipasang sebelum cat pertama oleh skrip inline di index.html (mencegah kedipan); modul ini menjaga sinkron sesudahnya.
  */
 import { useSyncExternalStore } from 'react'
 

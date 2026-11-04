@@ -1,4 +1,8 @@
 import type { ReactNode } from 'react'
+// Font poster/skrip dihosting sendiri dan hanya ikut chunk halaman yang memakainya (bukan di setiap rute).
+import '@fontsource/oswald/latin-600.css'
+import '@fontsource/oswald/latin-700.css'
+import '@fontsource/kaushan-script/latin-400.css'
 
 export const FONT_POSTER = "'Oswald','Anton',Impact,'Arial Narrow',sans-serif"
 export const FONT_SKRIP = "'Kaushan Script','Brush Script MT',cursive"
