@@ -230,7 +230,7 @@ export function AppShell() {
   // S6 — indikator IoT topbar DARI data live (bukan hard-code selalu hijau).
   // Satu GET /dashboard per sesi AppShell + senyap tiap 60s; bila belum ada
   // data / gagal → badge disembunyikan (tak menampilkan status bohong).
-  const { data: dash } = useApiObject<DashboardStatus>('/dashboard', { pollMs: 60_000 })
+  const { data: dash } = useApiObject<DashboardStatus>('/dashboard', { pollMs: 60_000, tundaMs: 2000 })
   const iotOnline = dash?.iotStatus?.online
   const namaUser = (username || role || '').trim()
   const inisial = (namaUser || '?').slice(0, 2).toUpperCase()
@@ -268,7 +268,11 @@ export function AppShell() {
   }, [])
 
   // Pindah halaman → mulai dari atas (SPA tidak mereset scroll sendiri).
+  // Lewati muat pertama: scrollTo memaksa layout, dan halaman memang sudah di atas.
+  const pathSebelumnya = useRef(location.pathname)
   useEffect(() => {
+    if (pathSebelumnya.current === location.pathname) return
+    pathSebelumnya.current = location.pathname
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
   }, [location.pathname])
 

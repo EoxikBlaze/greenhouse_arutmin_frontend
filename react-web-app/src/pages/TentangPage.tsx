@@ -270,8 +270,9 @@ export function TentangPage() {
   // React Router tidak menggulir ke #anchor sendiri — lakukan setelah render.
   useEffect(() => {
     if (!hash) {
-      window.scrollTo({ top: 0 })
-      return
+      // Setelah paint pertama: scrollTo memaksa layout dan tak perlu menahan FCP.
+      const id = requestAnimationFrame(() => window.scrollTo({ top: 0 }))
+      return () => cancelAnimationFrame(id)
     }
     const el = document.getElementById(hash.slice(1))
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })

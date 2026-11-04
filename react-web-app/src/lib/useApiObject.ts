@@ -33,7 +33,7 @@ export function useFlashOnChange(value: unknown): string {
 
 export function useApiObject<T>(
   path: string,
-  options?: { pollMs?: number },
+  options?: { pollMs?: number; tundaMs?: number },
 ): {
   data: T | null
   loading: boolean
@@ -47,6 +47,7 @@ export function useApiObject<T>(
   const [error, setError] = useState<string | null>(null)
   const seq = useRef(0)
   const pollMs = options?.pollMs
+  const tundaMs = options?.tundaMs ?? 0
 
   const load = useCallback(async () => {
     const id = ++seq.current
@@ -66,17 +67,27 @@ export function useApiObject<T>(
 
   useEffect(() => {
     // setState terjadi SETELAH await (asinkron) — bukan sinkron di dalam effect.
+    const tunda = tundaMs > 0 ? setTimeout(() => void load(), tundaMs) : undefined
     // eslint-disable-next-line react/set-state-in-effect
-    void load()
+    if (tunda === undefined) void load()
     return () => {
+      clearTimeout(tunda)
       seq.current += 1 // batalkan hasil yang masih mendarat setelah unmount
     }
-  }, [load])
+  }, [load, tundaMs])
 
   useEffect(() => {
     if (!pollMs) return
-    const id = setInterval(() => void load(), pollMs)
-    return () => clearInterval(id)
+    // Tab tersembunyi tidak perlu polling; saat kembali terlihat, segarkan sekali.
+    const tick = () => {
+      if (!document.hidden) void load()
+    }
+    const id = setInterval(tick, pollMs)
+    document.addEventListener('visibilitychange', tick)
+    return () => {
+      clearInterval(id)
+      document.removeEventListener('visibilitychange', tick)
+    }
   }, [pollMs, load])
 
   const reload = useCallback(() => {
