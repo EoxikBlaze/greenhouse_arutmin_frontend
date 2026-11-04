@@ -12,7 +12,7 @@ import { PillNav } from '../components/PillNav'
 import { MuatHalaman } from '../components/MuatHalaman'
 import { SaklarTema } from '../components/SaklarTema'
 import { useApiObject } from '../lib/useApiObject'
-import { mulaiKaca, pantauKaca } from '../lib/kaca'
+import { mulaiKaca } from '../lib/kaca'
 
 /** Bentuk data /dashboard yang dipakai chrome (hanya utk indikator IoT). */
 type DashboardStatus = { iotStatus?: { online?: boolean } | null }
@@ -246,12 +246,11 @@ export function AppShell() {
     }
   }, [navOpen])
 
-  // Material kaca: pilihan transparansi tersimpan + penghemat blur kartu di luar layar.
+  // Material kaca: pilihan transparansi tersimpan.
   const akar = useRef<HTMLDivElement>(null)
   const topbar = useRef<HTMLElement>(null)
   useEffect(() => {
     mulaiKaca()
-    const henti = akar.current ? pantauKaca(akar.current) : undefined
     // Scroll edge: topbar makin pekat saat halaman digulir (atribut langsung, tanpa render ulang).
     let menggulung = false
     const onScroll = () => {
@@ -263,7 +262,6 @@ export function AppShell() {
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => {
-      henti?.()
       window.removeEventListener('scroll', onScroll)
     }
   }, [])

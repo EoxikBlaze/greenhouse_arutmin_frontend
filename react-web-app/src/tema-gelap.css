@@ -52,6 +52,8 @@ html[data-tema='gelap'] {
 
   /* kaca: tint putih jauh lebih tipis + rim redup + bayangan lebih dalam */
   --k: 0.2;
+  --lg-clr-a: min(1, calc(1.1 * var(--k)));
+  --lg-clr-b: min(1, calc(0.8 * var(--k)));
   --lg-rim:
     inset 1px 1px 0 -0.5px rgb(255 255 255 / 0.28),
     inset -1px -1px 0 -0.5px rgb(255 255 255 / 0.1),
@@ -183,10 +185,9 @@ html[data-tema='gelap'] .vsf-input { background-color: rgb(255 255 255 / 0.06); 
 html[data-tema='gelap'] .vsf-input:focus { background-color: rgb(255 255 255 / 0.1); }
 html[data-tema='gelap'] select.vsf-input option { background-color: rgb(var(--ar-card)); color: rgb(var(--tinta-rgb)); }
 
-/* Banner di atas foto malam: kaburkan latar agar teks peringatan tetap terbaca (bulan/lampu di belakangnya). */
+/* Banner di atas foto malam: latar dipekatkan (tanpa blur, murah) agar teks peringatan tetap terbaca (bulan/lampu di belakangnya). */
 html[data-tema='gelap'] .vsf-banner {
-  -webkit-backdrop-filter: blur(14px) brightness(0.7);
-  backdrop-filter: blur(14px) brightness(0.7);
+  background-color: rgb(var(--ar-card) / 0.88);
 }
 
 /* Tombol Login/Dashboard di bilah atas: aturan otomatis membuat latarnya kaca 15% tetapi teks tetap navy

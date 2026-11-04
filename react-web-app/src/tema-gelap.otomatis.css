@@ -23,7 +23,7 @@ html[data-tema='gelap'] .vsf-table {
       radial-gradient(farthest-side at 100% 50%, rgba(10, 31, 56, 0.3), rgba(10, 31, 56, 0))
 }
 html[data-tema='gelap'] .vsf-skeleton {
-    background: linear-gradient(100deg, #eaf0e7 35%, rgb(255 255 255 / 0.16) 50%, #eaf0e7 65%)
+    background: rgb(255 255 255 / 0.14)
 }
 html[data-tema='gelap'] input::placeholder,
 html[data-tema='gelap'] textarea::placeholder,

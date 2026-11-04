@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { bacaKaca, mulaiKaca, pantauKaca, setKaca } from './kaca'
+import { bacaKaca, mulaiKaca, setKaca } from './kaca'
 
 // Penyimpanan dalam memori: Node baru punya `localStorage` global sendiri yang menutupi milik jsdom.
 function penyimpananMemori(): Storage {
@@ -60,62 +60,5 @@ describe('preferensi transparansi', () => {
     localStorage.setItem('vsf-kaca', 'jernih')
     mulaiKaca()
     expect(document.documentElement.dataset.kaca).toBe('jernih')
-  })
-})
-
-describe('pantauKaca', () => {
-  type Cb = (es: Partial<IntersectionObserverEntry>[]) => void
-  let picu: Cb
-
-  beforeEach(() => {
-    vi.stubGlobal(
-      'IntersectionObserver',
-      class {
-        constructor(cb: Cb) {
-          picu = cb
-        }
-        observe() {}
-        disconnect() {}
-      },
-    )
-  })
-
-  it('kartu di luar layar diberi .vsf-di-luar dan dilepas saat terlihat', () => {
-    const root = document.createElement('div')
-    const kartu = document.createElement('section')
-    kartu.className = 'vsf-card'
-    root.appendChild(kartu)
-    document.body.appendChild(root)
-
-    const henti = pantauKaca(root)
-    picu([{ target: kartu, isIntersecting: false }])
-    expect(kartu.classList.contains('vsf-di-luar')).toBe(true)
-    picu([{ target: kartu, isIntersecting: true }])
-    expect(kartu.classList.contains('vsf-di-luar')).toBe(false)
-    henti()
-  })
-
-  it('semua jenis permukaan kaca dipantau, elemen biasa tidak', () => {
-    const root = document.createElement('div')
-    root.innerHTML =
-      '<section class="glass-chrome"></section><section class="glass-hero"></section>' +
-      '<section class="glass-card"></section><section class="vsf-kpi-kaca"></section>' +
-      '<section class="biasa"></section>'
-    document.body.appendChild(root)
-
-    const diamati: Element[] = []
-    vi.stubGlobal(
-      'IntersectionObserver',
-      class {
-        observe(e: Element) {
-          diamati.push(e)
-        }
-        disconnect() {}
-      },
-    )
-    const henti = pantauKaca(root)
-    expect(diamati.length).toBe(4)
-    expect(diamati.some((e) => e.classList.contains('biasa'))).toBe(false)
-    henti()
   })
 })
