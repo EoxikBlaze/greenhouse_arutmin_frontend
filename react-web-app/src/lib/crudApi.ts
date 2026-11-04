@@ -121,20 +121,40 @@ export function useApiList<T>(path: string): {
   loading: boolean
   error: string | null
   reload: () => void
+  /** Jumlah SELURUH baris di server (header X-Total-Count); null = endpoint tidak dipaginasi. */
+  total: number | null
+  /** Server memotong daftar ({terpotong:true}, mis. GET /tanam) — ada batch yang tidak ikut tampil. */
+  terpotong: boolean
+  /** Ambil halaman berikutnya (offset = jumlah baris sekarang) dan tambahkan ke `rows`. */
+  muatLagi: () => Promise<void>
+  memuatLagi: boolean
 } {
   const handleApiError = useApiError()
   const [rows, setRows] = useState<T[]>([])
   // true hanya untuk muat pertama (isi awal state — bukan setState di dalam effect).
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [total, setTotal] = useState<number | null>(null)
+  const [terpotong, setTerpotong] = useState(false)
+  const [memuatLagi, setMemuatLagi] = useState(false)
   const seq = useRef(0)
+  const jumlah = useRef(0) // baris yang sudah termuat — dibaca muatLagi tanpa menjadikannya dependensi
+
+  const bacaTotal = (res: { headers?: Record<string, unknown> }) => {
+    const n = Number(res.headers?.['x-total-count'])
+    return Number.isFinite(n) && res.headers?.['x-total-count'] !== undefined ? n : null
+  }
 
   const load = useCallback(async () => {
     const id = ++seq.current
     try {
       const res = await api.get(path)
       if (id !== seq.current) return
-      setRows(rowsOf(res.data) as T[])
+      const baris = rowsOf(res.data) as T[]
+      jumlah.current = baris.length
+      setRows(baris)
+      setTotal(bacaTotal(res))
+      setTerpotong(Boolean((res.data as { terpotong?: unknown } | null)?.terpotong))
       setError(null)
     } catch (err) {
       if (id !== seq.current) return
@@ -145,7 +165,7 @@ export function useApiList<T>(path: string): {
   }, [path, handleApiError])
 
   useEffect(() => {
-    // setState terjadi SETELAH await (asinkron) — bukan sinkron di dalam effect.
+    // setState terjadi SETELAH await (asinkron) — bukan setState sinkron di dalam effect.
     // eslint-disable-next-line react/set-state-in-effect
     void load()
     return () => {
@@ -157,7 +177,26 @@ export function useApiList<T>(path: string): {
     void load()
   }, [load])
 
-  return { rows, loading, error, reload }
+  const muatLagi = useCallback(async () => {
+    if (total === null || jumlah.current >= total) return
+    const id = seq.current
+    setMemuatLagi(true)
+    try {
+      const res = await api.get(`${path}${path.includes('?') ? '&' : '?'}offset=${jumlah.current}`)
+      if (id !== seq.current) return
+      const tambahan = rowsOf(res.data) as T[]
+      jumlah.current += tambahan.length
+      setRows((lama) => [...lama, ...tambahan])
+      setTotal(bacaTotal(res) ?? total)
+      setError(null)
+    } catch (err) {
+      if (id === seq.current) setError(handleApiError(err).message)
+    } finally {
+      setMemuatLagi(false)
+    }
+  }, [path, total, handleApiError])
+
+  return { rows, loading, error, reload, total, terpotong, muatLagi, memuatLagi }
 }
 
 /** Pesan error per-field pertama untuk sebuah kolom (kontrak 422). */

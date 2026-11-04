@@ -26,7 +26,7 @@ function IlustrasiTanam() {
 }
 
 export default function KebunSayaPage() {
-  const { rows, loading, error, reload } = useApiList<TanamRow>('/tanam')
+  const { rows, loading, error, reload, terpotong } = useApiList<TanamRow>('/tanam')
   const [cari, setCari] = useState('')
   const [tahap, setTahap] = useState<FilterTahap>('Semua')
 
@@ -91,6 +91,11 @@ export default function KebunSayaPage() {
             </span>
           )}
         </div>
+        {!loading && !error && terpotong && (
+          <p role="status" className="mt-2 text-[12.5px] text-abu">
+            Yang tampil hanya batch terbaru di tiap tahap. Selesaikan batch yang sudah lewat agar yang lain ikut tampil.
+          </p>
+        )}
 
         {loading ? (
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" role="status" aria-label="Memuat daftar tanam">

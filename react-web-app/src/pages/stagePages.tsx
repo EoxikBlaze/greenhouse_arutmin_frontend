@@ -260,7 +260,7 @@ export function SemaiPage() {
   // Dua endpoint baca yang didukung kontrak: daftar & daftar yang statusnya selesai.
   const [tab, setTab] = useState<Tampilan>('Semua')
   const path = tab === 'Selesai' ? '/semai/selesai' : '/semai'
-  const { rows, loading, error, reload } = useApiList<SemaiRow>(path)
+  const { rows, loading, error, reload, total, muatLagi, memuatLagi } = useApiList<SemaiRow>(path)
   const { rows: tanamanRows } = useApiList<TanamanMini>('/tanaman')
 
   // Detail per baris → GET /semai/batch/:id (aksi baca kedua yang disediakan kontrak).
@@ -356,6 +356,9 @@ export function SemaiPage() {
       </section>
 
       <CrudScreen<SemaiRow>
+        total={total}
+        onMuatLagi={() => void muatLagi()}
+        memuatLagi={memuatLagi}
         title="Semai"
         moduleName="Semai"
         addButton="+ Tambah Semai"
@@ -547,7 +550,7 @@ function TahapCrudPage<T>({
   labelBaris,
 }: PropsTahap<T>) {
   const handleApiError = useApiError()
-  const { rows, loading, error, reload } = useApiList<T>(path)
+  const { rows, loading, error, reload, total, muatLagi, memuatLagi } = useApiList<T>(path)
 
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState<FormState>({})
@@ -675,6 +678,9 @@ function TahapCrudPage<T>({
     <div className="vsf-halaman vsf-stagger">
       {catatan && <p className="px-1 text-[12.5px] text-abu">{catatan}</p>}
       <CrudScreen<T>
+        total={total}
+        onMuatLagi={() => void muatLagi()}
+        memuatLagi={memuatLagi}
         title={title}
         moduleName={moduleName}
         addButton={addButton}

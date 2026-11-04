@@ -58,6 +58,10 @@ type Props<T> = {
   hideAdd?: boolean
   /** `kartu` → tiap baris jadi kartu batch (.vsf-batch); bawaan `tabel`. */
   tampilan?: 'tabel' | 'kartu'
+  /** Paginasi server: jumlah seluruh baris + aksi "Muat lebih banyak" (tombol tampil bila baris termuat < total). */
+  total?: number | null
+  onMuatLagi?: () => void
+  memuatLagi?: boolean
   /**
    * Judul dialog form SPESIFIK per jenis data (mis. "Tambah Panen") —
    * default-nya generik ("Form tambah / edit"). Satu-satunya judul di dialog.
@@ -111,6 +115,9 @@ export function CrudScreen<T>({
   flash,
   hideAdd,
   tampilan = 'tabel',
+  total,
+  onMuatLagi,
+  memuatLagi,
   formTitle,
   open,
   onOpenChange,
@@ -304,6 +311,16 @@ export function CrudScreen<T>({
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Paginasi server: daftar dipotong di server (bawaan 200) — tombol memuat halaman berikutnya. */}
+        {!keadaan && total != null && onMuatLagi && rows.length < total && (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-[13px] text-abu">
+            <span role="status">Menampilkan {rows.length} dari {total} data</span>
+            <button type="button" className="vsf-btn-secondary min-h-[44px]" disabled={memuatLagi} onClick={onMuatLagi}>
+              {memuatLagi ? 'Memuat…' : 'Muat lebih banyak'}
+            </button>
           </div>
         )}
       </section>
