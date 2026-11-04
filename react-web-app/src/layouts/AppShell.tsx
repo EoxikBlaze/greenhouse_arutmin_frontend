@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { SiteFooter } from '../components/SiteFooter'
 import { Monogram } from '../components/Monogram'
@@ -9,6 +9,7 @@ import { useDialog } from '../lib/useDialog'
 import { ModalBackdrop } from '../components/ModalBackdrop'
 import { Ikon, type NamaIkon } from '../components/Ikon'
 import { PillNav } from '../components/PillNav'
+import { MuatHalaman } from '../components/MuatHalaman'
 import { SaklarTema } from '../components/SaklarTema'
 import { useApiObject } from '../lib/useApiObject'
 import { mulaiKaca, pantauKaca } from '../lib/kaca'
@@ -521,7 +522,9 @@ export function AppShell() {
                 </div>
               </div>
             )}
-            <Outlet />
+            <Suspense fallback={<MuatHalaman />}>
+              <Outlet />
+            </Suspense>
           </div>
         </div>
         <SiteFooter pekat />

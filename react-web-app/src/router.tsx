@@ -1,41 +1,50 @@
+import { lazy, Suspense, type ComponentType } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AppShell } from './layouts/AppShell'
 import { RequireAuth } from './components/RequireAuth'
-import LoginPage from './pages/LoginPage'
-import DashboardPage from './pages/DashboardPage'
-import SensorRealtimePage from './pages/SensorRealtimePage'
-import WaterControlPage from './pages/WaterControlPage'
-import KebunSayaPage from './pages/KebunSayaPage'
-import CctvPage from './pages/CctvPage'
-import AsistenAiPage from './pages/AsistenAiPage'
-import DosingPage from './pages/DosingPage'
-import KalibrasiPage from './pages/KalibrasiPage'
-import NutrisiManualPage from './pages/NutrisiManualPage'
-import DataPage from './pages/DataPage'
-import {
-  MqttDiagnostikPage,
-  PemulihanPapanPage,
-  PengaturanAlatPage,
-  PeringatanPage,
-  SaklarModePage,
-} from './pages/HidroV41Pages'
-import {
-  SemaiPage,
-  PeremajaanPage,
-  PendewasaanPage,
-  PanenPage,
-  DurasiSiklusPage,
-} from './pages/stagePages'
-import {
-  JenisTanamanPage,
-  AmbangSensorPage,
-} from './pages/masterPages'
-import { LaporanPage } from './pages/notifLaporanPages'
-import { ManajemenUserPage } from './pages/ManajemenUserPage'
-import { ProfilePage } from './pages/ProfilePage'
-import AuditPage from './pages/AuditPage'
-import TentangPage from './pages/TentangPage'
+import { MuatHalaman } from './components/MuatHalaman'
 import { GalatHalaman } from './components/GalatHalaman'
+
+/** Satu potongan kode per halaman: halaman yang tidak dibuka tidak ikut diunduh/di-compile. */
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const SensorRealtimePage = lazy(() => import('./pages/SensorRealtimePage'))
+const WaterControlPage = lazy(() => import('./pages/WaterControlPage'))
+const KebunSayaPage = lazy(() => import('./pages/KebunSayaPage'))
+const CctvPage = lazy(() => import('./pages/CctvPage'))
+const AsistenAiPage = lazy(() => import('./pages/AsistenAiPage'))
+const DosingPage = lazy(() => import('./pages/DosingPage'))
+const KalibrasiPage = lazy(() => import('./pages/KalibrasiPage'))
+const NutrisiManualPage = lazy(() => import('./pages/NutrisiManualPage'))
+const DataPage = lazy(() => import('./pages/DataPage'))
+const AuditPage = lazy(() => import('./pages/AuditPage'))
+const TentangPage = lazy(() => import('./pages/TentangPage'))
+
+/** Untuk halaman yang hanya punya export bernama. */
+function lazyNamed<M extends Record<string, unknown>, K extends keyof M & string>(
+  muat: () => Promise<M>,
+  nama: K,
+) {
+  return lazy(() => muat().then((m) => ({ default: m[nama] as ComponentType })))
+}
+const SaklarModePage = lazyNamed(() => import('./pages/HidroV41Pages'), 'SaklarModePage')
+const PengaturanAlatPage = lazyNamed(() => import('./pages/HidroV41Pages'), 'PengaturanAlatPage')
+const PemulihanPapanPage = lazyNamed(() => import('./pages/HidroV41Pages'), 'PemulihanPapanPage')
+const MqttDiagnostikPage = lazyNamed(() => import('./pages/HidroV41Pages'), 'MqttDiagnostikPage')
+const PeringatanPage = lazyNamed(() => import('./pages/HidroV41Pages'), 'PeringatanPage')
+const SemaiPage = lazyNamed(() => import('./pages/stagePages'), 'SemaiPage')
+const PeremajaanPage = lazyNamed(() => import('./pages/stagePages'), 'PeremajaanPage')
+const PendewasaanPage = lazyNamed(() => import('./pages/stagePages'), 'PendewasaanPage')
+const PanenPage = lazyNamed(() => import('./pages/stagePages'), 'PanenPage')
+const DurasiSiklusPage = lazyNamed(() => import('./pages/stagePages'), 'DurasiSiklusPage')
+const JenisTanamanPage = lazyNamed(() => import('./pages/masterPages'), 'JenisTanamanPage')
+const AmbangSensorPage = lazyNamed(() => import('./pages/masterPages'), 'AmbangSensorPage')
+const LaporanPage = lazyNamed(() => import('./pages/notifLaporanPages'), 'LaporanPage')
+const ManajemenUserPage = lazyNamed(() => import('./pages/ManajemenUserPage'), 'ManajemenUserPage')
+const ProfilePage = lazyNamed(() => import('./pages/ProfilePage'), 'ProfilePage')
+
+/** Halaman publik berada di luar AppShell, jadi punya batas Suspense sendiri. */
+const publik = (el: React.ReactNode) => <Suspense fallback={<MuatHalaman />}>{el}</Suspense>
 
 /** Guard gaya .pen — semua role yang boleh masuk */
 const ALL: Array<'admin' | 'petani' | 'demo'> = ['admin', 'petani', 'demo']
@@ -47,8 +56,8 @@ export const router = createBrowserRouter([
     errorElement: <GalatHalaman />,
     children: [
   // Landing page publik (dulu halaman Tentang). Login lewat tombol "Login".
-  { path: '/', element: <TentangPage /> },
-  { path: '/login', element: <LoginPage /> },
+  { path: '/', element: publik(<TentangPage />) },
+  { path: '/login', element: publik(<LoginPage />) },
   // Halaman publik — bisa dibuka TANPA login (di luar RequireAuth), seperti /login.
   { path: '/tentang', element: <Navigate to="/" replace /> },
   {
