@@ -1,0 +1,307 @@
+{
+ "nodes": [
+  {
+   "id": "document:backend-nodejs/database/README_CRON.md",
+   "type": "document",
+   "name": "README_CRON.md",
+   "filePath": "backend-nodejs/database/README_CRON.md",
+   "summary": "Panduan pemasangan cron retensi dan rollup Skema V2 (psql/artisan, jadwal crontab, log, verifikasi, uji di DB scratch). Berstatus DRAFT sampai disetujui user.",
+   "tags": [
+    "documentation",
+    "cron",
+    "retensi",
+    "database",
+    "deployment"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:backend-nodejs/database/backfill_monitorings_ke_readings.sql",
+   "type": "file",
+   "name": "backfill_monitorings_ke_readings.sql",
+   "filePath": "backend-nodejs/database/backfill_monitorings_ke_readings.sql",
+   "summary": "Skrip DRAFT backfill Fase 2: menyalin arsip monitorings lama ke sensor_readings Skema V2, melewati baris tanpa id_meja. Menulis data, wajib diuji di scratch.",
+   "tags": [
+    "database",
+    "migration",
+    "backfill",
+    "sql",
+    "draft"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/database/bersihkan_instalasi_baru.sql",
+   "type": "file",
+   "name": "bersihkan_instalasi_baru.sql",
+   "filePath": "backend-nodejs/database/bersihkan_instalasi_baru.sql",
+   "summary": "Membersihkan data pengembangan setelah impor vertonik.sql pada instalasi baru (alert, bacaan sensor, sesi, WhatsApp) dan mereset water_controls, dengan pengaman bila DB sudah dipakai sungguhan.",
+   "tags": [
+    "database",
+    "cleanup",
+    "deployment",
+    "sql",
+    "safety-guard"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/database/cron_retensi.sql",
+   "type": "file",
+   "name": "cron_retensi.sql",
+   "filePath": "backend-nodejs/database/cron_retensi.sql",
+   "summary": "Skrip cron retensi V2: drop partisi sensor_readings mentah 60 hari, hapus rollup hourly 2 tahun, serta audit_logs dan report_logs 365 hari. Berstatus DRAFT.",
+   "tags": [
+    "cron",
+    "retensi",
+    "database",
+    "sql",
+    "maintenance"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/database/cron_rollup.sql",
+   "type": "file",
+   "name": "cron_rollup.sql",
+   "filePath": "backend-nodejs/database/cron_rollup.sql",
+   "summary": "Skrip cron rollup per jam dari sensor_readings ke sensor_readings_hourly (agregat avg/min/max), dijalankan tiap jam setelah menit ke-5. Berstatus DRAFT.",
+   "tags": [
+    "cron",
+    "rollup",
+    "aggregation",
+    "database",
+    "sql"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/database/hapus_fake.sql",
+   "type": "file",
+   "name": "hapus_fake.sql",
+   "filePath": "backend-nodejs/database/hapus_fake.sql",
+   "summary": "Menghapus seluruh data palsu hasil seed_fake.sql (penanda DEMO, FAKE-DEBUG, [FAKE]) dalam satu transaksi tanpa menyentuh data asli.",
+   "tags": [
+    "database",
+    "cleanup",
+    "fake-data",
+    "sql",
+    "debugging"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/database/index_laporan.sql",
+   "type": "file",
+   "name": "index_laporan.sql",
+   "filePath": "backend-nodejs/database/index_laporan.sql",
+   "summary": "Saran index sargable (CREATE INDEX CONCURRENTLY) untuk query /laporan, /tarik, /chart-data dan getReport6Jam. Berstatus DRAFT.",
+   "tags": [
+    "database",
+    "index",
+    "performance",
+    "reporting",
+    "sql"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "table:backend-nodejs/database/proposal_skema_v2.sql:skema_v2",
+   "type": "table",
+   "name": "proposal_skema_v2.sql",
+   "filePath": "backend-nodejs/database/proposal_skema_v2.sql",
+   "summary": "Proposal DRAFT skema database V2: sensor_readings terpartisi, sensor_readings_hourly rollup, dan tabel pendukung audit/laporan. Tidak boleh dijalankan ke DB live tanpa persetujuan.",
+   "tags": [
+    "database",
+    "schema-design",
+    "partitioning",
+    "proposal",
+    "sql"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Memakai partisi deklaratif PostgreSQL 17 untuk tabel bacaan sensor."
+  },
+  {
+   "id": "file:backend-nodejs/database/reindex_monitorings.sql",
+   "type": "file",
+   "name": "reindex_monitorings.sql",
+   "filePath": "backend-nodejs/database/reindex_monitorings.sql",
+   "summary": "Skrip DRAFT REINDEX dan ANALYZE untuk monitorings serta partisi sensor_readings guna mengurangi bloat dan dead tuple.",
+   "tags": [
+    "database",
+    "maintenance",
+    "reindex",
+    "performance",
+    "sql"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "table:backend-nodejs/database/schema.sql:schema",
+   "type": "table",
+   "name": "schema.sql",
+   "filePath": "backend-nodejs/database/schema.sql",
+   "summary": "Skema domain GARAP (13 tabel: mejas, monitorings, panens, semais, sikluses, tanamen, users, water_controls, dll.) hasil dump PostgreSQL 17 dengan index dan foreign key.",
+   "tags": [
+    "database",
+    "schema-definition",
+    "postgresql",
+    "ddl",
+    "sql"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:backend-nodejs/database/seed.sql",
+   "type": "file",
+   "name": "seed.sql",
+   "filePath": "backend-nodejs/database/seed.sql",
+   "summary": "Seed data awal (akun admin, petani, demo dengan hash bcrypt) yang aman diulang berkat ON CONFLICT DO NOTHING.",
+   "tags": [
+    "database",
+    "seed",
+    "accounts",
+    "sql",
+    "idempotent"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/database/seed_fake.sql",
+   "type": "file",
+   "name": "seed_fake.sql",
+   "filePath": "backend-nodejs/database/seed_fake.sql",
+   "summary": "Data palsu untuk debugging: 4 meja, 2 tanaman, siklus tanam, 288 bacaan sensor per meja, 14 alert, state penampung dan 4 kamera CCTV; aman diulang.",
+   "tags": [
+    "database",
+    "seed",
+    "fake-data",
+    "debugging",
+    "sql"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "table:backend-nodejs/database/vertonik.sql:vertonik",
+   "type": "table",
+   "name": "vertonik.sql",
+   "filePath": "backend-nodejs/database/vertonik.sql",
+   "summary": "Dump lengkap database vertonik_smartfarm PostgreSQL 17 (sekitar 50 tabel beserta data) yang diimpor pada instalasi baru.",
+   "tags": [
+    "database",
+    "dump",
+    "schema-definition",
+    "postgresql",
+    "deployment"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "document:backend-nodejs/database/README_CRON.md",
+   "target": "file:backend-nodejs/database/backfill_monitorings_ke_readings.sql",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:backend-nodejs/database/README_CRON.md",
+   "target": "file:backend-nodejs/database/bersihkan_instalasi_baru.sql",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:backend-nodejs/database/README_CRON.md",
+   "target": "file:backend-nodejs/database/cron_retensi.sql",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:backend-nodejs/database/README_CRON.md",
+   "target": "file:backend-nodejs/database/cron_rollup.sql",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:backend-nodejs/database/README_CRON.md",
+   "target": "file:backend-nodejs/database/index_laporan.sql",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:backend-nodejs/database/README_CRON.md",
+   "target": "file:backend-nodejs/database/reindex_monitorings.sql",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:backend-nodejs/database/README_CRON.md",
+   "target": "table:backend-nodejs/database/proposal_skema_v2.sql:skema_v2",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend-nodejs/database/backfill_monitorings_ke_readings.sql",
+   "target": "table:backend-nodejs/database/proposal_skema_v2.sql:skema_v2",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:backend-nodejs/database/cron_retensi.sql",
+   "target": "table:backend-nodejs/database/proposal_skema_v2.sql:skema_v2",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:backend-nodejs/database/cron_rollup.sql",
+   "target": "table:backend-nodejs/database/proposal_skema_v2.sql:skema_v2",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:backend-nodejs/database/hapus_fake.sql",
+   "target": "file:backend-nodejs/database/seed_fake.sql",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:backend-nodejs/database/seed.sql",
+   "target": "table:backend-nodejs/database/schema.sql:schema",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:backend-nodejs/database/seed_fake.sql",
+   "target": "table:backend-nodejs/database/schema.sql:schema",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:backend-nodejs/database/bersihkan_instalasi_baru.sql",
+   "target": "table:backend-nodejs/database/vertonik.sql:vertonik",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "table:backend-nodejs/database/proposal_skema_v2.sql:skema_v2",
+   "target": "table:backend-nodejs/database/schema.sql:schema",
+   "type": "migrates",
+   "direction": "forward",
+   "weight": 0.7
+  }
+ ]
+}

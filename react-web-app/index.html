@@ -1,13 +1,35 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/logo/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vertonik Smart Farm</title>
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      // Pasang tema sebelum cat pertama (mencegah kedipan terang→gelap). Logika sama dengan src/lib/tema.ts.
+      // Inline (bukan berkas terpisah) agar tidak ada request yang memblokir render.
+      (function () {
+        try {
+          var t = localStorage.getItem('vsf-tema');
+          if (t !== 'gelap' && t !== 'terang') t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'gelap' : 'terang';
+          var e = document.documentElement;
+          e.dataset.tema = t;
+          e.style.colorScheme = t === 'gelap' ? 'dark' : 'light';
+          if (t === 'gelap') {
+            // Foto malam hanya diunduh di mode gelap; muat lebih awal agar tidak terlambat muncul.
+            var l = document.createElement('link');
+            l.rel = 'preload'; l.as = 'image'; l.href = '/bg-malam.webp';
+            document.head.appendChild(l);
+          }
+        } catch (_) { /* tema bawaan: terang */ }
+      })();
+    </script>
+    <meta name="description" content="GARAP — Vertonik Smart Farm: pemantauan sensor, dosing nutrisi otomatis, dan siklus tanam greenhouse hidroponik PT Arutmin Indonesia." />
+    <title>GARAP</title>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Kerangka statis: teks langsung tercat saat HTML tiba, sebelum JavaScript selesai; React menggantinya saat mount. -->
+    <div id="root"><div role="status" style="display:grid;min-height:100vh;place-items:center;font:600 18px system-ui,sans-serif;opacity:.7">GARAP · memuat…</div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

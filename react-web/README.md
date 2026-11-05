@@ -1,4 +1,4 @@
-# React Web (SPA) — Vertonik Smart Farm
+# React Web (SPA) — GARAP
 
 Lokasi project: `Project/Vertoniksmartfarm/react-web-app`
 

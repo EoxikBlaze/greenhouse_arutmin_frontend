@@ -1,0 +1,627 @@
+/* DIHASILKAN OTOMATIS oleh tools/buat-tema-gelap.mjs dari src/index.css — JANGAN edit tangan.
+ * Perbaikan manual ada di src/tema-gelap.css (diimpor sesudah berkas ini, jadi menang).
+ * Jalankan ulang bila index.css berubah:  npm run tema:buat   (153 aturan) */
+html[data-tema='gelap'] .vsf-input[aria-invalid='true'] {
+    background-color: rgb(var(--ar-card))
+}
+html[data-tema='gelap'] .vsf-eyebrow-gold {
+    color: rgb(231 219 173)
+}
+html[data-tema='gelap'] .vsf-eyebrow-chrome {
+    color: rgb(181 193 207)
+}
+html[data-tema='gelap'] .vsf-chrome-tautan:hover {
+    background: rgb(255 255 255 / 0.12)
+}
+html[data-tema='gelap'] .vsf-chip-terang {
+    background: rgb(255 255 255 / 0.099)
+}
+html[data-tema='gelap'] .vsf-table {
+    background-image: linear-gradient(to right, rgb(255 255 255 / 0.16) 30%, rgba(255, 255, 255, 0)),
+      linear-gradient(to left, rgb(255 255 255 / 0.16) 30%, rgba(255, 255, 255, 0)),
+      radial-gradient(farthest-side at 0 50%, rgba(10, 31, 56, 0.3), rgba(10, 31, 56, 0)),
+      radial-gradient(farthest-side at 100% 50%, rgba(10, 31, 56, 0.3), rgba(10, 31, 56, 0))
+}
+html[data-tema='gelap'] .vsf-skeleton {
+    background: rgb(255 255 255 / 0.14)
+}
+html[data-tema='gelap'] input::placeholder,
+html[data-tema='gelap'] textarea::placeholder,
+html[data-tema='gelap'] ::placeholder {
+    color: rgb(170 180 194)
+}
+html[data-tema='gelap'] .vsf-satu .vsf-card::before,
+html[data-tema='gelap'] .vsf-kaca::before {
+    background: radial-gradient(130% 90% at var(--mx, 18%) var(--my, 0%), rgb(255 255 255 / 0.096), rgba(255, 255, 255, 0) 58%)
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-satu .vsf-card,
+html[data-tema='gelap'] .vsf-kaca {
+        background: rgb(var(--ar-card))
+    }
+}
+html[data-tema='gelap'] .vsf-satu .vsf-card:hover::before,
+html[data-tema='gelap'] .vsf-kaca-hidup:hover::before {
+    background: linear-gradient(115deg, transparent 30%, rgb(255 255 255 / 0.088) 46%, rgba(255, 255, 255, 0.15) 54%, transparent 68%) no-repeat,
+    radial-gradient(130% 90% at var(--mx, 18%) var(--my, 0%), rgb(255 255 255 / 0.112), rgba(255, 255, 255, 0) 58%)
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-satu .vsf-card {
+        background: rgb(var(--ar-card))
+    }
+}
+html[data-tema='gelap'] .vsf-bilah-tombol {
+    background: rgb(255 255 255 / 0.147)
+}
+html[data-tema='gelap'] .vsf-bilah-tombol:hover {
+    background: rgb(var(--ar-card))
+}
+html[data-tema='gelap'] .glass-chrome {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.112), rgb(255 255 255 / 0.074))
+}
+html[data-tema='gelap'] .glass-card {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.115), rgb(255 255 255 / 0.08))
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    html[data-tema='gelap'] .glass-chrome {
+        background: rgb(255 255 255 / 0.15)
+    }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .glass-chrome {
+        background: rgb(var(--ar-card))
+    }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .glass-card {
+        background: rgb(var(--ar-card))
+    }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-card {
+        background: rgb(var(--ar-card))
+    }
+}
+html[data-tema='gelap'] .vsf-label {
+    color: rgb(183 192 206)
+}
+html[data-tema='gelap'] .glass-hero {
+    background: radial-gradient(26rem 14rem at 100% 0%, rgba(233, 205, 83, 0.34), transparent 70%),
+      radial-gradient(30rem 16rem at 0% 100%, rgba(207, 226, 206, 0.4), transparent 70%),
+      linear-gradient(135deg, rgb(255 255 255 / 0.074), rgba(255, 255, 255, 0.26))
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .glass-hero {
+        background: rgb(var(--ar-card))
+    }
+}
+html[data-tema='gelap'] .vsf-pillnav-track {
+    background: rgb(255 255 255 / 0.067)
+}
+html[data-tema='gelap'] .vsf-pillnav-item:hover {
+    background: rgb(255 255 255 / 0.088)
+}
+html[data-tema='gelap'] .vsf-kpi-kaca .vsf-kpi-ikon {
+    color: rgb(197 217 198)
+}
+html[data-tema='gelap'] .vsf-kpi-emas {
+    color: rgb(239 230 200);
+    background: radial-gradient(14rem 8rem at 0% 100%, rgb(255 255 255 / 0.067), transparent 70%),
+    linear-gradient(145deg, rgba(240, 214, 96, 0.95), rgba(214, 168, 40, 0.9))
+}
+html[data-tema='gelap'] .vsf-kpi-emas .vsf-kpi-ikon {
+    background: rgb(255 255 255 / 0.064);
+    color: rgb(239 230 200)
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-kpi-kaca {
+        background: rgb(var(--ar-card))
+    }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-pillnav-track {
+        background: rgb(var(--ar-card))
+    }
+}
+html[data-tema='gelap'] .vsf-card {
+    background: radial-gradient(260px circle at var(--mx) var(--my), rgba(255, 255, 255, var(--sheen)), transparent 70%),
+    linear-gradient(155deg, rgb(255 255 255 / 0.115), rgb(255 255 255 / 0.08))
+}
+html[data-tema='gelap'] .vsf-kpi-kaca {
+    background: radial-gradient(240px circle at var(--mx) var(--my), rgba(255, 255, 255, var(--sheen)), transparent 70%),
+    linear-gradient(155deg, rgb(255 255 255 / 0.115), rgb(255 255 255 / 0.08))
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-card,
+html[data-tema='gelap'] .vsf-kpi-kaca {
+        background: rgb(var(--ar-card))
+    }
+}
+html[data-tema='gelap'] .vsf-btn-secondary {
+    background: var(--lg-spec),
+    linear-gradient(155deg, rgb(255 255 255 / 0.118), rgb(255 255 255 / 0.074))
+}
+html[data-tema='gelap'] .vsf-btn-secondary:hover:not(:disabled) {
+    background: var(--lg-spec),
+    linear-gradient(155deg, rgb(255 255 255 / 0.144), rgb(255 255 255 / 0.099))
+}
+html[data-tema='gelap'] .vsf-btn-primary {
+    background: radial-gradient(120% 90% at 18% 0%, rgb(255 255 255 / 0.051), transparent 55%),
+    linear-gradient(145deg, rgb(107 157 74 / 0.96), rgb(45 69 47 / 0.94))
+}
+html[data-tema='gelap'] .vsf-input {
+    background-color: rgb(255 255 255 / 0.128)
+}
+html[data-tema='gelap'] .vsf-input:focus {
+    background-color: rgb(255 255 255 / 0.15)
+}
+html[data-tema='gelap'] .vsf-input:disabled {
+    background-color: rgb(255 255 255 / 0.128)
+}
+html[data-tema='gelap'] .vsf-pillnav-track {
+    background: rgb(255 255 255 / 0.064)
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    html[data-tema='gelap'] .glass-chrome,
+html[data-tema='gelap'] .vsf-modal-card {
+        background: rgb(var(--ar-card))
+    }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    html[data-tema='gelap'] .vsf-card,
+html[data-tema='gelap'] .glass-card,
+html[data-tema='gelap'] .vsf-kpi-kaca {
+        background: rgb(255 255 255 / 0.144)
+    }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .glass-chrome {
+        background: rgb(var(--ar-card))
+    }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-card,
+html[data-tema='gelap'] .glass-card,
+html[data-tema='gelap'] .vsf-kpi-kaca,
+html[data-tema='gelap'] .vsf-modal-card {
+        background: rgb(var(--ar-card))
+    }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .glass-hero {
+        background: rgb(var(--ar-card))
+    }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-btn-secondary {
+        background: rgb(var(--ar-card))
+    }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-input {
+        background-color: rgb(var(--ar-card))
+    }
+}
+html[data-tema='gelap'] :where(.vsf-card,
+html[data-tema='gelap'] .glass-card,
+html[data-tema='gelap'] .glass-hero,
+html[data-tema='gelap'] .vsf-kpi-kaca,
+html[data-tema='gelap'] .glass-chrome,
+html[data-tema='gelap'] .vsf-kaca:not(.vsf-kaca-gelap)) .text-slate-400,
+html[data-tema='gelap'] :where(.vsf-card,
+html[data-tema='gelap'] .glass-card,
+html[data-tema='gelap'] .glass-hero,
+html[data-tema='gelap'] .vsf-kpi-kaca,
+html[data-tema='gelap'] .glass-chrome,
+html[data-tema='gelap'] .vsf-kaca:not(.vsf-kaca-gelap)) .text-slate-500,
+html[data-tema='gelap'] :where(.vsf-card,
+html[data-tema='gelap'] .glass-card,
+html[data-tema='gelap'] .glass-hero,
+html[data-tema='gelap'] .vsf-kpi-kaca,
+html[data-tema='gelap'] .glass-chrome,
+html[data-tema='gelap'] .vsf-kaca:not(.vsf-kaca-gelap)) .text-abu {
+    color: rgb(194 207 226)
+}
+html[data-tema='gelap'] :where(.vsf-card,
+html[data-tema='gelap'] .glass-card,
+html[data-tema='gelap'] .glass-hero,
+html[data-tema='gelap'] .vsf-kpi-kaca,
+html[data-tema='gelap'] .glass-chrome,
+html[data-tema='gelap'] .vsf-kaca:not(.vsf-kaca-gelap)) .text-slate-600,
+html[data-tema='gelap'] :where(.vsf-card,
+html[data-tema='gelap'] .glass-card,
+html[data-tema='gelap'] .glass-hero,
+html[data-tema='gelap'] .vsf-kpi-kaca,
+html[data-tema='gelap'] .glass-chrome,
+html[data-tema='gelap'] .vsf-kaca:not(.vsf-kaca-gelap)) .text-slate-700,
+html[data-tema='gelap'] :where(.vsf-card,
+html[data-tema='gelap'] .glass-card,
+html[data-tema='gelap'] .glass-hero,
+html[data-tema='gelap'] .vsf-kpi-kaca,
+html[data-tema='gelap'] .glass-chrome,
+html[data-tema='gelap'] .vsf-kaca:not(.vsf-kaca-gelap)) .vsf-label {
+    color: rgb(193 206 230)
+}
+html[data-tema='gelap'] .vsf-bilah {
+    background: radial-gradient(130% 120% at 14% -30%, rgb(255 255 255 / 0.05), transparent 60%),
+    linear-gradient(145deg, rgb(10 31 56 / min(1, calc(0.5 * var(--k)))), rgb(10 31 56 / min(1, calc(0.32 * var(--k)))))
+}
+html[data-tema='gelap'] .vsf-bilah-tombol-terang {
+    background: radial-gradient(120% 90% at 18% 0%, rgb(255 255 255 / 0.05), transparent 55%),
+    linear-gradient(145deg, rgb(107 157 74 / 0.96), rgb(45 69 47 / 0.94))
+}
+html[data-tema='gelap'] .vsf-kaca .vsf-input {
+    background-color: rgb(255 255 255 / 0.131)
+}
+html[data-tema='gelap'] .vsf-kaca:not(.vsf-kaca-gelap) :where(.text-slate-500,
+html[data-tema='gelap'] .text-slate-600,
+html[data-tema='gelap'] .text-abu) {
+    color: rgb(187 197 212)
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-kaca,
+html[data-tema='gelap'] .vsf-satu .vsf-card {
+        background: rgb(var(--ar-card))
+    }
+}
+html[data-tema='gelap'] .vsf-segmen {
+    background: rgb(255 255 255 / 0.064)
+}
+html[data-tema='gelap'] .vsf-segmen button:hover {
+    background: rgb(255 255 255 / 0.096)
+}
+html[data-tema='gelap'] .vsf-chip-nilai.is-normal {
+    background: rgb(53 86 51 / 0.8);
+    color: rgb(204 225 199)
+}
+html[data-tema='gelap'] .vsf-chip-nilai.is-luar {
+    background: rgb(96 83 32 / 0.96);
+    color: rgb(231 187 171)
+}
+html[data-tema='gelap'] .vsf-chip-nilai.is-kosong {
+    background: rgb(42 58 80 / 0.85);
+    color: rgb(189 200 215)
+}
+html[data-tema='gelap'] .vsf-chip-info {
+    background: rgb(255 255 255 / 0.088)
+}
+html[data-tema='gelap'] .vsf-tip {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.152), rgb(255 255 255 / 0.131))
+}
+html[data-tema='gelap'] .vsf-baris {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.106), rgb(255 255 255 / 0.074))
+}
+html[data-tema='gelap'] .vsf-baris:hover {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.131), rgb(255 255 255 / 0.096))
+}
+html[data-tema='gelap'] .vsf-baris-label {
+    color: rgb(187 197 212)
+}
+@media (min-width: 640px) {
+    html[data-tema='gelap'] .vsf-riwayat-kepala {
+        color: rgb(190 204 220);
+        background: linear-gradient(155deg, rgb(255 255 255 / 0.147), rgb(255 255 255 / 0.125))
+    }
+}
+html[data-tema='gelap'] .vsf-urut:hover {
+    background: rgb(255 255 255 / 0.112)
+}
+html[data-tema='gelap'] .vsf-nilai-sel.is-luar {
+    color: rgb(227 159 159)
+}
+html[data-tema='gelap'] .vsf-tidak-dikirim {
+    color: rgb(177 186 199)
+}
+html[data-tema='gelap'] .vsf-lencana-luar {
+    color: rgb(227 159 159);
+    background: rgb(87 29 29 / 0.95)
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-segmen,
+html[data-tema='gelap'] .vsf-baris,
+html[data-tema='gelap'] .vsf-riwayat-kepala,
+html[data-tema='gelap'] .vsf-chip-info,
+html[data-tema='gelap'] .vsf-tip {
+        background: rgb(var(--ar-card))
+    }
+}
+html[data-tema='gelap'] .vsf-stat {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.099), rgb(255 255 255 / 0.067))
+}
+html[data-tema='gelap'] .vsf-batch {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.106), rgb(255 255 255 / 0.074))
+}
+html[data-tema='gelap'] .vsf-batch:hover {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.131), rgb(255 255 255 / 0.096))
+}
+html[data-tema='gelap'] .vsf-chip-nilai.is-siap {
+    background: rgb(101 88 34 / 0.98);
+    color: rgb(235 222 185)
+}
+html[data-tema='gelap'] .vsf-siap {
+    color: rgb(235 222 185);
+    background: rgb(101 88 34 / 0.9)
+}
+html[data-tema='gelap'] .vsf-pilih {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.144), rgb(255 255 255 / 0.112))
+}
+html[data-tema='gelap'] .vsf-pilih small {
+    color: rgb(187 197 212)
+}
+html[data-tema='gelap'] .vsf-pilih[aria-checked='true'] {
+    background: linear-gradient(155deg, rgb(207 226 206 / 0.95), rgb(255 255 255 / 0.136))
+}
+html[data-tema='gelap'] .vsf-stepper {
+    background: rgb(255 255 255 / 0.136)
+}
+html[data-tema='gelap'] .vsf-stepper button:hover:not(:disabled) {
+    background: rgb(53 86 51 / 0.7)
+}
+html[data-tema='gelap'] .vsf-stepper input:focus {
+    background: rgb(var(--ar-card))
+}
+html[data-tema='gelap'] .vsf-ringkasan-form {
+    color: rgb(204 225 199);
+    background: rgb(53 86 51 / 0.7)
+}
+html[data-tema='gelap'] .vsf-ringkasan-form.is-kosong {
+    color: rgb(187 197 212);
+    background: rgb(42 58 80 / 0.7)
+}
+html[data-tema='gelap'] .vsf-suffix {
+    color: rgb(187 197 212)
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-stat,
+html[data-tema='gelap'] .vsf-batch {
+        background: rgb(var(--ar-card))
+    }
+}
+html[data-tema='gelap'] .vsf-penampung {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.106), rgb(255 255 255 / 0.074))
+}
+html[data-tema='gelap'] .vsf-penampung:hover {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.131), rgb(255 255 255 / 0.096))
+}
+html[data-tema='gelap'] .vsf-penampung.is-lock {
+    background: linear-gradient(155deg, rgb(254 226 226 / 0.85), rgb(255 255 255 / 0.088))
+}
+html[data-tema='gelap'] .vsf-penampung-angka > div {
+    background: rgb(255 255 255 / 0.08)
+}
+html[data-tema='gelap'] .vsf-penampung-angka dt {
+    color: rgb(187 197 212)
+}
+html[data-tema='gelap'] .vsf-blok {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.099), rgb(255 255 255 / 0.067))
+}
+html[data-tema='gelap'] .vsf-riwayat-air-baris {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.106), rgb(255 255 255 / 0.074))
+}
+html[data-tema='gelap'] .vsf-riwayat-air-baris:hover {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.131), rgb(255 255 255 / 0.096))
+}
+@media (min-width: 640px) {
+    html[data-tema='gelap'] .vsf-riwayat-air-kepala {
+        color: rgb(190 204 220);
+        background: linear-gradient(155deg, rgb(255 255 255 / 0.147), rgb(255 255 255 / 0.125))
+    }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-penampung,
+html[data-tema='gelap'] .vsf-blok,
+html[data-tema='gelap'] .vsf-riwayat-air-baris {
+        background: rgb(var(--ar-card))
+    }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-penampung.is-lock {
+        background: rgb(var(--ar-card))
+    }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-penampung-angka > div {
+        background: rgb(var(--ar-card))
+    }
+}
+html[data-tema='gelap'] .vsf-param {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.106), rgb(255 255 255 / 0.074))
+}
+html[data-tema='gelap'] .vsf-param:hover {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.131), rgb(255 255 255 / 0.096))
+}
+html[data-tema='gelap'] .vsf-param-label {
+    color: rgb(187 197 212)
+}
+html[data-tema='gelap'] .vsf-param-kode {
+    color: rgb(187 197 212)
+}
+html[data-tema='gelap'] .vsf-param-nilai small {
+    color: rgb(187 197 212)
+}
+html[data-tema='gelap'] .vsf-grup {
+    color: rgb(190 204 220)
+}
+html[data-tema='gelap'] .vsf-grup span {
+    color: rgb(187 197 212)
+}
+html[data-tema='gelap'] .vsf-cari > svg {
+    color: rgb(187 197 212)
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-param {
+        background: rgb(var(--ar-card))
+    }
+}
+html[data-tema='gelap'] .vsf-batch.is-lock {
+    background: linear-gradient(155deg, rgb(254 226 226 / 0.7), rgb(255 255 255 / 0.074))
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-batch.is-lock {
+        background: rgb(var(--ar-card))
+    }
+}
+html[data-tema='gelap'] button.vsf-stat:hover {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.131), rgb(255 255 255 / 0.096))
+}
+html[data-tema='gelap'] .vsf-kal-chip {
+    background: rgb(255 255 255 / 0.088);
+    color: rgb(187 197 212)
+}
+html[data-tema='gelap'] .vsf-kal-chip b {
+    color: rgb(198 218 238)
+}
+html[data-tema='gelap'] .vsf-kal-blok {
+    background: linear-gradient(155deg, rgb(255 255 255 / 0.099), rgb(255 255 255 / 0.067))
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-kal-chip,
+html[data-tema='gelap'] .vsf-kal-blok,
+html[data-tema='gelap'] button.vsf-stat:hover {
+        background: rgb(var(--ar-card))
+    }
+}
+html[data-tema='gelap'] .vsf-splash-overlay[data-pergi='1'] .vsf-kaca:not(.vsf-kaca-gelap) {
+    background: rgb(255 255 255 / 0.125)
+}
+html[data-tema='gelap'] .vsf-btn-secondary.vsf-teks-bahaya {
+    color: rgb(225 157 151)
+}
+html[data-tema='gelap'] .vsf-master-tabel td {
+    background: rgb(255 255 255 / 0.09)
+}
+html[data-tema='gelap'] .vsf-master-tabel tbody tr:hover td {
+    background: rgb(255 255 255 / 0.118)
+}
+html[data-tema='gelap'] .vsf-master-chip {
+    background: rgb(255 255 255 / 0.112)
+}
+html[data-tema='gelap'] .vsf-master-chip.is-kosong {
+    background: rgb(255 255 255 / 0.064)
+}
+html[data-tema='gelap'] .vsf-laporan-angka {
+    color: rgb(207 222 212)
+}
+html[data-tema='gelap'] .vsf-laporan-tabel table thead th {
+    color: rgb(197 217 198);
+    background: rgb(255 255 255 / 0.088)
+}
+html[data-tema='gelap'] .vsf-laporan-tabel table tbody td {
+    color: rgb(189 200 215)
+}
+html[data-tema='gelap'] .vsf-laporan-tabel table tbody tr:hover {
+    background: rgb(255 255 255 / 0.088)
+}
+html[data-tema='gelap'] .vsf-laporan-tag {
+    color: rgb(197 217 198);
+    background: rgb(255 255 255 / 0.112)
+}
+html[data-tema='gelap'] .vsf-laporan-popup-sel {
+    background: rgb(255 255 255 / 0.08)
+}
+html[data-tema='gelap'] .vsf-lencana-level {
+    color: rgb(189 200 215);
+    background: rgb(255 255 255 / 0.112)
+}
+html[data-tema='gelap'] .vsf-lencana-level.is-admin {
+    color: rgb(193 231 180);
+    background: rgb(65 103 34 / 0.85)
+}
+html[data-tema='gelap'] .vsf-lencana-level.is-user {
+    color: rgb(168 201 230);
+    background: rgb(32 65 96 / 0.85)
+}
+html[data-tema='gelap'] .vsf-lencana-level.is-petani {
+    color: rgb(231 206 174);
+    background: rgb(98 76 33 / 0.9)
+}
+html[data-tema='gelap'] .vsf-chip-ringkas {
+    background: rgb(255 255 255 / 0.08)
+}
+html[data-tema='gelap'] .vsf-chip-ringkas:hover {
+    background: rgb(255 255 255 / 0.118)
+}
+html[data-tema='gelap'] .vsf-kartu-level-isi {
+    background: rgb(255 255 255 / 0.096)
+}
+html[data-tema='gelap'] .vsf-kartu-level input:checked + .vsf-kartu-level-isi {
+    background: rgb(65 103 34 / 0.85)
+}
+html[data-tema='gelap'] .vsf-sandi-mata:hover {
+    background: rgb(255 255 255 / 0.112)
+}
+html[data-tema='gelap'] .vsf-saklar {
+    background: rgb(255 255 255 / 0.08)
+}
+html[data-tema='gelap'] .vsf-detail-blok {
+    background: rgb(255 255 255 / 0.088)
+}
+html[data-tema='gelap'] .vsf-detail-blok li svg {
+    color: rgb(175 226 161)
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-kartu-level-isi,
+html[data-tema='gelap'] .vsf-saklar,
+html[data-tema='gelap'] .vsf-detail-blok,
+html[data-tema='gelap'] .vsf-chip-ringkas {
+        background: rgb(var(--ar-card))
+    }
+}
+html[data-tema='gelap'] .vsf-aksi-lencana {
+    color: rgb(189 200 215);
+    background: rgb(255 255 255 / 0.112)
+}
+html[data-tema='gelap'] .vsf-aksi-lencana.is-create {
+    color: rgb(193 231 180);
+    background: rgb(65 103 34 / 0.85)
+}
+html[data-tema='gelap'] .vsf-aksi-lencana.is-update {
+    color: rgb(168 201 230);
+    background: rgb(32 65 96 / 0.85)
+}
+html[data-tema='gelap'] .vsf-aksi-lencana.is-delete {
+    color: rgb(227 165 160);
+    background: rgb(92 38 31 / 0.9)
+}
+html[data-tema='gelap'] .vsf-aksi-lencana.is-login {
+    color: rgb(231 215 174);
+    background: rgb(100 87 33 / 0.9)
+}
+html[data-tema='gelap'] .vsf-beda-baris {
+    background: rgb(255 255 255 / 0.08)
+}
+html[data-tema='gelap'] .vsf-beda-lama {
+    color: rgb(227 165 160)
+}
+html[data-tema='gelap'] .vsf-beda-baru {
+    color: rgb(193 231 180)
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-beda-baris {
+        background: rgb(var(--ar-card))
+    }
+}
+html[data-tema='gelap'] .vsf-segmen-kaca {
+    background: rgb(255 255 255 / 0.072)
+}
+html[data-tema='gelap'] .vsf-segmen-kaca button:hover {
+    background: rgb(255 255 255 / 0.096)
+}
+html[data-tema='gelap'] .vsf-pratinjau-kaca::before {
+    background: rgb(255 255 255 / 0.088)
+}
+html[data-tema='gelap'] .vsf-pratinjau-kaca.is-pekat::before {
+    background: rgb(255 255 255 / 0.144)
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-pratinjau-kaca::before,
+html[data-tema='gelap'] .vsf-pratinjau-kaca.is-jernih::before,
+html[data-tema='gelap'] .vsf-pratinjau-kaca.is-pekat::before {
+        background: rgb(var(--ar-card))
+    }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    html[data-tema='gelap'] .vsf-segmen-kaca {
+        background: rgb(var(--ar-card))
+    }
+}

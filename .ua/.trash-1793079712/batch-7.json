@@ -1,0 +1,12 @@
+{"nodes":[
+{"id":"document:AUDIT_KEAMANAN_GARAP.md","type":"document","name":"AUDIT_KEAMANAN_GARAP.md","filePath":"AUDIT_KEAMANAN_GARAP.md","summary":"Laporan audit keamanan read-only untuk backend-nodejs: dependensi, JWT (HS384/HS512 dan token tanpa exp diterima), fallback secret lemah, bcrypt, dan verdict ada risiko.","tags":["documentation","security","audit","jwt"],"complexity":"moderate"},
+{"id":"document:AUDIT_PERFORMA_GARAP.md","type":"document","name":"AUDIT_PERFORMA_GARAP.md","filePath":"AUDIT_PERFORMA_GARAP.md","summary":"Laporan audit performa dan database backend: ukuran tabel, seq_scan/idx_scan, perbedaan state DB (12 baris vs 100k pernah masuk), dan proyeksi skala 100k.","tags":["documentation","performance","database","audit"],"complexity":"moderate"},
+{"id":"document:README.md","type":"document","name":"README.md","filePath":"README.md","summary":"README repo frontend Greenhouse Arutmin: isi folder, cara menjalankan web React dan mobile Flutter, kontrak API, dan alur kerja dua orang di branch dev.","tags":["documentation","entry-point","readme","frontend"],"complexity":"simple"},
+{"id":"document:RISET_PENGEMBANGAN_GARAP.md","type":"document","name":"RISET_PENGEMBANGAN_GARAP.md","filePath":"RISET_PENGEMBANGAN_GARAP.md","summary":"Laporan riset pengembangan backend berikutnya: pilihan teknologi (node:test + supertest, node-pg-migrate, dll.) beserta alternatif, alasan, dan sumber.","tags":["documentation","research","backend","tooling"],"complexity":"moderate"},
+{"id":"file:jalankan-local.sh","type":"file","name":"jalankan-local.sh","filePath":"jalankan-local.sh","summary":"Skrip bash untuk menjalankan seluruh stack lokal (PostgreSQL 17, backend Node.js port 8000, React Vite port 5173) dengan pengecekan health via curl.","tags":["script","shell","dev-environment","entry-point"],"complexity":"simple","languageNotes":"Bash dengan set -euo pipefail; memakai subshell + nohup untuk proses latar belakang dan polling curl."}
+],"edges":[
+{"source":"document:README.md","target":"file:jalankan-local.sh","type":"documents","direction":"forward","weight":0.5},
+{"source":"file:jalankan-local.sh","target":"document:README.md","type":"related","direction":"forward","weight":0.5},
+{"source":"document:AUDIT_KEAMANAN_GARAP.md","target":"document:AUDIT_PERFORMA_GARAP.md","type":"related","direction":"forward","weight":0.5},
+{"source":"document:RISET_PENGEMBANGAN_GARAP.md","target":"document:AUDIT_KEAMANAN_GARAP.md","type":"related","direction":"forward","weight":0.5}
+]}

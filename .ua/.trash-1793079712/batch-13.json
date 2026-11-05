@@ -1,0 +1,301 @@
+{
+ "nodes": [
+  {
+   "id": "document:docs/JALUR_DATABASE_DAN_RELASI.md",
+   "type": "document",
+   "name": "JALUR_DATABASE_DAN_RELASI.md",
+   "filePath": "docs/JALUR_DATABASE_DAN_RELASI.md",
+   "summary": "Menjelaskan database PostgreSQL 17 yang dipakai, jalur data dari request sampai tabel, serta kunci (FK/PK/unique/API key), dengan angka dari database live.",
+   "tags": [
+    "database",
+    "dokumentasi",
+    "relasi",
+    "postgresql"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/KEAMANAN_LOGIN.md",
+   "type": "document",
+   "name": "KEAMANAN_LOGIN.md",
+   "filePath": "docs/KEAMANAN_LOGIN.md",
+   "summary": "Audit keamanan login GARAP: bcrypt cost 12, rate limit login, JWT, dan bukti uji live pada jalur web.",
+   "tags": [
+    "keamanan",
+    "autentikasi",
+    "audit",
+    "dokumentasi"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:docs/KONTRAK_API.md",
+   "type": "document",
+   "name": "KONTRAK_API.md",
+   "filePath": "docs/KONTRAK_API.md",
+   "summary": "Kontrak resmi API backend Node.js (base URL, autentikasi, rute, contoh respons dari server hidup) yang kompatibel dengan kontrak Laravel lama.",
+   "tags": [
+    "api",
+    "kontrak",
+    "dokumentasi",
+    "backend"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:docs/PERANCANGAN_SISTEM_IOT_HIDROPONIK.md",
+   "type": "document",
+   "name": "PERANCANGAN_SISTEM_IOT_HIDROPONIK.md",
+   "filePath": "docs/PERANCANGAN_SISTEM_IOT_HIDROPONIK.md",
+   "summary": "Dokumen perancangan sistem IoT hidroponik 4 meja (3 NFT + 1 DFT): aturan main final, timing, logika kontrol EC/pH, alur kerja, dan hasil uji lab.",
+   "tags": [
+    "perancangan",
+    "iot",
+    "hidroponik",
+    "dokumentasi"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:docs/PERESMIAN_CHECKLIST.md",
+   "type": "document",
+   "name": "PERESMIAN_CHECKLIST.md",
+   "filePath": "docs/PERESMIAN_CHECKLIST.md",
+   "summary": "Checklist kesiapan rilis/peresmian dengan tabel status komponen yang diverifikasi (tes backend, route AI, dll).",
+   "tags": [
+    "checklist",
+    "audit",
+    "rilis",
+    "dokumentasi"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/PM_AUDIT_2026-10-19.md",
+   "type": "document",
+   "name": "PM_AUDIT_2026-10-19.md",
+   "filePath": "docs/PM_AUDIT_2026-10-19.md",
+   "summary": "Audit project manager 19 Okt 2026: kepatuhan model delegasi worker dan verdict proses perlu perbaikan.",
+   "tags": [
+    "audit",
+    "proses",
+    "manajemen",
+    "dokumentasi"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:docs/PRESET_NUTRISI.md",
+   "type": "document",
+   "name": "PRESET_NUTRISI.md",
+   "filePath": "docs/PRESET_NUTRISI.md",
+   "summary": "Preset dosing nutrisi untuk melon, selada, daun bawang, dan bayam per tahap GARAP (ppm faktor 500), sebagai titik awal hasil riset pustaka.",
+   "tags": [
+    "nutrisi",
+    "dosing",
+    "preset",
+    "dokumentasi"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:docs/RANCANGAN_DB_V2.md",
+   "type": "document",
+   "name": "RANCANGAN_DB_V2.md",
+   "filePath": "docs/RANCANGAN_DB_V2.md",
+   "summary": "Rancangan database V2 GARAP yang sudah dieksekusi: migrasi, proposal skema, dan rekomendasi perancang database.",
+   "tags": [
+    "database",
+    "skema",
+    "migrasi",
+    "dokumentasi"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:docs/RENCANA_DAN_TODO.md",
+   "type": "document",
+   "name": "RENCANA_DAN_TODO.md",
+   "filePath": "docs/RENCANA_DAN_TODO.md",
+   "summary": "Rencana dan daftar todo GARAP per 27 Okt 2026 dengan legenda status dan hasil pemeriksaan terakhir (tes backend, build web, Flutter).",
+   "tags": [
+    "rencana",
+    "todo",
+    "status",
+    "dokumentasi"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/SETUP_REPORT.md",
+   "type": "document",
+   "name": "SETUP_REPORT.md",
+   "filePath": "docs/SETUP_REPORT.md",
+   "summary": "Laporan setup environment macOS (14 Okt 2026): versi tool terpasang dan yang belum ada seperti Flutter, Xcode, CocoaPods.",
+   "tags": [
+    "setup",
+    "environment",
+    "laporan",
+    "dokumentasi"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:docs/TODO_DEBUGGING.md",
+   "type": "document",
+   "name": "TODO_DEBUGGING.md",
+   "filePath": "docs/TODO_DEBUGGING.md",
+   "summary": "Todo debugging software-only dengan gelombang kerja, kriteria lulus, dan catatan temuan (rantai dosing, tes).",
+   "tags": [
+    "debugging",
+    "todo",
+    "pengujian",
+    "dokumentasi"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/TUGAS_2_ENVIRONMENT.md",
+   "type": "document",
+   "name": "TUGAS_2_ENVIRONMENT.md",
+   "filePath": "docs/TUGAS_2_ENVIRONMENT.md",
+   "summary": "Panduan instalasi environment (Node.js, PostgreSQL, paket frontend) dengan command, verifikasi, dan perbaikan masalah umum.",
+   "tags": [
+    "setup",
+    "environment",
+    "panduan",
+    "dokumentasi"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/TUTORIAL_PI_MANUAL.md",
+   "type": "document",
+   "name": "TUTORIAL_PI_MANUAL.md",
+   "filePath": "docs/TUTORIAL_PI_MANUAL.md",
+   "summary": "Tutorial manual dari Raspberry Pi kosong menjadi server GARAP, setara skrip deploy-pi/pasang-server.sh namun per langkah.",
+   "tags": [
+    "raspberry-pi",
+    "deployment",
+    "tutorial",
+    "dokumentasi"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "document:docs/UJI_BEBAN_PI_2026-10-23.md",
+   "type": "document",
+   "name": "UJI_BEBAN_PI_2026-10-23.md",
+   "filePath": "docs/UJI_BEBAN_PI_2026-10-23.md",
+   "summary": "Hasil uji beban dengan 5 juta bacaan sensor dan rekomendasi konfigurasi Raspberry Pi (perkiraan dari Mac M2).",
+   "tags": [
+    "uji-beban",
+    "performa",
+    "raspberry-pi",
+    "dokumentasi"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/VERIFIKASI_CLAUDE.md",
+   "type": "document",
+   "name": "VERIFIKASI_CLAUDE.md",
+   "filePath": "docs/VERIFIKASI_CLAUDE.md",
+   "summary": "Brief verifikasi read-only untuk Claude: memeriksa rename GARAP dan tiga diagram alur terhadap repo.",
+   "tags": [
+    "verifikasi",
+    "brief",
+    "audit",
+    "dokumentasi"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:docs/VERIFIKASI_PERANCANGAN.md",
+   "type": "document",
+   "name": "VERIFIKASI_PERANCANGAN.md",
+   "filePath": "docs/VERIFIKASI_PERANCANGAN.md",
+   "summary": "Verifikasi aturan perancangan 0-14 terhadap implementasi backend, firmware, web, dan database lokal.",
+   "tags": [
+    "verifikasi",
+    "perancangan",
+    "audit",
+    "dokumentasi"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:docs/jalur-backend.html",
+   "type": "file",
+   "name": "jalur-backend.html",
+   "filePath": "docs/jalur-backend.html",
+   "summary": "Halaman HTML statis bertema gelap (font JetBrains Mono) yang memvisualisasikan jalur backend GARAP.",
+   "tags": [
+    "html",
+    "visualisasi",
+    "dokumentasi",
+    "backend"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "config:docs/openapi.yaml",
+   "type": "config",
+   "name": "openapi.yaml",
+   "filePath": "docs/openapi.yaml",
+   "summary": "Spesifikasi OpenAPI 3.0.3 untuk API GARAP (68 path, 109 operasi) yang bisa diimpor ke Postman/Insomnia.",
+   "tags": [
+    "api-schema",
+    "openapi",
+    "kontrak",
+    "konfigurasi"
+   ],
+   "complexity": "complex",
+   "languageNotes": "YAML OpenAPI 3.0; versi mesin-baca dari KONTRAK_API.md."
+  }
+ ],
+ "edges": [
+  {
+   "source": "document:docs/KONTRAK_API.md",
+   "target": "config:docs/openapi.yaml",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/VERIFIKASI_PERANCANGAN.md",
+   "target": "document:docs/PERANCANGAN_SISTEM_IOT_HIDROPONIK.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/JALUR_DATABASE_DAN_RELASI.md",
+   "target": "document:docs/RANCANGAN_DB_V2.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/TUTORIAL_PI_MANUAL.md",
+   "target": "document:docs/UJI_BEBAN_PI_2026-10-23.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/TODO_DEBUGGING.md",
+   "target": "document:docs/RENCANA_DAN_TODO.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/JALUR_DATABASE_DAN_RELASI.md",
+   "target": "file:docs/jalur-backend.html",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

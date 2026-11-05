@@ -1,0 +1,632 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { api } from '../lib/api'
+import { useAuth } from '../lib/authContext'
+import { useApiError } from '../lib/crudApi'
+import { tglJam, tglPendek } from '../lib/format'
+import { useIotV41State } from '../lib/iotV41'
+import { Ikon } from '../components/Ikon'
+import { PageHeader } from '../components/PageHeader'
+import { StatusBadge } from '../components/StatusBadge'
+import { Pesan } from '../components/kaca/DialogKaca'
+import { PanelPengaturanAlat } from '../components/dosing/PanelPengaturanAlat'
+import { PanelSaklarMode } from '../components/dosing/PanelSaklarMode'
+
+const fmt = (v: number | null | undefined, d = 0): string => {
+  if (v === null || v === undefined || !Number.isFinite(v)) return '—'
+  return d > 0 ? v.toFixed(d).replace('.', ',') : Math.round(v).toLocaleString('id-ID')
+}
+
+/* ── 1. Halaman Saklar & Mode (saklar.php) ─────────────────────────────── */
+export function SaklarModePage() {
+  const iot = useIotV41State()
+  return (
+    <div className="vsf-halaman vsf-stagger">
+      <PageHeader
+        judul="Saklar & Mode"
+        deskripsi="Izin jenis tindakan dan cara pengisian air pada penampung utama."
+      />
+      {iot.error && <Pesan jenis="galat">{iot.error}</Pesan>}
+      <PanelSaklarMode iot={iot.data} loading={iot.loading} onReload={() => void iot.reload()} />
+    </div>
+  )
+}
+
+/* ── 2. Halaman Pengaturan Alat (pengaturan.php) ───────────────────────── */
+export function PengaturanAlatPage() {
+  const iot = useIotV41State()
+  return (
+    <div className="vsf-halaman vsf-stagger">
+      <PageHeader
+        judul="Pengaturan Alat"
+        deskripsi="Volume efektif penampung, jumlah talang, waktu kerja sirkulasi, batas aman, dan laju pompa."
+      />
+      {iot.error && <Pesan jenis="galat">{iot.error}</Pesan>}
+      <PanelPengaturanAlat iot={iot.data} loading={iot.loading} onReload={() => void iot.reload()} />
+    </div>
+  )
+}
+
+/* ── Jejak perintah lokal (dipakai halaman Pemulihan, Koneksi Alat, Peringatan) ─────── */
+export type JejakPerintah = {
+  id: string
+  waktu: string
+  cmd: string
+  payload: string
+  status: 'terkirim' | 'ok' | 'ditolak' | 'diantre' | 'dicatat'
+  ack: string
+}
+
+const KUNCI_PERINTAH = 'vsf_iot_v41_cmds_v1'
+
+function bacaJejakLokal(): JejakPerintah[] {
+  try {
+    const raw = window.localStorage.getItem(KUNCI_PERINTAH)
+    return raw ? (JSON.parse(raw) as JejakPerintah[]) : []
+  } catch {
+    return []
+  }
+}
+
+function tambahJejakLokal(item: Omit<JejakPerintah, 'id' | 'waktu'>): JejakPerintah[] {
+  const baru: JejakPerintah = {
+    ...item,
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    waktu: new Date().toISOString(),
+  }
+  const daftar = [baru, ...bacaJejakLokal()].slice(0, 25)
+  try {
+    window.localStorage.setItem(KUNCI_PERINTAH, JSON.stringify(daftar))
+  } catch {
+    // abaikan
+  }
+  return daftar
+}
+
+/* ── 6. Halaman Pemulihan Papan (pulihkan.php) ─────────────────────────── */
+export function PemulihanPapanPage() {
+  const { role } = useAuth()
+  const bolehUbah = role === 'admin'
+  const handleApiError = useApiError()
+  const iot = useIotV41State()
+
+  const p = iot.data?.params
+  const papan = iot.data?.papan
+  const arsipKal = iot.data?.arsip_kalibrasi ?? []
+
+  const [sibuk, setSibuk] = useState(false)
+  const [pesan, setPesan] = useState<string | null>(null)
+  const [galat, setGalat] = useState<string | null>(null)
+  const [jejak, setJejak] = useState<Array<{ waktu: string; status: string; ack: string }>>([])
+
+  async function kirimPemulihan() {
+    if (!bolehUbah || sibuk) return
+    setSibuk(true)
+    setGalat(null)
+    setPesan(null)
+    try {
+      const res = await api.post('/iot-v41/pulihkan')
+      const d = (res.data ?? {}) as { message?: string }
+      setPesan(String(d.message ?? 'Paket pemulihan sudah disiapkan, tetapi belum dikirim ke alat.'))
+      setJejak((lama) => [
+        { waktu: new Date().toISOString(), status: 'disiapkan', ack: 'BELUM dikirim ke papan' },
+        ...lama,
+      ])
+      void iot.reload()
+    } catch (err) {
+      setGalat(handleApiError(err).message)
+    } finally {
+      setSibuk(false)
+    }
+  }
+
+  return (
+    <div className="vsf-halaman vsf-stagger">
+      <PageHeader
+        judul="Pemulihan Papan"
+        deskripsi="Mengirim ulang parameter dan kalibrasi ke papan pengendali pengganti dalam satu paket."
+      />
+
+      {pesan && <Pesan jenis="ok">{pesan}</Pesan>}
+      {galat && <Pesan jenis="galat" onTutup={() => setGalat(null)}>{galat}</Pesan>}
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <div className="grid content-start gap-4 lg:col-span-7">
+          <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Kondisi papan sekarang">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <div className="vsf-judul-bagian">Kondisi papan sekarang</div>
+                <p className="mt-0.5 text-[13px] text-abu">ID alat tetap sama; yang diganti hanya papannya.</p>
+              </div>
+              <StatusBadge
+                tone={papan?.status === 'online' ? 'online' : papan?.status === 'BARU' ? 'warning' : 'offline'}
+                label={papan?.status ?? 'offline'}
+              />
+            </div>
+
+            <dl className="mt-3 grid grid-cols-1 gap-2 text-[13px] sm:grid-cols-2">
+              <div className="vsf-stat">
+                <dt className="vsf-label">ID alat</dt>
+                <dd className="mt-0.5 font-bold text-tinta">{papan?.kode ?? 'HIDRO-01'}</dd>
+              </div>
+              <div className="vsf-stat">
+                <dt className="vsf-label">Versi firmware</dt>
+                <dd className="mt-0.5 font-bold text-tinta">{papan?.versi ?? 'v4.1'}</dd>
+              </div>
+              <div className="vsf-stat">
+                <dt className="vsf-label">Terakhir terlihat</dt>
+                <dd className="mt-0.5 font-semibold text-tinta">{tglJam(papan?.terakhir_terlihat)}</dd>
+              </div>
+              <div className="vsf-stat">
+                <dt className="vsf-label">Papan baru?</dt>
+                <dd className="mt-0.5 font-semibold text-tinta">
+                  {papan?.status === 'BARU' ? 'ya, flash kosong — perlu pemulihan' : 'tidak'}
+                </dd>
+              </div>
+              <div className="vsf-stat">
+                <dt className="vsf-label">Target tersimpan di web</dt>
+                <dd className="mt-0.5 font-bold tabular-nums text-tinta">
+                  {fmt(p?.ec_setpoint)} ppm · pH {fmt(p?.ph_setpoint, 1)}
+                </dd>
+              </div>
+              <div className="vsf-stat">
+                <dt className="vsf-label">Volume</dt>
+                <dd className="mt-0.5 font-bold tabular-nums text-tinta">{fmt(p?.volume_l)} L</dd>
+              </div>
+              <div className="vsf-stat sm:col-span-2">
+                <dt className="vsf-label">Laju pompa (web)</dt>
+                <dd className="mt-0.5 font-semibold tabular-nums text-tinta">
+                  A {fmt(p?.laju_a, 2)} · B {fmt(p?.laju_b, 2)} · up {fmt(p?.laju_ph_up, 2)} · down {fmt(p?.laju_ph_down, 2)} mL/detik
+                </dd>
+              </div>
+            </dl>
+
+            {bolehUbah && (
+              <div className="mt-4">
+                <button
+                  type="button"
+                  className="vsf-btn-primary"
+                  disabled={sibuk}
+                  onClick={() => void kirimPemulihan()}
+                >
+                  {sibuk ? <span className="vsf-spinner" aria-hidden /> : <Ikon nama="siklus" />}
+                  {sibuk ? 'Menyiapkan paket…' : 'Siapkan paket pemulihan (belum dikirim)'}
+                </button>
+                <p className="mt-2 text-[12px] leading-relaxed text-abu">
+                  Yang dikirim: target, volume, persen dosing, waktu kerja, laju pompa, dan 6 catatan kalibrasi terakhir. Alat menandainya sebagai &ldquo;dipulihkan dari web&rdquo;.
+                </p>
+              </div>
+            )}
+          </section>
+
+          <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Jejak pemulihan">
+            <div className="vsf-judul-bagian">Jejak pemulihan</div>
+            <p className="mt-0.5 text-[13px] text-abu">Status ack menunjukkan apakah alat menerima paketnya.</p>
+            {jejak.length === 0 ? (
+              <div className="vsf-blok mt-3 px-4 py-6 text-center text-[13px] text-abu">
+                Belum pernah dipulihkan pada sesi ini.
+              </div>
+            ) : (
+              <div className="vsf-daftar mt-3">
+                {jejak.map((j, idx) => (
+                  <div
+                    key={idx}
+                    className="vsf-param"
+                    style={{ ['--kolom' as string]: '130px 90px minmax(0,1fr)' }}
+                  >
+                    <div className="vsf-param-sel font-mono text-[12px]">{tglJam(j.waktu)}</div>
+                    <div className="vsf-param-sel">
+                      <span className="vsf-chip-nilai is-normal">{j.status}</span>
+                    </div>
+                    <div className="vsf-param-sel text-[12.5px] text-tinta">{j.ack}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+
+        <div className="grid content-start gap-4 lg:col-span-5">
+          <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Arsip kalibrasi yang akan dikirim">
+            <div className="vsf-judul-bagian">Arsip kalibrasi (yang akan dikirim)</div>
+            {arsipKal.length === 0 ? (
+              <div className="vsf-blok mt-3 px-4 py-6 text-center text-[13px] text-abu">
+                Belum ada arsip.
+              </div>
+            ) : (
+              <div className="vsf-daftar mt-3">
+                {arsipKal.slice(0, 6).map((k) => (
+                  <div
+                    key={String(k.id)}
+                    className="vsf-param"
+                    style={{ ['--kolom' as string]: '100px 90px minmax(0,1fr)' }}
+                  >
+                    <div className="vsf-param-sel font-mono text-[12px]">{tglPendek(k.dilakukan_pada)}</div>
+                    <div className="vsf-param-sel">
+                      <span className="vsf-chip-nilai is-normal">{k.sensor}</span>
+                    </div>
+                    <div className="vsf-param-sel text-[12.5px] text-tinta">{k.catatan ?? '—'}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Urutan yang benar saat ganti papan">
+            <div className="vsf-judul-bagian">Urutan yang benar saat ganti papan</div>
+            <ol className="mt-2.5 list-decimal space-y-1.5 pl-5 text-[13px] leading-relaxed text-abu">
+              <li>Matikan alat dan lepas E-STOP.</li>
+              <li>Ganti papan, lalu pasang program alat dengan ID alat yang sama.</li>
+              <li>Nyalakan, buka halaman ini sampai status <b className="text-tinta">BARU</b> muncul.</li>
+              <li>Tekan tombol pemulihan, tunggu ack <b className="text-tinta">ok</b>.</li>
+              <li>Kalibrasi ulang probe yang ikut diganti (tidak bisa dipulihkan).</li>
+              <li>Uji tiap pompa, angkat float atas, tekan E-STOP.</li>
+              <li>Baru kirim target dari menu Kebun Saya / Pengaturan Nutrisi.</li>
+            </ol>
+            <p className="mt-3 text-[12px] text-abu">
+              Satu hal yang tidak dipulihkan: kecocokan probe. Angka lama hanya berlaku untuk probe lama.
+            </p>
+          </section>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── 7. Halaman MQTT & Diagnostik (mqtt.php) ───────────────────────────── */
+const KONTRAK_TOPIK = [
+  { topik: 'telemetri', arah: 'alat → web', isi: 'Bacaan dan status tiap 30 detik' },
+  { topik: 'param', arah: 'alat → web (retained)', isi: 'Parameter dan target yang sedang dipakai' },
+  { topik: 'kalibrasi', arah: 'alat → web (retained)', isi: 'Ringkasan kalibrasi sensor dan laju pompa' },
+  { topik: 'log', arah: 'alat → web', isi: 'Kejadian, dengan antrian bila offline' },
+  { topik: 'alert', arah: 'alat → web', isi: 'Peringatan' },
+  { topik: 'ack', arah: 'alat → web', isi: 'Jawaban perintah: diterima atau ditolak + alasan' },
+  { topik: 'status', arah: 'alat → web (retained)', isi: 'online / offline / BARU' },
+  { topik: 'cmd', arah: 'web → alat', isi: 'Perintah kendali & konfigurasi' },
+]
+
+const CONTOH_PERINTAH = `{"cmd":"set_param","ec_setpoint":900,"ph_setpoint":6.0}
+{"cmd":"set_saklar","saklar_ab":1,"saklar_pengenceran":0,"mode_isi":"otomatis"}
+{"cmd":"dosing","jenis":"ab","ppm":50}
+{"cmd":"dosing","jenis":"ph_up","ml":5}
+{"cmd":"uji_pompa","pompa":"a","detik":3}
+{"cmd":"pemeliharaan","aktif":true}
+{"cmd":"kalibrasi","sensor":"ph","baca4":4.02,"baca7":7.03}
+{"cmd":"pulihkan_kalibrasi"}
+{"cmd":"reset"}
+{"cmd":"stop"}`
+
+export function MqttDiagnostikPage() {
+  const { role } = useAuth()
+  const bolehUbah = role === 'admin'
+  const handleApiError = useApiError()
+  const iot = useIotV41State()
+  const papan = iot.data?.papan
+
+  const [topic, setTopic] = useState('hidro/HIDRO-01/cmd')
+  const [payload, setPayload] = useState('{"cmd":"status"}')
+  const [sibuk, setSibuk] = useState(false)
+  const [pesan, setPesan] = useState<string | null>(null)
+  const [galat, setGalat] = useState<string | null>(null)
+  const [cmds, setCmds] = useState<JejakPerintah[]>(() => bacaJejakLokal())
+
+  async function kirimManual(e: React.FormEvent) {
+    e.preventDefault()
+    if (!bolehUbah || sibuk) return
+    setSibuk(true)
+    setGalat(null)
+    setPesan(null)
+    try {
+      const res = await api.post('/iot-v41/mqtt-uji', { topic, pesan: payload })
+      const d = (res.data ?? {}) as { message?: string }
+      setCmds(
+        tambahJejakLokal({
+          cmd: 'publish_manual',
+          payload: `${topic} → ${payload}`,
+          status: 'dicatat',
+          ack: 'TIDAK dikirim ke alat',
+        }),
+      )
+      setPesan(String(d.message ?? `Pesan untuk ${topic} hanya dicatat; tidak diterbitkan.`))
+    } catch (err) {
+      setGalat(handleApiError(err).message)
+    } finally {
+      setSibuk(false)
+    }
+  }
+
+  return (
+    <div className="vsf-halaman vsf-stagger">
+      <PageHeader
+        judul="Koneksi Alat"
+        deskripsi="Status jalur komunikasi alat, uji kirim pesan, dan jejak perintah."
+      />
+
+      {pesan && <Pesan jenis="ok">{pesan}</Pesan>}
+      {galat && <Pesan jenis="galat" onTutup={() => setGalat(null)}>{galat}</Pesan>}
+
+      <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Ringkasan koneksi alat">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="vsf-stat">
+            <div className="vsf-label">Broker</div>
+            <div className="mt-1">
+              <StatusBadge tone="online" label="Siap (jalur komunikasi alat)" />
+            </div>
+            <div className="mt-1 text-[12px] text-abu">Aedes / Mosquitto lokal siap meneruskan topik</div>
+          </div>
+          <div className="vsf-stat">
+            <div className="vsf-label">Alat</div>
+            <div className="mt-0.5 text-[20px] font-bold text-tinta">{papan?.kode ?? 'HIDRO-01'}</div>
+            <div className="text-[12px] text-abu">ID tertanam di firmware, tidak diubah dari web</div>
+          </div>
+          <div className="vsf-stat">
+            <div className="vsf-label">Prefix topik</div>
+            <div className="mt-0.5 font-mono text-[18px] font-bold text-tinta">hidro/&lt;ID&gt;/…</div>
+            <div className="text-[12px] text-abu">Contoh: hidro/{papan?.kode ?? 'HIDRO-01'}/telemetri</div>
+          </div>
+        </div>
+      </section>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <section className="vsf-card w-full min-w-0 p-4 sm:p-5 lg:col-span-7" aria-label="Kontrak topik dan uji kirim">
+          <div className="vsf-judul-bagian">Kontrak topik</div>
+          <p className="mt-0.5 text-[13px] text-abu">Daftar jalur pesan yang dipakai alat.</p>
+
+          <div className="vsf-daftar mt-3">
+            {KONTRAK_TOPIK.map((t) => (
+              <div
+                key={t.topik}
+                className="vsf-param"
+                style={{ ['--kolom' as string]: '105px 150px minmax(0,1fr)' }}
+              >
+                <div className="vsf-param-sel font-mono text-[12.5px] font-bold text-tinta">{t.topik}</div>
+                <div className="vsf-param-sel text-[12px] text-abu">{t.arah}</div>
+                <div className="vsf-param-sel text-[12.5px] text-tinta">{t.isi}</div>
+              </div>
+            ))}
+          </div>
+
+          {bolehUbah && (
+            <>
+              <hr className="my-4 border-garis" />
+              <div className="vsf-judul-bagian">Uji kirim manual</div>
+              <form onSubmit={(e) => void kirimManual(e)} className="mt-3 space-y-3">
+                <label className="block">
+                  <span className="vsf-label vsf-label-tinta">Topik</span>
+                  <input
+                    type="text"
+                    className="vsf-input mt-1 w-full font-mono text-[13px]"
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                  />
+                </label>
+                <label className="block">
+                  <span className="vsf-label vsf-label-tinta">Payload</span>
+                  <input
+                    type="text"
+                    className="vsf-input mt-1 w-full font-mono text-[13px]"
+                    value={payload}
+                    onChange={(e) => setPayload(e.target.value)}
+                  />
+                </label>
+                <button type="submit" className="vsf-btn-primary" disabled={sibuk}>
+                  {sibuk && <span className="vsf-spinner" aria-hidden />}
+                  Catat uji (tidak diterbitkan)
+                </button>
+              </form>
+            </>
+          )}
+        </section>
+
+        <div className="grid content-start gap-4 lg:col-span-5">
+          <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Contoh perintah">
+            <div className="vsf-judul-bagian">Contoh perintah</div>
+            <pre className="vsf-blok mt-3 overflow-x-auto p-3 font-mono text-[11.5px] leading-relaxed text-tinta">
+              {CONTOH_PERINTAH}
+            </pre>
+          </section>
+
+          <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Jejak perintah">
+            <div className="vsf-judul-bagian">Jejak perintah (terakhir)</div>
+            <p className="mt-0.5 text-[12.5px] text-abu">
+              Status: terkirim = sudah masuk jalur komunikasi, ok/ditolak = balasan dari alat.
+            </p>
+            {cmds.length === 0 ? (
+              <div className="vsf-blok mt-3 px-4 py-6 text-center text-[13px] text-abu">
+                Belum ada perintah.
+              </div>
+            ) : (
+              <div className="vsf-daftar mt-3">
+                {cmds.slice(0, 8).map((c) => (
+                  <div
+                    key={c.id}
+                    className="vsf-param"
+                    style={{ ['--kolom' as string]: '105px 95px minmax(0,1fr)' }}
+                  >
+                    <div className="vsf-param-sel font-mono text-[11.5px]">{tglJam(c.waktu)}</div>
+                    <div className="vsf-param-sel">
+                      <span className="vsf-chip-nilai is-normal">{c.cmd}</span>
+                    </div>
+                    <div className="vsf-param-sel truncate font-mono text-[11.5px] text-tinta">{c.payload}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── 8. Halaman Peringatan (peringatan.php) ────────────────────────────── */
+type PeringatanItem = {
+  id: string
+  waktu: string
+  level: 'merah' | 'kuning' | 'info'
+  kode: string
+  pesan: string
+  aktif: boolean
+}
+
+/** Baris GET /alert-logs (tabel alert_logs) → item tampilan. */
+type BarisAlert = { id: number | string; type: string; value: string; severity: string; acknowledged: boolean; created_at: string }
+const LEVEL_ALERT: Record<string, PeringatanItem['level']> = { critical: 'merah', warning: 'kuning', info: 'info' }
+export function dariBarisAlert(r: BarisAlert): PeringatanItem {
+  return { id: `a-${r.id}`, waktu: r.created_at, level: LEVEL_ALERT[r.severity] ?? 'info', kode: r.type.toUpperCase(), pesan: r.value, aktif: !r.acknowledged }
+}
+
+export function PeringatanPage() {
+  const { role } = useAuth()
+  const bolehUbah = role === 'admin'
+  const handleApiError = useApiError()
+  const iot = useIotV41State()
+
+  const [daftar, setDaftar] = useState<PeringatanItem[]>([])
+  const [sibuk, setSibuk] = useState(false)
+  const [pesan, setPesan] = useState<string | null>(null)
+  const [galat, setGalat] = useState<string | null>(null)
+
+  // handler galat disimpan di ref supaya muat() stabil (efek tidak berulang bila identitas handler berganti)
+  const galatRef = useRef(handleApiError)
+  galatRef.current = handleApiError
+  const muat = useCallback(async () => {
+    try {
+      const res = await api.get('/alert-logs', { params: { limit: 100 } })
+      const baris = Array.isArray(res.data?.data) ? (res.data.data as BarisAlert[]) : []
+      setDaftar(baris.map(dariBarisAlert))
+    } catch (err) {
+      setGalat(galatRef.current(err).message)
+    }
+  }, [])
+
+  useEffect(() => {
+    void muat()
+  }, [muat])
+
+  const p = iot.data?.params
+  const waktuAcuan = iot.data?.kondisi.updated_at ?? new Date().toISOString()
+  // kondisi saat ini dari status alat (bukan data tetap): hanya tampil selama kondisinya benar
+  const semuaPeringatan: PeringatanItem[] = [
+    ...(p?.tahan_dosing
+      ? [{ id: 'kondisi-tahan', waktu: waktuAcuan, level: 'merah' as const, kode: 'AIR_DIGANTI', pesan: p.tahan_alasan ?? 'Pemberian nutrisi ditahan otomatis karena perubahan EC/pH yang drastis.', aktif: true }]
+      : []),
+    ...(p?.pemeliharaan
+      ? [{ id: 'kondisi-pemeliharaan', waktu: waktuAcuan, level: 'kuning' as const, kode: 'MODE_PEMELIHARAAN', pesan: 'Mode pemeliharaan sedang aktif — semua pompa dimatikan dan hitungan dibekukan.', aktif: true }]
+      : []),
+    ...(p && p.ec_setpoint === 0
+      ? [{ id: 'kondisi-tidur', waktu: waktuAcuan, level: 'kuning' as const, kode: 'TARGET_TIDUR', pesan: 'Target EC bernilai 0 ppm (mode tidur): alat memantau sensor tanpa menyuntik nutrisi.', aktif: true }]
+      : []),
+    ...daftar,
+  ]
+
+  const jmlAktif = semuaPeringatan.filter((a) => a.aktif).length
+
+  async function kirimReset() {
+    if (!bolehUbah || sibuk) return
+    setSibuk(true)
+    setGalat(null)
+    setPesan(null)
+    try {
+      const res = await api.post('/iot-v41/reset-peringatan')
+      const d = (res.data ?? {}) as { message?: string }
+      setPesan(String(d.message ?? 'Permintaan reset dicatat. Belum dikirim ke alat.'))
+    } catch (err) {
+      setGalat(handleApiError(err).message)
+    } finally {
+      setSibuk(false)
+    }
+  }
+
+  async function tandaiSelesai(id: string) {
+    try {
+      await api.post(`/alert-logs/${id.replace(/^a-/, '')}/ack`)
+      setPesan('Peringatan ditandai selesai.')
+      await muat()
+    } catch (err) {
+      setGalat(handleApiError(err).message)
+    }
+  }
+
+  return (
+    <div className="vsf-halaman vsf-stagger">
+      <PageHeader
+        judul="Peringatan"
+        deskripsi="Kondisi yang perlu diperhatikan beserta tingkat keparahannya (merah mengalahkan kuning pada lampu pilot)."
+      />
+
+      {pesan && <Pesan jenis="ok">{pesan}</Pesan>}
+      {galat && <Pesan jenis="galat" onTutup={() => setGalat(null)}>{galat}</Pesan>}
+
+      <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Ringkasan peringatan">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="vsf-stat">
+            <div className="vsf-label">Peringatan aktif</div>
+            <div className="mt-0.5 text-[22px] font-bold tabular-nums text-tinta">{jmlAktif}</div>
+            <div className="text-[12px] text-abu">Merah mengalahkan kuning pada lampu pilot</div>
+          </div>
+          <div className="vsf-stat">
+            <div className="vsf-label">Total tercatat</div>
+            <div className="mt-0.5 text-[22px] font-bold tabular-nums text-tinta">{semuaPeringatan.length}</div>
+            <div className="text-[12px] text-abu">100 terbaru ditampilkan</div>
+          </div>
+          <div className="vsf-blok flex flex-col justify-between p-3.5">
+            <div className="text-[13px] font-bold text-tinta">Aksi</div>
+            {bolehUbah && (
+              <button
+                type="button"
+                className="vsf-btn-secondary mt-2 w-full sm:w-auto"
+                disabled={sibuk}
+                onClick={() => void kirimReset()}
+              >
+                {sibuk && <span className="vsf-spinner vsf-spinner-dark" aria-hidden />}
+                Catat permintaan RESET
+              </button>
+            )}
+            <div className="mt-1.5 text-[11.5px] text-abu">
+              RESET hanya dicatat di server dan tidak menghapus riwayat. "Tandai selesai" menandai peringatan sudah ditangani di database.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Daftar peringatan">
+        <div className="vsf-judul-bagian">Daftar peringatan</div>
+        <div className="vsf-daftar mt-3">
+          {semuaPeringatan.map((a) => (
+            <div
+              key={a.id}
+              className="vsf-param"
+              style={{ ['--kolom' as string]: '115px 85px 140px minmax(0,1fr) 90px auto' }}
+            >
+              <div className="vsf-param-sel font-mono text-[12px]">{tglJam(a.waktu)}</div>
+              <div className="vsf-param-sel">
+                <StatusBadge
+                  tone={a.level === 'merah' ? 'offline' : a.level === 'kuning' ? 'warning' : 'online'}
+                  label={a.level}
+                />
+              </div>
+              <div className="vsf-param-sel font-mono text-[12px] font-bold text-tinta">{a.kode}</div>
+              <div className="vsf-param-sel text-[13px] text-tinta">{a.pesan}</div>
+              <div className="vsf-param-sel">
+                <span className={`vsf-chip-nilai ${a.aktif ? 'is-kosong' : 'is-normal'}`}>
+                  {a.aktif ? 'aktif' : 'selesai'}
+                </span>
+              </div>
+              <div className="vsf-param-sel">
+                {a.aktif && bolehUbah && a.id.startsWith('a-') && (
+                  <button
+                    type="button"
+                    className="inline-flex min-h-[44px] items-center text-[12px] font-semibold text-arutmin-forest underline"
+                    onClick={() => void tandaiSelesai(a.id)}
+                  >
+                    tandai selesai
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  )
+}

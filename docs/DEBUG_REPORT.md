@@ -1,4 +1,4 @@
-# Laporan Animasi & Debugging — React SPA Vertonik Smart Farm
+# Laporan Animasi & Debugging — React SPA GARAP
 
 Tanggal: 2026-10-14
 
@@ -11,7 +11,7 @@ File `.pen` = wireframe grayscale 21 layar (01–21). Penyesuaian yang dilakukan
 | Layar **20 CCTV** (`GET /cctv`) | Dibuat `CctvPage.tsx`: grid 6 kamera (K-01…K-06, status teks Online/Periksa/Offline), pemutar + Rekam/Snapshot/Buka Penuh, log Peristiwa Kamera, filter lokasi, state `?state=loading` |
 | Layar **21 Asisten AI** (`GET /asisten-ai`) | Dibuat `AsistenAiPage.tsx`: konteks banner, bubble chat ANDA/ASISTEN AI + jam, quick prompts ✦, input “Tanyakan kondisi kebun…” + Kirim ➤, checkbox riwayat/sensor, typing indicator, state `?state=loading/offline` |
 | Sidebar: Asisten AI (Ikhtisar), CCTV (Kebun & Sensor), Data Tahap bersub ›, label **Laporan** (bukan “Matriks Laporan”), item **Keluar** | `AppShell.tsx` ditulis ulang sesuai tree .pen |
-| Topbar dinamis: judul halaman + brand line “Vertonik Smart Farm · greenhouse hidroponik” + clock `HH:MM:SS` + `▾ user` | `AppShell.tsx` |
+| Topbar dinamis: judul halaman + brand line “GARAP · greenhouse hidroponik” + clock `HH:MM:SS` + `▾ user` | `AppShell.tsx` |
 | Peta peran: semua role = Dashboard/Sensor/Tanam/CCTV/AI/Profil; admin+demo = Water Control/Data Tahap/Master/Laporan/Notif/User; petani DIBLOKIR dari halaman admin | `RequireAuth` + guard per rute di `router.tsx` |
 | State Gallery: empty state = ikon + kalimat + **“Tambah Data Pertama”**; banner demo = countdown “X menit lagi dihapus otomatis” (tick 60 dtk, role=status) | `CrudScreen.tsx`, `DemoBanner.tsx` |
 | Confirm sheet **Keluar** (logout) | modal di AppShell → `logout()` → `/login` |

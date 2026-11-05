@@ -1,0 +1,9 @@
+// Salin menjadi rahasia.h (di-.gitignore) lalu isi. JANGAN commit rahasia.h.
+#pragma once
+#define WIFI_SSID   "NAMA_WIFI_ANDA"
+#define WIFI_PASS   "ISI_SANDI_WIFI"
+#define SERVER_IP   "IP_PI_ANDA"                 // IP Pi (lihat: hostname -I di Pi; sebaiknya reservasi DHCP/IP statis)
+// sudo cat /etc/vertonik/kunci-perangkat.txt → dua baris; tiap kunci juga = sandi MQTT user-nya di broker Pi
+#define API_KEY_SENSOR   "vsf_xxxxxxxx_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  // baris sensor-01
+#define API_KEY_AKTUATOR "vsf_xxxxxxxx_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  // baris aktuator-01
+// #define MQTT_PORT 1883                          // port Mosquitto di Pi (bawaan 1883)

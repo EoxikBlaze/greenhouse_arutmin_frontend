@@ -1,0 +1,422 @@
+{
+ "nodes": [
+  {
+   "id": "file:backend-nodejs/test/integration/errors.test.js",
+   "type": "file",
+   "name": "errors.test.js",
+   "filePath": "backend-nodejs/test/integration/errors.test.js",
+   "summary": "Test integrasi penanganan error API dan format respons kesalahan.",
+   "tags": [
+    "test",
+    "error-handling",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/esp32.test.js",
+   "type": "file",
+   "name": "esp32.test.js",
+   "filePath": "backend-nodejs/test/integration/esp32.test.js",
+   "summary": "Test integrasi endpoint perangkat ESP32 untuk data sensor dan perintah.",
+   "tags": [
+    "test",
+    "esp32",
+    "iot",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/kontrak-aneh.test.js",
+   "type": "file",
+   "name": "kontrak-aneh.test.js",
+   "filePath": "backend-nodejs/test/integration/kontrak-aneh.test.js",
+   "summary": "Test integrasi kontrak API dengan input tidak lazim dan kasus tepi.",
+   "tags": [
+    "test",
+    "edge-case",
+    "validation",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/laporan.test.js",
+   "type": "file",
+   "name": "laporan.test.js",
+   "filePath": "backend-nodejs/test/integration/laporan.test.js",
+   "summary": "Test integrasi endpoint laporan.",
+   "tags": [
+    "test",
+    "report",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/meja-mass.test.js",
+   "type": "file",
+   "name": "meja-mass.test.js",
+   "filePath": "backend-nodejs/test/integration/meja-mass.test.js",
+   "summary": "Test integrasi beban banyak meja tanam sekaligus, termasuk proses lama dan pembersihan data.",
+   "tags": [
+    "test",
+    "meja",
+    "load",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:backend-nodejs/test/integration/meja-mass.test.js:prosesMejaLamaJalan",
+   "type": "function",
+   "name": "prosesMejaLamaJalan",
+   "filePath": "backend-nodejs/test/integration/meja-mass.test.js",
+   "lineRange": [
+    40,
+    49
+   ],
+   "summary": "Fungsi prosesMejaLamaJalan di meja-mass.test.js; bagian dari logika modul ini.",
+   "tags": [
+    "test",
+    "meja",
+    "load"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/test/integration/meja-mass.test.js:tungguMejaLamaSelesai",
+   "type": "function",
+   "name": "tungguMejaLamaSelesai",
+   "filePath": "backend-nodejs/test/integration/meja-mass.test.js",
+   "lineRange": [
+    55,
+    73
+   ],
+   "summary": "Fungsi tungguMejaLamaSelesai di meja-mass.test.js; bagian dari logika modul ini.",
+   "tags": [
+    "test",
+    "meja",
+    "load"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/test/integration/meja-mass.test.js:bersihkanPrefixSendiri",
+   "type": "function",
+   "name": "bersihkanPrefixSendiri",
+   "filePath": "backend-nodejs/test/integration/meja-mass.test.js",
+   "lineRange": [
+    76,
+    91
+   ],
+   "summary": "Fungsi bersihkanPrefixSendiri di meja-mass.test.js; bagian dari logika modul ini.",
+   "tags": [
+    "test",
+    "meja",
+    "load"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/meja.test.js",
+   "type": "file",
+   "name": "meja.test.js",
+   "filePath": "backend-nodejs/test/integration/meja.test.js",
+   "summary": "Test integrasi CRUD meja tanam dengan pembersihan data uji.",
+   "tags": [
+    "test",
+    "meja",
+    "crud",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:backend-nodejs/test/integration/meja.test.js:bersihkanPrefix",
+   "type": "function",
+   "name": "bersihkanPrefix",
+   "filePath": "backend-nodejs/test/integration/meja.test.js",
+   "lineRange": [
+    32,
+    44
+   ],
+   "summary": "Fungsi bersihkanPrefix di meja.test.js; bagian dari logika modul ini.",
+   "tags": [
+    "test",
+    "meja",
+    "crud"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/monitoring.test.js",
+   "type": "file",
+   "name": "monitoring.test.js",
+   "filePath": "backend-nodejs/test/integration/monitoring.test.js",
+   "summary": "Test integrasi endpoint monitoring sensor greenhouse.",
+   "tags": [
+    "test",
+    "monitoring",
+    "sensor",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/pesan-validasi.test.js",
+   "type": "file",
+   "name": "pesan-validasi.test.js",
+   "filePath": "backend-nodejs/test/integration/pesan-validasi.test.js",
+   "summary": "Test integrasi pesan validasi error pada input API.",
+   "tags": [
+    "test",
+    "validation",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/publik.test.js",
+   "type": "file",
+   "name": "publik.test.js",
+   "filePath": "backend-nodejs/test/integration/publik.test.js",
+   "summary": "Test integrasi singkat endpoint publik tanpa autentikasi.",
+   "tags": [
+    "test",
+    "public-api",
+    "integration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/tanam-alur.test.js",
+   "type": "file",
+   "name": "tanam-alur.test.js",
+   "filePath": "backend-nodejs/test/integration/tanam-alur.test.js",
+   "summary": "Test integrasi alur penanaman dari awal hingga panen.",
+   "tags": [
+    "test",
+    "tanam",
+    "workflow",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/user-profil-panjang.test.js",
+   "type": "file",
+   "name": "user-profil-panjang.test.js",
+   "filePath": "backend-nodejs/test/integration/user-profil-panjang.test.js",
+   "summary": "Test integrasi profil pengguna dengan input panjang.",
+   "tags": [
+    "test",
+    "user",
+    "validation",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/v2.test.js",
+   "type": "file",
+   "name": "v2.test.js",
+   "filePath": "backend-nodejs/test/integration/v2.test.js",
+   "summary": "Test integrasi API v2 termasuk pengaturan net-zero.",
+   "tags": [
+    "test",
+    "api-v2",
+    "integration"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:backend-nodejs/test/integration/v2.test.js:putNetZero",
+   "type": "function",
+   "name": "putNetZero",
+   "filePath": "backend-nodejs/test/integration/v2.test.js",
+   "lineRange": [
+    83,
+    115
+   ],
+   "summary": "Fungsi putNetZero di v2.test.js; bagian dari logika modul ini.",
+   "tags": [
+    "test",
+    "api-v2",
+    "integration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/test/integration/watercontrol.test.js",
+   "type": "file",
+   "name": "watercontrol.test.js",
+   "filePath": "backend-nodejs/test/integration/watercontrol.test.js",
+   "summary": "Test integrasi kontrol air dan dosing nutrisi.",
+   "tags": [
+    "test",
+    "water-control",
+    "dosing",
+    "integration"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:backend-nodejs/test/integration/errors.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/esp32.test.js",
+   "target": "file:backend-nodejs/src/config.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/esp32.test.js",
+   "target": "file:backend-nodejs/src/db.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/esp32.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/kontrak-aneh.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/laporan.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/meja-mass.test.js",
+   "target": "function:backend-nodejs/test/integration/meja-mass.test.js:prosesMejaLamaJalan",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/meja-mass.test.js",
+   "target": "function:backend-nodejs/test/integration/meja-mass.test.js:tungguMejaLamaSelesai",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/meja-mass.test.js",
+   "target": "function:backend-nodejs/test/integration/meja-mass.test.js:bersihkanPrefixSendiri",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/meja-mass.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/meja.test.js",
+   "target": "function:backend-nodejs/test/integration/meja.test.js:bersihkanPrefix",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/meja.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/monitoring.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/pesan-validasi.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/publik.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/tanam-alur.test.js",
+   "target": "file:backend-nodejs/src/db.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/tanam-alur.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/user-profil-panjang.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/v2.test.js",
+   "target": "function:backend-nodejs/test/integration/v2.test.js:putNetZero",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/v2.test.js",
+   "target": "file:backend-nodejs/src/db.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/v2.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:backend-nodejs/test/integration/watercontrol.test.js",
+   "target": "file:backend-nodejs/test/integration/_server.js",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  }
+ ]
+}

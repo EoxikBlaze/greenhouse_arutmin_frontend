@@ -1,0 +1,258 @@
+{
+ "nodes": [
+  {
+   "id": "file:backend-nodejs/scripts/backup-pi.sh",
+   "type": "file",
+   "name": "backup-pi.sh",
+   "filePath": "backend-nodejs/scripts/backup-pi.sh",
+   "summary": "Skrip bash untuk backup, verifikasi, dan restore database PostgreSQL vertonik dengan rotasi file terbaru, backup .env, dan penyamaran password di output.",
+   "tags": [
+    "backup",
+    "database",
+    "shell-script",
+    "operasi"
+   ],
+   "complexity": "complex",
+   "languageNotes": "Memakai set -euo pipefail dan menulis dump ke file sementara lalu mv agar atomik."
+  },
+  {
+   "id": "function:backend-nodejs/scripts/backup-pi.sh:find_bin",
+   "type": "function",
+   "name": "find_bin",
+   "filePath": "backend-nodejs/scripts/backup-pi.sh",
+   "lineRange": [
+    55,
+    65
+   ],
+   "summary": "Mencari binary pg_dump di PATH, Homebrew, atau direktori PostgreSQL di Pi.",
+   "tags": [
+    "utility",
+    "pg_dump",
+    "shell-script"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/scripts/backup-pi.sh:resolve_url",
+   "type": "function",
+   "name": "resolve_url",
+   "filePath": "backend-nodejs/scripts/backup-pi.sh",
+   "lineRange": [
+    67,
+    74
+   ],
+   "summary": "Menentukan DATABASE_URL dari argumen, env, atau file .env.",
+   "tags": [
+    "konfigurasi",
+    "utility",
+    "shell-script"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/scripts/backup-pi.sh:check_dump",
+   "type": "function",
+   "name": "check_dump",
+   "filePath": "backend-nodejs/scripts/backup-pi.sh",
+   "lineRange": [
+    77,
+    90
+   ],
+   "summary": "Memvalidasi file dump: ada, tidak kosong, header pg_dump dan pernyataan SQL.",
+   "tags": [
+    "validasi",
+    "backup",
+    "shell-script"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:backend-nodejs/scripts/backup-pi.sh:rotate",
+   "type": "function",
+   "name": "rotate",
+   "filePath": "backend-nodejs/scripts/backup-pi.sh",
+   "lineRange": [
+    92,
+    108
+   ],
+   "summary": "Menghapus file backup lama dan menyisakan N file terbaru berdasarkan timestamp.",
+   "tags": [
+    "rotasi",
+    "backup",
+    "shell-script"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/scripts/fix-sequences.sql",
+   "type": "file",
+   "name": "fix-sequences.sql",
+   "filePath": "backend-nodejs/scripts/fix-sequences.sql",
+   "summary": "Blok PL/pgSQL yang menaikkan semua sequence serial ke max(id) setelah restore/import dump, mencegah error duplicate key pada INSERT.",
+   "tags": [
+    "database",
+    "sequence",
+    "perbaikan",
+    "sql"
+   ],
+   "complexity": "simple",
+   "languageNotes": "Menggunakan DO block dengan format() dan pg_get_serial_sequence."
+  },
+  {
+   "id": "file:backend-nodejs/scripts/generate-apikey.sh",
+   "type": "file",
+   "name": "generate-apikey.sh",
+   "filePath": "backend-nodejs/scripts/generate-apikey.sh",
+   "summary": "Skrip rotasi dan verifikasi ESP32_API_KEY di .env: membuat kunci hex via openssl, backup .env, dan cek kunci ke endpoint server tanpa mencetak nilainya.",
+   "tags": [
+    "keamanan",
+    "api-key",
+    "shell-script",
+    "esp32"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:backend-nodejs/scripts/generate-apikey.sh:do_check",
+   "type": "function",
+   "name": "do_check",
+   "filePath": "backend-nodejs/scripts/generate-apikey.sh",
+   "lineRange": [
+    50,
+    68
+   ],
+   "summary": "Memverifikasi kunci aktif lewat GET /api/get-thresholds dan menjelaskan status HTTP.",
+   "tags": [
+    "verifikasi",
+    "api-key",
+    "shell-script"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:backend-nodejs/scripts/generate-apikey.sh:do_rotate",
+   "type": "function",
+   "name": "do_rotate",
+   "filePath": "backend-nodejs/scripts/generate-apikey.sh",
+   "lineRange": [
+    70,
+    116
+   ],
+   "summary": "Merotasi ESP32_API_KEY: konfirmasi, backup .env, ganti baris kunci, dan tampilkan langkah lanjutan.",
+   "tags": [
+    "rotasi",
+    "keamanan",
+    "shell-script"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/scripts/insert_100k.sql",
+   "type": "file",
+   "name": "insert_100k.sql",
+   "filePath": "backend-nodejs/scripts/insert_100k.sql",
+   "summary": "Menyisipkan 100.000 baris data sensor acak (penanda 'Load-Test') tersebar 60 hari untuk uji beban tabel monitorings.",
+   "tags": [
+    "load-test",
+    "database",
+    "data-uji",
+    "sql"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:backend-nodejs/scripts/restore.sh",
+   "type": "file",
+   "name": "restore.sh",
+   "filePath": "backend-nodejs/scripts/restore.sh",
+   "summary": "Skrip satu perintah untuk restore dump GARAP: impor dump, jalankan migrasi berversi, fix-sequences, lalu verifikasi jumlah baris.",
+   "tags": [
+    "restore",
+    "database",
+    "migrasi",
+    "shell-script"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:backend-nodejs/scripts/smoke-test.sh",
+   "type": "file",
+   "name": "smoke-test.sh",
+   "filePath": "backend-nodejs/scripts/smoke-test.sh",
+   "summary": "Smoke test backend GARAP berisi 20 skenario curl: login, otorisasi role, endpoint dashboard, ESP32 API key, CRUD meja, header keamanan, dan rate limit.",
+   "tags": [
+    "test",
+    "smoke-test",
+    "api",
+    "shell-script"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "Berisi path absolut hardcoded ke mesin pengembang dan memakai python3 untuk parsing JSON."
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:backend-nodejs/scripts/backup-pi.sh",
+   "target": "function:backend-nodejs/scripts/backup-pi.sh:find_bin",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/scripts/backup-pi.sh",
+   "target": "function:backend-nodejs/scripts/backup-pi.sh:resolve_url",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/scripts/backup-pi.sh",
+   "target": "function:backend-nodejs/scripts/backup-pi.sh:check_dump",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/scripts/backup-pi.sh",
+   "target": "function:backend-nodejs/scripts/backup-pi.sh:rotate",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/scripts/generate-apikey.sh",
+   "target": "function:backend-nodejs/scripts/generate-apikey.sh:do_check",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/scripts/generate-apikey.sh",
+   "target": "function:backend-nodejs/scripts/generate-apikey.sh:do_rotate",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:backend-nodejs/scripts/restore.sh",
+   "target": "file:backend-nodejs/scripts/fix-sequences.sql",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:backend-nodejs/scripts/backup-pi.sh",
+   "target": "file:backend-nodejs/scripts/fix-sequences.sql",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:backend-nodejs/scripts/generate-apikey.sh",
+   "target": "file:backend-nodejs/scripts/smoke-test.sh",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

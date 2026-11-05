@@ -1,0 +1,419 @@
+{
+ "nodes": [
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-17_panens_fk_restrict.sql:panens",
+   "type": "table",
+   "name": "2026-10-17_panens_fk_restrict.sql",
+   "filePath": "backend-nodejs/database/migrations/2026-10-17_panens_fk_restrict.sql",
+   "summary": "Migrasi mengubah FK panens.id_pendewasaan dari ON DELETE CASCADE menjadi RESTRICT agar riwayat panen tidak ikut terhapus saat pendewasaan dihapus.",
+   "tags": [
+    "migration",
+    "database",
+    "foreign-key",
+    "data-integrity"
+   ],
+   "complexity": "simple",
+   "languageNotes": "SQL PostgreSQL idempoten (IF NOT EXISTS / DROP CONSTRAINT IF EXISTS) dalam transaksi BEGIN/COMMIT."
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_jadwal_kalibrasi_channel.sql:jadwal_perawatan",
+   "type": "table",
+   "name": "2026-10-19_perancangan_jadwal_kalibrasi_channel.sql",
+   "filePath": "backend-nodejs/database/migrations/2026-10-19_perancangan_jadwal_kalibrasi_channel.sql",
+   "summary": "Migrasi membuat tabel jadwal perawatan rutin, metode kalibrasi sensor, dan mapping channel ESP32 beserta data awal dari dokumen perancangan.",
+   "tags": [
+    "migration",
+    "database",
+    "seed-data",
+    "kalibrasi"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "SQL PostgreSQL idempoten (IF NOT EXISTS / DROP CONSTRAINT IF EXISTS) dalam transaksi BEGIN/COMMIT."
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_jadwal_kalibrasi_channel.sql:kalibrasi_sensor",
+   "type": "table",
+   "name": "kalibrasi_sensor",
+   "filePath": "backend-nodejs/database/migrations/2026-10-19_perancangan_jadwal_kalibrasi_channel.sql",
+   "summary": "Metode dan periode kalibrasi tiap sensor.",
+   "tags": [
+    "database",
+    "table",
+    "migration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_jadwal_kalibrasi_channel.sql:mapping_channel_esp32",
+   "type": "table",
+   "name": "mapping_channel_esp32",
+   "filePath": "backend-nodejs/database/migrations/2026-10-19_perancangan_jadwal_kalibrasi_channel.sql",
+   "summary": "Pemetaan channel/pin ESP32 ke komponen.",
+   "tags": [
+    "database",
+    "table",
+    "migration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_konfigurasi_dosis.sql:konfigurasi_dosis",
+   "type": "table",
+   "name": "2026-10-19_perancangan_konfigurasi_dosis.sql",
+   "filePath": "backend-nodejs/database/migrations/2026-10-19_perancangan_konfigurasi_dosis.sql",
+   "summary": "Migrasi membuat parameter dosis AB mix, timing operasi, dan aturan fail-safe sebagai salinan terstruktur logika firmware, dengan seed idempoten.",
+   "tags": [
+    "migration",
+    "database",
+    "dosing",
+    "fail-safe"
+   ],
+   "complexity": "complex",
+   "languageNotes": "SQL PostgreSQL idempoten (IF NOT EXISTS / DROP CONSTRAINT IF EXISTS) dalam transaksi BEGIN/COMMIT."
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_konfigurasi_dosis.sql:timing_operasi",
+   "type": "table",
+   "name": "timing_operasi",
+   "filePath": "backend-nodejs/database/migrations/2026-10-19_perancangan_konfigurasi_dosis.sql",
+   "summary": "Parameter timing operasi (timeout, retry, interval).",
+   "tags": [
+    "database",
+    "table",
+    "migration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_konfigurasi_dosis.sql:aturan_fail_safe",
+   "type": "table",
+   "name": "aturan_fail_safe",
+   "filePath": "backend-nodejs/database/migrations/2026-10-19_perancangan_konfigurasi_dosis.sql",
+   "summary": "Aturan batas dan fail-safe sistem dosing.",
+   "tags": [
+    "database",
+    "table",
+    "migration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_meja_state.sql:penampung_states",
+   "type": "table",
+   "name": "2026-10-19_perancangan_meja_state.sql",
+   "filePath": "backend-nodejs/database/migrations/2026-10-19_perancangan_meja_state.sql",
+   "summary": "Migrasi menambah kolom konfigurasi fisik pada mejas, membuat tabel state per penampung, dan memperluas monitorings, alert_logs, serta sensor_thresholds.",
+   "tags": [
+    "migration",
+    "database",
+    "alter-table",
+    "penampung"
+   ],
+   "complexity": "complex",
+   "languageNotes": "SQL PostgreSQL idempoten (IF NOT EXISTS / DROP CONSTRAINT IF EXISTS) dalam transaksi BEGIN/COMMIT."
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_target_nutrisi.sql:target_nutrisi",
+   "type": "table",
+   "name": "2026-10-19_perancangan_target_nutrisi.sql",
+   "filePath": "backend-nodejs/database/migrations/2026-10-19_perancangan_target_nutrisi.sql",
+   "summary": "Migrasi membuat tabel setpoint EC/pH per jenis tanaman, tahap, dan umur, dengan indeks unik global dan seed idempoten.",
+   "tags": [
+    "migration",
+    "database",
+    "nutrisi",
+    "setpoint"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "SQL PostgreSQL idempoten (IF NOT EXISTS / DROP CONSTRAINT IF EXISTS) dalam transaksi BEGIN/COMMIT."
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-22_01_cctv_kamera.sql:cctv_kameras",
+   "type": "table",
+   "name": "2026-10-22_01_cctv_kamera.sql",
+   "filePath": "backend-nodejs/database/migrations/2026-10-22_01_cctv_kamera.sql",
+   "summary": "Migrasi membuat tabel daftar kamera CCTV untuk papan kamera halaman /cctv.",
+   "tags": [
+    "migration",
+    "database",
+    "cctv"
+   ],
+   "complexity": "simple",
+   "languageNotes": "SQL PostgreSQL idempoten (IF NOT EXISTS / DROP CONSTRAINT IF EXISTS) dalam transaksi BEGIN/COMMIT."
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-22_02_rapikan_skema.sql:perangkat",
+   "type": "table",
+   "name": "2026-10-22_02_rapikan_skema.sql",
+   "filePath": "backend-nodejs/database/migrations/2026-10-22_02_rapikan_skema.sql",
+   "summary": "Migrasi aditif perapian skema V3: skema legacy, katalog perangkat dan jenis_alert, trigger updated_at, indeks, view, dan kamus data.",
+   "tags": [
+    "migration",
+    "database",
+    "schema-cleanup",
+    "trigger"
+   ],
+   "complexity": "complex",
+   "languageNotes": "SQL PostgreSQL idempoten (IF NOT EXISTS / DROP CONSTRAINT IF EXISTS) dalam transaksi BEGIN/COMMIT."
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-22_02_rapikan_skema.sql:jenis_alert",
+   "type": "table",
+   "name": "jenis_alert",
+   "filePath": "backend-nodejs/database/migrations/2026-10-22_02_rapikan_skema.sql",
+   "summary": "Katalog 7 jenis alert beserta severity, LOCK, dan cooldown.",
+   "tags": [
+    "database",
+    "table",
+    "migration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-22_perangkat_kunci_perintah.sql:api_keys",
+   "type": "table",
+   "name": "2026-10-22_perangkat_kunci_perintah.sql",
+   "filePath": "backend-nodejs/database/migrations/2026-10-22_perangkat_kunci_perintah.sql",
+   "summary": "Migrasi untuk server Raspberry Pi: kolom peran perangkat, API key ter-hash per perangkat, antrean perintah aktuator, dan status E-STOP.",
+   "tags": [
+    "migration",
+    "database",
+    "api-key",
+    "aktuator"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "SQL PostgreSQL idempoten (IF NOT EXISTS / DROP CONSTRAINT IF EXISTS) dalam transaksi BEGIN/COMMIT."
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-22_perangkat_kunci_perintah.sql:perintah_aktuator",
+   "type": "table",
+   "name": "perintah_aktuator",
+   "filePath": "backend-nodejs/database/migrations/2026-10-22_perangkat_kunci_perintah.sql",
+   "summary": "Antrean perintah aktuator.",
+   "tags": [
+    "database",
+    "table",
+    "migration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-23_01_cctv_rtsp.sql:cctv_kameras",
+   "type": "table",
+   "name": "2026-10-23_01_cctv_rtsp.sql",
+   "filePath": "backend-nodejs/database/migrations/2026-10-23_01_cctv_rtsp.sql",
+   "summary": "Migrasi memperluas CHECK tipe kamera CCTV agar menerima rtsp.",
+   "tags": [
+    "migration",
+    "database",
+    "cctv",
+    "rtsp"
+   ],
+   "complexity": "simple",
+   "languageNotes": "SQL PostgreSQL idempoten (IF NOT EXISTS / DROP CONSTRAINT IF EXISTS) dalam transaksi BEGIN/COMMIT."
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-23_02_audit_user_terhapus.sql:audit_logs",
+   "type": "table",
+   "name": "2026-10-23_02_audit_user_terhapus.sql",
+   "filePath": "backend-nodejs/database/migrations/2026-10-23_02_audit_user_terhapus.sql",
+   "summary": "Migrasi melonggarkan CHECK audit_logs agar user yang sudah dihapus tetap meninggalkan jejak audit lewat actor_label.",
+   "tags": [
+    "migration",
+    "database",
+    "audit",
+    "constraint"
+   ],
+   "complexity": "simple",
+   "languageNotes": "SQL PostgreSQL idempoten (IF NOT EXISTS / DROP CONSTRAINT IF EXISTS) dalam transaksi BEGIN/COMMIT."
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-24_01_status_tahap.sql:peremajaans",
+   "type": "table",
+   "name": "2026-10-24_01_status_tahap.sql",
+   "filePath": "backend-nodejs/database/migrations/2026-10-24_01_status_tahap.sql",
+   "summary": "Migrasi menambah kolom status (proses/selesai/gagal) pada peremajaans dan pendewasaans beserta backfill dan indeks.",
+   "tags": [
+    "migration",
+    "database",
+    "status",
+    "backfill"
+   ],
+   "complexity": "simple",
+   "languageNotes": "SQL PostgreSQL idempoten (IF NOT EXISTS / DROP CONSTRAINT IF EXISTS) dalam transaksi BEGIN/COMMIT."
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-24_02_preset_dosing.sql:penampung_states",
+   "type": "table",
+   "name": "2026-10-24_02_preset_dosing.sql",
+   "filePath": "backend-nodejs/database/migrations/2026-10-24_02_preset_dosing.sql",
+   "summary": "Migrasi menambah target_mode dan referensi preset pada penampung_states untuk dosing otomatis dari target_nutrisi.",
+   "tags": [
+    "migration",
+    "database",
+    "dosing",
+    "preset"
+   ],
+   "complexity": "simple",
+   "languageNotes": "SQL PostgreSQL idempoten (IF NOT EXISTS / DROP CONSTRAINT IF EXISTS) dalam transaksi BEGIN/COMMIT."
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-25_01_kalibrasi.sql:kalibrasi_sensor",
+   "type": "table",
+   "name": "2026-10-25_01_kalibrasi.sql",
+   "filePath": "backend-nodejs/database/migrations/2026-10-25_01_kalibrasi.sql",
+   "summary": "Migrasi untuk halaman kalibrasi: kolom label/perangkat/toleransi/konstanta, seed sensor suhu, dan tabel kalibrasi_log.",
+   "tags": [
+    "migration",
+    "database",
+    "kalibrasi",
+    "jsonb"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "SQL PostgreSQL idempoten (IF NOT EXISTS / DROP CONSTRAINT IF EXISTS) dalam transaksi BEGIN/COMMIT."
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-25_01_kalibrasi.sql:kalibrasi_log",
+   "type": "table",
+   "name": "kalibrasi_log",
+   "filePath": "backend-nodejs/database/migrations/2026-10-25_01_kalibrasi.sql",
+   "summary": "Riwayat kalibrasi sensor.",
+   "tags": [
+    "database",
+    "table",
+    "migration"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-27_01_naik_harian.sql:tanamen",
+   "type": "table",
+   "name": "2026-10-27_01_naik_harian.sql",
+   "filePath": "backend-nodejs/database/migrations/2026-10-27_01_naik_harian.sql",
+   "summary": "Migrasi menambah ppm_awal, ppm_target, hari_capai pada tanamen untuk target nutrisi naik harian, dengan CHECK.",
+   "tags": [
+    "migration",
+    "database",
+    "nutrisi",
+    "constraint"
+   ],
+   "complexity": "simple",
+   "languageNotes": "SQL PostgreSQL idempoten (IF NOT EXISTS / DROP CONSTRAINT IF EXISTS) dalam transaksi BEGIN/COMMIT."
+  },
+  {
+   "id": "table:backend-nodejs/database/migrations/2026-10-27_02_naik_harian_cek_ketat.sql:tanamen",
+   "type": "table",
+   "name": "2026-10-27_02_naik_harian_cek_ketat.sql",
+   "filePath": "backend-nodejs/database/migrations/2026-10-27_02_naik_harian_cek_ketat.sql",
+   "summary": "Migrasi memperketat CHECK naik harian agar isian sebagian ditolak database.",
+   "tags": [
+    "migration",
+    "database",
+    "constraint",
+    "data-integrity"
+   ],
+   "complexity": "simple",
+   "languageNotes": "SQL PostgreSQL idempoten (IF NOT EXISTS / DROP CONSTRAINT IF EXISTS) dalam transaksi BEGIN/COMMIT."
+  }
+ ],
+ "edges": [
+  {
+   "source": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_jadwal_kalibrasi_channel.sql:jadwal_perawatan",
+   "target": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_jadwal_kalibrasi_channel.sql:kalibrasi_sensor",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_jadwal_kalibrasi_channel.sql:jadwal_perawatan",
+   "target": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_jadwal_kalibrasi_channel.sql:mapping_channel_esp32",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_konfigurasi_dosis.sql:konfigurasi_dosis",
+   "target": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_konfigurasi_dosis.sql:timing_operasi",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_konfigurasi_dosis.sql:konfigurasi_dosis",
+   "target": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_konfigurasi_dosis.sql:aturan_fail_safe",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "table:backend-nodejs/database/migrations/2026-10-22_02_rapikan_skema.sql:perangkat",
+   "target": "table:backend-nodejs/database/migrations/2026-10-22_02_rapikan_skema.sql:jenis_alert",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "table:backend-nodejs/database/migrations/2026-10-22_perangkat_kunci_perintah.sql:api_keys",
+   "target": "table:backend-nodejs/database/migrations/2026-10-22_perangkat_kunci_perintah.sql:perintah_aktuator",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "table:backend-nodejs/database/migrations/2026-10-25_01_kalibrasi.sql:kalibrasi_sensor",
+   "target": "table:backend-nodejs/database/migrations/2026-10-25_01_kalibrasi.sql:kalibrasi_log",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "table:backend-nodejs/database/migrations/2026-10-23_01_cctv_rtsp.sql:cctv_kameras",
+   "target": "table:backend-nodejs/database/migrations/2026-10-22_01_cctv_kamera.sql:cctv_kameras",
+   "type": "migrates",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "table:backend-nodejs/database/migrations/2026-10-24_02_preset_dosing.sql:penampung_states",
+   "target": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_meja_state.sql:penampung_states",
+   "type": "migrates",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "table:backend-nodejs/database/migrations/2026-10-24_02_preset_dosing.sql:penampung_states",
+   "target": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_target_nutrisi.sql:target_nutrisi",
+   "type": "migrates",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "table:backend-nodejs/database/migrations/2026-10-22_perangkat_kunci_perintah.sql:api_keys",
+   "target": "table:backend-nodejs/database/migrations/2026-10-22_02_rapikan_skema.sql:perangkat",
+   "type": "migrates",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "table:backend-nodejs/database/migrations/2026-10-25_01_kalibrasi.sql:kalibrasi_sensor",
+   "target": "table:backend-nodejs/database/migrations/2026-10-19_perancangan_jadwal_kalibrasi_channel.sql:jadwal_perawatan",
+   "type": "migrates",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "table:backend-nodejs/database/migrations/2026-10-25_01_kalibrasi.sql:kalibrasi_sensor",
+   "target": "table:backend-nodejs/database/migrations/2026-10-22_02_rapikan_skema.sql:perangkat",
+   "type": "migrates",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "table:backend-nodejs/database/migrations/2026-10-27_02_naik_harian_cek_ketat.sql:tanamen",
+   "target": "table:backend-nodejs/database/migrations/2026-10-27_01_naik_harian.sql:tanamen",
+   "type": "migrates",
+   "direction": "forward",
+   "weight": 0.7
+  }
+ ]
+}

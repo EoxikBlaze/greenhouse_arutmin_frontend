@@ -1,0 +1,117 @@
+# .understandignore — patterns for files/dirs to exclude from analysis
+# Syntax: same as .gitignore (globs, # comments, ! negation, trailing / for dirs)
+# Lines below are suggestions — uncomment to activate.
+# Use ! prefix to force-include something excluded by defaults.
+#
+# Built-in defaults (always excluded unless negated):
+#   node_modules/, .git/, dist/, build/, obj/, *.lock, *.min.js, etc.
+#
+
+# --- From .gitignore (uncomment to exclude) ---
+
+# .dart_tool/
+# ios/Pods/
+# .flutter-plugins*
+# *.iml
+# .env
+# *.pem
+# *.key
+# backend-nodejs/
+# deploy-pi/
+# scripts/
+# .DS_Store
+# .agents/
+# .claude/
+# skills-lock.json
+# vertonik-pi-*/
+# deploy-pi/*.lokal
+# *.tgz
+# _backup_*/
+# _tmp_dist/
+# .playwright-cli/
+# *.bak-*
+# .taste-skill/
+# docs/infografis/hasil/
+
+# --- Detected directories (uncomment to exclude) ---
+
+# docs/
+
+# --- Test file patterns (uncomment to exclude) ---
+
+# JS / TS
+# *.test.*
+# *.spec.*
+# *.snap
+# C# / .NET
+# **/*Tests.cs
+# **/*Test.cs
+# **/*Fixture.cs
+# **/*.Tests.csproj
+# Java / Kotlin
+# **/src/test/**
+# **/*Test.java
+# **/*IT.java
+# **/*Spec.kt
+# Go
+# **/*_test.go
+# C++
+# **/*_test.cc
+# **/*_test.cpp
+# **/*_test.cxx
+# **/*Test.cc
+# **/*Test.cpp
+# **/*_unittest.cc
+# **/*_unittest.cpp
+# **/*_browsertest.cc
+# **/*_benchmark.cc
+# **/*Benchmark.cpp
+# Python
+# **/test_*.py
+# **/*_test.py
+# **/tests.py
+# **/conftest.py
+# Rust
+# **/tests.rs
+# **/test_*.rs
+# **/*_test.rs
+# **/bench_*.rs
+# **/*_bench.rs
+# Ruby
+# **/*_spec.rb
+# **/*_test.rb
+# **/test_*.rb
+# **/spec_helper.rb
+# **/test_helper.rb
+# **/rails_helper.rb
+# Swift
+# **/Tests/**/*.swift
+# **/Specs/**/*.swift
+
+# scope: kode + docs inti
+flutter_mobile_app/ios/
+flutter_mobile_app/macos/
+flutter_mobile_app/windows/
+flutter_mobile_app/linux/
+flutter_mobile_app/android/
+flutter_mobile_app/web/
+mockups/
+Mentahan PEN/
+react-web/
+docs/infografis/
+docs/rancangan/gambar-perancangan/
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.pdf
+*.ico
+*.webp
+*.lock
+package-lock.json
+pubspec.lock
+public/
+assets/
+!backend-nodejs/
+!backend-nodejs/**
+backend-nodejs/.git/

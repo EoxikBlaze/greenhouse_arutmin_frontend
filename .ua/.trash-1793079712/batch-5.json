@@ -1,0 +1,597 @@
+{
+ "nodes": [
+  {
+   "id": "file:react-web-app/src/components/DataLangsung.tsx",
+   "type": "file",
+   "name": "DataLangsung.tsx",
+   "filePath": "react-web-app/src/components/DataLangsung.tsx",
+   "summary": "Komponen yang menampilkan data sensor langsung (live) dari endpoint publik dalam bentuk kartu dengan grafik garis mini.",
+   "tags": [
+    "component",
+    "react",
+    "data-langsung",
+    "visualisasi"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/components/DataLangsung.tsx:Garis",
+   "type": "function",
+   "name": "Garis",
+   "filePath": "react-web-app/src/components/DataLangsung.tsx",
+   "lineRange": [
+    4,
+    16
+   ],
+   "summary": "Komponen kecil penggambar garis sparkline untuk deret nilai sensor.",
+   "tags": [
+    "component",
+    "chart",
+    "svg"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/components/DataLangsung.tsx:fmt",
+   "type": "function",
+   "name": "fmt",
+   "filePath": "react-web-app/src/components/DataLangsung.tsx",
+   "lineRange": [
+    18,
+    18
+   ],
+   "summary": "Helper pemformat angka untuk tampilan nilai sensor.",
+   "tags": [
+    "utility",
+    "formatting"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/components/DataLangsung.tsx:DataLangsung",
+   "type": "function",
+   "name": "DataLangsung",
+   "filePath": "react-web-app/src/components/DataLangsung.tsx",
+   "lineRange": [
+    21,
+    77
+   ],
+   "summary": "Komponen utama yang mengambil data publik via usePublik dan merender nilai terkini.",
+   "tags": [
+    "component",
+    "react",
+    "data-fetching"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:react-web-app/src/components/InfoTekan.tsx",
+   "type": "file",
+   "name": "InfoTekan.tsx",
+   "filePath": "react-web-app/src/components/InfoTekan.tsx",
+   "summary": "Komponen informasi interaktif (tekan/klik) yang menjelaskan konsep sistem kepada pengunjung halaman publik.",
+   "tags": [
+    "component",
+    "react",
+    "interaktif",
+    "ui"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/components/InfoTekan.tsx:InfoTekan",
+   "type": "function",
+   "name": "InfoTekan",
+   "filePath": "react-web-app/src/components/InfoTekan.tsx",
+   "lineRange": [
+    14,
+    151
+   ],
+   "summary": "Komponen React dengan state interaktif untuk menampilkan detail informasi saat ditekan.",
+   "tags": [
+    "component",
+    "react",
+    "interaktif"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:react-web-app/src/components/Monogram.tsx",
+   "type": "file",
+   "name": "Monogram.tsx",
+   "filePath": "react-web-app/src/components/Monogram.tsx",
+   "summary": "Komponen logo monogram kecil yang dipakai di header dan footer.",
+   "tags": [
+    "component",
+    "react",
+    "branding"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/components/Monogram.tsx:Monogram",
+   "type": "function",
+   "name": "Monogram",
+   "filePath": "react-web-app/src/components/Monogram.tsx",
+   "lineRange": [
+    3,
+    9
+   ],
+   "summary": "Merender logo monogram SVG/teks merek.",
+   "tags": [
+    "component",
+    "branding"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:react-web-app/src/components/SiteFooter.tsx",
+   "type": "file",
+   "name": "SiteFooter.tsx",
+   "filePath": "react-web-app/src/components/SiteFooter.tsx",
+   "summary": "Footer situs publik yang memuat monogram dan informasi kontak/hak cipta.",
+   "tags": [
+    "component",
+    "react",
+    "layout",
+    "footer"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/components/SiteFooter.tsx:SiteFooter",
+   "type": "function",
+   "name": "SiteFooter",
+   "filePath": "react-web-app/src/components/SiteFooter.tsx",
+   "lineRange": [
+    11,
+    29
+   ],
+   "summary": "Merender footer halaman dengan Monogram.",
+   "tags": [
+    "component",
+    "layout",
+    "footer"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:react-web-app/src/lib/info.ts",
+   "type": "file",
+   "name": "info.ts",
+   "filePath": "react-web-app/src/lib/info.ts",
+   "summary": "Modul konstanta informasi proyek (kontak/tautan) yang dipakai bersama oleh komponen publik.",
+   "tags": [
+    "konfigurasi",
+    "konstanta",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/lib/info.ts:info",
+   "type": "function",
+   "name": "info",
+   "filePath": "react-web-app/src/lib/info.ts",
+   "lineRange": [
+    2,
+    9
+   ],
+   "summary": "Objek/fungsi informasi proyek yang diekspor untuk dipakai komponen.",
+   "tags": [
+    "konstanta",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:react-web-app/src/lib/usePublik.ts",
+   "type": "file",
+   "name": "usePublik.ts",
+   "filePath": "react-web-app/src/lib/usePublik.ts",
+   "summary": "Custom hook untuk mengambil dan menyegarkan data publik sensor secara berkala.",
+   "tags": [
+    "hook",
+    "react",
+    "data-fetching",
+    "polling"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/lib/usePublik.ts:usePublik",
+   "type": "function",
+   "name": "usePublik",
+   "filePath": "react-web-app/src/lib/usePublik.ts",
+   "lineRange": [
+    16,
+    48
+   ],
+   "summary": "Hook yang memuat data publik dan mengelola status loading/error.",
+   "tags": [
+    "hook",
+    "data-fetching"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:react-web-app/src/lib/useReveal.ts",
+   "type": "file",
+   "name": "useReveal.ts",
+   "filePath": "react-web-app/src/lib/useReveal.ts",
+   "summary": "Custom hook animasi reveal saat elemen masuk viewport memakai IntersectionObserver.",
+   "tags": [
+    "hook",
+    "react",
+    "animasi",
+    "intersection-observer"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/lib/useReveal.ts:useReveal",
+   "type": "function",
+   "name": "useReveal",
+   "filePath": "react-web-app/src/lib/useReveal.ts",
+   "lineRange": [
+    10,
+    70
+   ],
+   "summary": "Hook yang mengamati elemen dan menambahkan kelas reveal ketika terlihat.",
+   "tags": [
+    "hook",
+    "animasi"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:react-web-app/src/pages/TentangPage.tsx",
+   "type": "file",
+   "name": "TentangPage.tsx",
+   "filePath": "react-web-app/src/pages/TentangPage.tsx",
+   "summary": "Halaman Tentang (landing) berisi narasi proyek, ikon dekoratif, data langsung, dan footer.",
+   "tags": [
+    "page",
+    "react",
+    "landing",
+    "konten"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/pages/TentangPage.tsx:Ikon",
+   "type": "function",
+   "name": "Ikon",
+   "filePath": "react-web-app/src/pages/TentangPage.tsx",
+   "lineRange": [
+    29,
+    44
+   ],
+   "summary": "Komponen ikon SVG generik untuk bagian fitur.",
+   "tags": [
+    "component",
+    "svg",
+    "ikon"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/TentangPage.tsx:Siluet",
+   "type": "function",
+   "name": "Siluet",
+   "filePath": "react-web-app/src/pages/TentangPage.tsx",
+   "lineRange": [
+    153,
+    175
+   ],
+   "summary": "Ilustrasi siluet dekoratif SVG.",
+   "tags": [
+    "component",
+    "svg",
+    "ilustrasi"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/TentangPage.tsx:Percikan",
+   "type": "function",
+   "name": "Percikan",
+   "filePath": "react-web-app/src/pages/TentangPage.tsx",
+   "lineRange": [
+    182,
+    192
+   ],
+   "summary": "Ornamen percikan dekoratif SVG.",
+   "tags": [
+    "component",
+    "svg",
+    "dekoratif"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/TentangPage.tsx:IkonInstagram",
+   "type": "function",
+   "name": "IkonInstagram",
+   "filePath": "react-web-app/src/pages/TentangPage.tsx",
+   "lineRange": [
+    194,
+    202
+   ],
+   "summary": "Ikon SVG Instagram.",
+   "tags": [
+    "component",
+    "svg",
+    "ikon"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/TentangPage.tsx:IkonTiktok",
+   "type": "function",
+   "name": "IkonTiktok",
+   "filePath": "react-web-app/src/pages/TentangPage.tsx",
+   "lineRange": [
+    203,
+    210
+   ],
+   "summary": "Ikon SVG TikTok.",
+   "tags": [
+    "component",
+    "svg",
+    "ikon"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/pages/TentangPage.tsx:TentangPage",
+   "type": "function",
+   "name": "TentangPage",
+   "filePath": "react-web-app/src/pages/TentangPage.tsx",
+   "lineRange": [
+    212,
+    547
+   ],
+   "summary": "Komponen halaman utama yang menyusun seluruh bagian halaman Tentang dengan efek reveal dan status auth.",
+   "tags": [
+    "page",
+    "react",
+    "landing"
+   ],
+   "complexity": "complex"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:react-web-app/src/components/DataLangsung.tsx",
+   "target": "function:react-web-app/src/components/DataLangsung.tsx:Garis",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/DataLangsung.tsx",
+   "target": "function:react-web-app/src/components/DataLangsung.tsx:fmt",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/DataLangsung.tsx",
+   "target": "function:react-web-app/src/components/DataLangsung.tsx:DataLangsung",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/DataLangsung.tsx",
+   "target": "function:react-web-app/src/components/DataLangsung.tsx:DataLangsung",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/InfoTekan.tsx",
+   "target": "function:react-web-app/src/components/InfoTekan.tsx:InfoTekan",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/InfoTekan.tsx",
+   "target": "function:react-web-app/src/components/InfoTekan.tsx:InfoTekan",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/Monogram.tsx",
+   "target": "function:react-web-app/src/components/Monogram.tsx:Monogram",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/Monogram.tsx",
+   "target": "function:react-web-app/src/components/Monogram.tsx:Monogram",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/SiteFooter.tsx",
+   "target": "function:react-web-app/src/components/SiteFooter.tsx:SiteFooter",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/SiteFooter.tsx",
+   "target": "function:react-web-app/src/components/SiteFooter.tsx:SiteFooter",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/lib/info.ts",
+   "target": "function:react-web-app/src/lib/info.ts:info",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/info.ts",
+   "target": "function:react-web-app/src/lib/info.ts:info",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/lib/usePublik.ts",
+   "target": "function:react-web-app/src/lib/usePublik.ts:usePublik",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/usePublik.ts",
+   "target": "function:react-web-app/src/lib/usePublik.ts:usePublik",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/lib/useReveal.ts",
+   "target": "function:react-web-app/src/lib/useReveal.ts:useReveal",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/lib/useReveal.ts",
+   "target": "function:react-web-app/src/lib/useReveal.ts:useReveal",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/pages/TentangPage.tsx",
+   "target": "function:react-web-app/src/pages/TentangPage.tsx:Ikon",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/TentangPage.tsx",
+   "target": "function:react-web-app/src/pages/TentangPage.tsx:Siluet",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/TentangPage.tsx",
+   "target": "function:react-web-app/src/pages/TentangPage.tsx:Percikan",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/TentangPage.tsx",
+   "target": "function:react-web-app/src/pages/TentangPage.tsx:IkonInstagram",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/TentangPage.tsx",
+   "target": "function:react-web-app/src/pages/TentangPage.tsx:IkonTiktok",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/TentangPage.tsx",
+   "target": "function:react-web-app/src/pages/TentangPage.tsx:TentangPage",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/pages/TentangPage.tsx",
+   "target": "function:react-web-app/src/pages/TentangPage.tsx:TentangPage",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/DataLangsung.tsx",
+   "target": "file:react-web-app/src/lib/info.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/DataLangsung.tsx",
+   "target": "file:react-web-app/src/lib/usePublik.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/SiteFooter.tsx",
+   "target": "file:react-web-app/src/components/Monogram.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/TentangPage.tsx",
+   "target": "file:react-web-app/src/components/DataLangsung.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/TentangPage.tsx",
+   "target": "file:react-web-app/src/components/InfoTekan.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/TentangPage.tsx",
+   "target": "file:react-web-app/src/components/Monogram.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/TentangPage.tsx",
+   "target": "file:react-web-app/src/components/SiteFooter.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/TentangPage.tsx",
+   "target": "file:react-web-app/src/lib/authContext.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/TentangPage.tsx",
+   "target": "file:react-web-app/src/lib/info.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/pages/TentangPage.tsx",
+   "target": "file:react-web-app/src/lib/useReveal.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  }
+ ]
+}

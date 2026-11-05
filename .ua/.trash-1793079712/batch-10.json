@@ -1,0 +1,132 @@
+{
+ "nodes": [
+  {
+   "id": "document:backend-nodejs/docs/AI_LOKAL_PI.md",
+   "type": "document",
+   "name": "AI_LOKAL_PI.md",
+   "filePath": "backend-nodejs/docs/AI_LOKAL_PI.md",
+   "summary": "Panduan AI lokal di Raspberry Pi (Ollama) sebagai asisten keputusan budidaya, lengkap dengan fallback heuristik, instalasi, ganti model, dan troubleshooting.",
+   "tags": [
+    "documentation",
+    "ai",
+    "raspberry-pi",
+    "deployment"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:backend-nodejs/docs/BACKEND_ANALYSIS.md",
+   "type": "document",
+   "name": "BACKEND_ANALYSIS.md",
+   "filePath": "backend-nodejs/docs/BACKEND_ANALYSIS.md",
+   "summary": "Analisis backend Laravel lama dan keputusan port ke Node.js: inventaris 104 route, model data, otorisasi, serta temuan keamanan.",
+   "tags": [
+    "documentation",
+    "analysis",
+    "migration",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:backend-nodejs/docs/DB_SCHEMA.md",
+   "type": "document",
+   "name": "DB_SCHEMA.md",
+   "filePath": "backend-nodejs/docs/DB_SCHEMA.md",
+   "summary": "Dokumentasi skema database PostgreSQL GARAP: diagram relasi siklus tanam, kolom tiap tabel, tabel infrastruktur, data seed, dan cara menjalankan ulang.",
+   "tags": [
+    "documentation",
+    "database",
+    "schema-definition",
+    "postgresql"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:backend-nodejs/docs/DEBUG_PERFORMANCE_REPORT.md",
+   "type": "document",
+   "name": "DEBUG_PERFORMANCE_REPORT.md",
+   "filePath": "backend-nodejs/docs/DEBUG_PERFORMANCE_REPORT.md",
+   "summary": "Laporan debugging dan performa backend: analisis kompleksitas, load test 1000 user, edge case, keamanan, memory leak, dan roadmap optimasi.",
+   "tags": [
+    "documentation",
+    "performance",
+    "security",
+    "testing"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:backend-nodejs/docs/DIAGRAM_ALUR_BACKEND.md",
+   "type": "document",
+   "name": "DIAGRAM_ALUR_BACKEND.md",
+   "filePath": "backend-nodejs/docs/DIAGRAM_ALUR_BACKEND.md",
+   "summary": "Diagram alur backend: arsitektur klien-ke-database, jalur tulis data sensor, dan ERD 13 tabel dengan 10 foreign key.",
+   "tags": [
+    "documentation",
+    "diagram",
+    "architecture",
+    "database"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:backend-nodejs/docs/RANCANGAN_BACKEND.md",
+   "type": "document",
+   "name": "RANCANGAN_BACKEND.md",
+   "filePath": "backend-nodejs/docs/RANCANGAN_BACKEND.md",
+   "summary": "Dokumen rancangan backend as-is: arsitektur, peta modul src/, pipeline request, peta route, model data, keamanan, kinerja, deployment, dan konfigurasi .env.",
+   "tags": [
+    "documentation",
+    "architecture",
+    "backend",
+    "design"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "document:backend-nodejs/docs/AI_LOKAL_PI.md",
+   "target": "file:backend-nodejs/src/aiDiagnosa.js",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:backend-nodejs/docs/BACKEND_ANALYSIS.md",
+   "target": "file:backend-nodejs/src/index.js",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:backend-nodejs/docs/DB_SCHEMA.md",
+   "target": "file:backend-nodejs/src/db.js",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:backend-nodejs/docs/DEBUG_PERFORMANCE_REPORT.md",
+   "target": "file:backend-nodejs/src/index.js",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:backend-nodejs/docs/DIAGRAM_ALUR_BACKEND.md",
+   "target": "file:backend-nodejs/src/index.js",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:backend-nodejs/docs/RANCANGAN_BACKEND.md",
+   "target": "file:backend-nodejs/src/index.js",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

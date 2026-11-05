@@ -1,0 +1,188 @@
+{
+ "nodes": [
+  {
+   "id": "document:docs/VERIFIKASI/BASELINE.md",
+   "type": "document",
+   "name": "BASELINE.md",
+   "filePath": "docs/VERIFIKASI/BASELINE.md",
+   "summary": "Laporan baseline regresi independen (READ-ONLY) per 20 Okt 2026: status repo bersih, npm test 4/4, matriks 14 titik endpoint :8000 dan build/lint React sebagai patokan sebelum gelombang baru.",
+   "tags": [
+    "verifikasi",
+    "baseline",
+    "regresi",
+    "pengujian"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:docs/VERIFIKASI/DB_V2.md",
+   "type": "document",
+   "name": "DB_V2.md",
+   "filePath": "docs/VERIFIKASI/DB_V2.md",
+   "summary": "Catatan verifikasi rancangan dan DDL DB V2: Verifier 1 TIDAK LAYAK (error sintaks fn_pensiun_readings), 9 patch remediasi, lalu Re-verifier LAYAK EKSEKUSI (A-F PASS).",
+   "tags": [
+    "verifikasi",
+    "database",
+    "skema-v2",
+    "partisi"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:docs/VERIFIKASI/EKSEKUSI_V2.md",
+   "type": "document",
+   "name": "EKSEKUSI_V2.md",
+   "filePath": "docs/VERIFIKASI/EKSEKUSI_V2.md",
+   "summary": "Catatan eksekusi paket DB: backup pg_dump, 4 migrasi perancangan plus proposal_skema_v2.sql dijalankan dengan ON_ERROR_STOP, beserta hasil verifikasi pasca-eksekusi tabel dan objek V2.",
+   "tags": [
+    "eksekusi",
+    "migration",
+    "database",
+    "skema-v2"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:docs/VERIFIKASI/F1.md",
+   "type": "document",
+   "name": "F1.md",
+   "filePath": "docs/VERIFIKASI/F1.md",
+   "summary": "Verifikasi F1 frontend React: halaman Meja dan Ambang tersambung API live, crudApi.ts baru, token pindah ke localStorage; build, lint, dan uji headless Chrome LAYAK COMMIT.",
+   "tags": [
+    "verifikasi",
+    "frontend",
+    "react",
+    "crud-api"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:docs/VERIFIKASI/FLUTTER.md",
+   "type": "document",
+   "name": "FLUTTER.md",
+   "filePath": "docs/VERIFIKASI/FLUTTER.md",
+   "summary": "Verifikasi aplikasi Flutter: gerbang auth, ApiService, halaman login/meja/riwayat; analyze 0 isu dan 18/18 tes hijau, LAYAK COMMIT tanpa dependensi baru.",
+   "tags": [
+    "verifikasi",
+    "flutter",
+    "mobile",
+    "autentikasi"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:docs/VERIFIKASI/G7.md",
+   "type": "document",
+   "name": "G7.md",
+   "filePath": "docs/VERIFIKASI/G7.md",
+   "summary": "Verifikasi G7 quick-win keamanan 4 butir (guard requireApiKey, trust proxy, timing dummy-hash, JWT HS256 wajib exp) dengan rantai verdict dan remediasi sampai LAYAK COMMIT.",
+   "tags": [
+    "verifikasi",
+    "keamanan",
+    "jwt",
+    "backend"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:docs/VERIFIKASI/G8.md",
+   "type": "document",
+   "name": "G8.md",
+   "filePath": "docs/VERIFIKASI/G8.md",
+   "summary": "Verifikasi G8 endpoint V2: whitelist 13 kolom GET /meja, konfigurasi.js baru (8 GET + 3 PUT), validasi 422 dan bukti net-zero; LAYAK COMMIT dengan catatan stempel waktu.",
+   "tags": [
+    "verifikasi",
+    "api",
+    "endpoint-v2",
+    "validasi"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:docs/VERIFIKASI/MIGRASI_PERANCANGAN.md",
+   "type": "document",
+   "name": "MIGRASI_PERANCANGAN.md",
+   "filePath": "docs/VERIFIKASI/MIGRASI_PERANCANGAN.md",
+   "summary": "Verifikasi 4 migrasi perancangan final (meja_state, konfigurasi_dosis, jadwal_kalibrasi_channel, target_nutrisi): 40/40 nilai cocok dokumen, aman di scratch dan live, LAYAK COMMIT 7/7.",
+   "tags": [
+    "verifikasi",
+    "migration",
+    "database",
+    "perancangan"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:docs/VERIFIKASI/SQL_CRON.md",
+   "type": "document",
+   "name": "SQL_CRON.md",
+   "filePath": "docs/VERIFIKASI/SQL_CRON.md",
+   "summary": "Verifikasi 6 skrip SQL DRAFT (cron retensi/rollup, backfill, REINDEX, index laporan) di scratch DB: idempoten, live tidak disentuh, LAYAK COMMIT.",
+   "tags": [
+    "verifikasi",
+    "sql",
+    "cron",
+    "retensi"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:docs/VERIFIKASI/TEST_SUITE.md",
+   "type": "document",
+   "name": "TEST_SUITE.md",
+   "filePath": "docs/VERIFIKASI/TEST_SUITE.md",
+   "summary": "Verifikasi suite test integrasi pertama (43 tes: 4 unit + 39 integrasi) dengan supertest; run pertama gagal karena DB read-only eksternal, re-verifier LAYAK COMMIT.",
+   "tags": [
+    "verifikasi",
+    "pengujian",
+    "integrasi",
+    "supertest"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "document:docs/VERIFIKASI/BASELINE.md",
+   "target": "document:docs/KONTRAK_API.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/VERIFIKASI/DB_V2.md",
+   "target": "document:docs/RANCANGAN_DB_V2.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/VERIFIKASI/EKSEKUSI_V2.md",
+   "target": "document:docs/RANCANGAN_DB_V2.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/VERIFIKASI/F1.md",
+   "target": "document:docs/KONTRAK_API.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/VERIFIKASI/G7.md",
+   "target": "document:docs/BACKEND_ANALYSIS.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:docs/VERIFIKASI/G8.md",
+   "target": "document:docs/KONTRAK_API.md",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

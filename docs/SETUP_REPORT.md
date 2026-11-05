@@ -1,4 +1,4 @@
-# Setup Report — Vertonik Smart Farm (macOS)
+# Setup Report — GARAP (macOS)
 
 Tanggal: 2026-10-14
 

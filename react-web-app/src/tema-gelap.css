@@ -1,0 +1,196 @@
+/* ═══════════════════════════════════════════════════════════════════════════════════════════════
+   TEMA — saklar + mode gelap (manual). Mode gelap aktif bila <html data-tema="gelap"> (src/lib/tema.ts).
+   Urutan impor: index.css → tema-gelap.otomatis.css (dihasilkan dari index.css) → berkas ini (menang).
+   Prinsip: kaca = tint putih berkas `--k`; di mode gelap tint diturunkan dan foto latar digelapkan, sehingga
+   permukaan terbaca sebagai kaca gelap bening. Token teks/garis/kartu berganti lewat kanal RGB.
+   ═══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* ── saklar terang/gelap (di sebelah jam) ───────────────────────────────────────────────────── */
+.vsf-saklar-tema {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: var(--tinta);
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.9), 0 4px 14px -8px rgba(40, 80, 130, 0.3);
+  transition: background-color 150ms ease, transform 150ms ease, color 150ms ease;
+}
+/* HP: target sentuh 44 px (desktop tetap 36 px) */
+@media (max-width: 639.98px) { .vsf-saklar-tema { width: 44px; height: 44px; } }
+.vsf-saklar-tema:hover { background: rgba(255, 255, 255, 0.85); }
+.vsf-saklar-tema:active { transform: scale(0.94); }
+.vsf-saklar-tema:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
+.vsf-saklar-tema svg { transition: transform 300ms var(--ease-v2, ease); }
+.vsf-saklar-tema:hover svg { transform: rotate(18deg); }
+@media (prefers-reduced-motion: reduce) {
+  .vsf-saklar-tema, .vsf-saklar-tema svg { transition: none; }
+  .vsf-saklar-tema:hover svg { transform: none; }
+}
+html[data-tema='gelap'] .vsf-saklar-tema {
+  color: var(--emas);
+  background: rgb(255 255 255 / 0.1);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.18), 0 4px 14px -8px rgb(0 0 0 / 0.6);
+}
+html[data-tema='gelap'] .vsf-saklar-tema:hover { background: rgb(255 255 255 / 0.18); }
+
+/* ── token ──────────────────────────────────────────────────────────────────────────────────── */
+html[data-tema='gelap'] {
+  --tinta-rgb: 232 238 245;
+  --abu-rgb: 164 178 196;
+  --kartu-rgb: 20 30 44;
+  --ar-page: 8 14 22;
+  --ar-card: 20 30 44;
+  --ar-border: 52 66 84;
+  --ar-border2: 66 82 102;
+  --ar-mint: 26 56 42;
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.4), 0 14px 30px -22px rgb(0 0 0 / 0.8);
+  --shadow-deep: 0 28px 64px -30px rgb(0 0 0 / 0.85);
+
+  /* kaca: tint putih jauh lebih tipis + rim redup + bayangan lebih dalam */
+  --k: 0.2;
+  --lg-clr-a: min(1, calc(1.1 * var(--k)));
+  --lg-clr-b: min(1, calc(0.8 * var(--k)));
+  --lg-rim:
+    inset 1px 1px 0 -0.5px rgb(255 255 255 / 0.28),
+    inset -1px -1px 0 -0.5px rgb(255 255 255 / 0.1),
+    inset 0 0 0 1px rgb(255 255 255 / 0.07),
+    inset 0 0 26px rgb(255 255 255 / 0.04);
+  --lg-rim-kecil:
+    inset 1px 1px 0 -0.5px rgb(255 255 255 / 0.26),
+    inset -1px -1px 0 -0.5px rgb(255 255 255 / 0.09),
+    inset 0 0 0 1px rgb(255 255 255 / 0.08);
+  --lg-drop-chrome: 0 1px 2px rgb(0 0 0 / 0.45), 0 18px 46px -16px rgb(0 0 0 / 0.75);
+  --lg-drop-kartu: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 36px -14px rgb(0 0 0 / 0.65);
+  --lg-spec: radial-gradient(130% 70% at 14% 0%, rgb(255 255 255 / 0.09), transparent 60%);
+}
+html[data-tema='gelap'][data-kaca='jernih'] { --k: 0.12; }
+html[data-tema='gelap'][data-kaca='pekat'] { --k: 0.34; }
+
+/* ── foto latar digelapkan ──────────────────────────────────────────────────────────────────── */
+/* Foto malam (bg-malam.webp) memudar masuk di atas foto siang; hanya opacity yang beranimasi (murah, tanpa repaint blur). */
+.app-latar::after,
+.vsf-latar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 700ms var(--ar-ease, ease);
+}
+/* url() hanya di mode gelap: tema terang tidak mengunduh foto malam sama sekali. */
+html[data-tema='gelap'] .app-latar::after,
+html[data-tema='gelap'] .vsf-latar::after {
+  background: url('/bg-malam.webp') center / cover no-repeat;
+  opacity: 1;
+}
+html[data-tema='gelap'] .vsf-kabut { filter: brightness(0.6); }
+
+/* Peralihan tema: View Transitions API (lihat aturTema) memudarkan seluruh halaman, bukan memotong. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 550ms;
+  animation-timing-function: var(--ar-ease, ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-latar::after,
+  .vsf-latar::after { transition: none; }
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
+}
+html[data-tema='gelap'] body { background: rgb(var(--ar-page)); }
+
+/* ── utilitas Tailwind yang dipakai komponen (warna literal) ───────────────────────────────── */
+html[data-tema='gelap'] .text-slate-900 { color: rgb(232 238 245); }
+html[data-tema='gelap'] .text-slate-700 { color: rgb(203 213 225); }
+html[data-tema='gelap'] .text-slate-600 { color: rgb(180 192 208); }
+html[data-tema='gelap'] .text-slate-500 { color: rgb(154 168 187); }
+html[data-tema='gelap'] .text-slate-400 { color: rgb(131 146 166); }
+html[data-tema='gelap'] .text-red-700,
+html[data-tema='gelap'] .text-red-600 { color: rgb(252 165 165); }
+html[data-tema='gelap'] .text-amber-900,
+html[data-tema='gelap'] .text-amber-800 { color: rgb(253 230 138); }
+html[data-tema='gelap'] .text-amber-700 { color: rgb(251 191 36); }
+html[data-tema='gelap'] .text-arutmin-forest,
+html[data-tema='gelap'] .text-arutmin-olive { color: rgb(190 225 170); }
+html[data-tema='gelap'] .bg-red-50 { background-color: rgb(239 68 68 / 0.16); }
+html[data-tema='gelap'] .bg-red-100,
+html[data-tema='gelap'] .hover\:bg-red-100:hover { background-color: rgb(239 68 68 / 0.24); }
+html[data-tema='gelap'] .bg-amber-50 { background-color: rgb(245 158 11 / 0.16); }
+html[data-tema='gelap'] .bg-amber-100,
+html[data-tema='gelap'] .hover\:bg-amber-100:hover { background-color: rgb(245 158 11 / 0.24); }
+html[data-tema='gelap'] .bg-slate-50 { background-color: rgb(255 255 255 / 0.05); }
+html[data-tema='gelap'] .border-slate-300,
+html[data-tema='gelap'] .border-slate-400 { border-color: rgb(255 255 255 / 0.22); }
+html[data-tema='gelap'] .border-black\/10 { border-color: rgb(255 255 255 / 0.12); }
+html[data-tema='gelap'] .bg-white { background-color: rgb(var(--ar-card)); }
+html[data-tema='gelap'] .hover\:bg-white:hover { background-color: rgb(var(--ar-card)); }
+/* bg-white/NN (permukaan kaca terang) → permukaan gelap dengan alpha sama */
+html[data-tema='gelap'] [class~='bg-white/45'] { background-color: rgb(var(--ar-card) / 0.82); }
+html[data-tema='gelap'] [class~='bg-white/50'] { background-color: rgb(var(--ar-card) / 0.82); }
+html[data-tema='gelap'] [class~='bg-white/55'] { background-color: rgb(var(--ar-card) / 0.82); }
+html[data-tema='gelap'] [class~='bg-white/60'] { background-color: rgb(var(--ar-card) / 0.82); }
+html[data-tema='gelap'] [class~='bg-white/70'] { background-color: rgb(var(--ar-card) / 0.82); }
+html[data-tema='gelap'] [class~='bg-white/75'] { background-color: rgb(var(--ar-card) / 0.82); }
+html[data-tema='gelap'] [class~='bg-white/80'] { background-color: rgb(var(--ar-card) / 0.8); }
+html[data-tema='gelap'] [class~='bg-white/85'] { background-color: rgb(var(--ar-card) / 0.85); }
+html[data-tema='gelap'] [class~='bg-white/90'] { background-color: rgb(var(--ar-card) / 0.9); }
+html[data-tema='gelap'] [class~='bg-white/95'] { background-color: rgb(var(--ar-card) / 0.95); }
+html[data-tema='gelap'] [class~='hover:bg-white/70']:hover { background-color: rgb(var(--ar-card) / 0.8); }
+html[data-tema='gelap'] [class~='hover:bg-white/75']:hover { background-color: rgb(var(--ar-card) / 0.85); }
+html[data-tema='gelap'] [class~='hover:bg-white/85']:hover { background-color: rgb(var(--ar-card) / 0.95); }
+
+/* ── pengecualian: permukaan yang tetap TERANG di mode gelap (teks harus tetap gelap) ────────── */
+html[data-tema='gelap'] .vsf-kpi-emas,
+html[data-tema='gelap'] .vsf-kpi-emas * { color: #2a2208; }
+html[data-tema='gelap'] .vsf-kpi-emas .vsf-kpi-ikon { background: rgba(255, 255, 255, 0.4); }
+
+/* ── token "navy" dipakai sebagai TEKS/BORDER/TINT di atas permukaan terang → ikut terang di mode gelap ── */
+html[data-tema='gelap'] .text-navy { color: rgb(var(--tinta-rgb)); }
+html[data-tema='gelap'] .bg-emas.text-navy,
+html[data-tema='gelap'] [class~='bg-emas/70'].text-navy { color: #0a1f38; } /* teks di atas emas tetap gelap */
+html[data-tema='gelap'] [class~='border-navy/25'] { border-color: rgb(255 255 255 / 0.25); }
+html[data-tema='gelap'] [class~='hover:border-navy/50']:hover { border-color: rgb(255 255 255 / 0.5); }
+html[data-tema='gelap'] [class~='bg-navy/[.04]'],
+html[data-tema='gelap'] [class~='bg-navy/[.05]'],
+html[data-tema='gelap'] [class~='bg-navy/[.055]'],
+html[data-tema='gelap'] [class~='bg-navy/[.06]'] { background-color: rgb(255 255 255 / 0.06); }
+html[data-tema='gelap'] [class~='hover:bg-navy/[.04]']:hover,
+html[data-tema='gelap'] [class~='hover:bg-navy/[.06]']:hover { background-color: rgb(255 255 255 / 0.1); }
+/* mint (tint hijau muda) → hijau tua bernada sama; teks forest-nya sudah diterangkan di atas */
+html[data-tema='gelap'] [class~='bg-arutmin-mint/35'] { background-color: rgb(var(--ar-mint) / 0.35); }
+html[data-tema='gelap'] [class~='bg-arutmin-mint/40'] { background-color: rgb(var(--ar-mint) / 0.4); }
+html[data-tema='gelap'] [class~='bg-arutmin-mint/50'] { background-color: rgb(var(--ar-mint) / 0.5); }
+html[data-tema='gelap'] [class~='bg-arutmin-mint/60'] { background-color: rgb(var(--ar-mint) / 0.6); }
+html[data-tema='gelap'] [class~='bg-arutmin-mint/70'] { background-color: rgb(var(--ar-mint) / 0.7); }
+html[data-tema='gelap'] [class~='text-arutmin-forest/75'] { color: rgb(190 225 170 / 0.75); }
+
+/* ── kelas komponen yang memakai @apply berwarna (tak terlihat oleh generator) ───────────────── */
+html[data-tema='gelap'] .vsf-input:disabled { background-color: rgb(255 255 255 / 0.05); color: rgb(154 168 187); }
+html[data-tema='gelap'] .vsf-tone-error {
+  background-color: rgb(239 68 68 / 0.16);
+  border-color: rgb(248 113 113 / 0.45);
+  color: rgb(252 165 165);
+}
+html[data-tema='gelap'] .vsf-tone-warn {
+  background-color: rgb(245 158 11 / 0.16);
+  border-color: rgb(245 158 11 / 0.45);
+  color: rgb(253 230 138);
+}
+html[data-tema='gelap'] .vsf-field-error { color: rgb(252 165 165); }
+html[data-tema='gelap'] .vsf-btn-secondary { background-color: rgb(255 255 255 / 0.08); color: rgb(190 225 170); }
+html[data-tema='gelap'] .vsf-input { background-color: rgb(255 255 255 / 0.06); }
+html[data-tema='gelap'] .vsf-input:focus { background-color: rgb(255 255 255 / 0.1); }
+html[data-tema='gelap'] select.vsf-input option { background-color: rgb(var(--ar-card)); color: rgb(var(--tinta-rgb)); }
+
+/* Banner di atas foto malam: latar dipekatkan (tanpa blur, murah) agar teks peringatan tetap terbaca (bulan/lampu di belakangnya). */
+html[data-tema='gelap'] .vsf-banner {
+  background-color: rgb(var(--ar-card) / 0.88);
+}
+
+/* Tombol Login/Dashboard di bilah atas: aturan otomatis membuat latarnya kaca 15% tetapi teks tetap navy
+   → hampir tak terbaca di langit malam. Latar emas + teks navy (kontras ±10:1). */
+html[data-tema='gelap'] .vsf-bilah-tombol { color: #0a1f38; background: var(--emas); }
+html[data-tema='gelap'] .vsf-bilah-tombol:hover { background: #f1da74; }

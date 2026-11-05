@@ -1,0 +1,169 @@
+{
+ "nodes": [
+  {
+   "id": "config:react-web-app/.oxlintrc.json",
+   "type": "config",
+   "name": ".oxlintrc.json",
+   "filePath": "react-web-app/.oxlintrc.json",
+   "summary": "Konfigurasi Oxlint dengan plugin react, typescript, dan oxc; mewajibkan rules-of-hooks dan memberi peringatan untuk only-export-components.",
+   "tags": [
+    "configuration",
+    "linting",
+    "react",
+    "code-quality"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:react-web-app/README.md",
+   "type": "document",
+   "name": "README.md",
+   "filePath": "react-web-app/README.md",
+   "summary": "README bawaan template React + TypeScript + Vite: plugin React resmi, catatan React Compiler, dan cara memperluas konfigurasi Oxlint (type-aware).",
+   "tags": [
+    "documentation",
+    "vite",
+    "react",
+    "template"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:react-web-app/index.html",
+   "type": "file",
+   "name": "index.html",
+   "filePath": "react-web-app/index.html",
+   "summary": "Halaman HTML utama Vite untuk GARAP (Vertonik Smart Farm): memuat font Google, meta deskripsi, favicon, dan memasang div#root serta skrip /src/main.tsx.",
+   "tags": [
+    "entry-point",
+    "html",
+    "spa",
+    "markup"
+   ],
+   "complexity": "simple",
+   "languageNotes": "Bahasa halaman diatur ke \"id\" (Indonesia)."
+  },
+  {
+   "id": "config:react-web-app/package.json",
+   "type": "config",
+   "name": "package.json",
+   "filePath": "react-web-app/package.json",
+   "summary": "Manifest npm aplikasi web React: skrip dev/build/lint/preview serta dependensi React 19, React Router, TanStack Query, axios, Tailwind, dan Vite.",
+   "tags": [
+    "configuration",
+    "build-system",
+    "dependencies",
+    "react"
+   ],
+   "complexity": "simple",
+   "languageNotes": "Modul ESM (\"type\": \"module\"); build menjalankan tsc -b sebelum vite build."
+  },
+  {
+   "id": "config:react-web-app/tsconfig.app.json",
+   "type": "config",
+   "name": "tsconfig.app.json",
+   "filePath": "react-web-app/tsconfig.app.json",
+   "summary": "Konfigurasi TypeScript untuk kode aplikasi di src: target ES2023, mode bundler, jsx react-jsx, serta pemeriksaan ketat unused dan erasableSyntaxOnly.",
+   "tags": [
+    "configuration",
+    "typescript",
+    "build-system",
+    "strict"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "config:react-web-app/tsconfig.json",
+   "type": "config",
+   "name": "tsconfig.json",
+   "filePath": "react-web-app/tsconfig.json",
+   "summary": "Tsconfig root berbasis project references yang menunjuk ke tsconfig.app.json dan tsconfig.node.json.",
+   "tags": [
+    "configuration",
+    "typescript",
+    "project-references",
+    "build-system"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "config:react-web-app/tsconfig.node.json",
+   "type": "config",
+   "name": "tsconfig.node.json",
+   "filePath": "react-web-app/tsconfig.node.json",
+   "summary": "Konfigurasi TypeScript untuk skrip tooling Node (vite.config.ts) dengan module nodenext dan tipe node.",
+   "tags": [
+    "configuration",
+    "typescript",
+    "node",
+    "build-system"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "config:react-web-app/tsconfig.json",
+   "target": "config:react-web-app/tsconfig.app.json",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:react-web-app/tsconfig.json",
+   "target": "config:react-web-app/tsconfig.node.json",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:react-web-app/tsconfig.app.json",
+   "target": "file:react-web-app/src/main.tsx",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:react-web-app/tsconfig.node.json",
+   "target": "file:react-web-app/vite.config.ts",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:react-web-app/.oxlintrc.json",
+   "target": "file:react-web-app/src/main.tsx",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:react-web-app/package.json",
+   "target": "file:react-web-app/index.html",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:react-web-app/index.html",
+   "target": "file:react-web-app/src/main.tsx",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:react-web-app/README.md",
+   "target": "config:react-web-app/.oxlintrc.json",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:react-web-app/README.md",
+   "target": "config:react-web-app/package.json",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

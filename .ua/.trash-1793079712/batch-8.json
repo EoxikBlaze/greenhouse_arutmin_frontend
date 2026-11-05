@@ -1,0 +1,120 @@
+{
+ "nodes": [
+  {
+   "id": "config:backend-nodejs/.env.example",
+   "type": "config",
+   "name": ".env.example",
+   "filePath": "backend-nodejs/.env.example",
+   "summary": "Contoh variabel environment backend: port, DATABASE_URL, rahasia JWT/APP_KEY, API key ESP32, HTTPS, otomasi dosis, Ollama AI, dan broker MQTT. Nilai asli diisi lokal.",
+   "tags": [
+    "configuration",
+    "environment",
+    "secrets",
+    "mqtt",
+    "backend"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:backend-nodejs/README.md",
+   "type": "document",
+   "name": "README.md",
+   "filePath": "backend-nodejs/README.md",
+   "summary": "Dokumentasi backend GARAP Node.js: cara menjalankan, restore database, enkripsi, aturan output, role, migrasi, pengaman asisten AI, endpoint publik, dan bacaan sensor per penampung.",
+   "tags": [
+    "documentation",
+    "entry-point",
+    "backend",
+    "api",
+    "security"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "config:backend-nodejs/package.json",
+   "type": "config",
+   "name": "package.json",
+   "filePath": "backend-nodejs/package.json",
+   "summary": "Manifest npm backend: skrip start, test, migrate, seed, simulasi sensor, serta dependensi express, pg, mqtt, jsonwebtoken, bcryptjs, zod, helmet.",
+   "tags": [
+    "configuration",
+    "build-system",
+    "dependencies",
+    "nodejs"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "config:backend-nodejs/.env.example",
+   "target": "file:backend-nodejs/src/config.js",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:backend-nodejs/.env.example",
+   "target": "file:backend-nodejs/src/mqttJembatan.js",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:backend-nodejs/.env.example",
+   "target": "file:backend-nodejs/src/otomasi.js",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "config:backend-nodejs/package.json",
+   "target": "file:backend-nodejs/src/index.js",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:backend-nodejs/README.md",
+   "target": "file:backend-nodejs/src/index.js",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:backend-nodejs/README.md",
+   "target": "file:backend-nodejs/src/aiGuard.js",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:backend-nodejs/README.md",
+   "target": "file:backend-nodejs/src/aiDiagnosa.js",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:backend-nodejs/README.md",
+   "target": "file:backend-nodejs/src/otomasi.js",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:backend-nodejs/README.md",
+   "target": "config:backend-nodejs/.env.example",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:backend-nodejs/README.md",
+   "target": "config:backend-nodejs/package.json",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  }
+ ]
+}

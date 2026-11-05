@@ -1,0 +1,109 @@
+/* Tata "spanduk" untuk gaya Tentang (infografis.css) — kanvas 3000×1000 px = spanduk 3 × 1 m.
+   Dimuat bila DATA.tata = 'spanduk' dan gaya bawaan. */
+html, body.spanduk { width: 3000px; height: 1000px; }
+body.spanduk { display: grid; grid-template-rows: 1fr 84px; }
+body.spanduk .latar { inset: 0; height: auto; background-position: center 38%; }
+body.spanduk .latar::after { background: linear-gradient(90deg, rgba(244,247,242,0) 0%, rgba(244,247,242,.10) 26%, rgba(244,247,242,.72) 34%, rgba(244,247,242,.86) 100%); }
+.sp-baris { position: relative; display: grid; min-height: 0; }
+.sp-baris > section { position: relative; display: flex; flex-direction: column; padding: 40px 44px 34px; min-height: 0; }
+.sp-baris > section + section::before { content: ''; position: absolute; left: 0; top: 60px; bottom: 60px; width: 2px; border-radius: 2px; background: linear-gradient(180deg, transparent, rgba(45,69,47,.25), transparent); }
+
+/* kolom kepala */
+.sp-kepala { align-items: center; justify-content: center; }
+.sp-kepala .pil-logo { margin: 0; }
+.sp-kepala .plakat { width: min(800px, 100%); margin-top: 30px; }
+.sp-kepala .plakat .a { font-size: 82px; }
+.sp-kepala .plakat .b { font-size: 46px; }
+.sp-kepala .pil-gelap { margin-top: 30px; font-size: 18px; }
+/* kolom kepala sempit (spanduk 4 kolom): pita satu baris */
+.sp-kepala .pil-gelap { white-space: nowrap; max-width: 100%; font-size: 14.5px; letter-spacing: .06em; padding: 12px 22px; }
+.sp-kepala .skrip { margin-top: 12px; }
+.sp-kepala .skrip span { font-size: 66px; }
+.sp-kepala .lead { margin-top: 16px; padding: 18px 26px; border-radius: 20px; font-size: 21px; max-width: 800px; }
+.sp-kepala .strip { width: 100%; margin-top: 18px; grid-template-columns: 1fr 1fr; gap: 14px 0; padding: 18px 10px; }
+.sp-kepala .strip > div:nth-child(3) { border-left: 0; }
+.sp-kepala .strip strong { font-size: 38px; }
+.sp-kepala .strip span { font-size: 16px; }
+.sp-kepala .strip small { font-size: 13.5px; }
+
+/* judul kolom */
+.sp-kolom .eyebrow { font-size: 17px; }
+.sp-kolom h2 { font-size: 44px; }
+.sp-kolom h3.sub { font-family: 'Space Grotesk', sans-serif; font-size: 26px; color: var(--forest); margin: 20px 0 12px; }
+.sp-kolom .ikon { width: 60px; height: 60px; border-radius: 16px; }
+.sp-kolom .ikon svg { width: 30px; height: 30px; }
+
+/* alat: sensor (daftar) + aktuator (kartu 2×2) */
+.sp-alat { flex: 1; display: grid; grid-template-columns: 1fr 1.25fr; gap: 26px; min-height: 0; }
+.sp-alat > div { display: flex; flex-direction: column; min-height: 0; }
+.sp-daftar { flex: 1; display: grid; grid-auto-rows: 1fr; gap: 12px; }
+.sp-daftar > div { display: flex; align-items: center; gap: 16px; padding: 12px 18px; }
+.sp-daftar h4, .sp-aktuator h4 { font-family: 'Space Grotesk', sans-serif; font-size: 22px; color: var(--navy); line-height: 1.2; }
+.sp-daftar p { font-size: 15.5px; color: #334155; margin-top: 3px; line-height: 1.4; }
+.sp-aktuator { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: 14px; }
+.sp-aktuator > div { padding: 18px 18px; }
+.sp-aktuator h4 { margin-top: 12px; }
+.sp-aktuator p { font-size: 15.5px; color: #334155; margin-top: 6px; line-height: 1.45; }
+.sp-estop { margin-top: 14px; display: flex; align-items: center; gap: 16px; padding: 14px 18px; border-radius: 18px; color: #fff;
+  background: linear-gradient(150deg, #0A1F38 0%, #071527 55%, #123253 100%); box-shadow: 0 22px 40px -26px rgba(7,21,39,.8); }
+.sp-estop .ikon { background: rgba(233,205,83,.16); box-shadow: none; }
+.sp-estop p { font-size: 16px; line-height: 1.45; color: #E2E8F0; }
+.sp-estop b { color: var(--emas); }
+
+/* website */
+.sp-alir { margin-top: 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.sp-alir span { font-size: 17px; font-weight: 700; padding: 9px 16px; border-radius: 999px; background: #EAF2E4; color: var(--forest); border: 1px solid #D7E0D2; }
+.sp-alir i { font-style: normal; font-weight: 800; color: var(--oranye); font-size: 20px; }
+.sp-langkah { flex: 1; margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: 14px; min-height: 0; }
+.sp-langkah .langkah { padding: 18px 20px; }
+.sp-langkah .langkah h3 { margin-top: 12px; font-size: 25px; }
+.sp-langkah .langkah p { font-size: 16px; margin-top: 6px; }
+.sp-langkah .langkah .no { font-size: 70px; }
+.sp-kolom .qr { margin-top: 16px; padding: 16px 20px; gap: 20px; }
+.sp-kolom .qr .kode { width: 150px; height: 150px; padding: 10px; }
+.sp-kolom .qr h3 { font-size: 24px; }
+.sp-kolom .qr p { font-size: 15.5px; margin-top: 4px; }
+.sp-kolom .qr .url { margin-top: 8px; font-size: 15px; }
+
+/* proker */
+.sp-proker { flex: 1; margin-top: 22px; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: 18px; min-height: 0; }
+.sp-proker .langkah { padding: 26px 28px; display: flex; flex-direction: column; justify-content: center; }
+.sp-proker .langkah h3 { font-size: 32px; }
+.sp-proker .langkah p { font-size: 19.5px; margin-top: 10px; }
+.sp-proker .langkah .no { font-size: 86px; }
+.sp-proker .meta { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+.sp-proker .meta span { font-size: 15px; font-weight: 700; padding: 5px 14px; border-radius: 999px; background: #EAF2E4; color: var(--forest); }
+.sp-proker .meta .status { background: #FFF6D6; color: #7A5A00; }
+.sp-proker .contoh-cap { font-size: 13px; }
+
+/* tim: kartu kolase seperti halaman Tentang, diperkecil agar 7 orang muat di satu kolom */
+.sp-tim .anggota-baris { padding-top: 62px; gap: 12px; }
+.sp-tim .anggota-baris + .anggota-baris { margin-top: 0; }
+.sp-tim .anggota .panggung { height: 116px; margin-top: 6px; }
+.sp-tim .anggota .panggung .utama { top: 30px; left: 14px; right: 14px; }
+.sp-tim .anggota .panggung .kiri { width: 28px; height: 58px; }
+.sp-tim .anggota .panggung .kanan { width: 28px; height: 40px; }
+.sp-tim .anggota img { height: 182px; top: -60px; }
+.sp-tim .anggota .teks { padding: 8px 8px 10px; }
+.sp-tim .anggota .nama { font-size: 14px; }
+.sp-tim .anggota .jabatan { font-size: 11.5px; }
+.sp-tim .anggota-baris + .anggota-baris { padding-left: 100px; padding-right: 100px; }
+.sp-tim .qr { margin-top: auto; }
+
+/* sponsor & media partner */
+.sp-mitra .sp-grup { margin-top: 18px; }
+.sp-utama { margin-top: 18px; display: flex; align-items: center; gap: 22px; padding: 16px 22px; }
+.sp-utama img { height: 120px; width: auto; }
+.sp-utama .tag { margin: 0; font-size: 13px; }
+.sp-utama b { display: block; margin-top: 4px; font-family: 'Space Grotesk', sans-serif; font-size: 28px; color: var(--navy); line-height: 1.15; }
+.sp-mitra .sp-grup + .sp-grup { margin-top: 26px; }
+.sp-logo-grid { display: grid; gap: 14px; }
+.sp-logo { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px 14px; min-height: 160px; text-align: center; }
+.sp-logo img { height: 92px; max-width: 100%; object-fit: contain; }
+.sp-logo .kosong { display: grid; place-items: center; width: 100%; flex: 1; min-height: 90px; border: 2px dashed #C7D3C2; border-radius: 14px; color: var(--abu); font-size: 15px; font-weight: 600; }
+.sp-logo b { font-family: 'Space Grotesk', sans-serif; font-size: 18px; color: var(--navy); line-height: 1.2; }
+.sp-logo .contoh-cap { margin-left: 0; font-size: 11px; }
+.sp-catatan { margin-top: auto; padding-top: 16px; font-size: 15px; color: #334155; line-height: 1.5; }
+
+/* kaki */
+body.spanduk .kaki { height: auto; padding: 0 44px; }

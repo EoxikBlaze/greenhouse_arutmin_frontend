@@ -1,0 +1,1086 @@
+{
+ "nodes": [
+  {
+   "id": "file:react-web-app/src/components/ChatAsisten.tsx",
+   "type": "file",
+   "name": "ChatAsisten.tsx",
+   "filePath": "react-web-app/src/components/ChatAsisten.tsx",
+   "summary": "Komponen chat asisten AI yang mengirim riwayat percakapan ke server dan menampilkan balasan teks beserta tabel hasil.",
+   "tags": [
+    "component",
+    "chat",
+    "ai-assistant",
+    "react"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/components/ChatAsisten.tsx:TabelAi",
+   "type": "function",
+   "name": "TabelAi",
+   "filePath": "react-web-app/src/components/ChatAsisten.tsx",
+   "lineRange": [
+    58,
+    88
+   ],
+   "summary": "Komponen React TabelAi di ChatAsisten.tsx (internal), 31 baris; mendukung: komponen chat asisten ai yang mengirim riwayat percakapan ke server dan menampilkan balasan teks beserta tabel hasil.",
+   "tags": [
+    "component",
+    "internal",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/components/ChatAsisten.tsx:riwayatUntukServer",
+   "type": "function",
+   "name": "riwayatUntukServer",
+   "filePath": "react-web-app/src/components/ChatAsisten.tsx",
+   "lineRange": [
+    97,
+    107
+   ],
+   "summary": "Fungsi riwayatUntukServer di ChatAsisten.tsx (internal), 11 baris; mendukung: komponen chat asisten ai yang mengirim riwayat percakapan ke server dan menampilkan balasan teks beserta tabel hasil.",
+   "tags": [
+    "function",
+    "internal",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/components/ChatAsisten.tsx:ChatAsisten",
+   "type": "function",
+   "name": "ChatAsisten",
+   "filePath": "react-web-app/src/components/ChatAsisten.tsx",
+   "lineRange": [
+    109,
+    298
+   ],
+   "summary": "Komponen React ChatAsisten di ChatAsisten.tsx (diekspor), 190 baris; mendukung: komponen chat asisten ai yang mengirim riwayat percakapan ke server dan menampilkan balasan teks beserta tabel hasil.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:react-web-app/src/components/CrudScreen.tsx",
+   "type": "file",
+   "name": "CrudScreen.tsx",
+   "filePath": "react-web-app/src/components/CrudScreen.tsx",
+   "summary": "Kerangka layar CRUD generik (tabel, form modal, validasi, hapus) beserta tombol aksi dan field yang dipakai ulang oleh banyak halaman master.",
+   "tags": [
+    "component",
+    "crud",
+    "reusable",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/components/CrudScreen.tsx:CrudScreen",
+   "type": "function",
+   "name": "CrudScreen",
+   "filePath": "react-web-app/src/components/CrudScreen.tsx",
+   "lineRange": [
+    93,
+    425
+   ],
+   "summary": "Komponen React CrudScreen di CrudScreen.tsx (diekspor), 333 baris; mendukung: kerangka layar crud generik (tabel.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/components/CrudScreen.tsx:BtnEdit",
+   "type": "function",
+   "name": "BtnEdit",
+   "filePath": "react-web-app/src/components/CrudScreen.tsx",
+   "lineRange": [
+    431,
+    445
+   ],
+   "summary": "Komponen React BtnEdit di CrudScreen.tsx (diekspor), 15 baris; mendukung: kerangka layar crud generik (tabel.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/components/CrudScreen.tsx:BtnHapus",
+   "type": "function",
+   "name": "BtnHapus",
+   "filePath": "react-web-app/src/components/CrudScreen.tsx",
+   "lineRange": [
+    452,
+    474
+   ],
+   "summary": "Komponen React BtnHapus di CrudScreen.tsx (diekspor), 23 baris; mendukung: kerangka layar crud generik (tabel.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/components/CrudScreen.tsx:BtnDetail",
+   "type": "function",
+   "name": "BtnDetail",
+   "filePath": "react-web-app/src/components/CrudScreen.tsx",
+   "lineRange": [
+    480,
+    495
+   ],
+   "summary": "Komponen React BtnDetail di CrudScreen.tsx (diekspor), 16 baris; mendukung: kerangka layar crud generik (tabel.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/components/CrudScreen.tsx:Field",
+   "type": "function",
+   "name": "Field",
+   "filePath": "react-web-app/src/components/CrudScreen.tsx",
+   "lineRange": [
+    498,
+    505
+   ],
+   "summary": "Komponen React Field di CrudScreen.tsx (diekspor), 8 baris; mendukung: kerangka layar crud generik (tabel.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/components/CrudScreen.tsx:FieldError",
+   "type": "function",
+   "name": "FieldError",
+   "filePath": "react-web-app/src/components/CrudScreen.tsx",
+   "lineRange": [
+    508,
+    515
+   ],
+   "summary": "Komponen React FieldError di CrudScreen.tsx (diekspor), 8 baris; mendukung: kerangka layar crud generik (tabel.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:react-web-app/src/components/DemoBanner.tsx",
+   "type": "file",
+   "name": "DemoBanner.tsx",
+   "filePath": "react-web-app/src/components/DemoBanner.tsx",
+   "summary": "Banner kecil penanda mode demo pada aplikasi.",
+   "tags": [
+    "component",
+    "banner",
+    "demo",
+    "ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/components/DemoBanner.tsx:DemoBanner",
+   "type": "function",
+   "name": "DemoBanner",
+   "filePath": "react-web-app/src/components/DemoBanner.tsx",
+   "lineRange": [
+    10,
+    37
+   ],
+   "summary": "Komponen React DemoBanner di DemoBanner.tsx (diekspor), 28 baris; mendukung: banner kecil penanda mode demo pada aplikasi.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:react-web-app/src/components/GalatHalaman.tsx",
+   "type": "file",
+   "name": "GalatHalaman.tsx",
+   "filePath": "react-web-app/src/components/GalatHalaman.tsx",
+   "summary": "Halaman fallback untuk menampilkan galat routing atau render.",
+   "tags": [
+    "component",
+    "error-handling",
+    "router",
+    "ui"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/components/GalatHalaman.tsx:GalatHalaman",
+   "type": "function",
+   "name": "GalatHalaman",
+   "filePath": "react-web-app/src/components/GalatHalaman.tsx",
+   "lineRange": [
+    4,
+    20
+   ],
+   "summary": "Komponen React GalatHalaman di GalatHalaman.tsx (diekspor), 17 baris; mendukung: halaman fallback untuk menampilkan galat routing atau render.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:react-web-app/src/components/ModalBackdrop.tsx",
+   "type": "file",
+   "name": "ModalBackdrop.tsx",
+   "filePath": "react-web-app/src/components/ModalBackdrop.tsx",
+   "summary": "Pembungkus latar modal yang dipakai bersama oleh berbagai dialog.",
+   "tags": [
+    "component",
+    "modal",
+    "ui",
+    "reusable"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/components/ModalBackdrop.tsx:ModalBackdrop",
+   "type": "function",
+   "name": "ModalBackdrop",
+   "filePath": "react-web-app/src/components/ModalBackdrop.tsx",
+   "lineRange": [
+    12,
+    31
+   ],
+   "summary": "Komponen React ModalBackdrop di ModalBackdrop.tsx (diekspor), 20 baris; mendukung: pembungkus latar modal yang dipakai bersama oleh berbagai dialog.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:react-web-app/src/components/NaikHarian.tsx",
+   "type": "file",
+   "name": "NaikHarian.tsx",
+   "filePath": "react-web-app/src/components/NaikHarian.tsx",
+   "summary": "Komponen untuk mencatat dan menampilkan kenaikan harian tanaman melalui API.",
+   "tags": [
+    "component",
+    "form",
+    "api-client",
+    "tanaman"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/components/NaikHarian.tsx:NaikHarian",
+   "type": "function",
+   "name": "NaikHarian",
+   "filePath": "react-web-app/src/components/NaikHarian.tsx",
+   "lineRange": [
+    28,
+    180
+   ],
+   "summary": "Komponen React NaikHarian di NaikHarian.tsx (diekspor), 153 baris; mendukung: komponen untuk mencatat dan menampilkan kenaikan harian tanaman melalui api.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:react-web-app/src/components/PresetDosing.tsx",
+   "type": "file",
+   "name": "PresetDosing.tsx",
+   "filePath": "react-web-app/src/components/PresetDosing.tsx",
+   "summary": "Komponen konfigurasi target penampung dan preset nutrisi dosing, lengkap dengan banner dan validasi rentang.",
+   "tags": [
+    "component",
+    "dosing",
+    "nutrient",
+    "form"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/components/PresetDosing.tsx:Banner",
+   "type": "function",
+   "name": "Banner",
+   "filePath": "react-web-app/src/components/PresetDosing.tsx",
+   "lineRange": [
+    70,
+    87
+   ],
+   "summary": "Komponen React Banner di PresetDosing.tsx (internal), 18 baris; mendukung: komponen konfigurasi target penampung dan preset nutrisi dosing.",
+   "tags": [
+    "component",
+    "internal",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/components/PresetDosing.tsx:TargetPenampung",
+   "type": "function",
+   "name": "TargetPenampung",
+   "filePath": "react-web-app/src/components/PresetDosing.tsx",
+   "lineRange": [
+    90,
+    292
+   ],
+   "summary": "Komponen React TargetPenampung di PresetDosing.tsx (diekspor), 203 baris; mendukung: komponen konfigurasi target penampung dan preset nutrisi dosing.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/components/PresetDosing.tsx:PresetNutrisi",
+   "type": "function",
+   "name": "PresetNutrisi",
+   "filePath": "react-web-app/src/components/PresetDosing.tsx",
+   "lineRange": [
+    300,
+    537
+   ],
+   "summary": "Komponen React PresetNutrisi di PresetDosing.tsx (diekspor), 238 baris; mendukung: komponen konfigurasi target penampung dan preset nutrisi dosing.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:react-web-app/src/components/RequireAuth.tsx",
+   "type": "file",
+   "name": "RequireAuth.tsx",
+   "filePath": "react-web-app/src/components/RequireAuth.tsx",
+   "summary": "Route guard yang mengalihkan pengguna belum login atau tidak berhak berdasarkan konteks autentikasi.",
+   "tags": [
+    "component",
+    "auth",
+    "route-guard",
+    "security"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/components/RequireAuth.tsx:RequireAuth",
+   "type": "function",
+   "name": "RequireAuth",
+   "filePath": "react-web-app/src/components/RequireAuth.tsx",
+   "lineRange": [
+    13,
+    30
+   ],
+   "summary": "Komponen React RequireAuth di RequireAuth.tsx (diekspor), 18 baris; mendukung: route guard yang mengalihkan pengguna belum login atau tidak berhak berdasarkan konteks autentikasi.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:react-web-app/src/components/StatusBadge.tsx",
+   "type": "file",
+   "name": "StatusBadge.tsx",
+   "filePath": "react-web-app/src/components/StatusBadge.tsx",
+   "summary": "Lencana status berwarna untuk menandai kondisi sensor dan perangkat.",
+   "tags": [
+    "component",
+    "badge",
+    "ui",
+    "reusable"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/components/StatusBadge.tsx:StatusBadge",
+   "type": "function",
+   "name": "StatusBadge",
+   "filePath": "react-web-app/src/components/StatusBadge.tsx",
+   "lineRange": [
+    9,
+    33
+   ],
+   "summary": "Komponen React StatusBadge di StatusBadge.tsx (diekspor), 25 baris; mendukung: lencana status berwarna untuk menandai kondisi sensor dan perangkat.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:react-web-app/src/components/StatusPenampung.tsx",
+   "type": "file",
+   "name": "StatusPenampung.tsx",
+   "filePath": "react-web-app/src/components/StatusPenampung.tsx",
+   "summary": "Panel status penampung air dengan dialog buka kunci, memadukan data API dan format angka/tanggal.",
+   "tags": [
+    "component",
+    "water",
+    "status",
+    "dialog"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/components/StatusPenampung.tsx:gabung",
+   "type": "function",
+   "name": "gabung",
+   "filePath": "react-web-app/src/components/StatusPenampung.tsx",
+   "lineRange": [
+    52,
+    68
+   ],
+   "summary": "Fungsi gabung di StatusPenampung.tsx (internal), 17 baris; mendukung: panel status penampung air dengan dialog buka kunci.",
+   "tags": [
+    "function",
+    "internal",
+    "component"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/components/StatusPenampung.tsx:StatusPenampung",
+   "type": "function",
+   "name": "StatusPenampung",
+   "filePath": "react-web-app/src/components/StatusPenampung.tsx",
+   "lineRange": [
+    75,
+    165
+   ],
+   "summary": "Komponen React StatusPenampung di StatusPenampung.tsx (diekspor), 91 baris; mendukung: panel status penampung air dengan dialog buka kunci.",
+   "tags": [
+    "component",
+    "exported",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:react-web-app/src/components/StatusPenampung.tsx:DialogBukaKunci",
+   "type": "function",
+   "name": "DialogBukaKunci",
+   "filePath": "react-web-app/src/components/StatusPenampung.tsx",
+   "lineRange": [
+    167,
+    213
+   ],
+   "summary": "Komponen React DialogBukaKunci di StatusPenampung.tsx (internal), 47 baris; mendukung: panel status penampung air dengan dialog buka kunci.",
+   "tags": [
+    "component",
+    "internal",
+    "component"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:react-web-app/src/layouts/AppShell.tsx",
+   "type": "file",
+   "name": "AppShell.tsx",
+   "filePath": "react-web-app/src/layouts/AppShell.tsx",
+   "summary": "Layout utama aplikasi: sidebar navigasi berbasis peran, header, jam, preferensi tersimpan, dan outlet halaman.",
+   "tags": [
+    "layout",
+    "navigation",
+    "sidebar",
+    "auth"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:react-web-app/src/layouts/AppShell.tsx:SideItem",
+   "type": "function",
+   "name": "SideItem",
+   "filePath": "react-web-app/src/layouts/AppShell.tsx",
+   "lineRange": [
+    163,
+    199
+   ],
+   "summary": "Komponen React SideItem di AppShell.tsx (internal), 37 baris; mendukung: layout utama aplikasi.",
+   "tags": [
+    "component",
+    "internal",
+    "layout"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/layouts/AppShell.tsx:GroupLabel",
+   "type": "function",
+   "name": "GroupLabel",
+   "filePath": "react-web-app/src/layouts/AppShell.tsx",
+   "lineRange": [
+    202,
+    218
+   ],
+   "summary": "Komponen React GroupLabel di AppShell.tsx (internal), 17 baris; mendukung: layout utama aplikasi.",
+   "tags": [
+    "component",
+    "internal",
+    "layout"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:react-web-app/src/layouts/AppShell.tsx:AppShell",
+   "type": "function",
+   "name": "AppShell",
+   "filePath": "react-web-app/src/layouts/AppShell.tsx",
+   "lineRange": [
+    230,
+    528
+   ],
+   "summary": "Komponen React AppShell di AppShell.tsx (diekspor), 299 baris; mendukung: layout utama aplikasi.",
+   "tags": [
+    "component",
+    "exported",
+    "layout"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:react-web-app/src/lib/api.ts",
+   "type": "file",
+   "name": "api.ts",
+   "filePath": "react-web-app/src/lib/api.ts",
+   "summary": "Instance klien HTTP dan konstanta base URL API, menyisipkan token autentikasi.",
+   "tags": [
+    "api-client",
+    "http",
+    "config",
+    "utility"
+   ],
+   "complexity": "simple"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:react-web-app/src/components/ChatAsisten.tsx",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/ChatAsisten.tsx",
+   "target": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/ChatAsisten.tsx",
+   "target": "function:react-web-app/src/components/ChatAsisten.tsx:TabelAi",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/ChatAsisten.tsx",
+   "target": "function:react-web-app/src/components/ChatAsisten.tsx:riwayatUntukServer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/ChatAsisten.tsx",
+   "target": "function:react-web-app/src/components/ChatAsisten.tsx:ChatAsisten",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/ChatAsisten.tsx",
+   "target": "function:react-web-app/src/components/ChatAsisten.tsx:ChatAsisten",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/CrudScreen.tsx",
+   "target": "file:react-web-app/src/components/ModalBackdrop.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/CrudScreen.tsx",
+   "target": "file:react-web-app/src/lib/useDialog.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/CrudScreen.tsx",
+   "target": "function:react-web-app/src/components/CrudScreen.tsx:CrudScreen",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/CrudScreen.tsx",
+   "target": "function:react-web-app/src/components/CrudScreen.tsx:CrudScreen",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/CrudScreen.tsx",
+   "target": "function:react-web-app/src/components/CrudScreen.tsx:BtnEdit",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/CrudScreen.tsx",
+   "target": "function:react-web-app/src/components/CrudScreen.tsx:BtnEdit",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/CrudScreen.tsx",
+   "target": "function:react-web-app/src/components/CrudScreen.tsx:BtnHapus",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/CrudScreen.tsx",
+   "target": "function:react-web-app/src/components/CrudScreen.tsx:BtnHapus",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/CrudScreen.tsx",
+   "target": "function:react-web-app/src/components/CrudScreen.tsx:BtnDetail",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/CrudScreen.tsx",
+   "target": "function:react-web-app/src/components/CrudScreen.tsx:BtnDetail",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/CrudScreen.tsx",
+   "target": "function:react-web-app/src/components/CrudScreen.tsx:Field",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/CrudScreen.tsx",
+   "target": "function:react-web-app/src/components/CrudScreen.tsx:Field",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/CrudScreen.tsx",
+   "target": "function:react-web-app/src/components/CrudScreen.tsx:FieldError",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/CrudScreen.tsx",
+   "target": "function:react-web-app/src/components/CrudScreen.tsx:FieldError",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/DemoBanner.tsx",
+   "target": "function:react-web-app/src/components/DemoBanner.tsx:DemoBanner",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/DemoBanner.tsx",
+   "target": "function:react-web-app/src/components/DemoBanner.tsx:DemoBanner",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/GalatHalaman.tsx",
+   "target": "function:react-web-app/src/components/GalatHalaman.tsx:GalatHalaman",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/GalatHalaman.tsx",
+   "target": "function:react-web-app/src/components/GalatHalaman.tsx:GalatHalaman",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/ModalBackdrop.tsx",
+   "target": "function:react-web-app/src/components/ModalBackdrop.tsx:ModalBackdrop",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/ModalBackdrop.tsx",
+   "target": "function:react-web-app/src/components/ModalBackdrop.tsx:ModalBackdrop",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/NaikHarian.tsx",
+   "target": "file:react-web-app/src/components/ModalBackdrop.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/NaikHarian.tsx",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/NaikHarian.tsx",
+   "target": "file:react-web-app/src/lib/authContext.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/NaikHarian.tsx",
+   "target": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/NaikHarian.tsx",
+   "target": "file:react-web-app/src/lib/useApiObject.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/NaikHarian.tsx",
+   "target": "function:react-web-app/src/components/NaikHarian.tsx:NaikHarian",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/NaikHarian.tsx",
+   "target": "function:react-web-app/src/components/NaikHarian.tsx:NaikHarian",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/PresetDosing.tsx",
+   "target": "file:react-web-app/src/components/ModalBackdrop.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/PresetDosing.tsx",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/PresetDosing.tsx",
+   "target": "file:react-web-app/src/lib/authContext.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/PresetDosing.tsx",
+   "target": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/PresetDosing.tsx",
+   "target": "function:react-web-app/src/components/PresetDosing.tsx:Banner",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/PresetDosing.tsx",
+   "target": "function:react-web-app/src/components/PresetDosing.tsx:TargetPenampung",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/PresetDosing.tsx",
+   "target": "function:react-web-app/src/components/PresetDosing.tsx:TargetPenampung",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/PresetDosing.tsx",
+   "target": "function:react-web-app/src/components/PresetDosing.tsx:PresetNutrisi",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/PresetDosing.tsx",
+   "target": "function:react-web-app/src/components/PresetDosing.tsx:PresetNutrisi",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/RequireAuth.tsx",
+   "target": "file:react-web-app/src/lib/authContext.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/RequireAuth.tsx",
+   "target": "file:react-web-app/src/lib/authTypes.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/RequireAuth.tsx",
+   "target": "function:react-web-app/src/components/RequireAuth.tsx:RequireAuth",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/RequireAuth.tsx",
+   "target": "function:react-web-app/src/components/RequireAuth.tsx:RequireAuth",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/StatusBadge.tsx",
+   "target": "function:react-web-app/src/components/StatusBadge.tsx:StatusBadge",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/StatusBadge.tsx",
+   "target": "function:react-web-app/src/components/StatusBadge.tsx:StatusBadge",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/StatusPenampung.tsx",
+   "target": "file:react-web-app/src/components/ModalBackdrop.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/StatusPenampung.tsx",
+   "target": "file:react-web-app/src/components/StatusBadge.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/StatusPenampung.tsx",
+   "target": "file:react-web-app/src/lib/api.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/StatusPenampung.tsx",
+   "target": "file:react-web-app/src/lib/authContext.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/StatusPenampung.tsx",
+   "target": "file:react-web-app/src/lib/crudApi.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/StatusPenampung.tsx",
+   "target": "file:react-web-app/src/lib/useApiObject.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/StatusPenampung.tsx",
+   "target": "file:react-web-app/src/lib/useDialog.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/components/StatusPenampung.tsx",
+   "target": "function:react-web-app/src/components/StatusPenampung.tsx:gabung",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/StatusPenampung.tsx",
+   "target": "function:react-web-app/src/components/StatusPenampung.tsx:StatusPenampung",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/components/StatusPenampung.tsx",
+   "target": "function:react-web-app/src/components/StatusPenampung.tsx:StatusPenampung",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/components/StatusPenampung.tsx",
+   "target": "function:react-web-app/src/components/StatusPenampung.tsx:DialogBukaKunci",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/layouts/AppShell.tsx",
+   "target": "file:react-web-app/src/components/DemoBanner.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/layouts/AppShell.tsx",
+   "target": "file:react-web-app/src/components/ModalBackdrop.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/layouts/AppShell.tsx",
+   "target": "file:react-web-app/src/components/Monogram.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/layouts/AppShell.tsx",
+   "target": "file:react-web-app/src/components/SiteFooter.tsx",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/layouts/AppShell.tsx",
+   "target": "file:react-web-app/src/lib/authContext.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/layouts/AppShell.tsx",
+   "target": "file:react-web-app/src/lib/authTypes.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/layouts/AppShell.tsx",
+   "target": "file:react-web-app/src/lib/useApiObject.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/layouts/AppShell.tsx",
+   "target": "file:react-web-app/src/lib/useDialog.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:react-web-app/src/layouts/AppShell.tsx",
+   "target": "function:react-web-app/src/layouts/AppShell.tsx:SideItem",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/layouts/AppShell.tsx",
+   "target": "function:react-web-app/src/layouts/AppShell.tsx:GroupLabel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/layouts/AppShell.tsx",
+   "target": "function:react-web-app/src/layouts/AppShell.tsx:AppShell",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1
+  },
+  {
+   "source": "file:react-web-app/src/layouts/AppShell.tsx",
+   "target": "function:react-web-app/src/layouts/AppShell.tsx:AppShell",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:react-web-app/src/lib/api.ts",
+   "target": "file:react-web-app/src/lib/token.ts",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  }
+ ]
+}
