@@ -4,7 +4,6 @@ import '../services/api_service.dart';
 import '../theme/tema.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
-import '../util/performa.dart';
 import '../widgets/brand.dart';
 import '../widgets/ikon.dart';
 import '../widgets/kaca.dart';
@@ -510,19 +509,53 @@ class _PilihKaca extends StatelessWidget {
           Text('Sistem render', style: Tok.h3),
           const SizedBox(height: 2),
           Text(
-            'Otomatis beralih ke mode Ringan saat CPU melambat (tanpa blur berat & hemat daya).',
+            'Mode Ringan & Hemat Daya aktif secara permanen (tanpa blur berlebih, baterai awet, dan responsif).',
             style: Tok.kecil,
           ),
           const SizedBox(height: Tok.sp3),
-          ValueListenableBuilder<TingkatPerforma>(
-            valueListenable: PerformaRender.tingkat,
-            builder: (context, perf, _) => PilPilih(
-              label: const ['Bagus (Penuh)', 'Ringan (Hemat CPU)'],
-              pilih: perf == TingkatPerforma.ringan ? 1 : 0,
-              rata: true,
-              onPilih: (i) => PerformaRender.atur(
-                i == 1 ? TingkatPerforma.ringan : TingkatPerforma.bagus,
-              ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(Tok.rSm),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.bolt, color: Tok.emas, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Mode Ringan & Hemat Daya',
+                        style: Tok.body.copyWith(fontWeight: FontWeight.w600, fontSize: 13),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Performa optimal di semua spesifikasi HP',
+                        style: Tok.kecil.copyWith(fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Tok.moss.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'Aktif',
+                    style: TextStyle(
+                      color: Tok.moss,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

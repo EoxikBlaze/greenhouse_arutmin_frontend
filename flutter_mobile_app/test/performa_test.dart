@@ -7,50 +7,32 @@ import 'package:flutter_mobile_app/widgets/motion.dart';
 
 void main() {
   tearDown(() {
-    PerformaRender.atur(TingkatPerforma.bagus);
+    PerformaRender.atur(TingkatPerforma.ringan);
   });
 
-  group('PerformaRender & Benchmark 20x Slower CPU', () {
-    test('CPU normal (<= 18 ms) menghasilkan mode bagus', () {
+  group('PerformaRender & Mode Ringan (Hemat Daya)', () {
+    test('tentukanPerforma beralih sesuai kondisi ambang atau hemat daya', () {
       expect(tentukanPerforma(2.4), TingkatPerforma.bagus);
-      expect(tentukanPerforma(18.0), TingkatPerforma.bagus);
-    });
-
-    test('CPU 20x lebih lambat (> 18 ms) otomatis turun ke mode ringan', () {
-      final msNormal = ujiHitungCpu();
-      // Simulasi 20x slower CPU (minimal > 18 ms bahkan pada chip M-series tercepat)
-      final hasil = PerformaRender.mulai(pengaliSimulasiCpu: 20.0);
-      if (msNormal * 20.0 > ambangPerformaMs) {
-        expect(hasil, TingkatPerforma.ringan);
-        expect(PerformaRender.ringan, isTrue);
-      }
       expect(tentukanPerforma(48.0), TingkatPerforma.ringan);
+      expect(tentukanPerforma(2.4, hematData: true), TingkatPerforma.ringan);
     });
 
-    test('Deteksi frame lambat (20x CPU throttling di tengah sesi) menurunkan ke mode ringan', () {
-      PerformaRender.atur(TingkatPerforma.bagus);
-      expect(PerformaRender.ringan, isFalse);
+    test('PerformaRender.mulai() mengaktifkan mode ringan secara konsisten', () {
+      final hasil = PerformaRender.mulai(pengaliSimulasiCpu: 1.0);
+      expect(hasil, TingkatPerforma.ringan);
+      expect(PerformaRender.ringan, isTrue);
+    });
 
-      // Simulasi lonjakan Long Task (>= 100 ms) saat 20x CPU throttling dinyalakan
+    test('Mode ringan tetap stabil saat ada laporan lonjakan durasi frame', () {
       PerformaRender.laporkanDurasiFrame(120.0, pengaliSimulasiCpu: 20.0);
       expect(PerformaRender.tingkat.value, TingkatPerforma.ringan);
       expect(PerformaRender.ringan, isTrue);
     });
 
-    test('3 frame lambat berturut-turut (>= 45 ms) otomatis menurunkan ke mode ringan', () {
-      PerformaRender.atur(TingkatPerforma.bagus);
-      PerformaRender.laporkanDurasiFrame(50.0);
-      expect(PerformaRender.ringan, isFalse);
-      PerformaRender.laporkanDurasiFrame(52.0);
-      expect(PerformaRender.ringan, isFalse);
-      PerformaRender.laporkanDurasiFrame(48.0);
-      expect(PerformaRender.ringan, isTrue);
-    });
-
     testWidgets(
-      'Mode ringan (20x slower CPU) mematikan seluruh BackdropFilter dan animasi berat secara otomatis',
+      'Mode ringan mematikan seluruh BackdropFilter dan animasi berat secara otomatis',
       (tester) async {
-        PerformaRender.atur(TingkatPerforma.bagus);
+        PerformaRender.atur(TingkatPerforma.ringan);
 
         Widget bangunHalamanUji() {
           return ValueListenableBuilder<TingkatPerforma>(
@@ -93,28 +75,9 @@ void main() {
           );
         }
 
-        // 1. Render dalam mode Bagus (CPU normal)
-        final swBagus = Stopwatch()..start();
-        await tester.pumpWidget(bangunHalamanUji());
-        for (var f = 0; f < 10; f++) {
-          await tester.pump(const Duration(milliseconds: 16));
-        }
-        swBagus.stop();
-        final jumlahBlurBagus = tester
-            .widgetList<BackdropFilter>(find.byType(BackdropFilter))
-            .length;
-        final jumlahGambarLatarBagus = tester
-            .widgetList<Image>(find.byType(Image))
-            .length;
-        expect(jumlahBlurBagus, greaterThan(0));
-        expect(jumlahGambarLatarBagus, 2);
-
-        // 2. Simulasikan 20x slower CPU di tengah sesi → otomatis turun ke Ringan
-        PerformaRender.laporkanDurasiFrame(160.0, pengaliSimulasiCpu: 20.0);
-        expect(PerformaRender.ringan, isTrue);
-
+        // Render langsung dalam mode Ringan (bawaan sistem baru)
         final swRingan = Stopwatch()..start();
-        await tester.pump();
+        await tester.pumpWidget(bangunHalamanUji());
         for (var f = 0; f < 10; f++) {
           await tester.pump(const Duration(milliseconds: 16));
         }
@@ -127,15 +90,10 @@ void main() {
             .widgetList<Image>(find.byType(Image))
             .length;
 
-        // Pada mode ringan (20x slower CPU): 0 BackdropFilter dan hanya 1 gambar latar aktif!
-        // ignore: avoid_print
-        print(
-          'BENCHMARK_FLUTTER: '
-          'Bagus(blur=$jumlahBlurBagus, gambar=$jumlahGambarLatarBagus, 10frame=${swBagus.elapsedMicroseconds / 1000.0}ms) -> '
-          'Ringan_20xCPU(blur=$jumlahBlurRingan, gambar=$jumlahGambarLatarRingan, 10frame=${swRingan.elapsedMicroseconds / 1000.0}ms)',
-        );
+        // Pada mode ringan: 0 BackdropFilter dan hanya 1 gambar latar aktif (hemat memori dan GPU)
         expect(jumlahBlurRingan, 0);
         expect(jumlahGambarLatarRingan, 1);
+        expect(PerformaRender.ringan, isTrue);
       },
     );
   });
