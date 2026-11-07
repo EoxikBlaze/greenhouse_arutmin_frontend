@@ -78,7 +78,7 @@ class _LoginPageState extends State<LoginPage>
               controller: ctrl,
               keyboardType: TextInputType.url,
               decoration: const InputDecoration(
-                labelText: 'URL Backend (http://IP:8000)',
+                labelText: 'URL Backend (http://garap.local)',
               ),
             ),
             const SizedBox(height: 12),
@@ -87,12 +87,16 @@ class _LoginPageState extends State<LoginPage>
               runSpacing: 8,
               children: [
                 ActionChip(
-                  label: const Text('Mac LAN (192.168.95.231)'),
-                  onPressed: () => ctrl.text = 'http://192.168.95.231:8000',
+                  label: const Text('Raspberry Pi (garap.local)'),
+                  onPressed: () => ctrl.text = 'http://garap.local',
                 ),
                 ActionChip(
-                  label: const Text('Raspberry Pi (192.168.1.172)'),
-                  onPressed: () => ctrl.text = 'http://192.168.1.172:8000',
+                  label: const Text('Raspberry Pi IP (192.168.95.31)'),
+                  onPressed: () => ctrl.text = 'http://192.168.95.31',
+                ),
+                ActionChip(
+                  label: const Text('Mac LAN (192.168.95.231)'),
+                  onPressed: () => ctrl.text = 'http://192.168.95.231:8000',
                 ),
                 ActionChip(
                   label: const Text('Lokal (127.0.0.1)'),

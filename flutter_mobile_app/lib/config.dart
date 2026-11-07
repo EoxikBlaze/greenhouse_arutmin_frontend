@@ -12,10 +12,11 @@
 /// `flutter run` tanpa parameter tambahan.
 library;
 
-/// Alamat backend. Nilai default dipakai bila `API_BASE` tidak diberikan.
+/// Alamat backend. Nilai default menunjuk ke Raspberry Pi (`http://garap.local`)
+/// bila `API_BASE` tidak diberikan lewat `--dart-define`.
 const String apiBase = String.fromEnvironment(
   'API_BASE',
-  defaultValue: 'http://127.0.0.1:8000',
+  defaultValue: 'http://garap.local',
 );
 
 /// Batas waktu tunggu tiap request API (detik).

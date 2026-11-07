@@ -6,6 +6,8 @@
 	<string>Menghubungkan aplikasi ke server GARAP di jaringan lokal.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
