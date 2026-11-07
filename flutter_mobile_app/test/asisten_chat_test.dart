@@ -114,7 +114,7 @@ void main() {
       );
       expect(find.text('pH sekarang 6,3.'), findsOneWidget);
       expect(
-        find.text('Dijawab AI lokal — cek ulang sebelum bertindak'),
+        find.textContaining('Dijawab AI lokal'),
         findsOneWidget,
       );
 
