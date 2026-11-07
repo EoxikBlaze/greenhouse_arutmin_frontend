@@ -7,7 +7,7 @@ import 'ikon.dart';
 import 'kaca.dart';
 import 'motion.dart';
 
-/// Monogram Vertonik (padanan komponen `Monogram` di web).
+/// Monogram resmi KKN Arutmin Asik 2026 (menggantikan logo V lama).
 class Monogram extends StatelessWidget {
   const Monogram({super.key, this.size = 44});
 
@@ -18,7 +18,13 @@ class Monogram extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(painter: _MonogramPainter()),
+      child: Image.asset(
+        'assets/tentang/logo/kkn.png',
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+        errorBuilder: (_, _, _) => CustomPaint(painter: _MonogramPainter()),
+      ),
     );
   }
 }
@@ -667,4 +673,186 @@ void tampilkanPesan(BuildContext context, String pesan, {bool galat = false}) {
         content: Text(pesan, style: const TextStyle(color: Colors.white)),
       ),
     );
+}
+
+/// Header resmi bergaya kartu putih rounded sesuai desain Arutmin Dashboard:
+/// - Kiri: Logo KKN Arutmin Asik 2026 + Teks "Arutmin" & Subjudul (Dashboard) bergaris bawah ungu
+/// - Kanan: Lonceng notifikasi abu-abu dengan titik merah + Foto profil lingkaran
+class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
+  const ArutminHeader({
+    super.key,
+    this.subjudul = 'Dashboard',
+    this.adaNotif = true,
+    this.onNotifTap,
+    this.onProfileTap,
+    this.bisaKembali = false,
+    this.onKembali,
+  });
+
+  final String subjudul;
+  final bool adaNotif;
+  final VoidCallback? onNotifTap;
+  final VoidCallback? onProfileTap;
+  final bool bisaKembali;
+  final VoidCallback? onKembali;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(80);
+
+  @override
+  Widget build(BuildContext context) {
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: Tok.gelap ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
+          child: Container(
+            height: 66,
+            decoration: BoxDecoration(
+              color: Tok.gelap ? const Color(0xFF1E293B) : Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: Tok.gelap ? Colors.white12 : const Color(0xFFE2E8F0),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: Tok.gelap ? 0.3 : 0.05),
+                  blurRadius: 12,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Row(
+              children: [
+                if (bisaKembali) ...[
+                  IconButton(
+                    tooltip: 'Kembali',
+                    icon: Icon(Ikon.kiri, color: Tok.tinta, size: 20),
+                    style: IconButton.styleFrom(
+                      minimumSize: const Size(40, 40),
+                      padding: EdgeInsets.zero,
+                    ),
+                    onPressed: onKembali ?? () => Navigator.maybePop(context),
+                  ),
+                  const SizedBox(width: 4),
+                ],
+                Image.asset(
+                  'assets/tentang/logo/kkn.png',
+                  height: 42,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Arutmin',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: Tok.fontJudul,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: Tok.tinta,
+                          height: 1.1,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        subjudul,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: Tok.fontJudul,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Tok.tinta,
+                          height: 1.1,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Container(
+                        height: 2.5,
+                        width: 34,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF8B5CF6),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    IconButton(
+                      tooltip: 'Pemberitahuan',
+                      icon: const Icon(
+                        Icons.notifications_rounded,
+                        size: 26,
+                        color: Color(0xFF6B7280),
+                      ),
+                      onPressed: onNotifTap ??
+                          () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Semua alert dan sensor terpantau normal.',
+                                ),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                    ),
+                    if (adaNotif)
+                      Positioned(
+                        right: 8,
+                        bottom: 8,
+                        child: Container(
+                          width: 10,
+                          height: 10,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFEF4444),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 8),
+                InkWell(
+                  borderRadius: BorderRadius.circular(999),
+                  onTap: onProfileTap,
+                  child: Container(
+                    padding: const EdgeInsets.all(1.5),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.5),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const CircleAvatar(
+                      radius: 19,
+                      backgroundColor: Color(0xFFE2E8F0),
+                      backgroundImage: AssetImage(
+                        'assets/tentang/tim/siti-azizahtusholihah.png',
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

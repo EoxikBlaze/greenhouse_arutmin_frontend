@@ -6,7 +6,6 @@ import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/brand.dart';
 import '../widgets/ikon.dart';
-import '../widgets/kaca.dart';
 import '../widgets/dock.dart';
 import '../widgets/halaman.dart';
 import '../widgets/motion.dart';
@@ -356,7 +355,7 @@ class _ProfilPageState extends State<ProfilPage> {
                 child: const Eyebrow('Pengaturan'),
               ),
               const SizedBox(height: Tok.sp3),
-              FadeUp(delay: FadeUp.urutan(7), child: const _PilihKaca()),
+              FadeUp(delay: FadeUp.urutan(7), child: const _PilihTema()),
               const SizedBox(height: Tok.sp3),
               FadeUp(
                 delay: FadeUp.urutan(7),
@@ -453,16 +452,12 @@ class _Pintas extends StatelessWidget {
   }
 }
 
-/// Pilihan transparansi kaca (padanan kartu "Tampilan kaca" di web). Berlaku langsung
-/// untuk seluruh aplikasi dan tersimpan di perangkat.
-class _PilihKaca extends StatelessWidget {
-  const _PilihKaca();
-
-  static const _label = ['Jernih', 'Standar', 'Pekat'];
+/// Pengaturan tampilan tema (Terang / Gelap).
+class _PilihTema extends StatelessWidget {
+  const _PilihTema();
 
   @override
   Widget build(BuildContext context) {
-    final mode = KacaScope.of(context);
     return Panel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -479,73 +474,6 @@ class _PilihKaca extends StatelessWidget {
             pilih: Tok.gelap ? 1 : 0,
             rata: true,
             onPilih: (i) => PreferensiTema.atur(i == 1),
-          ),
-          const SizedBox(height: Tok.sp4),
-          Text('Tampilan kaca', style: Tok.h3),
-          const SizedBox(height: 2),
-          Text(
-            'Atur seberapa tembus pandang kartu dan menu. Pilih Pekat bila teks sulit dibaca.',
-            style: Tok.kecil,
-          ),
-          const SizedBox(height: Tok.sp3),
-          PilPilih(
-            label: _label,
-            pilih: mode.index,
-            rata: true,
-            onPilih: (i) => PreferensiKaca.atur(ModeKaca.values[i]),
-          ),
-          const SizedBox(height: Tok.sp4),
-          Text('Sistem render', style: Tok.h3),
-          const SizedBox(height: 2),
-          Text(
-            'Mode Ringan & Hemat Daya aktif secara permanen (tanpa blur berlebih, baterai awet, dan responsif).',
-            style: Tok.kecil,
-          ),
-          const SizedBox(height: Tok.sp3),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(Tok.rSm),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.bolt, color: Tok.emas, size: 20),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Mode Ringan & Hemat Daya',
-                        style: Tok.body.copyWith(fontWeight: FontWeight.w600, fontSize: 13),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Performa optimal di semua spesifikasi HP',
-                        style: Tok.kecil.copyWith(fontSize: 11),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Tok.moss.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    'Aktif',
-                    style: TextStyle(
-                      color: Tok.moss,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
         ],
       ),

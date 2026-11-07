@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'pages/asisten_page.dart';
 import 'pages/beranda_petani.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/login_page.dart';
@@ -13,6 +14,7 @@ import 'services/sesi_store.dart';
 import 'theme/tema.dart';
 import 'theme/tokens.dart';
 import 'util/performa.dart';
+import 'widgets/brand.dart';
 import 'widgets/dock.dart';
 import 'widgets/halaman.dart';
 import 'widgets/ikon.dart';
@@ -283,6 +285,17 @@ class _MainShellState extends State<_MainShell>
     _pudar.forward(from: 0);
   }
 
+  String _subjudulTab(int i) {
+    if (i < 0 || i >= _tab.length) return 'Dashboard';
+    final l = _tab[i].label;
+    if (l == 'Beranda') return 'Dashboard';
+    if (l == 'Sensor') return 'Sensor';
+    if (l == 'Kontrol') return 'Kontrol Air';
+    if (l == 'Tanam') return 'Jadwal Tanam';
+    if (l == 'Akun') return 'Profil Akun';
+    return l;
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -297,62 +310,173 @@ class _MainShellState extends State<_MainShell>
         child: NavigasiBerandaScope(
           onKembali: null,
           child: Scaffold(
-          extendBody: true,
-          body: Stack(
-            children: [
-              // satu latar cair untuk semua tab — panel kaca di tiap halaman tampil di atasnya
-              const Positioned.fill(child: LatarCair()),
-              // BackdropGroup: semua panel kaca di tab berbagi satu blur latar (dock di luar grup).
-              // ConstrainedBox menjaga keterbacaan di layar lebar (tablet/lanskap) sesuai pedoman tata letak adaptif Flutter.
-              BackdropGroup(
-                child: FadeTransition(
-                  opacity: CurvedAnimation(parent: _pudar, curve: Tok.ease),
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 840),
-                      child: IndexedStack(
-                        index: _indeks,
-                        children: [
-                          // Tab tersembunyi: ticker dijeda (PipeFlow, PulseDot, skeleton) agar hemat baterai.
-                          for (var i = 0; i < _tab.length; i++)
-                            TickerMode(
-                              enabled: i == _indeks,
-                              child: _dibuka.contains(i)
-                                  ? _tab[i].bangun(i == _indeks)
-                                  : const SizedBox.shrink(),
-                            ),
-                        ],
+            extendBody: true,
+            body: Stack(
+              children: [
+                // satu latar cair untuk semua tab
+                const Positioned.fill(child: LatarCair()),
+                // Konten tab di bawah header Arutmin yang dipin di atas
+                Positioned.fill(
+                  top: 76,
+                  child: BackdropGroup(
+                    child: FadeTransition(
+                      opacity: CurvedAnimation(parent: _pudar, curve: Tok.ease),
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 840),
+                          child: IndexedStack(
+                            index: _indeks,
+                            children: [
+                              // Tab tersembunyi: ticker dijeda agar hemat baterai.
+                              for (var i = 0; i < _tab.length; i++)
+                                TickerMode(
+                                  enabled: i == _indeks,
+                                  child: _dibuka.contains(i)
+                                      ? _tab[i].bangun(i == _indeks)
+                                      : const SizedBox.shrink(),
+                                ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              Positioned(
-                left: 16,
-                right: 16,
-                bottom: 0,
-                child: SafeArea(
-                  top: false,
-                  minimum: const EdgeInsets.only(bottom: 12),
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 520),
-                      child: DockNav(
-                        item: [for (final t in _tab) DockItem(t.label, t.ikon)],
-                        indeks: _indeks,
-                        onPilih: _pilih,
+                // Header Arutmin selalu dipin di paling atas
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: ArutminHeader(
+                    subjudul: _subjudulTab(_indeks),
+                    onProfileTap: () => _bukaTab('Akun'),
+                    onNotifTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Semua alert dan sensor greenhouse terpantau normal.',
+                          ),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                // Tombol Asisten AI melayang tepat di atas footer dock (mengikuti footer di semua page)
+                Positioned(
+                  right: 20,
+                  bottom: 86,
+                  child: SafeArea(
+                    top: false,
+                    child: _TombolAiDiatasFooter(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => AsistenPage(api: apiService),
+                        ),
                       ),
                     ),
                   ),
+                ),
+                // Footer dock di bagian bawah
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 0,
+                  child: SafeArea(
+                    top: false,
+                    minimum: const EdgeInsets.only(bottom: 12),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 520),
+                        child: DockNav(
+                          item: [for (final t in _tab) DockItem(t.label, t.ikon)],
+                          indeks: _indeks,
+                          onPilih: _pilih,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Tombol mengambang Asisten AI tepat di atas footer (DockNav) di semua tab.
+class _TombolAiDiatasFooter extends StatelessWidget {
+  const _TombolAiDiatasFooter({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF8B5CF6).withValues(alpha: 0.42),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+            ],
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.28),
+              width: 1.2,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.auto_awesome,
+                color: Colors.white,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Tanya AI',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF10B981),
+                  shape: BoxShape.circle,
                 ),
               ),
             ],
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

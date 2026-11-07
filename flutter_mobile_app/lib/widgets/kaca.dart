@@ -420,8 +420,8 @@ class LatarCair extends StatelessWidget {
             children: [
               ColoredBox(
                 color: Tok.gelap
-                    ? const Color(0xFF061322)
-                    : const Color(0xFF4B9BDC),
+                    ? const Color(0xFF0F172A)
+                    : const Color(0xFFF1F5F9),
               ),
               Image.asset(
                 Tok.gelap
@@ -432,9 +432,6 @@ class LatarCair extends StatelessWidget {
                 cacheWidth: lebarCache,
                 gaplessPlayback: true,
                 excludeFromSemantics: true,
-              ),
-              CustomPaint(
-                painter: _KabutAuroraPainter(gelap: Tok.gelap, ringan: true),
               ),
             ],
           ),

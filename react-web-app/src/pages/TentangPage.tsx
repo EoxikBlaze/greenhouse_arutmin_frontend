@@ -14,8 +14,8 @@ import { GrupMerek, PilSosial } from '../components/tentang/GrupMerek'
 import { SplashTentang } from '../components/tentang/SplashTentang'
 import { SaklarTema } from '../components/SaklarTema'
 
-const BAGIAN = ['sistem', 'cara-kerja', 'data', 'aplikasi', 'mitra', 'tim']
-const LABEL_BAGIAN: Record<string, string> = { sistem: 'Sistem', 'cara-kerja': 'Cara kerja', data: 'Data', aplikasi: 'Aplikasi', mitra: 'Mitra', tim: 'Tim' }
+const BAGIAN = ['sistem', 'cara-kerja', 'data', 'aplikasi', 'mitra', 'proker', 'tim']
+const LABEL_BAGIAN: Record<string, string> = { sistem: 'Sistem', 'cara-kerja': 'Cara kerja', data: 'Data', aplikasi: 'Aplikasi', mitra: 'Mitra', proker: 'Proker', tim: 'Tim' }
 
 /** Bagian yang sedang di tengah layar — untuk menandai tautan header (aria-current). */
 function useScrollspy(ids: string[]) {
@@ -135,6 +135,33 @@ const MITRA = [
   { nama: 'PT Arutmin Indonesia', peran: 'Mitra industri', src: '/logo/arutmin.webp', teks: 'Perusahaan pertambangan batubara tempat program KKN dijalankan dan mitra penyedia lokasi greenhouse.', href: 'https://www.arutmin.com' },
   { nama: 'Politeknik Negeri Tanah Laut', peran: 'Perguruan tinggi', src: '/logo/polytala.webp', teks: 'Perguruan tinggi asal para mahasiswa KKN yang merancang dan membangun sistem ini.', href: 'https://polytala.ac.id' },
   { nama: 'TRKJ', peran: 'Program studi', src: '/logo/trkj.webp', teks: 'Program studi Teknologi Rekayasa Komputer dan Jaringan — bidang keilmuan di balik perangkat IoT, jaringan, dan aplikasi proyek ini.' } as { nama: string; peran: string; src: string; teks: string; href?: string },
+]
+
+const PROKER = [
+  {
+    no: '01',
+    judul: 'Otomatisasi Vertonik Smart Farm',
+    deskripsi: 'Implementasi sistem IoT presisi berbasis ESP32, sensor nutrisi TDS, pH, dan suhu air, serta aplikasi kontrol pintar untuk greenhouse hidroponik PT Arutmin Indonesia Tambang Asam-Asam.',
+    tag: 'Teknologi & IoT',
+  },
+  {
+    no: '02',
+    judul: 'Publikasi & Peliputan KKN',
+    deskripsi: 'Dokumentasi multimedia, liputan berkala kegiatan lapangan, video profil greenhouse, dan penyebaran informasi melalui kanal media sosial resmi @kkn.arutminidn2026.',
+    tag: 'Media & Publikasi',
+  },
+  {
+    no: '03',
+    judul: 'Seminar Petani Berdasi',
+    deskripsi: 'Workshop dan edukasi teknologi hidroponik modern serta pemanfaatan otomasi digital bagi generasi muda dan kelompok tani lingkar tambang untuk mewujudkan pertanian cerdas.',
+    tag: 'Edukasi & Workshop',
+  },
+  {
+    no: '04',
+    judul: 'Kolaborasi HMPT & Mitra Industri',
+    deskripsi: 'Penguatan sinergi strategis antara mahasiswa TRKJ Politala, Himpunan Mahasiswa Pertanian/Teknologi, dan PT Arutmin Indonesia dalam pemeliharaan greenhouse secara berkelanjutan.',
+    tag: 'Kemitraan & Sinergi',
+  },
 ]
 
 const ANGKA = [
@@ -442,6 +469,34 @@ export function TentangPage() {
                 <figcaption className="mt-3 text-[12.5px] font-bold text-navy">{m.nama}</figcaption>
                 <span className="text-[12px] text-slate-600">{m.peran}</span>
               </figure>
+            ))}
+          </div>
+        </section>
+
+        {/* Program Kerja KKN */}
+        <section id="proker" className="mt-16 scroll-mt-24" aria-labelledby="vsf-proker-title">
+          <div className="vsf-eyebrow vsf-judul-latar">Program Kerja</div>
+          <h2 id="vsf-proker-title" className="vsf-judul-latar mt-2 text-[22px] font-bold sm:text-[26px]">
+            Empat Program Kerja KKN Industri Arutmin Asik 2026
+          </h2>
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {PROKER.map((p, i) => (
+              <article
+                key={p.no}
+                className="vsf-card vsf-kaca-hidup vsf-muncul flex flex-col justify-between rounded-3xl p-5"
+                style={{ ['--d' as string]: `${i * 0.08}s` }}
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-display text-[26px] font-bold text-arutmin-forest">{p.no}</span>
+                    <span className="rounded-full bg-navy/10 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-navy dark:bg-white/10 dark:text-white">
+                      {p.tag}
+                    </span>
+                  </div>
+                  <h3 className="mt-3 text-[16px] font-bold leading-snug text-tinta">{p.judul}</h3>
+                  <p className="mt-2 text-[13px] leading-relaxed text-slate-600 dark:text-slate-300">{p.deskripsi}</p>
+                </div>
+              </article>
             ))}
           </div>
         </section>

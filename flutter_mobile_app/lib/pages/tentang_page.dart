@@ -47,6 +47,41 @@ class TentangPage extends StatelessWidget {
     ),
   ];
 
+  static const _proker = [
+    _ProkerItem(
+      nomor: '01',
+      judul: 'Otomatisasi Vertonik Smart Farm',
+      deskripsi:
+          'Implementasi sistem IoT presisi berbasis ESP32, sensor nutrisi TDS, pH, dan suhu air, serta aplikasi monitoring pintar untuk greenhouse hidroponik PT Arutmin Indonesia Tambang Asam-Asam.',
+      ikon: Icons.precision_manufacturing_rounded,
+      warna: Color(0xFF10B981),
+    ),
+    _ProkerItem(
+      nomor: '02',
+      judul: 'Publikasi & Peliputan KKN',
+      deskripsi:
+          'Dokumentasi multimedia, liputan berkala kegiatan lapangan, video profil greenhouse, dan publikasi media sosial resmi @kkn.arutminidn2026.',
+      ikon: Icons.campaign_rounded,
+      warna: Color(0xFF8B5CF6),
+    ),
+    _ProkerItem(
+      nomor: '03',
+      judul: 'Seminar Petani Berdasi',
+      deskripsi:
+          'Workshop dan edukasi teknologi hidroponik modern serta pemanfaatan otomasi digital bagi generasi muda dan petani lingkar tambang untuk mewujudkan pertanian cerdas.',
+      ikon: Icons.school_rounded,
+      warna: Color(0xFFF59E0B),
+    ),
+    _ProkerItem(
+      nomor: '04',
+      judul: 'Kolaborasi HMPT & Mitra Industri',
+      deskripsi:
+          'Penguatan sinergi strategis antara mahasiswa TRKJ Politala, Himpunan Mahasiswa Pertanian/Teknologi, dan PT Arutmin Indonesia dalam pemeliharaan greenhouse secara berkelanjutan.',
+      ikon: Icons.groups_rounded,
+      warna: Color(0xFF3B82F6),
+    ),
+  ];
+
   static const _tim = [
     _Anggota(
       'Rivi Ramdani',
@@ -230,6 +265,16 @@ class TentangPage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: Tok.sp6),
+            FadeUp(
+              delay: FadeUp.urutan(2),
+              child: const Eyebrow('Program Kerja KKN'),
+            ),
+            const SizedBox(height: Tok.sp3),
+            for (final p in _proker) ...[
+              FadeUp(child: _KartuProker(p)),
+              const SizedBox(height: 12),
+            ],
+            const SizedBox(height: Tok.sp6),
             const Eyebrow('Tim'),
             const SizedBox(height: Tok.sp3),
             for (final a in _tim) ...[
@@ -377,4 +422,89 @@ class _Anggota {
   final String jabatan;
   final String foto;
   final String deskripsi;
+}
+
+class _ProkerItem {
+  const _ProkerItem({
+    required this.nomor,
+    required this.judul,
+    required this.deskripsi,
+    required this.ikon,
+    required this.warna,
+  });
+
+  final String nomor;
+  final String judul;
+  final String deskripsi;
+  final IconData ikon;
+  final Color warna;
+}
+
+class _KartuProker extends StatelessWidget {
+  const _KartuProker(this.p);
+
+  final _ProkerItem p;
+
+  @override
+  Widget build(BuildContext context) {
+    return Panel(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: p.warna.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: p.warna.withValues(alpha: 0.35),
+                width: 1.2,
+              ),
+            ),
+            child: Icon(p.ikon, color: p.warna, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'PROKER ${p.nomor}',
+                  style: TextStyle(
+                    fontFamily: Tok.fontJudul,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                    color: p.warna,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  p.judul,
+                  style: TextStyle(
+                    fontFamily: Tok.fontJudul,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Tok.tinta,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  p.deskripsi,
+                  style: Tok.body.copyWith(
+                    fontSize: 13,
+                    height: 1.4,
+                    color: Tok.abuTeks,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
