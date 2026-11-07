@@ -228,48 +228,19 @@ class _LoginPageState extends State<LoginPage>
               ],
             ),
             const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: [
-                _TombolPeranCepat(
-                  label: 'Superadmin',
-                  sub: 'Kendali penuh',
-                  aktif: _usernameCtrl.text == 'garap',
-                  onTap: _busy
-                      ? null
-                      : () => setState(() {
-                          _usernameCtrl.text = 'garap';
-                          _passwordCtrl.text = 'garap123';
-                          _error = null;
-                        }),
-                ),
-                _TombolPeranCepat(
-                  label: 'Petani',
-                  sub: 'Operasional',
-                  aktif: _usernameCtrl.text == 'petani',
-                  onTap: _busy
-                      ? null
-                      : () => setState(() {
-                          _usernameCtrl.text = 'petani';
-                          _passwordCtrl.text = 'petani123';
-                          _error = null;
-                        }),
-                ),
-                _TombolPeranCepat(
-                  label: 'Demo (Hanya Lihat)',
-                  sub: 'Tanpa ubah',
-                  aktif: _usernameCtrl.text == 'demo',
-                  onTap: _busy
-                      ? null
-                      : () => setState(() {
-                          _usernameCtrl.text = 'demo';
-                          _passwordCtrl.text = 'demo123';
-                          _error = null;
-                        }),
-                ),
-              ],
+            Center(
+              child: _TombolPeranCepat(
+                label: 'Demo (Hanya Lihat)',
+                sub: 'Data disembunyikan · Uji coba',
+                aktif: _usernameCtrl.text == 'demo',
+                onTap: _busy
+                    ? null
+                    : () => setState(() {
+                        _usernameCtrl.text = 'demo';
+                        _passwordCtrl.text = 'demo123';
+                        _error = null;
+                      }),
+              ),
             ),
           ],
         ),
