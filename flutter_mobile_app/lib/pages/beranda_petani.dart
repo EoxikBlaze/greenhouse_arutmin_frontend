@@ -7,6 +7,7 @@ import '../widgets/brand.dart';
 import '../widgets/dock.dart';
 import '../widgets/ikon.dart';
 import '../widgets/motion.dart';
+import '../widgets/navigasi_shell.dart';
 import '../widgets/rute.dart';
 import 'asisten_page.dart';
 
@@ -171,10 +172,10 @@ class _BerandaPetaniState extends State<BerandaPetani> {
         SizedBox(
           width: double.infinity,
           child: FilledButton.icon(
-            onPressed: () => Navigator.of(context).push(
-              RuteHalus<void>(
-                builder: (_) => AsistenPage(api: widget.api),
-              ),
+            onPressed: () => bukaHalamanApp(
+              context,
+              AsistenPage(api: widget.api, tanpaAppBar: true),
+              judul: 'Asisten GARAP',
             ),
             style: FilledButton.styleFrom(
               minimumSize: const Size(0, 56),

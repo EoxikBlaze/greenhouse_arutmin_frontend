@@ -15,9 +15,14 @@ class Monogram extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       width: size,
       height: size,
+      padding: EdgeInsets.all(size * 0.1),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0A1F38),
+        borderRadius: BorderRadius.circular(size * 0.28),
+      ),
       child: Image.asset(
         'assets/tentang/logo/kkn.png',
         width: size,
@@ -743,10 +748,25 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
                   ),
                   const SizedBox(width: 4),
                 ],
-                Image.asset(
-                  'assets/tentang/logo/kkn.png',
-                  height: 48,
-                  fit: BoxFit.contain,
+                Container(
+                  height: 46,
+                  width: 46,
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0A1F38), // Arutmin Deep Navy
+                    borderRadius: BorderRadius.circular(13),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: Tok.gelap ? 0.35 : 0.12),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Image.asset(
+                    'assets/tentang/logo/kkn.png',
+                    fit: BoxFit.contain,
+                  ),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -768,33 +788,41 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      IntrinsicWidth(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              subjudul,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontFamily: Tok.fontJudul,
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                                color: Tok.tinta,
-                                height: 1.05,
-                                letterSpacing: -0.2,
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        transitionBuilder: (child, animation) => FadeTransition(
+                          opacity: animation,
+                          child: child,
+                        ),
+                        child: IntrinsicWidth(
+                          key: ValueKey<String>(subjudul),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                subjudul,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontFamily: Tok.fontJudul,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700,
+                                  color: Tok.tinta,
+                                  height: 1.05,
+                                  letterSpacing: -0.2,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            Container(
-                              height: 2.8,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF8B5CF6),
-                                borderRadius: BorderRadius.circular(2),
+                              const SizedBox(height: 2),
+                              Container(
+                                height: 2.8,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF8B5CF6),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ],

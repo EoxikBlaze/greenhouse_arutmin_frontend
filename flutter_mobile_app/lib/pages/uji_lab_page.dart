@@ -35,9 +35,10 @@ import '../widgets/kaca.dart';
 
 /// Uji Lab (bagian Data) — dua opsi: Buah (bawaan Melon) dan Sayur. GET /uji-lab/parameter, GET/POST /uji-lab.
 class UjiLabPage extends StatefulWidget {
-  const UjiLabPage({super.key, required this.api});
+  const UjiLabPage({super.key, required this.api, this.tanpaAppBar = false});
 
   final ApiService api;
+  final bool tanpaAppBar;
 
   @override
   State<UjiLabPage> createState() => _UjiLabPageState();
@@ -138,7 +139,9 @@ class _UjiLabPageState extends State<UjiLabPage> {
   Widget build(BuildContext context) {
     final spek = _spekKategori;
     return Scaffold(
-      appBar: const AppBarGlass(judul: 'Uji Lab', eyebrow: 'Data'),
+      appBar: widget.tanpaAppBar
+          ? null
+          : const AppBarGlass(judul: 'Uji Lab', eyebrow: 'Data'),
       body: LatarHalaman(
         child: RefreshIndicator(
           onRefresh: _muat,

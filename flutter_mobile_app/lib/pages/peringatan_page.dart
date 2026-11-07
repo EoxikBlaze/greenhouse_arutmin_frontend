@@ -40,10 +40,12 @@ class PeringatanPage extends StatefulWidget {
     super.key,
     required this.api,
     this.onSelesai,
+    this.tanpaAppBar = false,
   });
 
   final ApiService api;
   final VoidCallback? onSelesai;
+  final bool tanpaAppBar;
 
   @override
   State<PeringatanPage> createState() => _PeringatanPageState();
@@ -241,10 +243,12 @@ class _PeringatanPageState extends State<PeringatanPage> {
     }).toList();
 
     return Scaffold(
-      appBar: const AppBarGlass(
-        judul: 'Peringatan',
-        eyebrow: 'Sistem',
-      ),
+      appBar: widget.tanpaAppBar
+          ? null
+          : const AppBarGlass(
+              judul: 'Peringatan',
+              eyebrow: 'Sistem',
+            ),
       body: LatarHalaman(
         child: RefreshIndicator(
           onRefresh: () => _muat(senyap: true),

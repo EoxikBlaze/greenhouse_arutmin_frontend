@@ -7,6 +7,7 @@ import '../widgets/ikon.dart';
 import '../widgets/dock.dart';
 import '../widgets/halaman.dart';
 import '../widgets/motion.dart';
+import '../widgets/navigasi_shell.dart';
 import '../widgets/rute.dart';
 import '../widgets/status_penampung.dart';
 import 'naik_harian_page.dart';
@@ -329,28 +330,28 @@ class _WaterControlPageState extends State<WaterControlPage> {
                       label: const Text('Saklar Aktuator'),
                     ),
                     OutlinedButton.icon(
-                      onPressed: () => Navigator.of(context).push(
-                        RuteHalus<void>(
-                          builder: (_) => NutrisiManualPage(api: widget.api),
-                        ),
+                      onPressed: () => bukaHalamanApp(
+                        context,
+                        NutrisiManualPage(api: widget.api, tanpaAppBar: true),
+                        judul: 'Nutrisi',
                       ),
                       icon: const Icon(Ikon.tetes, size: 18),
                       label: const Text('Nutrisi Manual'),
                     ),
                     OutlinedButton.icon(
-                      onPressed: () => Navigator.of(context).push(
-                        RuteHalus<void>(
-                          builder: (_) => NaikHarianPage(api: widget.api),
-                        ),
+                      onPressed: () => bukaHalamanApp(
+                        context,
+                        NaikHarianPage(api: widget.api, tanpaAppBar: true),
+                        judul: 'Target Nutrisi',
                       ),
                       icon: const Icon(Ikon.dosing, size: 18),
                       label: const Text('Target & Naik Harian'),
                     ),
                     OutlinedButton.icon(
-                      onPressed: () => Navigator.of(context).push(
-                        RuteHalus<void>(
-                          builder: (_) => UjiLabPage(api: widget.api),
-                        ),
+                      onPressed: () => bukaHalamanApp(
+                        context,
+                        UjiLabPage(api: widget.api, tanpaAppBar: true),
+                        judul: 'Uji Lab',
                       ),
                       icon: const Icon(Ikon.laporan, size: 18),
                       label: const Text('Uji Lab'),

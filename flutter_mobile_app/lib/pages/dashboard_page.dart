@@ -10,7 +10,7 @@ import '../widgets/ikon.dart';
 import '../widgets/kpi.dart';
 import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
-import '../widgets/rute.dart';
+import '../widgets/navigasi_shell.dart';
 import '../widgets/tren_batang.dart';
 import 'asisten_page.dart';
 import 'cctv_page.dart';
@@ -108,8 +108,8 @@ class _DashboardPageState extends State<DashboardPage> {
     final kontrol = role == 'admin' || role == 'demo';
     // Petani cukup Beranda, Sensor, Tanam, Akun: tanpa Asisten AI dan CCTV.
     final petani = role == 'petani';
-    void dorong(Widget w) =>
-        Navigator.of(context).push(RuteHalus<void>(builder: (_) => w));
+    void dorong(Widget w, String judul) =>
+        bukaHalamanApp(context, w, judul: judul);
     void tab(String l) => widget.onBukaTab?.call(l);
 
     showModalBottomSheet<void>(
@@ -138,12 +138,12 @@ class _DashboardPageState extends State<DashboardPage> {
                       _ItemMenu(
                         Ikon.ai,
                         'Asisten AI',
-                        () => pilih(() => dorong(AsistenPage(api: widget.api))),
+                        () => pilih(() => dorong(AsistenPage(api: widget.api, tanpaAppBar: true), 'Asisten GARAP')),
                       ),
                     _ItemMenu(
                       Ikon.cctv,
                       'CCTV',
-                      () => pilih(() => dorong(CctvPage(api: widget.api))),
+                      () => pilih(() => dorong(CctvPage(api: widget.api, tanpaAppBar: true), 'CCTV')),
                     ),
                   ],
                   const _GrupMenu('Kebun & sensor'),
@@ -168,13 +168,13 @@ class _DashboardPageState extends State<DashboardPage> {
                     _ItemMenu(
                       Ikon.ambang,
                       'Saklar',
-                      () => pilih(() => dorong(SaklarPage(api: widget.api))),
+                      () => pilih(() => dorong(SaklarPage(api: widget.api, tanpaAppBar: true), 'Saklar')),
                     ),
                     _ItemMenu(
                       Ikon.tetes,
                       'Nutrisi manual',
                       () => pilih(
-                        () => dorong(NutrisiManualPage(api: widget.api)),
+                        () => dorong(NutrisiManualPage(api: widget.api, tanpaAppBar: true), 'Nutrisi'),
                       ),
                     ),
                   ],
@@ -183,13 +183,13 @@ class _DashboardPageState extends State<DashboardPage> {
                     _ItemMenu(
                       Ikon.dosing,
                       'Uji lab',
-                      () => pilih(() => dorong(UjiLabPage(api: widget.api))),
+                      () => pilih(() => dorong(UjiLabPage(api: widget.api, tanpaAppBar: true), 'Uji Lab')),
                     ),
                   _ItemMenu(
                     Ikon.laporan,
                     'Riwayat monitoring',
                     () => pilih(
-                      () => dorong(RiwayatMonitoringPage(api: widget.api)),
+                      () => dorong(RiwayatMonitoringPage(api: widget.api, tanpaAppBar: true), 'Riwayat'),
                     ),
                   ),
                   const _GrupMenu('Sistem'),
@@ -201,7 +201,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   _ItemMenu(
                     Ikon.info,
                     'Tentang kami',
-                    () => pilih(() => dorong(const TentangPage())),
+                    () => pilih(() => dorong(const TentangPage(tanpaAppBar: true), 'Tentang Kami')),
                   ),
                 ],
               ),
@@ -427,10 +427,10 @@ class _DashboardPageState extends State<DashboardPage> {
               const Eyebrow('Peringatan terbaru'),
               InkWell(
                 borderRadius: BorderRadius.circular(8),
-                onTap: () => Navigator.of(context).push(
-                  RuteHalus<void>(
-                    builder: (_) => PeringatanPage(api: widget.api),
-                  ),
+                onTap: () => bukaHalamanApp(
+                  context,
+                  PeringatanPage(api: widget.api, tanpaAppBar: true),
+                  judul: 'Peringatan',
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -459,10 +459,10 @@ class _DashboardPageState extends State<DashboardPage> {
                     children: [
                       for (final a in alerts.whereType<Map<Object?, Object?>>())
                         InkWell(
-                          onTap: () => Navigator.of(context).push(
-                            RuteHalus<void>(
-                              builder: (_) => PeringatanPage(api: widget.api),
-                            ),
+                          onTap: () => bukaHalamanApp(
+                            context,
+                            PeringatanPage(api: widget.api, tanpaAppBar: true),
+                            judul: 'Peringatan',
                           ),
                           child: _BarisInfo(
                             ikon: Ikon.peringatan,

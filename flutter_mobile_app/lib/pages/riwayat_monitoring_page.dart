@@ -13,9 +13,14 @@ import '../widgets/motion.dart';
 
 /// Riwayat monitoring — GET /monitoring/chart-data (butuh token).
 class RiwayatMonitoringPage extends StatefulWidget {
-  const RiwayatMonitoringPage({super.key, required this.api});
+  const RiwayatMonitoringPage({
+    super.key,
+    required this.api,
+    this.tanpaAppBar = false,
+  });
 
   final ApiService api;
+  final bool tanpaAppBar;
 
   @override
   State<RiwayatMonitoringPage> createState() => _RiwayatMonitoringPageState();
@@ -187,7 +192,9 @@ class _RiwayatMonitoringPageState extends State<RiwayatMonitoringPage>
     }
 
     return Scaffold(
-      appBar: const AppBarGlass(judul: 'Riwayat monitoring', eyebrow: 'Data'),
+      appBar: widget.tanpaAppBar
+          ? null
+          : const AppBarGlass(judul: 'Riwayat monitoring', eyebrow: 'Data'),
       body: LatarHalaman(child: body),
     );
   }

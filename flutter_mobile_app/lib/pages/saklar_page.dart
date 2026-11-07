@@ -10,9 +10,10 @@ import '../widgets/switch_kaca.dart';
 /// Saklar aktuator — GET /saklar, PUT /saklar/:kode {aktif}. Hanya admin yang boleh mengubah.
 /// OFF = otomasi (preset/jadwal/AI) tidak boleh menyalakannya; Nutrisi Manual tetap boleh (override).
 class SaklarPage extends StatefulWidget {
-  const SaklarPage({super.key, required this.api});
+  const SaklarPage({super.key, required this.api, this.tanpaAppBar = false});
 
   final ApiService api;
+  final bool tanpaAppBar;
 
   @override
   State<SaklarPage> createState() => _SaklarPageState();
@@ -117,7 +118,9 @@ class _SaklarPageState extends State<SaklarPage> {
       );
     }
     return Scaffold(
-      appBar: const AppBarGlass(judul: 'Saklar', eyebrow: 'Kendali'),
+      appBar: widget.tanpaAppBar
+          ? null
+          : const AppBarGlass(judul: 'Saklar', eyebrow: 'Kendali'),
       body: LatarHalaman(child: isi),
     );
   }

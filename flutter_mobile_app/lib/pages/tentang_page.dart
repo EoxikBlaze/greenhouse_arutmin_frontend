@@ -12,7 +12,9 @@ import '../widgets/motion.dart';
 /// Tentang Kami — padanan halaman Tentang di web (deskripsi, mitra, tim, kontak).
 /// Dibuka dari Akun → Pengaturan. Tautan disalin ke papan klip (tanpa plugin peramban).
 class TentangPage extends StatelessWidget {
-  const TentangPage({super.key});
+  const TentangPage({super.key, this.tanpaAppBar = false});
+
+  final bool tanpaAppBar;
 
   static const _mitra = [
     _Mitra(
@@ -184,7 +186,9 @@ class TentangPage extends StatelessWidget {
     final kolomMitra = lebar >= 600 ? 4 : 2;
 
     return Scaffold(
-      appBar: const AppBarGlass(judul: 'Tentang kami', eyebrow: 'Sistem'),
+      appBar: tanpaAppBar
+          ? null
+          : const AppBarGlass(judul: 'Tentang kami', eyebrow: 'Sistem'),
       body: LatarHalaman(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -195,7 +199,15 @@ class TentangPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Image.asset('assets/tentang/logo/kkn.png', height: 76),
+                    Container(
+                      height: 76,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0A1F38),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Image.asset('assets/tentang/logo/kkn.png', fit: BoxFit.contain),
+                    ),
                     const SizedBox(height: Tok.sp3),
                     Text(
                       'Merawat nutrisi tanaman, tanpa petani harus menakar sendiri.',

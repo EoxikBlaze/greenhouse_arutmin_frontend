@@ -9,7 +9,7 @@ import '../widgets/ikon.dart';
 import '../widgets/dock.dart';
 import '../widgets/halaman.dart';
 import '../widgets/motion.dart';
-import '../widgets/rute.dart';
+import '../widgets/navigasi_shell.dart';
 import 'cctv_page.dart';
 import 'riwayat_monitoring_page.dart';
 import 'tentang_page.dart';
@@ -213,20 +213,22 @@ class _ProfilPageState extends State<ProfilPage> {
                         _Pintas(
                           ikon: Ikon.cctv,
                           label: 'CCTV greenhouse',
-                          onTap: () => Navigator.of(context).push(
-                            RuteHalus<void>(
-                              builder: (_) => CctvPage(api: widget.api),
-                            ),
+                          onTap: () => bukaHalamanApp(
+                            context,
+                            CctvPage(api: widget.api, tanpaAppBar: true),
+                            judul: 'CCTV',
                           ),
                         ),
                       _Pintas(
                         ikon: Ikon.audit,
                         label: 'Riwayat monitoring',
-                        onTap: () => Navigator.of(context).push(
-                          RuteHalus<void>(
-                            builder: (_) =>
-                                RiwayatMonitoringPage(api: widget.api),
+                        onTap: () => bukaHalamanApp(
+                          context,
+                          RiwayatMonitoringPage(
+                            api: widget.api,
+                            tanpaAppBar: true,
                           ),
+                          judul: 'Riwayat',
                         ),
                       ),
                     ],
@@ -364,8 +366,10 @@ class _ProfilPageState extends State<ProfilPage> {
                   child: _Pintas(
                     ikon: Ikon.info,
                     label: 'Tentang Kami',
-                    onTap: () => Navigator.of(context).push(
-                      RuteHalus<void>(builder: (_) => const TentangPage()),
+                    onTap: () => bukaHalamanApp(
+                      context,
+                      const TentangPage(tanpaAppBar: true),
+                      judul: 'Tentang Kami',
                     ),
                   ),
                 ),

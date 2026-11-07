@@ -26,9 +26,10 @@ String labelStatusDosing(String? hasil) => switch (hasil) {
 /// Nutrisi Manual — POST /iot-v41/dosing-manual {zat, volume_ml}, riwayat GET /iot-v41/dosing-manual/riwayat.
 /// Tidak terpengaruh saklar. Eksekusi pompa dari aplikasi masih DIKUNCI server: permintaan dicatat gagal.
 class NutrisiManualPage extends StatefulWidget {
-  const NutrisiManualPage({super.key, required this.api});
+  const NutrisiManualPage({super.key, required this.api, this.tanpaAppBar = false});
 
   final ApiService api;
+  final bool tanpaAppBar;
 
   @override
   State<NutrisiManualPage> createState() => _NutrisiManualPageState();
@@ -107,7 +108,9 @@ class _NutrisiManualPageState extends State<NutrisiManualPage> {
   Widget build(BuildContext context) {
     final salah = _salah;
     return Scaffold(
-      appBar: const AppBarGlass(judul: 'Nutrisi Manual', eyebrow: 'Kendali'),
+      appBar: widget.tanpaAppBar
+          ? null
+          : const AppBarGlass(judul: 'Nutrisi Manual', eyebrow: 'Kendali'),
       body: LatarHalaman(
         child: RefreshIndicator(
           onRefresh: _muat,

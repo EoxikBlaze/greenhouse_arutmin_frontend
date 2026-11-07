@@ -10,9 +10,10 @@ import '../widgets/motion.dart';
 
 /// Chat dengan asisten AI — POST /api/ai/chat (admin & petani; demo ditolak).
 class AsistenPage extends StatefulWidget {
-  const AsistenPage({super.key, required this.api});
+  const AsistenPage({super.key, required this.api, this.tanpaAppBar = false});
 
   final ApiService api;
+  final bool tanpaAppBar;
 
   @override
   State<AsistenPage> createState() => _AsistenPageState();
@@ -352,24 +353,26 @@ class _AsistenPageState extends State<AsistenPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBarGlass(
-        judul: 'Asisten AI',
-        eyebrow: 'Ikhtisar',
-        tampilkanAi: false,
-        aksi: [
-          if (_pesan.isNotEmpty)
-            IconButton(
-              tooltip: 'Hapus percakapan',
-              icon: Icon(Ikon.hapus, color: Tok.tinta),
-              onPressed: _memuat
-                  ? null
-                  : () => setState(() {
-                        _pesan.clear();
-                        _RiwayatChatStore.hapus();
-                      }),
+      appBar: widget.tanpaAppBar
+          ? null
+          : AppBarGlass(
+              judul: 'Asisten AI',
+              eyebrow: 'Ikhtisar',
+              tampilkanAi: false,
+              aksi: [
+                if (_pesan.isNotEmpty)
+                  IconButton(
+                    tooltip: 'Hapus percakapan',
+                    icon: Icon(Ikon.hapus, color: Tok.tinta),
+                    onPressed: _memuat
+                        ? null
+                        : () => setState(() {
+                              _pesan.clear();
+                              _RiwayatChatStore.hapus();
+                            }),
+                  ),
+              ],
             ),
-        ],
-      ),
       body: LatarHalaman(
         child: Column(
           children: [

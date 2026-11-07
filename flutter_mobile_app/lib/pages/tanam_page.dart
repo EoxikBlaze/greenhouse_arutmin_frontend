@@ -10,7 +10,7 @@ import '../widgets/kaca.dart';
 import '../widgets/dock.dart';
 import '../widgets/halaman.dart';
 import '../widgets/motion.dart';
-import '../widgets/rute.dart';
+import '../widgets/navigasi_shell.dart';
 import 'naik_harian_page.dart';
 
 /// Tanam saya — GET /tanam (semai, peremajaan, pendewasaan yang berjalan).
@@ -169,10 +169,10 @@ class _TanamPageState extends State<TanamPage> {
                     side: BorderSide(color: Tok.putih(0.95)),
                     shape: const StadiumBorder(),
                   ),
-                  onPressed: () => Navigator.of(context).push(
-                    RuteHalus<void>(
-                      builder: (_) => NaikHarianPage(api: widget.api),
-                    ),
+                  onPressed: () => bukaHalamanApp(
+                    context,
+                    NaikHarianPage(api: widget.api, tanpaAppBar: true),
+                    judul: 'Target Nutrisi',
                   ),
                 ),
                 const SizedBox(height: 16),

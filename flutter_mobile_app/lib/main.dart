@@ -20,6 +20,7 @@ import 'widgets/dock.dart';
 import 'widgets/halaman.dart';
 import 'widgets/ikon.dart';
 import 'widgets/kaca.dart';
+import 'widgets/navigasi_shell.dart';
 import 'widgets/rute.dart';
 
 /// GARAP — pemantauan rumah tanam hidroponik (Arutmin: navy, emas, moss).
@@ -224,13 +225,13 @@ class _MainShell extends StatefulWidget {
   State<_MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<_MainShell>
-    with SingleTickerProviderStateMixin {
+class _MainShellState extends State<_MainShell> {
   late final List<_Tab> _tab;
-  late final AnimationController _pudar;
   final Set<int> _dibuka = {0};
   int _indeks = 0;
   bool _adaNotif = false;
+  Widget? _halamanDalam;
+  String? _judulHalamanDalam;
 
   @override
   void initState() {
@@ -259,11 +260,6 @@ class _MainShellState extends State<_MainShell>
         (a) => ProfilPage(api: apiService, aktif: a, onLogout: widget.onLogout),
       ),
     ];
-    _pudar = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 380),
-      value: 1,
-    );
     _cekAlertAktif();
   }
 
@@ -282,10 +278,20 @@ class _MainShellState extends State<_MainShell>
     }
   }
 
-  @override
-  void dispose() {
-    _pudar.dispose();
-    super.dispose();
+  void _bukaHalaman(Widget halaman, String judul) {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _halamanDalam = halaman;
+      _judulHalamanDalam = judul;
+    });
+  }
+
+  void _tutupHalaman() {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _halamanDalam = null;
+      _judulHalamanDalam = null;
+    });
   }
 
   /// Dipakai Beranda (menu dan tombol aksi) untuk pindah ke tab lain berdasarkan labelnya.
@@ -295,13 +301,13 @@ class _MainShellState extends State<_MainShell>
   }
 
   void _pilih(int i) {
-    if (i == _indeks) return;
     HapticFeedback.selectionClick();
     setState(() {
       _indeks = i;
       _dibuka.add(i);
+      _halamanDalam = null;
+      _judulHalamanDalam = null;
     });
-    _pudar.forward(from: 0);
   }
 
   String _subjudulTab(int i) {
@@ -317,120 +323,142 @@ class _MainShellState extends State<_MainShell>
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: _indeks == 0,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && _indeks != 0) {
-          _pilih(0);
-        }
-      },
-      child: ApiServiceScope(
-        api: apiService,
-        child: NavigasiBerandaScope(
-          onKembali: null,
-          child: Scaffold(
-            extendBody: true,
-            body: Stack(
-              children: [
-                // satu latar cair untuk semua tab
-                const Positioned.fill(child: LatarCair()),
-                // Konten tab di bawah header Arutmin yang dipin di atas
-                Positioned.fill(
-                  top: MediaQuery.paddingOf(context).top + 80,
-                  child: BackdropGroup(
-                    child: FadeTransition(
-                      opacity: CurvedAnimation(parent: _pudar, curve: Tok.ease),
+    return NavigasiShellScope(
+      bukaHalaman: _bukaHalaman,
+      tutupHalaman: _tutupHalaman,
+      adaHalamanDalam: _halamanDalam != null,
+      child: PopScope(
+        canPop: _halamanDalam == null && _indeks == 0,
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) return;
+          if (_halamanDalam != null) {
+            _tutupHalaman();
+          } else if (_indeks != 0) {
+            _pilih(0);
+          }
+        },
+        child: ApiServiceScope(
+          api: apiService,
+          child: NavigasiBerandaScope(
+            onKembali: _halamanDalam != null ? _tutupHalaman : null,
+            child: Scaffold(
+              extendBody: true,
+              body: Stack(
+                children: [
+                  // Satu latar cair untuk semua tab dan halaman
+                  const Positioned.fill(child: LatarCair()),
+
+                  // Konten tengah: transisi cross-fade lembut tanpa kedip
+                  Positioned.fill(
+                    top: MediaQuery.paddingOf(context).top + 80,
+                    child: BackdropGroup(
                       child: Align(
                         alignment: Alignment.topCenter,
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 840),
-                          child: IndexedStack(
-                            index: _indeks,
-                            children: [
-                              // Tab tersembunyi: ticker dijeda agar hemat baterai.
-                              for (var i = 0; i < _tab.length; i++)
-                                TickerMode(
-                                  enabled: i == _indeks,
-                                  child: _dibuka.contains(i)
-                                      ? _tab[i].bangun(i == _indeks)
-                                      : const SizedBox.shrink(),
-                                ),
-                            ],
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 220),
+                            switchInCurve: Curves.easeOutCubic,
+                            switchOutCurve: Curves.easeInCubic,
+                            transitionBuilder: (child, animation) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              );
+                            },
+                            child: KeyedSubtree(
+                              key: ValueKey<String>(
+                                _halamanDalam != null
+                                    ? 'dalam-$_judulHalamanDalam'
+                                    : 'tab-$_indeks',
+                              ),
+                              child: _halamanDalam ?? _tab[_indeks].bangun(true),
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                // Header Arutmin selalu dipin di paling atas
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: Builder(
-                    builder: (context) {
-                      final u = apiService.user;
-                      final username = u?['username']?.toString() ?? '';
-                      final inisial = username.trim().isNotEmpty
-                          ? username.trim().substring(0, username.trim().length >= 2 ? 2 : 1).toUpperCase()
-                          : null;
-                      return ArutminHeader(
-                        subjudul: _subjudulTab(_indeks),
-                        adaNotif: _adaNotif,
-                        inisial: inisial,
-                        fotoProfil: null,
-                        onProfileTap: () => _bukaTab('Akun'),
-                        onNotifTap: () {
-                          Navigator.of(context).push(
-                            RuteHalus<void>(
-                              builder: (_) => PeringatanPage(
+
+                  // Header Arutmin selalu dipin di paling atas (tidak bergerak saat ganti halaman)
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: Builder(
+                      builder: (context) {
+                        final u = apiService.user;
+                        final username = u?['username']?.toString() ?? '';
+                        final inisial = username.trim().isNotEmpty
+                            ? username.trim().substring(0, username.trim().length >= 2 ? 2 : 1).toUpperCase()
+                            : null;
+                        return ArutminHeader(
+                          subjudul: _judulHalamanDalam ?? _subjudulTab(_indeks),
+                          bisaKembali: _halamanDalam != null,
+                          onKembali: _halamanDalam != null ? _tutupHalaman : null,
+                          adaNotif: _adaNotif,
+                          inisial: inisial,
+                          fotoProfil: null,
+                          onProfileTap: () {
+                            if (_halamanDalam != null) _tutupHalaman();
+                            _bukaTab('Akun');
+                          },
+                          onNotifTap: () {
+                            _bukaHalaman(
+                              PeringatanPage(
                                 api: apiService,
+                                tanpaAppBar: true,
                                 onSelesai: _cekAlertAktif,
                               ),
-                            ),
-                          ).then((_) => _cekAlertAktif());
-                        },
-                      );
-                    },
+                              'Peringatan',
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
-                ),
-                // Tombol Asisten AI melayang tepat di atas footer dock (mengikuti footer di semua page)
-                Positioned(
-                  right: 20,
-                  bottom: 86,
-                  child: SafeArea(
-                    top: false,
-                    child: _TombolAiDiatasFooter(
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => AsistenPage(api: apiService),
+
+                  // Tombol Asisten AI melayang tepat di atas footer dock (tetap di posisinya)
+                  Positioned(
+                    right: 20,
+                    bottom: 86,
+                    child: SafeArea(
+                      top: false,
+                      child: _TombolAiDiatasFooter(
+                        onTap: () => _bukaHalaman(
+                          AsistenPage(
+                            api: apiService,
+                            tanpaAppBar: true,
+                          ),
+                          'Asisten GARAP',
                         ),
                       ),
                     ),
                   ),
-                ),
-                // Footer dock di bagian bawah
-                Positioned(
-                  left: 16,
-                  right: 16,
-                  bottom: 0,
-                  child: SafeArea(
-                    top: false,
-                    minimum: const EdgeInsets.only(bottom: 12),
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 520),
-                        child: DockNav(
-                          item: [for (final t in _tab) DockItem(t.label, t.ikon)],
-                          indeks: _indeks,
-                          onPilih: _pilih,
+
+                  // Footer dock selalu dipin di bagian bawah (tidak bergerak saat ganti halaman)
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 0,
+                    child: SafeArea(
+                      top: false,
+                      minimum: const EdgeInsets.only(bottom: 12),
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 520),
+                          child: DockNav(
+                            item: [for (final t in _tab) DockItem(t.label, t.ikon)],
+                            indeks: _halamanDalam != null ? -1 : _indeks,
+                            onPilih: _pilih,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

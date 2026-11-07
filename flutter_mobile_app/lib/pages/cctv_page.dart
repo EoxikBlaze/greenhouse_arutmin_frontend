@@ -16,9 +16,10 @@ import '../widgets/rute.dart';
 /// CCTV — daftar kamera dari GET /cctv. Snapshot/MJPEG ditarik langsung dari
 /// URL kamera; kamera RTSP (EZVIZ dkk.) lewat server: GET /cctv/:id/gambar.
 class CctvPage extends StatefulWidget {
-  const CctvPage({super.key, required this.api});
+  const CctvPage({super.key, required this.api, this.tanpaAppBar = false});
 
   final ApiService api;
+  final bool tanpaAppBar;
 
   @override
   State<CctvPage> createState() => _CctvPageState();
@@ -65,7 +66,9 @@ class _CctvPageState extends State<CctvPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const AppBarGlass(judul: 'CCTV greenhouse', eyebrow: 'Ikhtisar'),
+      appBar: widget.tanpaAppBar
+          ? null
+          : const AppBarGlass(judul: 'CCTV greenhouse', eyebrow: 'Ikhtisar'),
       body: LatarHalaman(
         child: RefreshIndicator(
           color: Tok.moss,

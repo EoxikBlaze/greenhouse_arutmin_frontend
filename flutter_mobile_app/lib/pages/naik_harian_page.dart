@@ -14,9 +14,10 @@ import '../widgets/motion.dart';
 /// Sejak pindah netpot (mulai Peremajaan) target ppm penampung naik rata tiap hari sampai target akhir,
 /// lalu ditahan sampai panen. Petani cukup isi target akhir; demo hanya melihat.
 class NaikHarianPage extends StatefulWidget {
-  const NaikHarianPage({super.key, required this.api});
+  const NaikHarianPage({super.key, required this.api, this.tanpaAppBar = false});
 
   final ApiService api;
+  final bool tanpaAppBar;
 
   @override
   State<NaikHarianPage> createState() => _NaikHarianPageState();
@@ -104,10 +105,12 @@ class _NaikHarianPageState extends State<NaikHarianPage> {
   Widget build(BuildContext context) {
     final bisaUbah = widget.api.role != 'demo';
     return Scaffold(
-      appBar: const AppBarGlass(
-        judul: 'Target nutrisi',
-        eyebrow: 'Kebun & sensor',
-      ),
+      appBar: widget.tanpaAppBar
+          ? null
+          : const AppBarGlass(
+              judul: 'Target nutrisi',
+              eyebrow: 'Kebun & sensor',
+            ),
       body: LatarHalaman(
         child: RefreshIndicator(
           color: Tok.moss,
