@@ -676,8 +676,8 @@ void tampilkanPesan(BuildContext context, String pesan, {bool galat = false}) {
 }
 
 /// Header resmi bergaya kartu putih rounded sesuai desain Arutmin Dashboard:
-/// - Kiri: Logo KKN Arutmin Asik 2026 + Teks "Arutmin" & Subjudul (Dashboard) bergaris bawah ungu
-/// - Kanan: Lonceng notifikasi abu-abu dengan titik merah + Foto profil lingkaran
+/// - Kiri: Logo KKN Arutmin Asik 2026 + Teks "Arutmin" & Subjudul (Dashboard) bergaris bawah ungu selebar teks
+/// - Kanan: Lonceng notifikasi abu-abu dengan titik merah + Foto profil lingkaran tanpa border
 class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
   const ArutminHeader({
     super.key,
@@ -697,7 +697,7 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onKembali;
 
   @override
-  Size get preferredSize => const Size.fromHeight(80);
+  Size get preferredSize => const Size.fromHeight(84);
 
   @override
   Widget build(BuildContext context) {
@@ -708,23 +708,23 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
           child: Container(
-            height: 66,
+            height: 70,
             decoration: BoxDecoration(
               color: Tok.gelap ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(35),
               border: Border.all(
                 color: Tok.gelap ? Colors.white12 : const Color(0xFFE2E8F0),
                 width: 1.2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: Tok.gelap ? 0.3 : 0.05),
-                  blurRadius: 12,
-                  offset: const Offset(0, 3),
+                  color: Colors.black.withValues(alpha: Tok.gelap ? 0.35 : 0.06),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
                 if (bisaKembali) ...[
@@ -741,10 +741,10 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
                 ],
                 Image.asset(
                   'assets/tentang/logo/kkn.png',
-                  height: 42,
+                  height: 48,
                   fit: BoxFit.contain,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -756,34 +756,41 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontFamily: Tok.fontJudul,
-                          fontSize: 18,
+                          fontSize: 21,
                           fontWeight: FontWeight.w900,
                           color: Tok.tinta,
-                          height: 1.1,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
-                      const SizedBox(height: 1),
-                      Text(
-                        subjudul,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontFamily: Tok.fontJudul,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Tok.tinta,
-                          height: 1.1,
-                          letterSpacing: -0.2,
+                          height: 1.05,
+                          letterSpacing: -0.4,
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Container(
-                        height: 2.5,
-                        width: 34,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF8B5CF6),
-                          borderRadius: BorderRadius.circular(2),
+                      IntrinsicWidth(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              subjudul,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontFamily: Tok.fontJudul,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                                color: Tok.tinta,
+                                height: 1.05,
+                                letterSpacing: -0.2,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Container(
+                              height: 2.8,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF8B5CF6),
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -796,8 +803,8 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
                       tooltip: 'Pemberitahuan',
                       icon: const Icon(
                         Icons.notifications_rounded,
-                        size: 26,
-                        color: Color(0xFF6B7280),
+                        size: 28,
+                        color: Color(0xFF71717A),
                       ),
                       onPressed: onNotifTap ??
                           () {
@@ -816,11 +823,15 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
                         right: 8,
                         bottom: 8,
                         child: Container(
-                          width: 10,
-                          height: 10,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFEF4444),
+                          width: 11,
+                          height: 11,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444),
                             shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Tok.gelap ? const Color(0xFF1E293B) : Colors.white,
+                              width: 1.5,
+                            ),
                           ),
                         ),
                       ),
@@ -830,21 +841,11 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
                 InkWell(
                   borderRadius: BorderRadius.circular(999),
                   onTap: onProfileTap,
-                  child: Container(
-                    padding: const EdgeInsets.all(1.5),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFF8B5CF6).withValues(alpha: 0.5),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: const CircleAvatar(
-                      radius: 19,
-                      backgroundColor: Color(0xFFE2E8F0),
-                      backgroundImage: AssetImage(
-                        'assets/tentang/tim/siti-azizahtusholihah.png',
-                      ),
+                  child: const CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Color(0xFFE2E8F0),
+                    backgroundImage: AssetImage(
+                      'assets/tentang/tim/siti-azizahtusholihah.png',
                     ),
                   ),
                 ),

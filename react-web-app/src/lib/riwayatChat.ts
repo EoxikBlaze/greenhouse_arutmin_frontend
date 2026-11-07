@@ -33,6 +33,7 @@ export type Pesan = {
   status?: 'OK' | 'PERHATIAN' | 'KRITIS'
   tabel?: Tabel[]
   tautan?: Tautan[]
+  saran_pertanyaan?: string[]
   galat?: boolean
   /** Untuk pesan galat: teks pengguna yang gagal, dipakai tombol "Coba lagi". */
   ulang?: string
@@ -56,16 +57,17 @@ export function riwayatUntukServer(pesan: Pesan[]) {
 }
 
 
-/* ── Riwayat chat per tab: tetap ada saat pindah halaman (mis. klik tautan) lalu kembali ── */
+/* ── Riwayat chat: tetap ada saat pindah halaman atau refresh tab ── */
 const AWALAN_CHAT = 'vsf-chat:'
-const MAKS_SIMPAN = 40
+const MAKS_SIMPAN = 50
 
-/** sessionStorage: hilang saat tab ditutup; kunci per pengguna supaya akun lain di tab yang sama tidak melihatnya. */
+/** Kunci per pengguna supaya akun lain tidak melihat riwayat akun lain. */
 export const kunciChat = (username: string) => `${AWALAN_CHAT}${username || '-'}`
 
 export function muatChat(username: string): Pesan[] {
   try {
-    const raw = sessionStorage.getItem(kunciChat(username))
+    const k = kunciChat(username)
+    const raw = localStorage.getItem(k) || sessionStorage.getItem(k)
     const data: unknown = raw ? JSON.parse(raw) : []
     if (!Array.isArray(data)) return []
     return data
@@ -84,16 +86,26 @@ export function muatChat(username: string): Pesan[] {
 export function simpanChat(username: string, pesan: Pesan[]): void {
   try {
     const k = kunciChat(username)
-    if (pesan.length === 0) sessionStorage.removeItem(k)
-    else sessionStorage.setItem(k, JSON.stringify(pesan.slice(-MAKS_SIMPAN)))
+    if (pesan.length === 0) {
+      localStorage.removeItem(k)
+      sessionStorage.removeItem(k)
+    } else {
+      const val = JSON.stringify(pesan.slice(-MAKS_SIMPAN))
+      localStorage.setItem(k, val)
+      sessionStorage.setItem(k, val)
+    }
   } catch {
     /* penyimpanan tidak tersedia (mode privat/penuh): chat tetap jalan, hanya tidak bertahan */
   }
 }
 
-/** Dipanggil saat keluar: hapus semua riwayat chat di tab ini. */
+/** Dipanggil saat keluar: hapus semua riwayat chat. */
 export function hapusSemuaChat(): void {
   try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i)
+      if (k && k.startsWith(AWALAN_CHAT)) localStorage.removeItem(k)
+    }
     for (let i = sessionStorage.length - 1; i >= 0; i--) {
       const k = sessionStorage.key(i)
       if (k && k.startsWith(AWALAN_CHAT)) sessionStorage.removeItem(k)

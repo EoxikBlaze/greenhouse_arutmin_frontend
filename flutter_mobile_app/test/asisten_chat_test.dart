@@ -104,7 +104,7 @@ void main() {
       }
 
       await kirim('Siapa presiden Amerika?');
-      expect(find.text('Permintaan ditolak oleh pengaman'), findsOneWidget);
+      expect(find.text('Saran topik Asisten GARAP'), findsOneWidget);
 
       await kirim('Bagaimana pH sekarang?');
       expect(

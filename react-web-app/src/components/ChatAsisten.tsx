@@ -36,7 +36,7 @@ const SUMBER: Record<string, string> = {
   panduan: 'Panduan aplikasi (jawaban tetap, bukan tebakan AI)',
   data: 'Diambil langsung dari catatan kebun',
   ollama: 'Dijawab AI lokal — cek ulang sebelum bertindak',
-  tolak: 'Permintaan ditolak oleh pengaman',
+  tolak: 'Saran topik Asisten GARAP',
 }
 
 function warnaSel(v: string): string {
@@ -141,12 +141,23 @@ export function ChatAsisten({ saran }: { saran: string[] }) {
         status?: 'OK' | 'PERHATIAN' | 'KRITIS'
         tabel?: Tabel[]
         tautan?: unknown
+        saran_pertanyaan?: string[]
       }
       if (sesi !== sesiRef.current) return
       const waktu = sekarang()
       setPesan((l) => [
         ...l,
-        { id: ++idRef.current, peran: 'ai', teks: d.jawaban, waktu, sumber: d.sumber, status: d.status, tabel: d.tabel ?? [], tautan: tautanAman(d.tautan) },
+        {
+          id: ++idRef.current,
+          peran: 'ai',
+          teks: d.jawaban,
+          waktu,
+          sumber: d.sumber,
+          status: d.status,
+          tabel: d.tabel ?? [],
+          tautan: tautanAman(d.tautan),
+          saran_pertanyaan: Array.isArray(d.saran_pertanyaan) ? d.saran_pertanyaan : [],
+        },
       ])
     } catch (err) {
       if (sesi !== sesiRef.current) return
@@ -261,6 +272,25 @@ export function ChatAsisten({ saran }: { saran: string[] }) {
                   )}
                   {p.teks}
                   {p.tabel?.map((t, i) => <TabelAi key={i} t={t} />)}
+                  {p.saran_pertanyaan && p.saran_pertanyaan.length > 0 && (
+                    <div className="mt-2.5">
+                      <div className="mb-1.5 text-[12px] font-bold text-tinta">💡 Rekomendasi pertanyaan untuk Anda:</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {p.saran_pertanyaan.map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            disabled={memuat}
+                            onClick={() => void kirim(s)}
+                            className="vsf-btn-secondary vsf-btn-kecil inline-flex items-center gap-1 !rounded-full !text-[12px]"
+                          >
+                            <span className="text-arutmin-moss">✨</span>
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {p.tautan && p.tautan.length > 0 && (
                     <nav aria-label="Buka halaman terkait" className="mt-2.5 flex flex-wrap gap-2">
                       {p.tautan.map((t) => (

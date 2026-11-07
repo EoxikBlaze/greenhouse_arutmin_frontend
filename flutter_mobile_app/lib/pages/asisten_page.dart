@@ -34,6 +34,7 @@ class _Pesan {
     this.sumber,
     this.status,
     this.tabel = const [],
+    this.saran = const [],
   });
 
   final String teks;
@@ -42,6 +43,7 @@ class _Pesan {
   final String? sumber;
   final String? status;
   final List<_Tabel> tabel;
+  final List<String> saran;
 }
 
 class _Pintasan {
@@ -58,8 +60,25 @@ const _labelSumber = <String, String>{
   'data': 'Data langsung sensor',
   'sapaan': 'Asisten GARAP',
   'ollama': 'Dijawab AI lokal (Qwen) — cek ulang sebelum bertindak',
-  'tolak': 'Permintaan ditolak oleh pengaman',
+  'tolak': 'Saran topik Asisten GARAP',
 };
+
+/// Penyimpanan riwayat chat di memori per sesi agar percakapan tetap bertahan saat berpindah halaman.
+class _RiwayatChatStore {
+  static final List<_Pesan> riwayat = [];
+
+  static List<_Pesan> muat() => List<_Pesan>.from(riwayat);
+
+  static void simpan(List<_Pesan> list) {
+    riwayat
+      ..clear()
+      ..addAll(list);
+  }
+
+  static void hapus() {
+    riwayat.clear();
+  }
+}
 
 /// Riwayat untuk server: pasangan tanya-jawab yang ditolak/galat dibuang UTUH.
 /// Dulu hanya jawabannya yang dibuang → pertanyaan luar topik ikut terkirim dan
@@ -185,6 +204,15 @@ class _AsistenPageState extends State<AsistenPage> {
   bool _memuat = false;
 
   @override
+  void initState() {
+    super.initState();
+    _pesan.addAll(_RiwayatChatStore.muat());
+    if (_pesan.isNotEmpty) {
+      _keBawah();
+    }
+  }
+
+  @override
   void dispose() {
     _ctrl.dispose();
     _gulir.dispose();
@@ -231,6 +259,13 @@ class _AsistenPageState extends State<AsistenPage> {
       }, const Duration(seconds: 45));
       if (!mounted) return;
       final map = d is Map ? d : const <Object?, Object?>{};
+      final saranList = <String>[];
+      if (map['saran_pertanyaan'] is List) {
+        for (final s in map['saran_pertanyaan'] as List) {
+          final str = s?.toString().trim() ?? '';
+          if (str.isNotEmpty) saranList.add(str);
+        }
+      }
       setState(() {
         var teksJawab = '${map['jawaban'] ?? 'Tidak ada jawaban.'}';
         var tabelJawab = _uraiTabel(map['tabel']);
@@ -249,8 +284,10 @@ class _AsistenPageState extends State<AsistenPage> {
             sumber: map['sumber'] is String ? map['sumber'] as String : null,
             status: map['status'] is String ? map['status'] as String : null,
             tabel: tabelJawab,
+            saran: saranList,
           ),
         );
+        _RiwayatChatStore.simpan(_pesan);
         _memuat = false;
       });
     } catch (e) {
@@ -267,6 +304,7 @@ class _AsistenPageState extends State<AsistenPage> {
             galat: true,
           ),
         );
+        _RiwayatChatStore.simpan(_pesan);
         _memuat = false;
       });
     }
@@ -285,7 +323,12 @@ class _AsistenPageState extends State<AsistenPage> {
             IconButton(
               tooltip: 'Hapus percakapan',
               icon: Icon(Ikon.hapus, color: Tok.tinta),
-              onPressed: _memuat ? null : () => setState(_pesan.clear),
+              onPressed: _memuat
+                  ? null
+                  : () => setState(() {
+                        _pesan.clear();
+                        _RiwayatChatStore.hapus();
+                      }),
             ),
         ],
       ),
@@ -301,7 +344,7 @@ class _AsistenPageState extends State<AsistenPage> {
                       itemCount: _pesan.length + (_memuat ? 1 : 0),
                       itemBuilder: (context, i) {
                         if (i == _pesan.length) return const _Mengetik();
-                        return _Gelembung(_pesan[i]);
+                        return _Gelembung(_pesan[i], onPilihSaran: _kirim);
                       },
                     ),
             ),
@@ -457,9 +500,10 @@ class _Kosong extends StatelessWidget {
 }
 
 class _Gelembung extends StatelessWidget {
-  const _Gelembung(this.p);
+  const _Gelembung(this.p, {this.onPilihSaran});
 
   final _Pesan p;
+  final ValueChanged<String>? onPilihSaran;
 
   @override
   Widget build(BuildContext context) {
@@ -514,6 +558,42 @@ class _Gelembung extends StatelessWidget {
                 style: TextStyle(color: teks, height: 1.4, fontSize: 14.5),
               ),
               for (final t in p.tabel) _TabelAi(t),
+              if (p.saran.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Text(
+                  '💡 Rekomendasi pertanyaan untuk Anda:',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Tok.tinta,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final s in p.saran)
+                      ActionChip(
+                        avatar: const Icon(
+                          Icons.touch_app_rounded,
+                          size: 14,
+                          color: Color(0xFF8B5CF6),
+                        ),
+                        label: Text(
+                          s,
+                          style: TextStyle(fontSize: 12, color: Tok.tinta),
+                        ),
+                        backgroundColor: Tok.isiKaca(0.72),
+                        side: BorderSide(color: Tok.tepiKaca),
+                        shape: const StadiumBorder(),
+                        onPressed: onPilihSaran != null
+                            ? () => onPilihSaran!(s)
+                            : null,
+                      ),
+                  ],
+                ),
+              ],
               if (!user && !p.galat && _labelSumber.containsKey(p.sumber)) ...[
                 const SizedBox(height: 6),
                 Text(

@@ -317,7 +317,7 @@ class _MainShellState extends State<_MainShell>
                 const Positioned.fill(child: LatarCair()),
                 // Konten tab di bawah header Arutmin yang dipin di atas
                 Positioned.fill(
-                  top: 76,
+                  top: MediaQuery.paddingOf(context).top + 80,
                   child: BackdropGroup(
                     child: FadeTransition(
                       opacity: CurvedAnimation(parent: _pudar, curve: Tok.ease),
