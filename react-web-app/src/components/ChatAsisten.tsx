@@ -18,14 +18,15 @@ import { useAuth } from '../lib/authContext'
 /** Pintasan jalur deterministik: jawaban + tabel langsung dari database, tanpa LLM. */
 const PINTASAN = [
   { label: 'Diagnosa menyeluruh', pesan: 'Lakukan diagnosa menyeluruh', utama: true },
+  { label: 'Langkah selanjutnya', pesan: 'Apa saran dan langkah selanjutnya?' },
+  { label: 'Cara menanam', pesan: 'Bagaimana cara menanam?' },
+  { label: 'Cara input data', pesan: 'Bagaimana cara input data?' },
+  { label: 'Semua fitur', pesan: 'Jelaskan semua fitur aplikasi' },
   { label: 'Tabel sensor', pesan: 'Tampilkan tabel sensor terbaru' },
   { label: 'Alert terbuka', pesan: 'Tampilkan daftar alert terbuka' },
   { label: 'Status penampung', pesan: 'Tampilkan status penampung dan dosis nutrisi' },
   { label: 'Tahap tanam', pesan: 'Tampilkan status tahap tanam' },
-  { label: 'Cara menyemai', pesan: 'Bagaimana cara menyemai?' },
   { label: 'Alur aplikasi', pesan: 'Jelaskan alur aplikasi' },
-  { label: 'Sudah fase berapa?', pesan: 'Ini sudah sampai fase berapa?' },
-  { label: 'Keputusan menunggu', pesan: 'Apa keputusan yang belum diputuskan?' },
 ]
 
 const SUMBER: Record<string, string> = {

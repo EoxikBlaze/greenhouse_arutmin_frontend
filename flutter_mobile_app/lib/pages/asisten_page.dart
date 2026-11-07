@@ -54,9 +54,10 @@ class _Pintasan {
 const _labelSumber = <String, String>{
   'heuristik': 'Jawaban aturan (AI lokal tidak tersedia)',
   'diagnosa': 'Diagnosa otomatis kebun',
+  'panduan': 'Panduan resmi aplikasi GARAP',
   'data': 'Data langsung sensor',
   'sapaan': 'Asisten GARAP',
-  'ollama': 'Dijawab AI lokal — cek ulang sebelum bertindak',
+  'ollama': 'Dijawab AI lokal (Qwen) — cek ulang sebelum bertindak',
   'tolak': 'Permintaan ditolak oleh pengaman',
 };
 
@@ -160,12 +161,18 @@ class _AsistenPageState extends State<AsistenPage> {
   static const _batas = 600;
   static const _saran = <String>[
     'Bagaimana kondisi pH dan TDS sekarang?',
-    'Apa yang harus saya lakukan hari ini?',
-    'Kapan tahap semai berikutnya selesai?',
+    'Apa saran dan langkah selanjutnya?',
+    'Bagaimana cara menanam?',
+    'Bagaimana cara input data?',
+    'Jelaskan semua fitur aplikasi',
   ];
 
   static const _pintasan = <_Pintasan>[
     _Pintasan('Diagnosa menyeluruh', 'Lakukan diagnosa menyeluruh'),
+    _Pintasan('Langkah selanjutnya', 'Apa saran dan langkah selanjutnya?'),
+    _Pintasan('Cara menanam', 'Bagaimana cara menanam?'),
+    _Pintasan('Cara input data', 'Bagaimana cara input data?'),
+    _Pintasan('Semua fitur', 'Jelaskan semua fitur aplikasi'),
     _Pintasan('Tabel sensor', 'Tampilkan tabel sensor terbaru'),
     _Pintasan('Alert terbuka', 'Tampilkan daftar alert terbuka'),
     _Pintasan('Status penampung', 'Tampilkan status penampung dan dosing'),
@@ -309,10 +316,10 @@ class _AsistenPageState extends State<AsistenPage> {
                       child: ActionChip(
                         label: Text(
                           x.label,
-                          style: const TextStyle(fontSize: 12),
+                          style: TextStyle(fontSize: 12, color: Tok.tinta),
                         ),
-                        backgroundColor: Tok.putih(0.7),
-                        side: BorderSide(color: Tok.putih(0.95)),
+                        backgroundColor: Tok.isiKaca(0.72),
+                        side: BorderSide(color: Tok.tepiKaca),
                         shape: const StadiumBorder(),
                         onPressed: _memuat ? null : () => _kirim(x.pesan),
                       ),
@@ -339,18 +346,18 @@ class _AsistenPageState extends State<AsistenPage> {
                           hintText: 'Tulis pertanyaan…',
                           counterText: '',
                           filled: true,
-                          fillColor: Tok.putih(0.82),
+                          fillColor: Tok.inputIsi,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 20,
                             vertical: 14,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(999),
-                            borderSide: BorderSide(color: Tok.putih(0.95)),
+                            borderSide: BorderSide(color: Tok.tepiKaca),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(999),
-                            borderSide: BorderSide(color: Tok.putih(0.95)),
+                            borderSide: BorderSide(color: Tok.tepiKaca),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(999),
@@ -378,7 +385,9 @@ class _AsistenPageState extends State<AsistenPage> {
                             onTap: _memuat ? null : () => _kirim(_ctrl.text),
                             child: Icon(
                               Ikon.kirim,
-                              color: Tok.putih(_memuat ? 0.5 : 1),
+                              color: Colors.white.withValues(
+                                alpha: _memuat ? 0.5 : 1,
+                              ),
                             ),
                           ),
                         ),
@@ -427,9 +436,12 @@ class _Kosong extends StatelessWidget {
                 children: [
                   for (final s in saran)
                     ActionChip(
-                      label: Text(s, style: const TextStyle(fontSize: 12.5)),
-                      backgroundColor: Tok.putih(0.7),
-                      side: BorderSide(color: Tok.putih(0.95)),
+                      label: Text(
+                        s,
+                        style: TextStyle(fontSize: 12.5, color: Tok.tinta),
+                      ),
+                      backgroundColor: Tok.isiKaca(0.72),
+                      side: BorderSide(color: Tok.tepiKaca),
                       shape: const StadiumBorder(),
                       onPressed: () => onSaran(s),
                     ),
@@ -455,7 +467,7 @@ class _Gelembung extends StatelessWidget {
         ? Tok.forest
         : p.galat
         ? Tok.error.withValues(alpha: 0.08)
-        : Tok.putih(0.82);
+        : Tok.isiKaca(0.84);
     final Color teks = user
         ? Colors.white
         : p.galat
