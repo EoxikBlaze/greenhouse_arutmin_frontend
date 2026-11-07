@@ -141,6 +141,7 @@ export function ChatAsisten({ saran }: { saran: string[] }) {
         status?: 'OK' | 'PERHATIAN' | 'KRITIS'
         tabel?: Tabel[]
         tautan?: unknown
+        gambar?: { url: string; judul: string; kenapa?: string }[]
         saran_pertanyaan?: string[]
       }
       if (sesi !== sesiRef.current) return
@@ -156,6 +157,7 @@ export function ChatAsisten({ saran }: { saran: string[] }) {
           status: d.status,
           tabel: d.tabel ?? [],
           tautan: tautanAman(d.tautan),
+          gambar: Array.isArray(d.gambar) ? d.gambar : [],
           saran_pertanyaan: Array.isArray(d.saran_pertanyaan) ? d.saran_pertanyaan : [],
         },
       ])
@@ -272,6 +274,37 @@ export function ChatAsisten({ saran }: { saran: string[] }) {
                   )}
                   {p.teks}
                   {p.tabel?.map((t, i) => <TabelAi key={i} t={t} />)}
+                  {p.gambar && p.gambar.length > 0 && (
+                    <div className="mt-3 grid gap-2.5">
+                      <div className="flex items-center gap-1.5 text-[12px] font-bold text-tinta">
+                        <span className="text-arutmin-moss">📸</span>
+                        <span>Tangkapan Layar & Petunjuk Arah Petani:</span>
+                      </div>
+                      <div className="grid gap-2.5 sm:grid-cols-2">
+                        {p.gambar.map((g, idx) => (
+                          <figure key={idx} className="overflow-hidden rounded-card border border-arutmin-border bg-white p-2 shadow-sm">
+                            <div className="relative aspect-video w-full overflow-hidden rounded-md bg-slate-100">
+                              <img
+                                src={g.url}
+                                alt={g.judul}
+                                className="h-full w-full object-cover object-top transition-transform duration-200 hover:scale-105 cursor-pointer"
+                                onClick={() => window.open(g.url, '_blank')}
+                                loading="lazy"
+                              />
+                            </div>
+                            <figcaption className="mt-2 text-left">
+                              <div className="text-[12.5px] font-bold text-tinta">{g.judul}</div>
+                              {g.kenapa && (
+                                <p className="mt-1 text-[11.5px] leading-relaxed text-slate-600">
+                                  <strong className="text-arutmin-moss">💡 Kenapa diarahkan ke sini:</strong> {g.kenapa}
+                                </p>
+                              )}
+                            </figcaption>
+                          </figure>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {p.saran_pertanyaan && p.saran_pertanyaan.length > 0 && (
                     <div className="mt-2.5">
                       <div className="mb-1.5 text-[12px] font-bold text-tinta">💡 Rekomendasi pertanyaan untuk Anda:</div>

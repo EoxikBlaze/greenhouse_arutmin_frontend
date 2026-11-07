@@ -24,6 +24,8 @@ export function tautanAman(data: unknown): Tautan[] {
   return out
 }
 
+export type GambarPanduan = { url: string; judul: string; kenapa?: string }
+
 export type Pesan = {
   id: number
   peran: 'user' | 'ai'
@@ -33,6 +35,7 @@ export type Pesan = {
   status?: 'OK' | 'PERHATIAN' | 'KRITIS'
   tabel?: Tabel[]
   tautan?: Tautan[]
+  gambar?: GambarPanduan[]
   saran_pertanyaan?: string[]
   galat?: boolean
   /** Untuk pesan galat: teks pengguna yang gagal, dipakai tombol "Coba lagi". */

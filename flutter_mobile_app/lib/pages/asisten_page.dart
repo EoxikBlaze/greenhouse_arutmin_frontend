@@ -26,6 +26,26 @@ class _Tabel {
   final List<List<String>> baris;
 }
 
+class _GambarPanduan {
+  const _GambarPanduan({
+    required this.url,
+    required this.judul,
+    this.kenapa,
+  });
+
+  final String url;
+  final String judul;
+  final String? kenapa;
+
+  String get namaBerkas {
+    final uri = Uri.tryParse(url);
+    if (uri != null && uri.pathSegments.isNotEmpty) {
+      return uri.pathSegments.last;
+    }
+    return url.split('/').last;
+  }
+}
+
 class _Pesan {
   const _Pesan(
     this.teks, {
@@ -35,6 +55,7 @@ class _Pesan {
     this.status,
     this.tabel = const [],
     this.saran = const [],
+    this.gambar = const [],
   });
 
   final String teks;
@@ -44,6 +65,7 @@ class _Pesan {
   final String? status;
   final List<_Tabel> tabel;
   final List<String> saran;
+  final List<_GambarPanduan> gambar;
 }
 
 class _Pintasan {
@@ -266,6 +288,21 @@ class _AsistenPageState extends State<AsistenPage> {
           if (str.isNotEmpty) saranList.add(str);
         }
       }
+      final gambarList = <_GambarPanduan>[];
+      if (map['gambar'] is List) {
+        for (final g in map['gambar'] as List) {
+          if (g is Map) {
+            final url = g['url']?.toString().trim() ?? '';
+            final judul = g['judul']?.toString().trim() ?? 'Layar Panduan';
+            final kenapa = g['kenapa']?.toString().trim();
+            if (url.isNotEmpty) {
+              gambarList.add(
+                _GambarPanduan(url: url, judul: judul, kenapa: kenapa),
+              );
+            }
+          }
+        }
+      }
       setState(() {
         var teksJawab = '${map['jawaban'] ?? 'Tidak ada jawaban.'}';
         var tabelJawab = _uraiTabel(map['tabel']);
@@ -285,6 +322,7 @@ class _AsistenPageState extends State<AsistenPage> {
             status: map['status'] is String ? map['status'] as String : null,
             tabel: tabelJawab,
             saran: saranList,
+            gambar: gambarList,
           ),
         );
         _RiwayatChatStore.simpan(_pesan);
@@ -558,6 +596,98 @@ class _Gelembung extends StatelessWidget {
                 style: TextStyle(color: teks, height: 1.4, fontSize: 14.5),
               ),
               for (final t in p.tabel) _TabelAi(t),
+              if (p.gambar.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.photo_library_rounded,
+                      size: 16,
+                      color: Color(0xFF8B5CF6),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Tangkapan Layar & Arah Navigasi:',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: Tok.tinta,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                for (final g in p.gambar)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Tok.gelap ? const Color(0xFF1E293B) : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Tok.gelap ? Colors.white12 : const Color(0xFFE2E8F0),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: Image.asset(
+                              'assets/panduan/${g.namaBerkas}',
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => Container(
+                                color: Colors.grey.shade200,
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  Icons.image_outlined,
+                                  color: Colors.grey.shade400,
+                                  size: 36,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  g.judul,
+                                  style: TextStyle(
+                                    fontFamily: Tok.fontJudul,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: Tok.tinta,
+                                  ),
+                                ),
+                                if (g.kenapa != null && g.kenapa!.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '💡 Kenapa diarahkan ke sini: ${g.kenapa!}',
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      color: Tok.tinta.withValues(alpha: 0.8),
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
               if (p.saran.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 Text(
