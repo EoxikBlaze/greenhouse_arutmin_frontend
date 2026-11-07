@@ -44,7 +44,7 @@ class AppBarGlass extends StatelessWidget implements PreferredSizeWidget {
                       icon: Icon(Ikon.kiri, color: Tok.tinta),
                       style: IconButton.styleFrom(
                         minimumSize: const Size(48, 48),
-                        backgroundColor: Tok.putih(0.7),
+                        backgroundColor: Tok.isiKaca(0.7),
                       ),
                       onPressed: () => Navigator.maybePop(context),
                     ),
@@ -81,6 +81,8 @@ class AppBarGlass extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   ),
                   ...?aksi,
+                  const SizedBox(width: 4),
+                  const TombolTemaKaca(),
                 ],
               ),
             ),

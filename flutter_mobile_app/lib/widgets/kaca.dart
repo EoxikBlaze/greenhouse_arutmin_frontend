@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../theme/tema.dart';
 import '../theme/tokens.dart';
 import '../util/performa.dart';
 
@@ -191,46 +192,45 @@ class _KacaCairState extends State<KacaCair> {
         child: isi,
       );
     } else {
-      // (alpha atas, alpha bawah) per tingkat; nilai sama dengan token --lg-* web.
+      // Tint kaca diselaraskan dengan Liquid Glass v7 di website (index.css + tema-gelap.css).
       // Pada mode ringan (CPU lambat / 20x slower CPU), alpha dinaikkan sedikit agar
       // tetap kontras dan jernih walau tanpa BackdropFilter blur.
-      final (double a, double b) = ringanMode
-          ? (chrome ? (0.86, 0.76) : (0.78, 0.64))
-          : chrome
-          ? (0.56, 0.36)
-          : widget.varian == KacaVarian.bening
-          ? (0.5, 0.32)
-          : (0.5, 0.32);
-      final List<Color> tint =
+      final List<Color> dasar =
           widget.warna ??
           (gelap
               ? [
-                  Tok.navy.withValues(alpha: ringanMode ? 0.85 : 0.66),
-                  Tok.navy.withValues(alpha: ringanMode ? 0.72 : 0.40),
+                  Tok.navy.withValues(alpha: ringanMode ? 0.86 : 0.72),
+                  Tok.navy2.withValues(alpha: ringanMode ? 0.76 : 0.54),
                 ]
-              : [Tok.putih(a), Tok.putih(b)]);
+              : chrome
+              ? Tok.tintChrome
+              : Tok.tintKartu);
+      final pengaliRingan = ringanMode ? 1.18 : 1.0;
       final permukaan = Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: const Alignment(-0.85, -1.0),
+            end: const Alignment(0.85, 1.0),
             colors: [
-              for (final c in tint) c.withValues(alpha: (c.a * k).clamp(0, 1)),
+              for (final c in dasar)
+                c.withValues(
+                  alpha: (c.a * k * pengaliRingan).clamp(0.0, 0.96),
+                ),
             ],
           ),
           borderRadius: r,
         ),
-        // kilau spekular di kiri atas (padanan --lg-spec); dimatikan di mode ringan
+        // kilau spekular di kiri atas (padanan --lg-spec di website); dimatikan di mode ringan
         foregroundDecoration: ringanMode
             ? null
             : BoxDecoration(
                 borderRadius: r,
                 gradient: RadialGradient(
-                  center: const Alignment(-0.75, -1.1),
-                  radius: 1.25,
+                  center: const Alignment(-0.72, -1.05),
+                  radius: 1.3,
                   colors: [
                     Colors.white.withValues(
-                      alpha: gelap || Tok.gelap ? 0.12 : 0.42,
+                      alpha: gelap || Tok.gelap ? 0.16 : 0.46,
                     ),
                     Colors.white.withValues(alpha: 0),
                   ],
@@ -338,6 +338,24 @@ class RimKaca extends CustomPainter {
           ..color = Colors.white.withValues(alpha: 0.38 * f)
           ..maskFilter = const MaskFilter.blur(BlurStyle.inner, 7),
       );
+      // dispersi cahaya Glisse di tepi kiri (sian lembut) & kanan (mawar lembut) seperti --lg-dispersi di web
+      canvas.drawRRect(
+        rr.deflate(0.8),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.6
+          ..shader = LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [
+              const Color(0xFF78C8FF).withValues(alpha: 0.28 * f),
+              Colors.transparent,
+              Colors.transparent,
+              const Color(0xFFFF96D2).withValues(alpha: 0.20 * f),
+            ],
+            stops: const [0.0, 0.18, 0.82, 1.0],
+          ).createShader(rect),
+      );
       // ketebalan: bayangan dalam di bagian bawah
       canvas.drawRRect(
         rr,
@@ -382,9 +400,11 @@ class RimKaca extends CustomPainter {
       Tok.gelap;
 }
 
-/// Latar untuk ditaruh DI BELAKANG kaca: foto pegunungan yang sama dengan latar
-/// web (dashboard dan Tentang Kami), diberi kerudung putih tipis agar teks terbaca.
-/// Tanpa isi di belakangnya, kaca tampak datar.
+/// Latar untuk ditaruh DI BELAKANG kaca: pemandangan pegunungan & rumah tanam yang
+/// diperkaya lapisan atmosfer baru (`_KabutAuroraPainter` — padanan `.app-latar` +
+/// `.vsf-kabut` di website) sehingga kartu Liquid Glass di atasnya membiaskan
+/// cahaya emas, zamrud, dan biru langit yang seragam antara mode terang (White Mode)
+/// dan mode gelap (Black Mode).
 class LatarCair extends StatelessWidget {
   const LatarCair({super.key});
 
@@ -400,7 +420,7 @@ class LatarCair extends StatelessWidget {
             children: [
               ColoredBox(
                 color: Tok.gelap
-                    ? const Color(0xFF04101E)
+                    ? const Color(0xFF061322)
                     : const Color(0xFF4B9BDC),
               ),
               Image.asset(
@@ -413,10 +433,8 @@ class LatarCair extends StatelessWidget {
                 gaplessPlayback: true,
                 excludeFromSemantics: true,
               ),
-              ColoredBox(
-                color: Tok.gelap
-                    ? const Color(0xFF04101E).withValues(alpha: 0.25)
-                    : Colors.white.withValues(alpha: 0.12),
+              CustomPaint(
+                painter: _KabutAuroraPainter(gelap: Tok.gelap, ringan: true),
               ),
             ],
           ),
@@ -437,7 +455,6 @@ class LatarCair extends StatelessWidget {
               gaplessPlayback: true,
               excludeFromSemantics: true,
             ),
-            ColoredBox(color: Colors.white.withValues(alpha: 0.12)),
             // foto malam memudar masuk di atas foto siang
             AnimatedOpacity(
               opacity: Tok.gelap ? 1 : 0,
@@ -445,24 +462,147 @@ class LatarCair extends StatelessWidget {
                   ? Duration.zero
                   : const Duration(milliseconds: 700),
               curve: Tok.ease,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(
-                    'assets/latar/bg-malam.jpg',
-                    fit: BoxFit.cover,
-                    alignment: Alignment.center,
-                    cacheWidth: lebarCache,
-                    gaplessPlayback: true,
-                    excludeFromSemantics: true,
-                  ),
-                  ColoredBox(
-                    color: const Color(0xFF04101E).withValues(alpha: 0.25),
-                  ),
-                ],
+              child: Image.asset(
+                'assets/latar/bg-malam.jpg',
+                fit: BoxFit.cover,
+                alignment: Alignment.center,
+                cacheWidth: lebarCache,
+                gaplessPlayback: true,
+                excludeFromSemantics: true,
               ),
             ),
+            // Lapisan atmosfer & pendar cahaya baru (padanan .vsf-kabut + aurora web)
+            CustomPaint(
+              painter: _KabutAuroraPainter(gelap: Tok.gelap, ringan: false),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _KabutAuroraPainter extends CustomPainter {
+  const _KabutAuroraPainter({required this.gelap, required this.ringan});
+
+  final bool gelap;
+  final bool ringan;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final rect = Offset.zero & size;
+
+    // 1. Gradasi atmosfer vertikal (.vsf-kabut di web)
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: gelap
+              ? const [
+                  Color(0x5204101E),
+                  Color(0x24071527),
+                  Color(0x7004101E),
+                ]
+              : const [
+                  Color(0x240A1F38),
+                  Color(0x14FFFFFF),
+                  Color(0x470A1F38),
+                ],
+          stops: const [0.0, 0.36, 1.0],
+        ).createShader(rect),
+    );
+
+    if (ringan) return;
+
+    // 2. Pendar cahaya matahari/bulan keemasan di kanan atas (membuat kaca membiaskan kilau hangat)
+    final rEmas = Rect.fromCircle(
+      center: Offset(size.width * 0.88, size.height * 0.12),
+      radius: size.shortestSide * 0.65,
+    );
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            Tok.emas.withValues(alpha: gelap ? 0.16 : 0.24),
+            Tok.emas.withValues(alpha: 0),
+          ],
+        ).createShader(rEmas),
+    );
+
+    // 3. Pendar zamrud rumah tanam di kiri bawah
+    final rHijau = Rect.fromCircle(
+      center: Offset(size.width * 0.14, size.height * 0.82),
+      radius: size.shortestSide * 0.72,
+    );
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            Tok.moss.withValues(alpha: gelap ? 0.20 : 0.22),
+            Tok.moss.withValues(alpha: 0),
+          ],
+        ).createShader(rHijau),
+    );
+
+    // 4. Pendar langit sian-biru lembut di kiri atas
+    final rBiru = Rect.fromCircle(
+      center: Offset(size.width * 0.18, size.height * 0.18),
+      radius: size.shortestSide * 0.60,
+    );
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            const Color(0xFF63B3ED).withValues(alpha: gelap ? 0.14 : 0.20),
+            const Color(0xFF63B3ED).withValues(alpha: 0),
+          ],
+        ).createShader(rBiru),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _KabutAuroraPainter old) =>
+      old.gelap != gelap || old.ringan != ringan;
+}
+
+/// Tombol saklar tema Terang/Gelap bergaya kapsul kaca (padanan `.vsf-saklar-tema` di web).
+/// Bisa ditempatkan di kepala halaman mana saja agar pengguna dapat berpindah antara
+/// White Mode dan Black Mode dalam 1 ketukan.
+class TombolTemaKaca extends StatelessWidget {
+  const TombolTemaKaca({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final gelap = Tok.gelap;
+    return Semantics(
+      button: true,
+      label: gelap ? 'Ganti ke tema terang' : 'Ganti ke tema gelap',
+      child: Tooltip(
+        message: gelap ? 'Tema terang (White Mode)' : 'Tema gelap (Black Mode)',
+        child: InkWell(
+          borderRadius: BorderRadius.circular(999),
+          onTap: () => PreferensiTema.atur(!gelap),
+          child: Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Tok.isiKaca(0.68, 0.72),
+              border: Border.all(color: Tok.tepiKaca),
+            ),
+            child: Icon(
+              gelap ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+              size: 19,
+              color: gelap ? Tok.emas : Tok.navy,
+            ),
+          ),
         ),
       ),
     );

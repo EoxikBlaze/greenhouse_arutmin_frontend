@@ -197,14 +197,10 @@ class HeroHeader extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Tok.putih(0.56),
-              const Color(0xFFCFE2CE).withValues(alpha: 0.4),
-              const Color(0xFFE2F0D8).withValues(alpha: 0.4),
-            ],
+            colors: Tok.tintHero,
           ),
           borderRadius: radius,
-          border: Border.all(color: Tok.putih(0.9)),
+          border: Border.all(color: Tok.tepiKaca),
           boxShadow: const [
             BoxShadow(
               color: Color(0x40141E28),
@@ -225,7 +221,7 @@ class HeroHeader extends StatelessWidget {
                       center: Alignment.topLeft,
                       radius: 1.15,
                       colors: [
-                        Tok.moss.withValues(alpha: 0.26),
+                        Tok.moss.withValues(alpha: Tok.gelap ? 0.34 : 0.26),
                         Colors.transparent,
                       ],
                     ),
@@ -239,7 +235,9 @@ class HeroHeader extends StatelessWidget {
                       center: Alignment.bottomRight,
                       radius: 1.0,
                       colors: [
-                        const Color(0xFF70A8EC).withValues(alpha: 0.34),
+                        const Color(
+                          0xFF70A8EC,
+                        ).withValues(alpha: Tok.gelap ? 0.24 : 0.34),
                         Colors.transparent,
                       ],
                     ),
@@ -256,7 +254,7 @@ class HeroHeader extends StatelessWidget {
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        Tok.emas.withValues(alpha: 0.55),
+                        Tok.emas.withValues(alpha: Tok.gelap ? 0.38 : 0.55),
                         Tok.emas.withValues(alpha: 0),
                       ],
                     ),
@@ -313,6 +311,8 @@ class HeroHeader extends StatelessWidget {
                             const SizedBox(width: 8),
                             trailing!,
                           ],
+                          const SizedBox(width: 6),
+                          const TombolTemaKaca(),
                         ],
                       ),
                       if (bawah != null) ...[
@@ -414,17 +414,21 @@ class StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final latar = terang ? Tok.putih(0.7) : warna.withValues(alpha: 0.12);
+    final latar = terang
+        ? Tok.isiKaca(0.68)
+        : warna.withValues(alpha: Tok.gelap ? 0.22 : 0.12);
     final teksWarna = terang
-        ? (Color.lerp(warna, Tok.tinta, 0.55) ?? warna)
-        : warna;
+        ? (Color.lerp(warna, Tok.tinta, Tok.gelap ? 0.30 : 0.55) ?? warna)
+        : (Tok.gelap ? (Color.lerp(warna, Colors.white, 0.22) ?? warna) : warna);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: latar,
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: terang ? Tok.putih(0.95) : warna.withValues(alpha: 0.28),
+          color: terang
+              ? Tok.tepiKaca
+              : warna.withValues(alpha: Tok.gelap ? 0.42 : 0.28),
         ),
       ),
       child: Row(

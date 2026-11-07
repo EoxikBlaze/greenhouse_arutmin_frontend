@@ -63,10 +63,10 @@ class _SwitchKacaState extends State<SwitchKaca> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(_tinggi),
                   color: widget.nyala
-                      ? Tok.mossGelap.withValues(alpha: 0.72)
-                      : Colors.white.withValues(alpha: 0.35),
+                      ? Tok.mossGelap.withValues(alpha: 0.78)
+                      : Tok.isiKaca(0.45),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.6),
+                    color: Tok.tepiKaca,
                   ),
                   boxShadow: widget.nyala
                       ? [

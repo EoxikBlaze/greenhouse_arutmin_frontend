@@ -435,9 +435,9 @@ class _Pintas extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: Tok.putih(0.7),
+          color: Tok.isiKaca(0.7),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Tok.putih(0.95)),
+          border: Border.all(color: Tok.tepiKaca),
         ),
         child: Row(
           children: [
@@ -446,7 +446,7 @@ class _Pintas extends StatelessWidget {
               height: 34,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Tok.moss.withValues(alpha: 0.16),
+                color: Tok.moss.withValues(alpha: Tok.gelap ? 0.24 : 0.16),
               ),
               child: Icon(ikon, size: 18, color: Tok.hijauTeks),
             ),
@@ -454,7 +454,7 @@ class _Pintas extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: TextStyle(color: Tok.tinta, fontWeight: FontWeight.w600),
               ),
             ),
             Icon(Ikon.kanan, size: 18, color: Tok.abu),

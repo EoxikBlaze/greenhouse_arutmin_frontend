@@ -10,11 +10,68 @@ class Tok {
   static bool gelap = false;
 
   /// Permukaan solid (kartu, dialog, kolom isian): putih / navy gelap.
-  static Color get permukaan => gelap ? const Color(0xFF132A44) : Colors.white;
+  static Color get permukaan => gelap ? const Color(0xFF141E2C) : Colors.white;
 
-  /// Putih untuk lapisan kaca: pada tema gelap hanya tint tipis (padanan `--k` web).
-  static Color putih(double alpha) =>
-      Colors.white.withValues(alpha: gelap ? alpha * 0.1 : alpha);
+  /// Putih untuk lapisan kaca: pada tema gelap memakai tint kaca biru-gelap bening
+  /// seperti di website (`html[data-tema='gelap']` / `.vsf-kaca`), bukan putih pucat.
+  static Color putih(double alpha) => gelap
+      ? Color.lerp(
+          const Color(0xFF1E324A),
+          Colors.white,
+          0.22,
+        )!.withValues(alpha: (alpha * 0.78).clamp(0.0, 1.0))
+      : Colors.white.withValues(alpha: alpha);
+
+  /// Warna latar elemen di dalam kartu kaca (kotak mini, pil, tombol kembali):
+  /// di mode terang putih tembus pandang, di mode gelap navy-slate kaca.
+  static Color isiKaca([double alphaTerang = 0.62, double alphaGelap = 0.64]) =>
+      gelap
+      ? const Color(0xFF192B42).withValues(alpha: alphaGelap)
+      : Colors.white.withValues(alpha: alphaTerang);
+
+  /// Warna garis tepi kaca (terang = putih 68%, gelap = putih 22%).
+  static Color get tepiKaca =>
+      Colors.white.withValues(alpha: gelap ? 0.22 : 0.68);
+
+  /// Warna isian kolom input (`.vsf-input` di web): kaca tembus pandang.
+  static Color get inputIsi => gelap
+      ? const Color(0xFF1A2C44).withValues(alpha: 0.68)
+      : Colors.white.withValues(alpha: 0.82);
+
+  /// Tint atas & bawah untuk kartu kaca konten (`.glass-card` / `.vsf-kaca` di web).
+  static List<Color> get tintKartu => gelap
+      ? [
+          const Color(0xFF223754).withValues(alpha: 0.68),
+          const Color(0xFF132238).withValues(alpha: 0.54),
+        ]
+      : [
+          Colors.white.withValues(alpha: 0.72),
+          Colors.white.withValues(alpha: 0.50),
+        ];
+
+  /// Tint atas & bawah untuk kaca navigasi/chrome (`.glass-chrome` di web).
+  static List<Color> get tintChrome => gelap
+      ? [
+          const Color(0xFF1E324C).withValues(alpha: 0.80),
+          const Color(0xFF101D30).withValues(alpha: 0.66),
+        ]
+      : [
+          Colors.white.withValues(alpha: 0.78),
+          Colors.white.withValues(alpha: 0.56),
+        ];
+
+  /// Tint untuk kartu Hero (`HeroKartu` & `HeroHeader` — padanan `.glass-hero` di web).
+  static List<Color> get tintHero => gelap
+      ? [
+          const Color(0xFF1F384E).withValues(alpha: 0.74),
+          const Color(0xFF1A3A32).withValues(alpha: 0.62),
+          const Color(0xFF352F18).withValues(alpha: 0.56),
+        ]
+      : [
+          Colors.white.withValues(alpha: 0.68),
+          const Color(0xFFCFE2CE).withValues(alpha: 0.44),
+          const Color(0xFFF6EDBE).withValues(alpha: 0.42),
+        ];
 
   /// Hijau tua untuk teks/ikon di atas kaca; pada tema gelap diganti hijau muda.
   static Color get hijauTeks => gelap ? const Color(0xFF9CCB7A) : forest;

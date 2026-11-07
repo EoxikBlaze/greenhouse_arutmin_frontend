@@ -59,6 +59,7 @@ class PageTop extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(16, atas + 12, 16, 0),
         child: KacaCair(
+          varian: KacaVarian.chrome,
           radius: 24,
           padding: EdgeInsets.fromLTRB(
             aksiKembali != null ? 8 : 18,
@@ -66,7 +67,6 @@ class PageTop extends StatelessWidget {
             12,
             12,
           ),
-          warna: [Tok.putih(0.56), Tok.putih(0.38)],
           child: Row(
             children: [
               if (aksiKembali != null) ...[
@@ -75,7 +75,7 @@ class PageTop extends StatelessWidget {
                   icon: Icon(Ikon.kiri, color: Tok.tinta),
                   style: IconButton.styleFrom(
                     minimumSize: const Size(48, 48),
-                    backgroundColor: Tok.putih(0.7),
+                    backgroundColor: Tok.isiKaca(0.72, 0.72),
                   ),
                   onPressed: aksiKembali,
                 ),
@@ -116,6 +116,8 @@ class PageTop extends StatelessWidget {
                 ),
               ),
               if (status != null) ...[const SizedBox(width: 8), status!],
+              const SizedBox(width: 8),
+              const TombolTemaKaca(),
             ],
           ),
         ),
@@ -151,7 +153,7 @@ class PilPilih extends StatelessWidget {
     final pil = Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: Tok.putih(0.45),
+        color: Tok.isiKaca(0.48, 0.62),
         borderRadius: BorderRadius.circular(999),
       ),
       foregroundDecoration: const _RimPil(),
@@ -211,7 +213,7 @@ class PilPilih extends StatelessWidget {
   }
 }
 
-/// Kartu hero kaca bergradasi putih-biru-emas (padanan `.glass-hero` web).
+/// Kartu hero kaca bergradasi putih-biru-emas di mode terang, dan zamrud-navy-emas di mode gelap (padanan `.glass-hero` web).
 class HeroKartu extends StatelessWidget {
   const HeroKartu({super.key, required this.child, this.padding = 18});
 
@@ -225,11 +227,7 @@ class HeroKartu extends StatelessWidget {
       child: KacaCair(
         radius: 28,
         padding: EdgeInsets.all(padding),
-        warna: [
-          Tok.putih(0.5),
-          const Color(0xFFCFE2CE).withValues(alpha: 0.34),
-          const Color(0xFFF6EDBE).withValues(alpha: 0.38),
-        ],
+        warna: Tok.tintHero,
         child: child,
       ),
     );
@@ -253,9 +251,9 @@ class MiniNilai extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Tok.putih(solid ? 1 : 0.56),
+          color: solid ? Tok.permukaan : Tok.isiKaca(0.58, 0.66),
           borderRadius: BorderRadius.circular(14),
-          border: solid ? Border.all(color: Tok.garis) : null,
+          border: Border.all(color: solid ? Tok.garis : Tok.tepiKaca),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,

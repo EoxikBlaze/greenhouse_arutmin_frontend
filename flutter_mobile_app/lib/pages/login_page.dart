@@ -233,9 +233,11 @@ class _LoginPageState extends State<LoginPage>
               runSpacing: 8,
               alignment: WrapAlignment.center,
               children: [
-                ActionChip(
-                  label: const Text('Superadmin'),
-                  onPressed: _busy
+                _TombolPeranCepat(
+                  label: 'Superadmin',
+                  sub: 'Kendali penuh',
+                  aktif: _usernameCtrl.text == 'garap',
+                  onTap: _busy
                       ? null
                       : () => setState(() {
                           _usernameCtrl.text = 'garap';
@@ -243,9 +245,11 @@ class _LoginPageState extends State<LoginPage>
                           _error = null;
                         }),
                 ),
-                ActionChip(
-                  label: const Text('Petani'),
-                  onPressed: _busy
+                _TombolPeranCepat(
+                  label: 'Petani',
+                  sub: 'Operasional',
+                  aktif: _usernameCtrl.text == 'petani',
+                  onTap: _busy
                       ? null
                       : () => setState(() {
                           _usernameCtrl.text = 'petani';
@@ -253,9 +257,11 @@ class _LoginPageState extends State<LoginPage>
                           _error = null;
                         }),
                 ),
-                ActionChip(
-                  label: const Text('Demo (Hanya Lihat)'),
-                  onPressed: _busy
+                _TombolPeranCepat(
+                  label: 'Demo (Hanya Lihat)',
+                  sub: 'Tanpa ubah',
+                  aktif: _usernameCtrl.text == 'demo',
+                  onTap: _busy
                       ? null
                       : () => setState(() {
                           _usernameCtrl.text = 'demo';
@@ -271,86 +277,130 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
-  Widget _merek({required bool lebar}) {
-    return Stack(
-      children: [
-        const Positioned.fill(child: PipeFlow()),
-        Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment.topLeft,
-                radius: 1.2,
-                colors: [Tok.moss.withValues(alpha: 0.30), Colors.transparent],
+  Widget _kepalaKaca() {
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 920),
+            child: KacaCair(
+              varian: KacaVarian.chrome,
+              radius: 26,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              child: Row(
+                children: [
+                  const Monogram(size: 38),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'GARAP',
+                              style: TextStyle(
+                                fontFamily: Tok.fontJudul,
+                                fontSize: 15.5,
+                                fontWeight: FontWeight.w800,
+                                color: Tok.tinta,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                '· Vertonik Smart Farm',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontFamily: Tok.fontJudul,
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Tok.tinta,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          'Monitoring greenhouse hidroponik',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: Tok.abuTeks,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const TombolTemaKaca(),
+                ],
               ),
             ),
           ),
         ),
-        SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              28,
-              lebar ? 40 : 20,
-              28,
-              lebar ? 40 : 40,
-            ),
-            child: Column(
-              mainAxisAlignment: lebar
-                  ? MainAxisAlignment.center
-                  : MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                FadeUp(child: Monogram(size: lebar ? 64 : 48)),
-                const SizedBox(height: 16),
-                FadeUp(
-                  delay: FadeUp.urutan(1),
-                  child: Text(
-                    'GARAP',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: lebar ? 40 : 30,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 4,
-                    ),
+      ),
+    );
+  }
+
+  Widget _merekKaca() {
+    return KacaCair(
+      padding: const EdgeInsets.all(28),
+      child: Stack(
+        children: [
+          const Positioned.fill(child: PipeFlow()),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const FadeUp(child: Monogram(size: 60)),
+              const SizedBox(height: 16),
+              FadeUp(
+                delay: FadeUp.urutan(1),
+                child: Text(
+                  'GARAP',
+                  style: TextStyle(
+                    fontFamily: Tok.fontJudul,
+                    color: Tok.tinta,
+                    fontSize: 36,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 3,
                   ),
                 ),
-                const SizedBox(height: 6),
-                FadeUp(
-                  delay: FadeUp.urutan(2),
-                  child: Text(
-                    'Monitoring greenhouse hidroponik',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.78),
-                      fontSize: 14,
-                    ),
-                  ),
+              ),
+              const SizedBox(height: 6),
+              FadeUp(
+                delay: FadeUp.urutan(2),
+                child: Text(
+                  'Monitoring greenhouse hidroponik',
+                  style: TextStyle(color: Tok.abuTeks, fontSize: 14),
                 ),
-                if (lebar) ...[
-                  const SizedBox(height: 22),
-                  FadeUp(
-                    delay: FadeUp.urutan(3),
-                    child: Container(width: 54, height: 3, color: Tok.emas),
-                  ),
-                  const SizedBox(height: 18),
-                  FadeUp(
-                    delay: FadeUp.urutan(4),
-                    child: Text(
-                      'Sensor realtime, kendali air, dan siklus tanam\n'
-                      'dalam satu tempat.',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        height: 1.5,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
+              ),
+              const SizedBox(height: 20),
+              FadeUp(
+                delay: FadeUp.urutan(3),
+                child: Container(width: 54, height: 3, color: Tok.emas),
+              ),
+              const SizedBox(height: 16),
+              FadeUp(
+                delay: FadeUp.urutan(4),
+                child: Text(
+                  'Sensor realtime, kendali air, dan siklus tanam\n'
+                  'dalam satu tempat.',
+                  style: TextStyle(color: Tok.abuTeks, height: 1.5),
+                ),
+              ),
+            ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -358,68 +408,97 @@ class _LoginPageState extends State<LoginPage>
   Widget build(BuildContext context) {
     final lebar = MediaQuery.sizeOf(context).width >= 900;
 
-    if (lebar) {
-      return Scaffold(
-        backgroundColor: Tok.page,
-        body: Row(
+    return Scaffold(
+      body: LatarHalaman(
+        child: Column(
           children: [
+            _kepalaKaca(),
             Expanded(
-              flex: 5,
-              child: DecoratedBox(
-                decoration: const BoxDecoration(gradient: Tok.brandPanel),
-                child: _merek(lebar: true),
-              ),
-            ),
-            Expanded(
-              flex: 4,
               child: Center(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(32),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 400),
-                    child: _formulir(),
+                    constraints: BoxConstraints(maxWidth: lebar ? 920 : 440),
+                    child: lebar
+                        ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(flex: 5, child: _merekKaca()),
+                              const SizedBox(width: 20),
+                              Expanded(
+                                flex: 5,
+                                child: KacaCair(
+                                  padding: const EdgeInsets.all(24),
+                                  child: _formulir(),
+                                ),
+                              ),
+                            ],
+                          )
+                        : KacaCair(
+                            padding: const EdgeInsets.all(20),
+                            child: _formulir(),
+                          ),
                   ),
                 ),
               ),
             ),
           ],
         ),
-      );
-    }
+      ),
+    );
+  }
+}
 
-    return Scaffold(
-      body: LatarHalaman(
-        child: SingleChildScrollView(
+class _TombolPeranCepat extends StatelessWidget {
+  const _TombolPeranCepat({
+    required this.label,
+    required this.sub,
+    required this.aktif,
+    required this.onTap,
+  });
+
+  final String label;
+  final String sub;
+  final bool aktif;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Tok.ease,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: aktif ? Tok.isiKaca(0.88) : Tok.isiKaca(0.55),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: aktif
+                  ? Tok.moss.withValues(alpha: 0.65)
+                  : Tok.tepiKaca,
+            ),
+          ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              DecoratedBox(
-                decoration: const BoxDecoration(
-                  gradient: Tok.brandPanel,
-                  borderRadius: BorderRadius.vertical(
-                    bottom: Radius.circular(Tok.rChrome),
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(Tok.rChrome),
-                  ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: _merek(lebar: false),
-                  ),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                  color: aktif ? Tok.hijauTeks : Tok.tinta,
                 ),
               ),
-              Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 440),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
-                    // form di atas panel kaca, sama dengan kartu di dalam aplikasi
-                    child: KacaCair(
-                      padding: const EdgeInsets.all(20),
-                      child: _formulir(),
-                    ),
-                  ),
+              const SizedBox(height: 1),
+              Text(
+                sub,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  color: Tok.abuTeks,
                 ),
               ),
             ],
