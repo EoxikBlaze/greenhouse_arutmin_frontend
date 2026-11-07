@@ -6,7 +6,13 @@ export function useCountUp(target: number | null, ms = 600): number | null {
   const kini = useRef<number | null>(target)
 
   useEffect(() => {
-    if (target === null || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const modeRingan = typeof document !== 'undefined' && document.documentElement.dataset.perf === 'ringan'
+    if (
+      target === null ||
+      kini.current === target ||
+      modeRingan ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
       kini.current = target
       const id = requestAnimationFrame(() => setTampil(target))
       return () => cancelAnimationFrame(id)

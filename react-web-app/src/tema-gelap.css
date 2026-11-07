@@ -69,18 +69,19 @@ html[data-tema='gelap'][data-kaca='jernih'] { --k: 0.12; }
 html[data-tema='gelap'][data-kaca='pekat'] { --k: 0.34; }
 
 /* ── foto latar digelapkan ──────────────────────────────────────────────────────────────────── */
-/* Foto malam (bg-malam.jpg) memudar masuk di atas foto siang; hanya opacity yang beranimasi (murah, tanpa repaint blur). */
+/* Foto malam memudar masuk di atas foto siang; hanya opacity yang beranimasi (murah, tanpa repaint blur).
+   Gambar hanya dipasang di tema gelap: dulu bg-malam (330 KB) ikut diunduh di tema terang walau tak terlihat. */
 .app-latar::after,
 .vsf-latar::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: url('/bg-malam.jpg') center / cover no-repeat;
+  background: center / cover no-repeat;
   opacity: 0;
   transition: opacity 700ms var(--ar-ease, ease);
 }
 html[data-tema='gelap'] .app-latar::after,
-html[data-tema='gelap'] .vsf-latar::after { opacity: 1; }
+html[data-tema='gelap'] .vsf-latar::after { opacity: 1; background-image: url('/bg-malam.webp'); }
 html[data-tema='gelap'] .vsf-kabut { filter: brightness(0.6); }
 
 /* Peralihan tema: View Transitions API (lihat aturTema) memudarkan seluruh halaman, bukan memotong. */

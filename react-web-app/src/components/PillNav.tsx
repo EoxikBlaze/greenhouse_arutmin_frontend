@@ -18,26 +18,45 @@ export function PillNav({ items, label, className = '' }: { items: PillItem[]; l
     const el = wrap.current
     const p = pil.current
     if (!el || !p) return
-    const ukur = (gulir: boolean) => {
+    const a = el.querySelector<HTMLElement>('[data-aktif="true"]')
+    if (!a) {
+      p.style.opacity = '0'
+      return
+    }
+    // Baca semua geometri DOM terlebih dulu sebelum menulis style agar tidak memicu forced reflow berulang.
+    const w = a.offsetWidth
+    const left = a.offsetLeft
+    const sw = el.scrollWidth
+    const cw = el.clientWidth
+    p.style.opacity = '1'
+    p.style.width = `${w}px`
+    p.style.transform = `translateX(${left}px)`
+    // Geser item aktif ke tengah HANYA di dalam daftar pil (bukan scrollIntoView):
+    // scrollIntoView pada elemen di header sticky ikut menggulung halaman ke atas.
+    if (sw > cw) {
+      el.scrollTo({ left: left - (cw - w) / 2 })
+    }
+  }, [pathname, items.length])
+
+  useLayoutEffect(() => {
+    const el = wrap.current
+    const p = pil.current
+    if (!el || !p) return
+    const ro = new ResizeObserver(() => {
       const a = el.querySelector<HTMLElement>('[data-aktif="true"]')
       if (!a) {
         p.style.opacity = '0'
         return
       }
+      const w = a.offsetWidth
+      const left = a.offsetLeft
       p.style.opacity = '1'
-      p.style.width = `${a.offsetWidth}px`
-      p.style.transform = `translateX(${a.offsetLeft}px)`
-      // Geser item aktif ke tengah HANYA di dalam daftar pil (bukan scrollIntoView):
-      // scrollIntoView pada elemen di header sticky ikut menggulung halaman ke atas.
-      if (gulir && el.scrollWidth > el.clientWidth) {
-        el.scrollTo({ left: a.offsetLeft - (el.clientWidth - a.offsetWidth) / 2 })
-      }
-    }
-    ukur(true)
-    const ro = new ResizeObserver(() => ukur(false))
+      p.style.width = `${w}px`
+      p.style.transform = `translateX(${left}px)`
+    })
     ro.observe(el)
     return () => ro.disconnect()
-  }, [pathname, items.length])
+  }, [items.length])
 
   if (items.length === 0) return null
   return (

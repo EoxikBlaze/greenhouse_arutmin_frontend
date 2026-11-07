@@ -7,7 +7,12 @@ import '../widgets/ikon.dart';
 import '../widgets/dock.dart';
 import '../widgets/halaman.dart';
 import '../widgets/motion.dart';
+import '../widgets/rute.dart';
 import '../widgets/status_penampung.dart';
+import 'naik_harian_page.dart';
+import 'nutrisi_manual_page.dart';
+import 'saklar_page.dart';
+import 'uji_lab_page.dart';
 
 /// Kontrol air — GET /watercontrol/status, POST fill / stop / setMode.
 class WaterControlPage extends StatefulWidget {
@@ -291,6 +296,69 @@ class _WaterControlPageState extends State<WaterControlPage> {
             key: _penampung,
             api: widget.api,
             bolehBuka: widget.api.role == 'admin',
+          ),
+        ),
+        const SizedBox(height: Tok.sp6),
+        FadeUp(
+          delay: FadeUp.urutan(3),
+          child: const Eyebrow('Kendali nutrisi & alat v4.1'),
+        ),
+        const SizedBox(height: Tok.sp3),
+        FadeUp(
+          delay: FadeUp.urutan(4),
+          child: Panel(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Pintasan langsung ke kendali saklar aktuator, suntik nutrisi manual, target harian, dan uji lab.',
+                  style: Tok.kecil,
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => Navigator.of(context).push(
+                        RuteHalus<void>(
+                          builder: (_) => SaklarPage(api: widget.api),
+                        ),
+                      ),
+                      icon: const Icon(Ikon.ambang, size: 18),
+                      label: const Text('Saklar Aktuator'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => Navigator.of(context).push(
+                        RuteHalus<void>(
+                          builder: (_) => NutrisiManualPage(api: widget.api),
+                        ),
+                      ),
+                      icon: const Icon(Ikon.tetes, size: 18),
+                      label: const Text('Nutrisi Manual'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => Navigator.of(context).push(
+                        RuteHalus<void>(
+                          builder: (_) => NaikHarianPage(api: widget.api),
+                        ),
+                      ),
+                      icon: const Icon(Ikon.dosing, size: 18),
+                      label: const Text('Target & Naik Harian'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => Navigator.of(context).push(
+                        RuteHalus<void>(
+                          builder: (_) => UjiLabPage(api: widget.api),
+                        ),
+                      ),
+                      icon: const Icon(Ikon.laporan, size: 18),
+                      label: const Text('Uji Lab'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ],

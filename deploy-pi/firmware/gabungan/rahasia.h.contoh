@@ -1,9 +1,12 @@
 // Salin menjadi rahasia.h (di-.gitignore) lalu isi. JANGAN commit rahasia.h.
 #pragma once
-#define WIFI_SSID   "NAMA_WIFI_ANDA"
-#define WIFI_PASS   "ISI_SANDI_WIFI"
-#define SERVER_IP   "IP_PI_ANDA"                 // IP Pi (lihat: hostname -I di Pi; sebaiknya reservasi DHCP/IP statis)
-// sudo cat /etc/vertonik/kunci-perangkat.txt → dua baris; tiap kunci juga = sandi MQTT user-nya di broker Pi
-#define API_KEY_SENSOR   "vsf_xxxxxxxx_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  // baris sensor-01
-#define API_KEY_AKTUATOR "vsf_xxxxxxxx_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  // baris aktuator-01
+// Daftar Wi-Fi yang dicoba (dipilih yang terkuat yang terjangkau). Hanya 2,4 GHz. Tambah/kurangi sesuai kebutuhan.
+#define WIFI_JARINGAN { \
+  { "VERTONIK",      "SANDI_HOTSPOT_PI" }, \
+  { "Rumah permata", "SANDI_WIFI_RUMAH" } \
+}
+// Cadangan bila mDNS (garap.local / vertonik.local) tidak ketemu di Wi-Fi rumah. Di hotspot Pi alamat dicari otomatis (10.42.0.1).
+#define SERVER_IP   "192.168.1.172"
+// Satu ESP32 = satu login 'aktuator-01'. Kunci (juga sandi MQTT-nya); di backend perannya 'gabungan' (sensor + aktuator).
+#define API_KEY_AKTUATOR "vsf_xxxxxxxx_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 // #define MQTT_PORT 1883                          // port Mosquitto di Pi (bawaan 1883)

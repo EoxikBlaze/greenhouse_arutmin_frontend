@@ -53,7 +53,6 @@ const PARAM: Record<string, [string, string]> = {
   maks_ms_per_suntikan: ['Batas kenaikan EC per suntikan', 'Batas dosis'],
   maks_ml_per_suntikan: ['Batas volume per suntikan', 'Batas dosis'],
   maks_ml_ph_per_suntikan: ['Batas volume pH per suntikan', 'Batas dosis'],
-  maks_ml_bilas_per_perintah: ['Batas volume bilas', 'Batas dosis'],
   ml_ph_per_langkah: ['Langkah dosis pH', 'Batas dosis'],
   persen_ronde_dosis: ['Porsi dosis per ronde', 'Batas dosis'],
   maks_lampau_persen: ['Batas lampaui target', 'Batas dosis'],
@@ -111,16 +110,10 @@ const PARAM: Record<string, [string, string]> = {
   stabil_menit: ['Jendela bacaan stabil', 'Pembacaan sensor'],
   stabil_n_bacaan: ['Jumlah bacaan stabil', 'Pembacaan sensor'],
   ronde_dosing_menit: ['Lama satu ronde dosis', 'Ronde & jeda dosis'],
-  mixing_menit: ['Waktu pencampuran', 'Ronde & jeda dosis'],
   monitoring_menit: ['Masa istirahat setelah target', 'Ronde & jeda dosis'],
   gap_besar_menit: ['Perkiraan jeda besar', 'Ronde & jeda dosis'],
   jeda_ab_menit: ['Jeda nutrisi A ke B', 'Ronde & jeda dosis'],
-  jeda_a_ke_bilas_detik: ['Jeda A ke bilas', 'Ronde & jeda dosis'],
-  jeda_pasca_bilas_detik: ['Jeda setelah bilas', 'Ronde & jeda dosis'],
-  volume_bilas_ml: ['Volume bilas', 'Ronde & jeda dosis'],
   isi_air_timeout_menit: ['Batas waktu isi air', 'Pengisian air'],
-  isi_botol_normal_detik: ['Waktu isi botol normal', 'Pengisian air'],
-  isi_botol_timeout_detik: ['Batas waktu isi botol', 'Pengisian air'],
   jeda_pasca_isi_air_menit: ['Jeda setelah isi air', 'Pengisian air'],
   limit_batas_ons_pompa: ['Batas waktu nyala pompa', 'Pengisian air'],
   konfirmasi_peremajaan_batas_jam: ['Batas jawab konfirmasi peremajaan', 'Konfirmasi'],
@@ -130,6 +123,12 @@ const PARAM: Record<string, [string, string]> = {
   ulang_konfirmasi_jam: ['Jeda konfirmasi ulang', 'Konfirmasi'],
   reset_counter_jam: ['Jam reset counter harian', 'Sistem'],
 }
+
+/** Parameter perangkat keras yang tidak lagi dipakai (pompa bilas, waktu aduk, pompa celup botol): tidak ditampilkan. */
+export const PARAM_DISEMBUNYIKAN = new Set([
+  'maks_ml_bilas_per_perintah', 'mixing_menit', 'jeda_a_ke_bilas_detik', 'jeda_pasca_bilas_detik', 'volume_bilas_ml',
+  'isi_botol_normal_detik', 'isi_botol_timeout_detik',
+])
 
 export const judulParam = (kode: string) => PARAM[kode]?.[0] ?? kode
 export const kelompokParam = (kode: string) => PARAM[kode]?.[1] ?? 'Lainnya'

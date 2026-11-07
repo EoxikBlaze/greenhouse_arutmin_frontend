@@ -403,6 +403,66 @@ Kosong = tetap preset per tahap. `target hari ini = round(awal + (target − awa
 | PUT | `/dosing/naik-harian/:id_tanaman` | **admin, petani** (demo 403) | `{ppm_awal, ppm_target, hari_capai}`; semua `null` = matikan. 422: awal > target, hari bukan 1–365, di luar 50–2500, isian setengah. Menyinkronkan target penampung seketika; tercatat di audit |
 | GET | `/dosing/target` | admin+demo | ditambah `naik_harian: {hari, hari_capai, per_hari, target_hari_ini, ppm_target, tercapai} \| null` |
 
+### Alur persetujuan dosing (Fase 3C · dikaji ulang Fase 3D, 29 Okt 2026) — EKSEKUSI DIBLOKIR
+
+Prasyarat: migrasi `2026-10-29_06_dosing_transisi.sql` (tabel `dosing_transisi`); tanpa itu semua rute di bawah membalas **503** `kode: belum_dimigrasi`.
+Rute **tidak pernah** mengantre perintah `DOSIS`: gerbang `EKSEKUSI_DIIZINKAN = false` di `src/gerbangDosis.js`. Satu-satunya perintah aktuator
+yang mungkin dibuat adalah `STOP`, hanya saat `cabut` pada siklus `RUNNING` (status itu belum bisa dicapai lewat API). Belum diuji di firmware, Raspberry Pi, broker produksi, atau perangkat fisik.
+
+Tulis (`POST`) wajib header **`Idempotency-Key`** (UUID; kosong/bukan UUID → 422). Kunci+isi sama dari **pemilik kunci** → balasan diulang (`replay: true`);
+pengguna lain atau isi berbeda → 422 `kode: idempotency_bentrok`. Peran tulis: **admin** (semua penampung) atau **petani yang ditugaskan** ke penampung itu (`kode: tidak_ditugaskan`); demo/role lain → 403 `kode: akses_ditolak`.
+Otorisasi diperiksa **sebelum** status siklus. Baca (`GET`): semua login.
+
+| Metode | Path | Keterangan |
+|---|---|---|
+| GET | `/api/dosing/siklus?id_meja=&status=` | `{status, data:[…]}` maks 200, terbaru dulu. Status tak dikenal / `id_meja` bukan id → 422 |
+| GET | `/api/dosing/siklus/:id` | detail + `persetujuan` (tanpa `idempotency_key`) + `percobaan[]` + `transisi[]`. Tidak ada → 404 |
+| POST ★ | `/api/dosing/siklus` | `{id_siklus_budidaya, alasan?}` → **201** `WAITING_APPROVAL` (mode MANUAL). 409: `perlu_tinjau`, `siklus_tidak_aktif`, `dosing_aktif_ada` (satu siklus aktif per penampung), `parameter_belum_siap`. 423: `penampung_terkunci`, `estop` |
+| POST ★ | `/api/dosing/siklus/:id/setujui` | `{cakupan:{pompa_diizinkan[AB\|PH_UP\|PH_DOWN], maks_ml_per_percobaan, maks_ml_total, maks_percobaan, berlaku_menit}, alasan?}` → **200** `APPROVED`. 422 bila cakupan melebihi batas global / sisa jatah harian / `maks_gagal_berturut` / `maks_masa_persetujuan_menit`. 409 `transisi_tidak_sah` atau `parameter_belum_siap`; **410** `kedaluwarsa` (siklus menjadi `EXPIRED`); 423 terkunci/E-STOP |
+| POST ★ | `/api/dosing/siklus/:id/tolak` | `{alasan?}` → 200 `REJECTED`. Hanya dari `WAITING_APPROVAL` (selain itu 409) |
+| POST ★ | `/api/dosing/siklus/:id/cabut` | `{alasan ≥ 5 karakter}` → 200 `CANCELLED`, persetujuan dicabut. Dari status aktif mana pun; status akhir → 409. Bila `RUNNING`: respons memuat `stop:{id_perintah}` atau `stop:{galat}` |
+| POST ★ | `/api/dosing/siklus/:id/jalankan` | **tidak pernah 200.** `APPROVED` + persetujuan berlaku → 423 `eksekusi_diblokir` (`alasan[]`); tiga bacaan terakhir mustahil → siklus `FAULT` + penampung LOCK, 423 `sensor_rusak`; persetujuan lewat → 410; bukan `APPROVED` → 409. 501 `eksekusi_belum_ada` hanya jika gerbang dibuka tanpa jalur eksekusi |
+
+Status siklus: `WAITING_APPROVAL → APPROVED → RUNNING → MIXING → VERIFYING → SUCCESS | EXHAUSTED | FAULT`; cabang `REJECTED`, `EXPIRED`, `CANCELLED`.
+Jalur `RUNNING → MIXING → VERIFYING` **belum diimplementasikan** (tidak ada rute yang menggerakkannya); status akhir tidak punya transisi keluar.
+Kedaluwarsa dijalankan penjadwal (`SIKLUS_PENJADWAL=1`, default mati) dan secara malas saat `setujui`/`jalankan`.
+Keputusan pemilik yang belum ditetapkan dan karenanya belum menjadi kontrak: pengaju boleh menyetujui permintaannya sendiri; hasil melewati target dalam toleransi; batas jawab `WAITING_APPROVAL` memakai parameter yang sama dengan masa berlaku persetujuan.
+
+### Siklus budidaya & keselamatan — Fase 3B
+
+Prasyarat: skema migrasi siklus tersedia. Jika tabel inti belum ada, rute pada `/api/siklus`, `/api/konfirmasi`, `/api/lot`, `/api/penugasan`, dan `/api/preset` membalas **503** `kode: belum_dimigrasi`. Rute parameter memakai tabel `konfigurasi_dosis` dan `timing_operasi`.
+
+Semua baca memerlukan login. Baca siklus, parameter, dan preset tersedia untuk semua peran login; `GET /api/penugasan` mengembalikan semua penugasan untuk admin dan hanya penugasan pemanggil untuk peran lain. Tulis siklus/konfirmasi/lot mengizinkan admin dan petani non-demo; petani hanya dapat mengubah penampung yang ditugaskan. Buat/cabut penugasan, perubahan versi preset, dan validasi parameter hanya untuk admin non-demo.
+
+Tulis siklus, jawaban konfirmasi, dan penyelesaian lot wajib `Idempotency-Key` UUID. Kunci yang sama dengan payload dan pemilik sama mengulang balasan; kunci yang sama dengan payload berbeda atau pemilik berbeda membalas 422 `idempotency_bentrok`. Endpoint penugasan, versi preset, dan validasi parameter saat ini **tidak memakai `Idempotency-Key`**; duplikasi ditangani oleh constraint/status tertentu atau dapat menghasilkan operasi berulang. Jangan menganggap POST tersebut aman diulang otomatis.
+
+| Metode | Path | Perilaku |
+|---|---|---|
+| GET | `/api/siklus?status=&id_tanaman=&id_meja=&asal=&perlu_tinjau=` | Daftar maksimal 200 siklus, terbaru dulu; setiap filter opsional divalidasi (422 jika tak sah). |
+| GET | `/api/siklus/parameter` | Status parameter keselamatan yang dipakai siklus. Status: `TIDAK_ADA`, `NULL`, `TIDAK_VALID`, `BELUM_TERVALIDASI`, `SIAP`; nilai yang belum SIAP tidak menjadi nilai bawaan. |
+| GET | `/api/siklus/:id` | Detail siklus beserta lot, riwayat transisi, dan permintaan konfirmasi. ID tak sah/tidak ada → 404. |
+| GET | `/api/siklus/:id/kestabilan` | Evaluasi baca-saja. Jika parameter kestabilan belum SIAP, `dievaluasi:false` beserta daftar parameter yang belum siap. |
+| GET | `/api/siklus/:id/gerbang-dosis` | Evaluasi gerbang saja; tidak mengantre perintah. Eksekusi tetap ditolak oleh `EKSEKUSI_DIIZINKAN = false`. |
+| POST ★ | `/api/siklus` | Buat siklus `DRAFT`; body memuat `id_tanaman`, `id_meja`, `mode_target: PRESET\|MANUAL`, `ph_aktual`, `tds_aktual_ppm`, `jumlah_benih`, dan `id_preset_versi` atau `target` sesuai mode. Balasan pertama 201; replay 200. Target disimpan sebagai snapshot. |
+| POST ★ | `/api/siklus/:id/transisi` | `{ke: TANK_PREPARATION\|CANCELLED, alasan?}`. Pembatalan memerlukan alasan ≥5 karakter. Tahap lain memakai endpoint konfirmasi/benih/lot. |
+| POST ★ | `/api/siklus/:id/konfirmasi` | Permintaan konfirmasi peremajaan manual oleh admin setelah batas waktu H+4 yang tervalidasi; status harus `SEEDING`. |
+| POST ★ | `/api/siklus/:id/benih` | `{jumlah_benih, berhasil, gagal, id_meja_tujuan?}`; `berhasil + gagal` harus sama dengan jumlah benih tercatat. Jika berhasil >0, tujuan wajib dan harus ditugaskan untuk petani. |
+| POST ★ | `/api/konfirmasi/:id/jawab` | `{jawaban: SIAP\|BELUM_SIAP}`. Permintaan kedaluwarsa → 410; sudah dijawab → 409. `SIAP` tidak langsung melanjutkan bila prasyarat kestabilan/parameter belum terpenuhi. |
+| POST ★ | `/api/lot/:id/selesai` | `{berhasil, gagal, tujuan?: [{id_meja, jumlah}]}`. Jumlah hasil harus sama dengan jumlah masuk lot; tujuan diperlukan untuk memindahkan hasil peremajaan ke pendewasaan. |
+| GET | `/api/penugasan?aktif=true\|false` | Admin melihat semua penugasan; peran lain hanya miliknya sendiri. Hasil maksimal 500 baris. |
+| POST | `/api/penugasan` | Admin non-demo: `{id_user, id_meja}`. Hanya akun petani non-demo; duplikat penugasan aktif → 409. Balasan 201 dan audit transaksi. Tidak memakai kunci idempotensi. |
+| POST | `/api/penugasan/:id/cabut` | Admin non-demo: `{alasan}` 5–500 karakter. Penugasan yang sudah dicabut → 409; tidak ditemukan → 404. Tidak memakai kunci idempotensi. |
+| GET | `/api/preset` | Daftar preset berversi dengan kategori `AKTIF_TERVALIDASI`, `AKTIF_RANCANGAN`, atau `TIDAK_AKTIF`. Nilai agronomi belum otomatis menjadi tervalidasi. |
+| POST | `/api/preset/:id/versi` | Admin non-demo: `{parameter, catatan}`; validasi bentuk/rentang, lalu membuat versi baru `BELUM_TERVALIDASI`. Nilai agronomi tidak ditetapkan oleh server. Tidak memakai kunci idempotensi. |
+| POST | `/api/preset/:id/versi/:v/validasi` | Admin non-demo: `{catatan}` 10–1000 karakter. Hanya parameter yang memenuhi aturan dapat divalidasi; perubahan nilai kemudian menggugurkan status melalui trigger. Tidak memakai kunci idempotensi. |
+| POST | `/api/preset/:id/versi/:v/aktifkan` | Admin non-demo: mengaktifkan versi yang diminta; snapshot siklus berjalan tidak berubah. Versi aktif yang sama → 409. Tidak memakai kunci idempotensi. |
+| GET | `/api/parameter` | Daftar status parameter keselamatan. Login diperlukan. |
+| POST | `/api/parameter/:tabel/:param/validasi` | Admin non-demo: `{nilai_diperiksa, bukti}`; bukti 20–2000 karakter. Nilai harus sah dan sama dengan nilai aktif yang dikunci pada transaksi; berbeda → 409. Tidak memakai kunci idempotensi. |
+
+Operasi bertanda ★ selalu mengembalikan `{status:true, replay, data}` dengan detail siklus. Error umum: 401 tanpa token sah, 403 role/demo/penugasan ditolak, 404 ID tidak ditemukan/tidak sah, 409 status atau konflik, 422 validasi, 423 penampung terkunci, dan 503 migrasi belum tersedia. Siklus hasil migrasi dengan `perlu_tinjau=true` tidak dapat dilanjutkan; penanda tinjau dan data historis tidak dihapus oleh endpoint ini.
+
+Konfirmasi tandon dan penjadwal tidak menganggap bibit siap tanpa jawaban. Parameter yang belum SIAP tidak diberi angka bawaan. Seluruh operasi siklus adalah perangkat lunak dan tidak mengendalikan pompa/katup.
+
 ### MQTT untuk ESP32 (26 Okt 2026)
 
 Aktif bila `MQTT_URL` diisi di env backend; rute HTTP `/api/device/v1/*` tetap ada. Login broker: user = kode perangkat,

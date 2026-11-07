@@ -47,12 +47,14 @@ export function pantauKaca(root: HTMLElement): () => void {
     { rootMargin: '300px 0px' },
   )
   const terpantau = new WeakSet<Element>()
-  const pindai = () =>
+  const pindai = () => {
+    if (document.documentElement.dataset.perf === 'ringan') return
     root.querySelectorAll(KACA_SEL).forEach((el) => {
       if (terpantau.has(el)) return
       terpantau.add(el)
       io.observe(el)
     })
+  }
   pindai()
   let t = 0
   const mo = new MutationObserver(() => {

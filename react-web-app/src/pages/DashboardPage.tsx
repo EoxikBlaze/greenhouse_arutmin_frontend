@@ -120,7 +120,7 @@ export default function DashboardPage() {
       k: 'level',
       label: 'Level Tandon',
       nilai: s?.water_level ? String(s.water_level) : '—',
-      target: wc?.valve_state ? `Katup ${wc.valve_state}` : 'Katup —',
+      target: wc?.valve_state ? `Pompa isi ${wc.valve_state}` : 'Pompa isi —',
     },
   ]
 
@@ -252,12 +252,6 @@ export default function DashboardPage() {
                   className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[13px] font-semibold text-tinta shadow-[inset_0_1px_0_#fff] transition hover:bg-white/85 sm:flex-none"
                 >
                   Mulai Semai Baru
-                </Link>
-                <Link
-                  to="/watercontrol"
-                  className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[13px] font-semibold text-tinta shadow-[inset_0_1px_0_#fff] transition hover:bg-white/85 sm:flex-none"
-                >
-                  Pengairan
                 </Link>
               </>
             ) : (

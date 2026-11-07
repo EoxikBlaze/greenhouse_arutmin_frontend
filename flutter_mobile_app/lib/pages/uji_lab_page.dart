@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
+import '../widgets/halaman.dart';
 import '../widgets/kaca.dart';
 
 /// Isian form → badan `hasil` POST /uji-lab (hanya kolom terisi). Mengembalikan galat atau null.
@@ -145,22 +146,19 @@ class _UjiLabPageState extends State<UjiLabPage> {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
             children: [
-              SegmentedButton<String>(
-                segments: const [
-                  ButtonSegment(value: 'buah', label: Text('Buah (Melon)')),
-                  ButtonSegment(value: 'sayur', label: Text('Sayur')),
-                ],
-                selected: {_kategori},
-                onSelectionChanged: (s) => _pilihKategori(s.first),
+              PilPilih(
+                label: const ['Buah (Melon)', 'Sayur'],
+                pilih: _kategori == 'buah' ? 0 : 1,
+                rata: true,
+                onPilih: (i) => _pilihKategori(i == 0 ? 'buah' : 'sayur'),
               ),
               const SizedBox(height: Tok.sp3),
               Panel(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    Eyebrow(
                       'Input hasil lab — ${_kategori == 'buah' ? 'Buah' : 'Sayur'}',
-                      style: Tok.h3,
                     ),
                     for (final e in spek.entries)
                       TextField(
@@ -179,9 +177,10 @@ class _UjiLabPageState extends State<UjiLabPage> {
                       ),
                     const SizedBox(height: 8),
                     if (_bolehUbah)
-                      FilledButton(
-                        onPressed: _sibuk ? null : _simpan,
-                        child: const Text('Simpan hasil'),
+                      TombolGradasi(
+                        label: 'Simpan hasil',
+                        sibuk: _sibuk,
+                        onTap: _simpan,
                       )
                     else
                       Text(
@@ -196,7 +195,7 @@ class _UjiLabPageState extends State<UjiLabPage> {
                 ),
               ),
               const SizedBox(height: Tok.sp3),
-              Text('Riwayat', style: Tok.h3),
+              const Eyebrow('Riwayat'),
               const SizedBox(height: 8),
               if (_riwayat.isEmpty)
                 Panel(

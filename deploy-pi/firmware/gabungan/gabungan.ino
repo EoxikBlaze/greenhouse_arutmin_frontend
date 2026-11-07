@@ -1,43 +1,69 @@
 /*
- * GARAP — ESP32 GABUNGAN (sensor-01 + aktuator-01 dalam SATU papan)  v0.2  ⚠ BELUM DIUJI PADA PERANGKAT KERAS
- * Gabungan sensor/sensor.ino + aktuator/aktuator.ino. Papan ini membuka DUA sambungan MQTT ke broker Pi,
- * masing-masing dengan login & API key sendiri, supaya backend/ACL tetap memisahkan peran:
- *   sensor-01   : kirim garap/sensor-01/data (5 dtk) & status (30 dtk, retained, LWT)
- *   aktuator-01 : terima perintah/ack + detak server, kirim hasil & status (lihat aktuator.ino)
- * Library: ArduinoJson 7.x, PubSubClient 2.8, OneWire, DallasTemperature, DHT sensor library (Adafruit).
- * Board: "ESP32 Dev Module". Salin rahasia.h.contoh → rahasia.h dan isi (dua API key).
+ * GARAP — ESP32 GABUNGAN (sensor + aktuator dalam SATU papan)  v0.3  ⚠ BELUM DIUJI PADA PERANGKAT KERAS
+ * Gabungan sensor/sensor.ino + aktuator/aktuator.ino dalam SATU sambungan MQTT ke broker Pi: login & API key
+ * 'aktuator-01' saja. Di backend perangkat ini berperan 'gabungan' (sensor + aktuator), jadi satu kunci cukup.
+ *   garap/aktuator-01/data   : bacaan sensor tiap 5 dtk
+ *   garap/aktuator-01/status : status tiap 30 dtk (retained, LWT)  ·  perintah/ack/hasil + detak server (lihat aktuator.ino)
+ * v0.3 JARINGAN: ESP32 mencoba beberapa Wi-Fi (WIFI_JARINGAN di rahasia.h; dipilih yang terkuat yang terjangkau,
+ *   mis. hotspot Pi 'VERTONIK' dan Wi-Fi rumah). Alamat server dicari sendiri tiap sambung ulang:
+ *   gateway = 10.42.0.1 (hotspot Pi) → itulah Pi; selain itu mDNS 'vertonik.local'; terakhir SERVER_IP dari rahasia.h.
+ *   Jadi IP Pi yang berganti-ganti tidak perlu flash ulang. Tanpa WIFI_JARINGAN, WIFI_SSID/WIFI_PASS lama tetap jalan.
+ * Library: ArduinoJson 7.x, PubSubClient 2.8, OneWire, DallasTemperature, Adafruit SHT31 (+ Adafruit BusIO).
+ * Board: "ESP32 Dev Module". Salin rahasia.h.contoh → rahasia.h dan isi (satu API key: aktuator-01).
  *
- * Pin (tidak bentrok): sensor pH 34, TDS 35 (ADC1), DS18B20 4, DHT22 16 · pompa 25 26 27 32 33 23 ·
- * katup penampung 18 19 21 · tombol E-STOP 13.
+ * PETA PIN = ikut firmware teman (Config.h "1 Penampung Portable", Wiring v2.0), satu tandon / satu meja:
+ *   I2C SDA 21 / SCL 22 : ADS1115 0x48 (A0 = pH, A1 = EC lewat pembagi 10k/10k) + SHT31 0x44 (suhu/RH udara)
+ *   DS18B20 suhu air 4 · pompa A 25, B 26, pH Up 27, pH Down 18, pompa isi 16 (relay HIGH-trigger)
+ *   float bawah 32, float atas 33 (HIGH = penuh, putus kabel = penuh) · E-STOP: bus +12V lewat pembagi 33k/10k ke 36
+ *   Terpasang di wiring tapi BELUM dipakai firmware ini: lampu 13/17/23, tombol reset 19, RTC 0x68, LCD 0x27.
+ * Perintah 'AB' dari server = pompa A lalu (setelah jeda) pompa B, masing-masing separuh dari mL yang diminta.
  *
  * PERTAHANAN BERLAPIS aktuator (sama dengan aktuator.ino) + dua tambahan papan gabungan:
- *   - Sensor TIDAK dibaca selagi pompa jalan (pembacaan analog/DHT memblokir ±0,5 dtk → durasi pompa molor).
+ *   - Sensor TIDAK dibaca selagi pompa jalan (pembacaan ADS1115/SHT31 memblokir ±0,5 dtk → durasi pompa molor).
  *   - ML_PER_DETIK = 0 → setiap DOSIS/BILAS ditolak "belum_dikalibrasi" sampai diisi hasil gelas ukur.
  * WAJIB sebelum dipakai di tanaman: kalibrasi pH/TDS & laju pompa, uji dengan AIR dulu, pompa 12 V lewat
  * relay/MOSFET + dioda flyback. Jangan beri daya pompa dari pin ESP32.
  */
 #include <WiFi.h>
+#include <WiFiMulti.h>
+#include <ESPmDNS.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
-#include <DHT.h>
+#include <Wire.h>
+#include <Adafruit_SHT31.h>
 #include <esp_task_wdt.h>
 #include "rahasia.h"
 
-#define FIRMWARE "gabungan-0.2"
-#define KODE_S   "sensor-01"          // = user MQTT di Pi (deploy-pi/mosquitto/garap.acl)
-#define KODE_A   "aktuator-01"
+#define FIRMWARE "gabungan-0.3"
+#define KODE_A   "aktuator-01"        // = user MQTT di Pi (deploy-pi/mosquitto/garap.acl)
 #ifndef MQTT_PORT
 #define MQTT_PORT 1883
 #endif
 
+// ═══ JARINGAN ══════════════════════════════════════════════════════════════
+struct Jaringan { const char* ssid; const char* pass; };
+#ifndef WIFI_JARINGAN
+#define WIFI_JARINGAN { { WIFI_SSID, WIFI_PASS } }   // format lama: satu jaringan
+#endif
+const Jaringan JARINGAN[] = WIFI_JARINGAN;
+const char* NAMA_MDNS_SERVER = "garap";             // → garap.local (siapkan-sd.sh) dengan fallback vertonik.local
+const char* NAMA_MDNS_CADANGAN = "vertonik";        // → vertonik.local (nama host lama)
+const IPAddress IP_HOTSPOT_PI(10, 42, 0, 1);       // alamat tetap Pi saat memancarkan hotspot (vertonik-hotspot)
+WiFiMulti wifiMulti;
+IPAddress serverIp;                                 // 0.0.0.0 = belum ditemukan
+uint8_t gagalMqtt = 0;
+
 // ═══ SENSOR ════════════════════════════════════════════════════════════════
-#define PIN_PH    34                  // ADC1 saja — ADC2 bentrok dengan WiFi
-#define PIN_TDS   35
+#define PIN_SDA   21
+#define PIN_SCL   22
+#define ADS_ALAMAT 0x48
+#define ADS_KANAL_PH 0                // A0
+#define ADS_KANAL_EC 1                // A1 (sinyal sudah dibagi 2 oleh 10k/10k)
+#define FAKTOR_PEMBAGI_EC 2.0f
+#define SHT_ALAMAT 0x44
 #define PIN_DS18  4
-#define PIN_DHT   16
-#define DHT_TIPE  DHT22
 const uint32_t INTERVAL_MS = 5000;
 // id_meja penampung yang diukur probe ini (menu Meja di web). 0 = bacaan tersimpan tapi TIDAK dipakai otomasi dosis.
 const int ID_MEJA = 0;
@@ -45,34 +71,37 @@ const int ID_MEJA = 0;
 const float PH_V7 = 2.50f, PH_V4 = 3.05f, TDS_FAKTOR_KOREKSI = 1.0f;
 
 // ═══ AKTUATOR ══════════════════════════════════════════════════════════════
-const bool RELAY_AKTIF_LOW = true;    // true untuk modul relay aktif-rendah
-enum Out { P_AB, P_PH_UP, P_PH_DOWN, P_BILAS, P_SAMPLING, P_ISI_AIR, JUMLAH_OUT };
-const int PIN_OUT[JUMLAH_OUT]       = { 25, 26, 27, 32, 33, 23 };
-const char* NAMA_OUT[JUMLAH_OUT]    = { "AB", "PH_UP", "PH_DOWN", "BILAS", "SAMPLING", "ISI_AIR" };
+const bool RELAY_AKTIF_LOW = false;   // hasil uji teman: modul relay HIGH-trigger (jumper COM+HIGH); HIGH = pompa nyala
+enum Out { P_A, P_B, P_PH_UP, P_PH_DOWN, P_ISI_AIR, JUMLAH_OUT };
+const int PIN_OUT[JUMLAH_OUT]       = { 25, 26, 27, 18, 16 };
+const char* NAMA_OUT[JUMLAH_OUT]    = { "A", "B", "PH_UP", "PH_DOWN", "ISI_AIR" };
 // Laju pompa HASIL KALIBRASI (mL/detik). 0 = belum dikalibrasi → perintah berbasis mL ditolak.
-const float ML_PER_DETIK[JUMLAH_OUT] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+const float ML_PER_DETIK[JUMLAH_OUT] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 // Batas durasi mutlak per output (ms) — lapis pengaman ketika perhitungan mL salah
-const uint32_t MAKS_DURASI_MS[JUMLAH_OUT] = { 70000, 12000, 12000, 70000, 15000, 600000 };
-// Penampung (id_meja di server) → pin katup solenoid. Penampung tak dikenal DITOLAK.
-struct Katup { int idPenampung; int pin; };
-const Katup KATUP[] = { { 1, 18 }, { 2, 19 }, { 3, 21 } };
-const int N_KATUP = sizeof(KATUP) / sizeof(KATUP[0]);
-const int PIN_TOMBOL_ESTOP = 13;      // tombol NC ke GND (putus = darurat). Pull-up internal.
-const float MAKS_ML_AB_SUNTIK = 214.0f, MAKS_ML_PH_SUNTIK = 10.0f, MAKS_ML_BILAS = 500.0f;
+const uint32_t MAKS_DURASI_MS[JUMLAH_OUT] = { 70000, 70000, 12000, 12000, 600000 };
+const uint32_t JEDA_AB_MS = 60000;    // jeda antara pompa A dan B (teman: jeda_ab_dtk 60–600 dtk, bawaan 300). Sesuaikan.
+const int PIN_FLOAT_ATAS = 33;        // HIGH = penuh (INPUT_PULLUP: kabel putus = penuh)
+const int PIN_STATUS_ESTOP = 36;      // bus +12V aktuator lewat pembagi 33k/10k; bus mati (E-STOP ditekan) = LOW
+// 1 = baca E-STOP dari GPIO36. Pin mengambang terbaca "ditekan" → aktuator terkunci sampai pembagi terpasang.
+// Set 0 HANYA di meja uji tanpa pompa; wajib 1 di lapangan.
+#ifndef AKTIFKAN_BACA_ESTOP            // meja uji: set 0 di rahasia.h (tidak ikut git), jangan ubah bawaan ini
+#define AKTIFKAN_BACA_ESTOP 1
+#endif
+const float MAKS_ML_AB_SUNTIK = 214.0f, MAKS_ML_PH_SUNTIK = 10.0f;
 const float MAKS_ML_AB_PER_JAM = 450.0f, MAKS_ML_PH_PER_JAM = 30.0f;
 const uint32_t FAILSAFE_MS = 30000, HEARTBEAT_MS = 30000, COBA_MQTT_MS = 5000, ULANG_HASIL_MS = 3000;
 
 // ── Status ──────────────────────────────────────────────────────────────────
 OneWire oneWire(PIN_DS18);
 DallasTemperature ds18(&oneWire);
-DHT dht(PIN_DHT, DHT_TIPE);
-WiFiClient wifiS, wifiA;
-PubSubClient mqS(wifiS), mqA(wifiA);
-uint32_t sTerakhir = 0, sTerakhirStatus = 0, sTerakhirCoba = 0;
+Adafruit_SHT31 sht;
+bool shtAda = false, adsAda = false;
+WiFiClient wifiA;
+PubSubClient mqA(wifiA);
+uint32_t sTerakhir = 0;
 bool estopLokal = false, estopServer = false;
 uint32_t terakhirServerOk = 0, terakhirHB = 0, jamMulai = 0, terakhirCoba = 0;
-const char* T_DATA     = "garap/" KODE_S "/data";
-const char* T_STATUS_S = "garap/" KODE_S "/status";
+const char* T_DATA     = "garap/" KODE_A "/data";
 const char* T_PERINTAH = "garap/" KODE_A "/perintah";
 const char* T_ACK      = "garap/" KODE_A "/ack";
 const char* T_HASIL    = "garap/" KODE_A "/hasil";
@@ -85,15 +114,17 @@ Laporan antreLapor[8];
 // id perintah yang sudah diterima (QoS 1 bisa mengirim duplikat) — jangan jalankan dua kali
 long idTerakhir[16]; int idPos = 0;
 float mlJamAB = 0, mlJamPH = 0;
-struct Kerja { bool aktif = false; long id = 0; int out = -1; int pinKatup = -1; uint32_t mulai = 0, durasi = 0; float ml = 0; const char* tipe = ""; } kerja;
+// fase: 0 = pompa 'out' jalan, 1 = jeda A→B, 2 = pompa 'out2' jalan. out2 >= 0 hanya untuk perintah AB.
+struct Kerja { bool aktif = false; long id = 0; int out = -1, out2 = -1; uint8_t fase = 0; bool nyala = false, ab = false;
+               uint32_t mulai = 0, durasi = 0, durasi2 = 0; float ml = 0, mlSelesai = 0; } kerja;
 
 // ═══ Fungsi aktuator (sama dengan aktuator.ino; mqtt → mqA) ═════════════════
 void tulis(int pin, bool hidup) { digitalWrite(pin, (hidup != RELAY_AKTIF_LOW) ? HIGH : LOW); }
 void semuaMati() {
   for (int i = 0; i < JUMLAH_OUT; i++) tulis(PIN_OUT[i], false);
-  for (int i = 0; i < N_KATUP; i++) tulis(KATUP[i].pin, false);
 }
-int cariKatup(int id) { for (int i = 0; i < N_KATUP; i++) if (KATUP[i].idPenampung == id) return KATUP[i].pin; return -1; }
+bool estopDitekan() { return AKTIFKAN_BACA_ESTOP && digitalRead(PIN_STATUS_ESTOP) == LOW; }
+bool tandonPenuh() { return digitalRead(PIN_FLOAT_ATAS) == HIGH; }
 
 void lapor(long id, const char* status, const char* alasan, float mlNyata) {
   JsonDocument d; d["id"] = id; d["status"] = status;
@@ -128,12 +159,24 @@ bool sudahDiterima(long id) {
 void berhentiKerja(const char* status, const char* alasan) {
   if (!kerja.aktif) return;
   tulis(PIN_OUT[kerja.out], false);
-  if (kerja.pinKatup >= 0) tulis(kerja.pinKatup, false);
-  float dtk = (millis() - kerja.mulai) / 1000.0f;
-  float mlNyata = ML_PER_DETIK[kerja.out] * dtk;
-  if (kerja.out == P_AB) mlJamAB += mlNyata; else if (kerja.out == P_PH_UP || kerja.out == P_PH_DOWN) mlJamPH += mlNyata;
+  float mlNyata = kerja.mlSelesai + (kerja.nyala ? ML_PER_DETIK[kerja.out] * (millis() - kerja.mulai) / 1000.0f : 0.0f);
+  if (kerja.ab) mlJamAB += mlNyata; else if (kerja.out == P_PH_UP || kerja.out == P_PH_DOWN) mlJamPH += mlNyata;
   lapor(kerja.id, status, alasan, mlNyata);
-  kerja.aktif = false;
+  kerja = Kerja();
+}
+
+// Maju satu langkah bila fase berjalan sudah habis waktunya (dipanggil tiap loop).
+void langkahKerja() {
+  if (!kerja.aktif || millis() - kerja.mulai < kerja.durasi) return;
+  if (kerja.out2 < 0) { semuaMati(); berhentiKerja("selesai", "ok"); return; }
+  if (kerja.fase == 0) {                          // pompa A selesai → jeda
+    tulis(PIN_OUT[kerja.out], false);
+    kerja.mlSelesai += ML_PER_DETIK[kerja.out] * kerja.durasi / 1000.0f;
+    kerja.nyala = false; kerja.fase = 1; kerja.mulai = millis(); kerja.durasi = JEDA_AB_MS;
+  } else if (kerja.fase == 1) {                   // jeda habis → pompa B
+    kerja.out = kerja.out2; kerja.out2 = -1; kerja.fase = 2; kerja.mulai = millis(); kerja.durasi = kerja.durasi2;
+    kerja.nyala = true; tulis(PIN_OUT[kerja.out], true);
+  }
 }
 
 void daruratBerhenti(const char* alasan) { semuaMati(); berhentiKerja("gagal", alasan); }
@@ -143,39 +186,42 @@ bool mulaiPerintah(long id, const char* tipe, JsonObjectConst p, const char*& al
   String t = tipe;
   if (estopLokal || estopServer) { alasan = "estop"; return false; }
   if (kerja.aktif)               { alasan = "sibuk"; return false; }
-  int out = -1; float ml = 0; int penampung = p["penampung"] | 0; uint32_t durasi = 0; int pinKatup = -1;
+  int out = -1, out2 = -1; float ml = 0; uint32_t durasi = 0, durasi2 = 0; bool ab = false;
 
   if (t == "DOSIS") {
     String l = p["larutan"] | ""; ml = p["ml"] | 0.0f;
-    out = (l == "AB") ? P_AB : (l == "PH_UP") ? P_PH_UP : (l == "PH_DOWN") ? P_PH_DOWN : -1;
+    ab = (l == "AB");
+    out = ab ? P_A : (l == "PH_UP") ? P_PH_UP : (l == "PH_DOWN") ? P_PH_DOWN : -1;
     if (out < 0 || !(ml > 0)) { alasan = "parameter"; return false; }
-    float batas = (out == P_AB) ? MAKS_ML_AB_SUNTIK : MAKS_ML_PH_SUNTIK;
+    float batas = ab ? MAKS_ML_AB_SUNTIK : MAKS_ML_PH_SUNTIK;
     if (ml > batas) { alasan = "melebihi_batas_suntik"; return false; }
-    if (out == P_AB && mlJamAB + ml > MAKS_ML_AB_PER_JAM) { alasan = "batas_jam_ab"; return false; }
-    if (out != P_AB && mlJamPH + ml > MAKS_ML_PH_PER_JAM) { alasan = "batas_jam_ph"; return false; }
-  } else if (t == "BILAS") {
-    out = P_BILAS; ml = p["ml"] | 100.0f;
-    if (!(ml > 0) || ml > MAKS_ML_BILAS) { alasan = "melebihi_batas_bilas"; return false; }
-  } else if (t == "SAMPLING") { out = P_SAMPLING; durasi = 10000; }
-  else if (t == "ISI_AIR") {
+    if (ab && mlJamAB + ml > MAKS_ML_AB_PER_JAM) { alasan = "batas_jam_ab"; return false; }
+    if (!ab && mlJamPH + ml > MAKS_ML_PH_PER_JAM) { alasan = "batas_jam_ph"; return false; }
+    if (ab) {                                     // mL total dibagi dua: A dan B masing-masing separuh
+      out2 = P_B;
+      if (ML_PER_DETIK[P_A] <= 0.01f || ML_PER_DETIK[P_B] <= 0.01f) { alasan = "belum_dikalibrasi"; return false; }
+      durasi  = (uint32_t)(ml / 2 / ML_PER_DETIK[P_A] * 1000.0f);
+      durasi2 = (uint32_t)(ml / 2 / ML_PER_DETIK[P_B] * 1000.0f);
+      if (durasi > MAKS_DURASI_MS[P_A] || durasi2 > MAKS_DURASI_MS[P_B]) { alasan = "melebihi_durasi_maks"; return false; }
+    }
+  } else if (t == "ISI_AIR") {
     String aksi = p["aksi"] | "MULAI";
     if (aksi == "STOP") { tulis(PIN_OUT[P_ISI_AIR], false); lapor(id, "selesai", "isi_air_stop", 0); alasan = ""; return true; }
+    if (tandonPenuh()) { alasan = "tandon_penuh"; return false; }
     out = P_ISI_AIR; durasi = MAKS_DURASI_MS[P_ISI_AIR];
-  } else { alasan = "tipe_tak_dikenal"; return false; }
+  } else { alasan = "tipe_tak_dikenal"; return false; }   // BILAS & SAMPLING tidak ada di wiring satu tandon
 
-  pinKatup = cariKatup(penampung);
-  if (t != "ISI_AIR" && pinKatup < 0) { alasan = "penampung_tak_dikenal"; return false; }
   if (durasi == 0) {
     if (ML_PER_DETIK[out] <= 0.01f) { alasan = "belum_dikalibrasi"; return false; }
     durasi = (uint32_t)(ml / ML_PER_DETIK[out] * 1000.0f);
+    if (durasi > MAKS_DURASI_MS[out]) { alasan = "melebihi_durasi_maks"; return false; }
   }
-  if (durasi > MAKS_DURASI_MS[out]) { alasan = "melebihi_durasi_maks"; return false; }
 
-  if (pinKatup >= 0) tulis(pinKatup, true);
-  delay(150);                       // katup terbuka dulu, baru pompa
   tulis(PIN_OUT[out], true);
-  kerja = { true, id, out, pinKatup, millis(), durasi, ml, "" };
-  Serial.printf("MULAI #%ld %s %s %.1f mL (%lu ms)\n", id, tipe, NAMA_OUT[out], ml, (unsigned long)durasi);
+  kerja = Kerja();
+  kerja.aktif = true; kerja.id = id; kerja.out = out; kerja.out2 = out2; kerja.nyala = true; kerja.ab = ab;
+  kerja.mulai = millis(); kerja.durasi = durasi; kerja.durasi2 = durasi2; kerja.ml = ml;
+  Serial.printf("MULAI #%ld %s %s %.1f mL (%lu ms)\n", id, tipe, ab ? "AB" : NAMA_OUT[out], ml, (unsigned long)durasi);
   alasan = ""; return true;
 }
 
@@ -217,26 +263,67 @@ void kirimStatusA() {
   mqA.publish(T_STATUS_A, b.c_str(), true);
 }
 
+// Urutan: gateway = hotspot Pi → mDNS → SERVER_IP (rahasia.h). Hasil dipasang ke klien MQTT.
+void cariServer() {
+  static bool mdnsMulai = false;
+  IPAddress ip;
+  if (WiFi.gatewayIP() == IP_HOTSPOT_PI) ip = IP_HOTSPOT_PI;
+  else {
+    if (!mdnsMulai) mdnsMulai = MDNS.begin("garap-esp32");
+    if (mdnsMulai) {
+      ip = MDNS.queryHost(NAMA_MDNS_SERVER, 2000);
+      esp_task_wdt_reset();
+      if ((uint32_t)ip == 0) ip = MDNS.queryHost(NAMA_MDNS_CADANGAN, 2000);
+    }
+    esp_task_wdt_reset();
+    if ((uint32_t)ip == 0) ip.fromString(SERVER_IP);
+  }
+  serverIp = ip;
+  mqA.setServer(serverIp, MQTT_PORT);
+  Serial.printf("Server: %s\n", serverIp.toString().c_str());
+}
+
 void sambungMqttA() {
   if (mqA.connected() || WiFi.status() != WL_CONNECTED) return;
   if (terakhirCoba != 0 && millis() - terakhirCoba < COBA_MQTT_MS) return;
   terakhirCoba = millis();
+  if ((uint32_t)serverIp == 0 || gagalMqtt >= 3) { cariServer(); gagalMqtt = 0; }
   if (mqA.connect(KODE_A, KODE_A, API_KEY_AKTUATOR, T_STATUS_A, 1, true, "{\"online\":false}")) {
     mqA.subscribe(T_PERINTAH, 1); mqA.subscribe(T_ACK, 1); mqA.subscribe(T_SERVER, 1);
     kirimStatusA(); terakhirHB = millis();
-    Serial.println("MQTT aktuator tersambung");
+    gagalMqtt = 0;
+    Serial.printf("MQTT aktuator tersambung ke %s\n", serverIp.toString().c_str());
   } else {
+    gagalMqtt++;
     Serial.printf("MQTT aktuator gagal, kode=%d%s\n", mqA.state(), mqA.state() == 5 ? " (API_KEY_AKTUATOR ditolak broker)" : "");
   }
 }
 
-// ═══ Fungsi sensor (sama dengan sensor.ino; mqtt → mqS) ═════════════════════
-float bacaVolt(int pin) {            // rata-rata 30 sampel, buang pencilan (median-ish)
-  uint16_t s[30];
-  for (int i = 0; i < 30; i++) { s[i] = analogRead(pin); delay(5); }
-  for (int i = 1; i < 30; i++) for (int j = i; j > 0 && s[j] < s[j-1]; j--) { uint16_t t = s[j]; s[j] = s[j-1]; s[j-1] = t; }
-  uint32_t sum = 0; for (int i = 8; i < 22; i++) sum += s[i];
-  return (sum / 14.0f) * 3.3f / 4095.0f;
+// ═══ Fungsi sensor (sama dengan sensor.ino; data lewat mqA) ═════════════════
+// ADS1115 single-shot, ±4,096 V (1 LSB = 0,125 mV), 128 SPS — sama dengan firmware teman. NAN bila gagal.
+float bacaAdsSekali(uint8_t kanal) {
+  uint16_t cfg = 0x8000 | ((uint16_t)(4 + kanal) << 12) | 0x0200 | 0x0100 | 0x0080 | 0x0003;
+  Wire.beginTransmission(ADS_ALAMAT); Wire.write((uint8_t)0x01); Wire.write((uint8_t)(cfg >> 8)); Wire.write((uint8_t)(cfg & 0xFF));
+  if (Wire.endTransmission() != 0) return NAN;
+  uint32_t t0 = millis(); delay(8);
+  for (;;) {                                      // tunggu bit OS = 1 (konversi selesai)
+    Wire.beginTransmission(ADS_ALAMAT); Wire.write((uint8_t)0x01);
+    if (Wire.endTransmission() != 0 || Wire.requestFrom((int)ADS_ALAMAT, 2) != 2) return NAN;
+    uint8_t hi = Wire.read(); Wire.read();
+    if (hi & 0x80) break;
+    if (millis() - t0 > 40) return NAN;
+    delay(1);
+  }
+  Wire.beginTransmission(ADS_ALAMAT); Wire.write((uint8_t)0x00);
+  if (Wire.endTransmission() != 0 || Wire.requestFrom((int)ADS_ALAMAT, 2) != 2) return NAN;
+  uint8_t h = Wire.read(), l = Wire.read();
+  return (float)(int16_t)(((uint16_t)h << 8) | l) * 0.000125f;
+}
+float bacaVolt(uint8_t kanal) {                   // median 9 sampel; NAN bila ada yang gagal
+  float s[9];
+  for (int i = 0; i < 9; i++) { s[i] = bacaAdsSekali(kanal); if (isnan(s[i])) return NAN; esp_task_wdt_reset(); }
+  for (int i = 1; i < 9; i++) for (int j = i; j > 0 && s[j] < s[j-1]; j--) { float t = s[j]; s[j] = s[j-1]; s[j-1] = t; }
+  return s[4];
 }
 float hitungPH(float v) { float slope = (4.01f - 7.0f) / (PH_V4 - PH_V7); return 7.0f + slope * (v - PH_V7); }
 float hitungTDS(float v, float suhu) {   // rumus umum modul TDS analog (kompensasi suhu 25 °C)
@@ -245,77 +332,65 @@ float hitungTDS(float v, float suhu) {   // rumus umum modul TDS analog (kompens
   return tds * TDS_FAKTOR_KOREKSI;
 }
 
-void kirimStatusS() {
-  JsonDocument d;
-  d["online"] = true; d["firmware"] = FIRMWARE; d["rssi"] = WiFi.RSSI(); d["uptime"] = millis() / 1000;
-  String b; serializeJson(d, b);
-  mqS.publish(T_STATUS_S, b.c_str(), true);
-}
-
-void sambungMqttS() {
-  if (mqS.connected() || WiFi.status() != WL_CONNECTED) return;
-  if (sTerakhirCoba != 0 && millis() - sTerakhirCoba < COBA_MQTT_MS) return;
-  sTerakhirCoba = millis();
-  if (mqS.connect(KODE_S, KODE_S, API_KEY_SENSOR, T_STATUS_S, 1, true, "{\"online\":false}")) {
-    Serial.println("MQTT sensor tersambung");
-    kirimStatusS(); sTerakhirStatus = millis();
-  } else {
-    Serial.printf("MQTT sensor gagal, kode=%d%s\n", mqS.state(), mqS.state() == 5 ? " (API_KEY_SENSOR ditolak broker)" : "");
-  }
-}
-
 void bacaDanKirimSensor() {
   float suhuAir = ds18.getTempCByIndex(0);   // hasil konversi yang diminta putaran lalu (non-blok)
   ds18.requestTemperatures();                // minta konversi untuk putaran berikut
-  float suhuUdara = dht.readTemperature(), lembap = dht.readHumidity();
-  float ph = hitungPH(bacaVolt(PIN_PH));
-  float tds = hitungTDS(bacaVolt(PIN_TDS), (suhuAir > -50 && suhuAir < 80) ? suhuAir : 25.0f);
+  float suhuUdara = shtAda ? sht.readTemperature() : NAN, lembap = shtAda ? sht.readHumidity() : NAN;
+  float vPh = adsAda ? bacaVolt(ADS_KANAL_PH) : NAN, vEc = adsAda ? bacaVolt(ADS_KANAL_EC) * FAKTOR_PEMBAGI_EC : NAN;
+  float ph = hitungPH(vPh);
+  float tds = hitungTDS(vEc, (suhuAir > -50 && suhuAir < 80) ? suhuAir : 25.0f);
 
   JsonDocument d;
   // Sensor yang gagal baca DIHILANGKAN (jangan kirim angka palsu)
   if (suhuAir > -50 && suhuAir < 80)       d["waterTemp"] = round(suhuAir * 10) / 10.0;
   if (!isnan(suhuUdara))                   d["airTemp"]   = round(suhuUdara * 10) / 10.0;
   if (!isnan(lembap))                      d["humidity"]  = round(lembap * 10) / 10.0;
-  if (ph > 0 && ph < 14)                   d["ph"]        = round(ph * 100) / 100.0;
-  if (tds >= 0 && tds < 5000)              d["tds"]       = round(tds);
+  if (!isnan(ph) && ph > 0 && ph < 14)                 d["ph"]        = round(ph * 100) / 100.0;
+  if (!isnan(tds) && tds >= 0 && tds < 5000)            d["tds"]       = round(tds);
   if (ID_MEJA > 0)                         d["id_meja"]   = ID_MEJA;
   d["rssi"] = WiFi.RSSI();
   d["firmware"] = FIRMWARE;
 
   bool ok = false;
-  if (mqS.connected()) { String body; serializeJson(d, body); ok = mqS.publish(T_DATA, body.c_str()); }
+  if (mqA.connected()) { String body; serializeJson(d, body); ok = mqA.publish(T_DATA, body.c_str()); }
   Serial.printf("[%lu] kirim=%s ph=%.2f tds=%.0f air=%.1f rssi=%d\n", millis()/1000, ok ? "OK" : "GAGAL", ph, tds, suhuAir, WiFi.RSSI());
 }
 
 // ═══ Umum ══════════════════════════════════════════════════════════════════
 void sambungWifi() {
   if (WiFi.status() == WL_CONNECTED) return;
-  WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.setAutoReconnect(true);
-  WiFi.begin(WIFI_SSID, WIFI_PASS);
-  for (int i = 0; i < 30 && WiFi.status() != WL_CONNECTED; i++) { delay(500); esp_task_wdt_reset(); }
+  static bool siap = false;
+  if (!siap) {
+    WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.setAutoReconnect(true);
+    for (const Jaringan& j : JARINGAN) wifiMulti.addAP(j.ssid, j.pass);
+    siap = true;
+  }
+  esp_task_wdt_reset();
+  if (wifiMulti.run(6000) == WL_CONNECTED) {      // memindai lalu menyambung ke jaringan terkuat yang dikenal
+    Serial.printf("Wi-Fi: %s  rssi=%d  ip=%s\n", WiFi.SSID().c_str(), WiFi.RSSI(), WiFi.localIP().toString().c_str());
+    serverIp = IPAddress(); gagalMqtt = 0;         // jaringan mungkin berganti → cari server lagi
+  }
+  esp_task_wdt_reset();
 }
 
 void setup() {
   // Output OFF sebelum apa pun
   for (int i = 0; i < JUMLAH_OUT; i++) { tulis(PIN_OUT[i], false); pinMode(PIN_OUT[i], OUTPUT); tulis(PIN_OUT[i], false); }
-  for (int i = 0; i < N_KATUP; i++)    { tulis(KATUP[i].pin, false); pinMode(KATUP[i].pin, OUTPUT); tulis(KATUP[i].pin, false); }
-  pinMode(PIN_TOMBOL_ESTOP, INPUT_PULLUP);
+  pinMode(PIN_STATUS_ESTOP, INPUT);               // GPIO36 input-only, tanpa pull-up internal
+  pinMode(PIN_FLOAT_ATAS, INPUT_PULLUP);
   Serial.begin(115200);
   esp_task_wdt_config_t wdt = { .timeout_ms = 15000, .idle_core_mask = 0, .trigger_panic = true };
   esp_task_wdt_reconfigure(&wdt); esp_task_wdt_add(NULL);
 
-  analogReadResolution(12);
-  analogSetPinAttenuation(PIN_PH, ADC_11db);
-  analogSetPinAttenuation(PIN_TDS, ADC_11db);
+  Wire.begin(PIN_SDA, PIN_SCL); Wire.setClock(100000);
+  Wire.beginTransmission(ADS_ALAMAT); adsAda = (Wire.endTransmission() == 0);
+  shtAda = sht.begin(SHT_ALAMAT);
+  Serial.printf("ADS1115 %s, SHT31 %s\n", adsAda ? "ada" : "TIDAK TERBACA", shtAda ? "ada" : "TIDAK TERBACA");
   ds18.begin(); ds18.setWaitForConversion(false); ds18.requestTemperatures();
-  dht.begin();
 
-  for (PubSubClient* m : { &mqS, &mqA }) {
-    m->setServer(SERVER_IP, MQTT_PORT);
-    m->setBufferSize(1024);
-    m->setKeepAlive(15);
-    m->setSocketTimeout(5);                         // connect() tak boleh menahan loop > watchdog
-  }
+  mqA.setBufferSize(1024);
+  mqA.setKeepAlive(15);
+  mqA.setSocketTimeout(5);                          // connect() tak boleh menahan loop > watchdog
   mqA.setCallback(pesanMasuk);
   sambungWifi();
   terakhirServerOk = 0; jamMulai = millis();        // belum ada detak server = belum boleh menjalankan apa pun
@@ -323,26 +398,25 @@ void setup() {
 
 void loop() {
   esp_task_wdt_reset();
-  if (digitalRead(PIN_TOMBOL_ESTOP) == HIGH) { if (!estopLokal) Serial.println("E-STOP fisik"); estopLokal = true; daruratBerhenti("tombol_estop"); }
+  if (estopDitekan()) { if (!estopLokal) Serial.println("E-STOP fisik"); estopLokal = true; daruratBerhenti("tombol_estop"); }
+  // isi air berhenti sendiri saat float atas penuh
+  if (kerja.aktif && kerja.out == P_ISI_AIR && tandonPenuh()) { semuaMati(); berhentiKerja("selesai", "tandon_penuh"); }
   // jendela per jam
   if (millis() - jamMulai > 3600000UL) { jamMulai = millis(); mlJamAB = mlJamPH = 0; }
   // fail-safe: detak server hilang (juga saat MQTT/WiFi putus)
   if (terakhirServerOk == 0 || millis() - terakhirServerOk > FAILSAFE_MS) daruratBerhenti("server_hilang");
   // batas durasi pekerjaan berjalan
-  if (kerja.aktif && millis() - kerja.mulai >= kerja.durasi) { semuaMati(); berhentiKerja("selesai", "ok"); }
+  langkahKerja();
 
   sambungWifi();
   sambungMqttA();
   esp_task_wdt_reset();
-  sambungMqttS();
   mqA.loop();
-  mqS.loop();
   ulangLaporan();
   // E-STOP fisik hanya lepas bila tombol dilepas DAN server sudah di-reset admin (estop=false)
-  if (estopLokal && digitalRead(PIN_TOMBOL_ESTOP) == LOW && !estopServer
+  if (estopLokal && !estopDitekan() && !estopServer
       && terakhirServerOk != 0 && millis() - terakhirServerOk < FAILSAFE_MS) { estopLokal = false; Serial.println("E-STOP dilepas"); }
   if (mqA.connected() && millis() - terakhirHB >= HEARTBEAT_MS) { terakhirHB = millis(); kirimStatusA(); }
-  if (mqS.connected() && millis() - sTerakhirStatus >= HEARTBEAT_MS) { sTerakhirStatus = millis(); kirimStatusS(); }
 
   // sensor: hanya saat pompa diam (pembacaan memblokir ±0,5 dtk dan akan memperpanjang durasi pompa)
   if (!kerja.aktif && millis() - sTerakhir >= INTERVAL_MS) { sTerakhir = millis(); bacaDanKirimSensor(); }

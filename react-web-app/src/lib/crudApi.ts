@@ -71,33 +71,36 @@ export function parseApiFailure(err: unknown): ApiFailure {
 export function useApiError(): (err: unknown) => ApiFailure {
   const navigate = useNavigate()
   const { logout, role } = useAuth()
+  const ctxRef = useRef({ navigate, logout, role })
 
-  return useCallback(
-    (err: unknown): ApiFailure => {
-      const f = parseApiFailure(err)
+  useEffect(() => {
+    ctxRef.current = { navigate, logout, role }
+  }, [navigate, logout, role])
 
-      if (f.status === 401) {
-        // Token kedaluwarsa/hilang → buang sesi lokal lalu kembali ke login.
-        logout()
-        navigate('/login', { replace: true })
-        return { ...f, message: 'Sesi berakhir — silakan login kembali.' }
-      }
+  return useCallback((err: unknown): ApiFailure => {
+    const { navigate: nav, logout: doLogout, role: currentRole } = ctxRef.current
+    const f = parseApiFailure(err)
 
-      if (f.status === 403 && role === 'demo') {
-        const msg = /^mode demo/i.test(f.message)
-          ? f.message
-          : `Mode demo: ${f.message}`
-        return { ...f, message: msg }
-      }
+    if (f.status === 401) {
+      // Token kedaluwarsa/hilang → buang sesi lokal lalu kembali ke login.
+      doLogout()
+      nav('/login', { replace: true })
+      return { ...f, message: 'Sesi berakhir — silakan login kembali.' }
+    }
 
-      if (f.status === 404) {
-        return { ...f, message: f.message || 'Data tidak ditemukan.' }
-      }
+    if (f.status === 403 && currentRole === 'demo') {
+      const msg = /^mode demo/i.test(f.message)
+        ? f.message
+        : `Mode demo: ${f.message}`
+      return { ...f, message: msg }
+    }
 
-      return f
-    },
-    [logout, navigate, role],
-  )
+    if (f.status === 404) {
+      return { ...f, message: f.message || 'Data tidak ditemukan.' }
+    }
+
+    return f
+  }, [])
 }
 
 function rowsOf(payload: unknown): unknown[] {

@@ -4,6 +4,8 @@ import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
+import '../widgets/halaman.dart';
+import '../widgets/ikon.dart';
 import '../widgets/kaca.dart';
 
 const _zat = <String, String>{
@@ -117,17 +119,15 @@ class _NutrisiManualPageState extends State<NutrisiManualPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Dosing manual', style: Tok.h3),
+                    const Eyebrow('Dosing manual'),
                     const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      initialValue: _pilih,
-                      decoration: const InputDecoration(labelText: 'Zat'),
-                      items: [
-                        for (final e in _zat.entries)
-                          DropdownMenuItem(value: e.key, child: Text(e.value)),
-                      ],
-                      onChanged: _bolehUbah
-                          ? (v) => setState(() => _pilih = v ?? _pilih)
+                    PilPilih(
+                      label: _zat.values.toList(),
+                      pilih: _zat.keys.toList().indexOf(_pilih),
+                      gulir: true,
+                      onPilih: _bolehUbah
+                          ? (i) =>
+                                setState(() => _pilih = _zat.keys.elementAt(i))
                           : null,
                     ),
                     TextField(
@@ -150,16 +150,19 @@ class _NutrisiManualPageState extends State<NutrisiManualPage> {
                     ),
                     const SizedBox(height: 8),
                     if (_bolehUbah)
-                      Wrap(
-                        spacing: 8,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          FilledButton(
-                            onPressed: _sibuk || salah != null
+                          TombolGradasi(
+                            label: 'Dosing',
+                            ikon: Ikon.tetes,
+                            sibuk: _sibuk,
+                            onTap: salah != null
                                 ? null
                                 : () =>
                                       _kirim({'zat': _pilih, 'volume_ml': _ml}),
-                            child: const Text('Dosing'),
                           ),
+                          const SizedBox(height: 8),
                           OutlinedButton(
                             onPressed: _sibuk
                                 ? null
@@ -181,7 +184,7 @@ class _NutrisiManualPageState extends State<NutrisiManualPage> {
                 ),
               ),
               const SizedBox(height: Tok.sp3),
-              Text('Riwayat dosing manual', style: Tok.h3),
+              const Eyebrow('Riwayat dosing manual'),
               const SizedBox(height: 8),
               if (_riwayat.isEmpty)
                 Panel(

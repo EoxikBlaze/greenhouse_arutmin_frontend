@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { SiteFooter } from '../components/SiteFooter'
+import { MemuatHalaman } from '../components/MemuatHalaman'
 import { Monogram } from '../components/Monogram'
 import { DemoBanner } from '../components/DemoBanner'
 import { useAuth } from '../lib/authContext'
@@ -23,7 +24,6 @@ const TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/sensor-realtime': 'Sensor Langsung',
   '/peringatan': 'Peringatan',
-  '/watercontrol': 'Pengairan',
   '/tanam': 'Kebun Saya',
   '/saklar': 'Saklar',
   '/dosing-manual': 'Nutrisi Manual',
@@ -83,7 +83,6 @@ const NAV: NavGroup[] = [
       { to: '/saklar', label: 'Saklar', ikon: 'ambang', allow: ADMIN_DEMO },
       { to: '/dosing-manual', label: 'Nutrisi Manual', ikon: 'tetes', allow: ADMIN_DEMO },
       { to: '/dosing', label: 'Pengaturan Nutrisi', ikon: 'dosing', allow: ADMIN_DEMO },
-      { to: '/watercontrol', label: 'Pengairan', ikon: 'air', allow: ADMIN_DEMO },
     ],
   },
   {
@@ -306,27 +305,6 @@ export function AppShell() {
     handleClose: logoutClose,
   } = useDialog({ open: confirmKeluar, onClose: () => setConfirmKeluar(false) })
 
-  // Kilau spekular: titik terang di kaca mengikuti kursor (hanya perangkat pointer halus).
-  // Satu pembaruan per frame: event pointermove bisa datang jauh lebih sering dari 60/detik.
-  const kursor = useRef<{ el: HTMLElement; x: number; y: number } | null>(null)
-  const kursorFrame = useRef(0)
-  useEffect(() => () => cancelAnimationFrame(kursorFrame.current), [])
-  function ikutiKursor(e: React.PointerEvent<HTMLElement>) {
-    if (e.pointerType !== 'mouse') return
-    const el = (e.target as HTMLElement).closest<HTMLElement>('.vsf-card, .vsf-kpi-kaca, .vsf-kpi, .glass-card, .glass-chrome')
-    if (!el) return
-    kursor.current = { el, x: e.clientX, y: e.clientY }
-    if (kursorFrame.current) return
-    kursorFrame.current = requestAnimationFrame(() => {
-      kursorFrame.current = 0
-      const k = kursor.current
-      if (!k) return
-      const r = k.el.getBoundingClientRect()
-      k.el.style.setProperty('--mx', `${(((k.x - r.left) / r.width) * 100).toFixed(1)}%`)
-      k.el.style.setProperty('--my', `${(((k.y - r.top) / r.height) * 100).toFixed(1)}%`)
-    })
-  }
-
   return (
     <div ref={akar} className="relative isolate min-h-dvh">
       <div className="app-latar" aria-hidden />
@@ -342,7 +320,6 @@ export function AppShell() {
       {/* Rail desktop — menu utama: satu ikon per grup, tooltip kaca di kanan; submenu muncul di header PillNav. */}
       <aside
         aria-label="Menu utama"
-        onPointerMove={ikutiKursor}
         className="glass-chrome vsf-stagger fixed bottom-3 left-3 top-3 z-40 hidden w-[72px] flex-col items-center gap-2 py-3 lg:flex"
       >
         <Link to="/dashboard" aria-label="GARAP — ke dashboard" className="mb-1 block">
@@ -439,7 +416,7 @@ export function AppShell() {
         />
       )}
 
-      <main id="vsf-main" tabIndex={-1} onPointerMove={ikutiKursor} className="flex min-h-dvh min-w-0 flex-col pb-[88px] outline-none lg:pl-[92px]">
+      <main id="vsf-main" tabIndex={-1} className="flex min-h-dvh min-w-0 flex-col pb-[88px] outline-none lg:pl-[92px]">
         {/* Bilah atas: merek, nav pill submenu grup aktif, status. */}
         <header ref={topbar} className="vsf-topbar sticky top-0 z-20 px-4 pt-3 sm:px-6">
           <div className="glass-chrome flex flex-wrap items-center gap-x-3 gap-y-2 py-2 pl-2 pr-2 sm:pl-3 xl:flex-nowrap">
@@ -453,9 +430,19 @@ export function AppShell() {
             >
               <Ikon nama={navOpen ? 'tutup' : 'menu'} className="h-5 w-5" />
             </button>
-            <div className="min-w-0 flex-1 xl:hidden xl:flex-none 2xl:block 2xl:w-[190px] 2xl:shrink-0">
-              <div className="truncate font-display text-[16px] font-bold leading-tight text-tinta">Vertonik Smart Farm</div>
-              <div className="hidden truncate text-[12px] text-abu sm:block">GARAP · greenhouse hidroponik</div>
+            {/* Judul halaman di header (dulu kartu terpisah di bawah header + header kosong di desktop). */}
+            <div className="min-w-0 flex-1 px-1">
+              {beranda ? (
+                <>
+                  <div className="truncate font-display text-[16px] font-bold leading-tight text-tinta">Vertonik Smart Farm</div>
+                  <div className="hidden truncate text-[12px] text-abu sm:block">GARAP · greenhouse hidroponik</div>
+                </>
+              ) : (
+                <>
+                  {grupAktif && <div className="vsf-eyebrow vsf-eyebrow-chrome truncate">{grupAktif.label}</div>}
+                  <h1 className="truncate font-display text-[18px] font-bold leading-tight text-tinta sm:text-[20px]">{title}</h1>
+                </>
+              )}
             </div>
             <div className="ml-auto flex items-center gap-2 sm:gap-3">
               {/* S6 — status IoT dari data live /dashboard (lihat useApiObject di atas). */}
@@ -485,9 +472,9 @@ export function AppShell() {
           </div>
         </header>
 
-        {/* HP: konten minimal setinggi layar → footer sudah di bawah layar sejak awal, tidak terdorong (CLS 0,135)
-            saat tabel/kartu selesai dimuat. */}
-        <div className="min-w-0 flex-1 overflow-x-clip p-4 sm:p-6 max-lg:min-h-dvh">
+        {/* Konten minimal setinggi layar di semua ukuran layar → footer sudah di bawah layar sejak awal,
+            tidak terdorong (CLS) saat lazy chunk atau tabel/kartu selesai dimuat di bawah 20x CPU slowdown. */}
+        <div className="min-h-dvh min-w-0 flex-1 overflow-x-clip p-4 sm:p-6">
           {/* QW5 — notice redirect role (state dari RequireAuth). */}
           {notice && (
             <div
@@ -507,17 +494,10 @@ export function AppShell() {
               </button>
             </div>
           )}
-          <div key={location.pathname} className="vsf-page min-w-0">
-            {/* Judul halaman (dashboard punya sapaan sendiri sebagai h1). */}
-            {!beranda && (
-              <div className="mx-auto mb-4 w-full max-w-[1180px] md:mb-6">
-                <div className="glass-card inline-flex flex-col gap-0.5 px-5 py-3">
-                  {grupAktif && <div className="vsf-eyebrow vsf-eyebrow-chrome">{grupAktif.label}</div>}
-                  <h1 className="font-display text-[24px] font-bold leading-tight text-tinta">{title}</h1>
-                </div>
-              </div>
-            )}
-            <Outlet />
+          <div className="vsf-page min-w-0">
+            <Suspense fallback={<MemuatHalaman />}>
+              <Outlet />
+            </Suspense>
           </div>
         </div>
         <SiteFooter pekat />

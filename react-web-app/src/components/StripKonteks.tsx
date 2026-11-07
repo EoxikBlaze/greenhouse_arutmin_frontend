@@ -18,7 +18,7 @@ function angka(v: number | null | undefined, digit: number): string {
 }
 
 /**
- * Strip satu baris di atas chat: status alat, umur bacaan terakhir, pH/TDS, katup.
+ * Strip satu baris di atas chat: status alat, umur bacaan terakhir, pH/TDS, pompa isi.
  * Tujuannya satu: pengguna tahu seberapa segar data yang dibaca asisten sebelum bertanya.
  */
 export function StripKonteks({ data, memuat }: { data: KonteksKebun | null; memuat: boolean }) {
@@ -52,7 +52,7 @@ export function StripKonteks({ data, memuat }: { data: KonteksKebun | null; memu
             </span>
             {katup && (
               <span className="text-abu">
-                Katup <b className="text-tinta">{katup}</b>
+                Pompa isi <b className="text-tinta">{katup}</b>
               </span>
             )}
           </>

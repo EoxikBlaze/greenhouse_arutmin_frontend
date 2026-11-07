@@ -36,7 +36,7 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
   const [idMeja, setIdMeja] = useState('')
   const [mejaManual, setMejaManual] = useState(false)
   const [jumlah, setJumlah] = useState('100')
-  const [tgl, setTgl] = useState(tanggalIso(Date.now()))
+  const [tgl, setTgl] = useState(() => tanggalIso(Date.now()))
   const [ket, setKet] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
   const [formError, setFormError] = useState<string | null>(null)

@@ -44,6 +44,8 @@ export default function NutrisiManualPage() {
   }, [handleApiError])
 
   useEffect(() => {
+    // setState terjadi SETELAH await (asinkron) — bukan setState sinkron di dalam effect.
+    // eslint-disable-next-line react/set-state-in-effect
     void muat()
     const id = window.setInterval(() => void muat(), 5000)
     return () => window.clearInterval(id)

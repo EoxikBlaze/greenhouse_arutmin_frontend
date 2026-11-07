@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { useApiList } from '../lib/crudApi'
-import { belumDiatur, type FailSafeRow, type JadwalRow, type ParameterRow } from '../lib/dosing'
+import { belumDiatur, PARAM_DISEMBUNYIKAN, type FailSafeRow, type JadwalRow, type ParameterRow } from '../lib/dosing'
 import { NaikHarian } from '../components/NaikHarian'
 import { PageHeader } from '../components/PageHeader'
 import { PanelFailSafe } from '../components/dosing/PanelFailSafe'
@@ -55,7 +55,7 @@ export default function DosingPage() {
   const jadwal = useApiList<JadwalRow>('/jadwal-perawatan')
   const ring = useMemo(() => {
     const aktif = target.rows.filter((r) => r.batch || r.target_mode === 'manual' || r.target_ec_ppm != null)
-    const semuaParam = [...dosis.rows, ...timing.rows]
+    const semuaParam = [...dosis.rows, ...timing.rows].filter((r) => !PARAM_DISEMBUNYIKAN.has(r.param))
     return {
       meja: aktif.length,
       terkunci: aktif.filter((r) => r.status_lock).length,
@@ -72,11 +72,6 @@ export default function DosingPage() {
       <PageHeader
         judul="Pengaturan nutrisi"
         deskripsi="Target EC/pH tiap penampung diambil dari preset nutrisi sesuai tanaman, tahap, dan umur batch. Halaman ini hanya menyimpan konfigurasi: eksekusi dosis oleh pompa sedang dinonaktifkan sampai validasi keselamatan selesai, sehingga tidak ada injeksi nutrisi otomatis yang berjalan."
-        aksi={
-          <Link to="/watercontrol" className="vsf-btn-secondary">
-            Buka Pengairan
-          </Link>
-        }
       />
 
       <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Ringkasan nutrisi">

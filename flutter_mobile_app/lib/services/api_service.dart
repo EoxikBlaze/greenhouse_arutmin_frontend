@@ -41,7 +41,15 @@ class ApiService {
   final PenyimpanSesi? penyimpan;
 
   final http.Client _client;
-  final String baseUrl;
+  String baseUrl;
+
+  /// Ubah alamat server backend saat runtime (mis. pindah dari Mac LAN ke Raspberry Pi).
+  void aturBaseUrl(String baru) {
+    final bersih = baru.trim().replaceAll(RegExp(r'/+$'), '');
+    if (bersih.isNotEmpty) {
+      baseUrl = bersih;
+    }
+  }
 
   /// Batas waktu tunggu tiap request (bisa dipendekkan untuk pengujian).
   final Duration timeout;

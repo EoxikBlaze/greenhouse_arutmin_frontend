@@ -360,8 +360,8 @@ export function MqttDiagnostikPage() {
           </div>
           <div className="vsf-stat">
             <div className="vsf-label">Prefix topik</div>
-            <div className="mt-0.5 font-mono text-[18px] font-bold text-tinta">hidro/&lt;ID&gt;/…</div>
-            <div className="text-[12px] text-abu">Contoh: hidro/{papan?.kode ?? 'HIDRO-01'}/telemetri</div>
+            <div className="mt-0.5 font-mono text-[18px] font-bold text-tinta">garap/&lt;ID&gt;/… · hidro/&lt;ID&gt;/…</div>
+            <div className="text-[12px] text-abu">Contoh: garap/aktuator-01/data · hidro/{papan?.kode ?? 'HIDRO-01'}/telemetri</div>
           </div>
         </div>
       </section>
@@ -485,10 +485,13 @@ export function PeringatanPage() {
   const [sibuk, setSibuk] = useState(false)
   const [pesan, setPesan] = useState<string | null>(null)
   const [galat, setGalat] = useState<string | null>(null)
+  const [waktuAwal] = useState(() => new Date().toISOString())
 
-  // handler galat disimpan di ref supaya muat() stabil (efek tidak berulang bila identitas handler berganti)
   const galatRef = useRef(handleApiError)
-  galatRef.current = handleApiError
+  useEffect(() => {
+    galatRef.current = handleApiError
+  }, [handleApiError])
+
   const muat = useCallback(async () => {
     try {
       const res = await api.get('/alert-logs', { params: { limit: 100 } })
@@ -500,11 +503,13 @@ export function PeringatanPage() {
   }, [])
 
   useEffect(() => {
+    // setState terjadi SETELAH await (asinkron) — bukan setState sinkron di dalam effect.
+    // eslint-disable-next-line react/set-state-in-effect
     void muat()
   }, [muat])
 
   const p = iot.data?.params
-  const waktuAcuan = iot.data?.kondisi.updated_at ?? new Date().toISOString()
+  const waktuAcuan = iot.data?.kondisi?.updated_at ?? waktuAwal
   // kondisi saat ini dari status alat (bukan data tetap): hanya tampil selama kondisinya benar
   const semuaPeringatan: PeringatanItem[] = [
     ...(p?.tahan_dosing

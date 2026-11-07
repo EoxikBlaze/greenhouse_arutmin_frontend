@@ -48,7 +48,7 @@ export function SplashTentang({ target, onKeluar, onSelesai }: { target: () => H
   useEffect(() => {
     let batal = false
     const bg = new Image()
-    bg.src = '/bg-lanskap.jpg'
+    bg.src = '/bg-lanskap.webp'
     const muat = Promise.all([bg.decode().catch(() => undefined), document.fonts?.ready])
     const batas = new Promise((r) => window.setTimeout(r, SIAP_MAKS_MS))
     void Promise.race([muat, batas]).then(() => {

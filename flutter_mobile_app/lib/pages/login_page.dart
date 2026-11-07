@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../config.dart';
 import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../widgets/brand.dart';
@@ -58,11 +57,68 @@ class _LoginPageState extends State<LoginPage>
 
   /// Host:port backend yang sedang dituju (untuk teks penanda di bawah form).
   String get _alamatBackend {
-    final uri = Uri.tryParse(apiBase);
-    if (uri == null) return apiBase;
+    final uri = Uri.tryParse(widget.api.baseUrl);
+    if (uri == null) return widget.api.baseUrl;
     return uri.host == '127.0.0.1' && uri.hasPort
         ? '${uri.host}:${uri.port}'
         : uri.authority;
+  }
+
+  Future<void> _dialogPilihServer() async {
+    final ctrl = TextEditingController(text: widget.api.baseUrl);
+    final hasil = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Alamat Server Backend'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: ctrl,
+              keyboardType: TextInputType.url,
+              decoration: const InputDecoration(
+                labelText: 'URL Backend (http://IP:8000)',
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ActionChip(
+                  label: const Text('Mac LAN (192.168.95.231)'),
+                  onPressed: () => ctrl.text = 'http://192.168.95.231:8000',
+                ),
+                ActionChip(
+                  label: const Text('Raspberry Pi (192.168.1.172)'),
+                  onPressed: () => ctrl.text = 'http://192.168.1.172:8000',
+                ),
+                ActionChip(
+                  label: const Text('Lokal (127.0.0.1)'),
+                  onPressed: () => ctrl.text = 'http://127.0.0.1:8000',
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+            child: const Text('Simpan'),
+          ),
+        ],
+      ),
+    );
+    if (hasil != null && hasil.isNotEmpty && mounted) {
+      setState(() {
+        widget.api.aturBaseUrl(hasil);
+      });
+    }
   }
 
   @override
@@ -213,10 +269,17 @@ class _LoginPageState extends State<LoginPage>
             const SizedBox(height: 14),
             FadeUp(
               delay: FadeUp.urutan(5),
-              child: Text(
-                'Backend: $_alamatBackend',
-                textAlign: TextAlign.center,
-                style: Tok.kecil,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(Tok.rSm),
+                onTap: _dialogPilihServer,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Text(
+                    'Backend: $_alamatBackend (ketuk untuk ubah)',
+                    textAlign: TextAlign.center,
+                    style: Tok.kecil,
+                  ),
+                ),
               ),
             ),
           ],

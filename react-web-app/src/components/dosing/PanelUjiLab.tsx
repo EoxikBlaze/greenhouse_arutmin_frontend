@@ -27,15 +27,18 @@ export function PanelUjiLab({
   iot,
   loading,
   onReload,
+  kategori = 'tanaman',
 }: {
   iot: IotV41State | null
   loading: boolean
   onReload: () => void
+  kategori?: 'tanaman' | 'buah'
 }) {
   const { role } = useAuth()
   const bolehUbah = role === 'admin'
   const handleApiError = useApiError()
-  const p = iot?.params
+  const buah = kategori === 'buah'
+  const p = buah ? { ...iot?.params, ...iot?.takaran_buah } : iot?.params
 
   // Form Uji Lab EC
   const [awal, setAwal] = useState('100')
@@ -87,6 +90,7 @@ export function PanelUjiLab({
     try {
       await api.post('/iot-v41/ujilab', {
         aksi: 'ec',
+        kategori,
         awal: Number(awal.replace(',', '.')),
         akhir: Number(akhir.replace(',', '.')),
         volume: Number(volEc.replace(',', '.')),
@@ -117,6 +121,7 @@ export function PanelUjiLab({
     try {
       await api.post('/iot-v41/ujilab', {
         aksi: 'ph',
+        kategori,
         arah,
         volume: Number(volPh.replace(',', '.')),
         delta_ph: Number(deltaPh.replace(',', '.')),
@@ -141,7 +146,7 @@ export function PanelUjiLab({
     )
   }
 
-  const arsip = iot?.arsip_ujilab ?? []
+  const arsip = (iot?.arsip_ujilab ?? []).filter((a) => /^\[UJI LAB (EC|PH)[^\]]*\bBUAH\]/.test(a.catatan ?? '') === buah)
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">

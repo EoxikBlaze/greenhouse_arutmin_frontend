@@ -9,8 +9,10 @@ import './tema-gelap.css'
 import { router } from './router'
 import { AuthProvider } from './lib/auth'
 import { mulaiTema } from './lib/tema'
+import { mulaiPerforma } from './lib/performa'
 
 mulaiTema()
+mulaiPerforma()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

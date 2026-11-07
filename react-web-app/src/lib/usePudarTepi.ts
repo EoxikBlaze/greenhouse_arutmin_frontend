@@ -37,7 +37,13 @@ function bersihkan(el: HTMLElement) {
  */
 export function usePudarTepi(aktif: boolean) {
   useEffect(() => {
-    if (!aktif || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
+    if (
+      !aktif ||
+      document.documentElement.dataset.perf === 'ringan' ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return undefined
+    }
     let butir: Butir[] = []
     let vh = window.innerHeight
     let hb = 70

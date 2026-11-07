@@ -4,9 +4,10 @@ info:
   description: |
     Kontrak resmi backend Node.js GARAP (Express 4 + PostgreSQL 17).
     Nama rute 1:1 dengan kontrak Laravel lama. JSON-only kecuali 3 rute CSV.
-    109 operasi = seluruh rute yang terdaftar di backend-nodejs/src (index.js +
-    routes/*.js + routes/_crud.js). Tiap operasi memuat operationId unik dan
-    x-source: <file>:<baris> sebagai rujukan ke kode sumbernya.
+    109 operasi pertama = rute yang terdaftar di backend-nodejs/src sampai Fase 2
+    (index.js + routes/*.js + routes/_crud.js), ditambah 7 operasi alur persetujuan
+    dosing (/api/dosing/siklus*, Fase 3C, dikaji ulang di Fase 3D) dan 20 operasi siklus
+    budidaya/parameter/preset Fase 3B. Tiap operasi memuat operationId unik dan x-source.
     Sumber manusia-baca: docs/KONTRAK_API.md · smoke test: backend-nodejs/scripts/smoke-test.sh
   version: 1.1.0
   contact:
@@ -26,6 +27,8 @@ tags:
   - name: User dan Profil
   - name: Konfigurasi V2
   - name: AI Lokal
+  - name: Dosing Persetujuan
+  - name: Siklus Budidaya
 
 security:
   - bearerAuth: []
@@ -2387,6 +2390,564 @@ paths:
         "422": { $ref: "#/components/responses/ValidationFailed" }
         "500": { $ref: "#/components/responses/ServerError" }
 
+  /api/dosing/siklus:
+    get:
+      operationId: getApiDosingSiklus
+      x-source: backend-nodejs/src/routes/dosing.js
+      tags: [Dosing Persetujuan]
+      summary: Daftar siklus dosing alur persetujuan (maks 200, terbaru dulu)
+      description: >-
+        Semua pengguna login (termasuk demo) dapat membaca; pembatasan penugasan hanya berlaku untuk tulis.
+        Kejadian dosing gaya lama (status NULL) tidak ikut. Persetujuan hanya ringkasannya; kunci idempotensi tidak pernah dikembalikan.
+      parameters:
+        - { name: id_meja, in: query, required: false, schema: { type: string, pattern: "^[0-9]+$" } }
+        - { name: status, in: query, required: false, schema: { $ref: "#/components/schemas/DosingStatus" } }
+      responses:
+        "200":
+          description: Daftar siklus dosing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: boolean, example: true }
+                  data: { type: array, items: { $ref: "#/components/schemas/DosingSiklusRingkas" } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "503": { $ref: "#/components/responses/DosingBelumDimigrasi" }
+    post:
+      operationId: postApiDosingSiklus
+      x-source: backend-nodejs/src/routes/dosing.js
+      tags: [Dosing Persetujuan]
+      summary: Ajukan siklus dosing MANUAL (status WAITING_APPROVAL)
+      description: >-
+        Admin, atau petani yang ditugaskan ke penampung semai siklus budidaya itu (demo 403). Tidak membuat perintah apa pun ke perangkat.
+        Wajib header Idempotency-Key: replay hanya untuk pemilik kunci dengan isi yang sama; pengguna lain atau isi berbeda → 422 idempotency_bentrok.
+        Ditolak 409 bila parameter maks_masa_persetujuan_menit belum SIAP (tidak ada nilai bawaan).
+      parameters:
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_siklus_budidaya]
+              properties:
+                id_siklus_budidaya: { type: integer, minimum: 1, description: "Bilangan bulat aman (≤ 2^53-1)" }
+                alasan: { type: string, maxLength: 500, nullable: true }
+            example: { id_siklus_budidaya: 12, alasan: "koreksi TDS" }
+      responses:
+        "200": { $ref: "#/components/responses/DosingReplay" }
+        "201":
+          description: Siklus dosing dibuat (WAITING_APPROVAL)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DosingBalasan" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/DosingForbidden" }
+        "409":
+          description: "kode: perlu_tinjau · siklus_tidak_aktif · dosing_aktif_ada · parameter_belum_siap"
+          content: { application/json: { schema: { $ref: "#/components/schemas/DosingGalat" } } }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "423":
+          description: "Penampung terkunci (kode penampung_terkunci) atau E-STOP aktif (kode estop)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/DosingGalat" } } }
+        "503": { $ref: "#/components/responses/DosingBelumDimigrasi" }
+
+  /api/siklus:
+    get:
+      operationId: getApiSiklus
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Daftar siklus budidaya
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/SiklusStatus" } }
+        - { name: id_tanaman, in: query, schema: { type: integer, minimum: 1 } }
+        - { name: id_meja, in: query, schema: { type: integer, minimum: 1 } }
+        - { name: asal, in: query, schema: { type: string, enum: [BARU, MIGRASI] } }
+        - { name: perlu_tinjau, in: query, schema: { type: boolean } }
+      responses:
+        "200":
+          description: Maksimal 200, urutan terbaru lebih dulu
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/SiklusRingkas" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+    post:
+      operationId: postApiSiklus
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Buat siklus dalam status DRAFT
+      description: Petani hanya dapat membuat siklus untuk penampung yang ditugaskan. Target preset/manual disalin sebagai snapshot. Replay hanya untuk pemilik Idempotency-Key.
+      parameters:
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/SiklusBuatRequest" } } }
+      responses:
+        "201": { description: Siklus dibuat, content: { application/json: { schema: { $ref: "#/components/schemas/SiklusWriteResponse" } } } }
+        "200": { description: Balasan replay milik pemilik kunci, content: { application/json: { schema: { $ref: "#/components/schemas/SiklusWriteResponse" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/SiklusForbidden" }
+        "409": { $ref: "#/components/responses/SiklusGalat" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+
+  /api/siklus/parameter:
+    get:
+      operationId: getApiSiklusParameter
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Status parameter keselamatan
+      responses:
+        "200": { description: Status semua parameter yang diatur, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/ParameterStatus" } } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+
+  /api/siklus/{id}:
+    get:
+      operationId: getApiSiklusById
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Detail siklus, lot, transisi, dan konfirmasi
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200": { description: Detail siklus, content: { application/json: { schema: { $ref: "#/components/schemas/SiklusDetail" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+
+  /api/siklus/{id}/kestabilan:
+    get:
+      operationId: getApiSiklusKestabilan
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Evaluasi kestabilan tandon (baca saja)
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200": { description: Evaluasi atau daftar parameter yang belum SIAP, content: { application/json: { schema: { $ref: "#/components/schemas/KestabilanResponse" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+
+  /api/siklus/{id}/gerbang-dosis:
+    get:
+      operationId: getApiSiklusGerbangDosis
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Evaluasi gerbang dosis tanpa menjalankan perintah
+      description: Evaluasi ini tidak menerbitkan perintah aktuator. EKSEKUSI_DIIZINKAN tetap false dan POST jalankan tetap ditolak.
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      responses:
+        "200": { description: Hasil evaluasi gerbang, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+
+  /api/siklus/{id}/transisi:
+    post:
+      operationId: postApiSiklusTransisi
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Mulai persiapan tandon atau batalkan siklus
+      parameters:
+        - { $ref: "#/components/parameters/IdBigint" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/SiklusTransisiRequest" } } } }
+      responses:
+        "200": { description: Perubahan atau replay, content: { application/json: { schema: { $ref: "#/components/schemas/SiklusWriteResponse" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/SiklusForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/SiklusGalat" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "423": { description: Penampung terkunci }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+
+  /api/siklus/{id}/konfirmasi:
+    post:
+      operationId: postApiSiklusMintaKonfirmasi
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Minta konfirmasi peremajaan manual setelah batas waktu
+      parameters:
+        - { $ref: "#/components/parameters/IdBigint" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      responses:
+        "200": { description: Permintaan dibuat atau replay, content: { application/json: { schema: { $ref: "#/components/schemas/SiklusWriteResponse" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/SiklusForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/SiklusGalat" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+
+  /api/siklus/{id}/benih:
+    post:
+      operationId: postApiSiklusBenih
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Catat jumlah benih setelah konfirmasi SIAP
+      parameters:
+        - { $ref: "#/components/parameters/IdBigint" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/SiklusBenihRequest" } } } }
+      responses:
+        "200": { description: Data dicatat atau replay, content: { application/json: { schema: { $ref: "#/components/schemas/SiklusWriteResponse" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/SiklusForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/SiklusGalat" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+
+  /api/konfirmasi/{id}/jawab:
+    post:
+      operationId: postApiKonfirmasiJawab
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Jawab permintaan kesiapan tandon atau bibit
+      parameters:
+        - { $ref: "#/components/parameters/IdBigint" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/KonfirmasiJawabRequest" } } } }
+      responses:
+        "200": { description: Jawaban dicatat atau replay, content: { application/json: { schema: { $ref: "#/components/schemas/SiklusWriteResponse" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/SiklusForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/SiklusGalat" }
+        "410": { description: Permintaan konfirmasi kedaluwarsa }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+
+  /api/lot/{id}/selesai:
+    post:
+      operationId: postApiLotSelesai
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Selesaikan lot peremajaan atau pendewasaan
+      parameters:
+        - { $ref: "#/components/parameters/IdBigint" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/LotSelesaiRequest" } } } }
+      responses:
+        "200": { description: Lot diselesaikan atau replay, content: { application/json: { schema: { $ref: "#/components/schemas/SiklusWriteResponse" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/SiklusForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/SiklusGalat" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+
+  /api/penugasan:
+    get:
+      operationId: getApiPenugasan
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Daftar penugasan penampung
+      parameters: [{ name: aktif, in: query, schema: { type: boolean } }]
+      responses:
+        "200": { description: Admin melihat semua; peran lain hanya miliknya, maksimal 500, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Penugasan" } } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+    post:
+      operationId: postApiPenugasan
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Tugaskan penampung kepada petani (admin non-demo)
+      description: Endpoint ini belum memakai Idempotency-Key; penugasan aktif duplikat membalas 409.
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PenugasanRequest" } } } }
+      responses:
+        "201": { description: Penugasan dibuat, content: { application/json: { schema: { $ref: "#/components/schemas/PenugasanResponse" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/SiklusForbidden" }
+        "409": { description: Penugasan aktif sudah ada }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+
+  /api/penugasan/{id}/cabut:
+    post:
+      operationId: postApiPenugasanCabut
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Cabut penugasan aktif (admin non-demo)
+      description: Endpoint ini belum memakai Idempotency-Key.
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PenugasanCabutRequest" } } } }
+      responses:
+        "200": { description: Penugasan dicabut, content: { application/json: { schema: { $ref: "#/components/schemas/PenugasanResponse" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/SiklusForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { description: Penugasan sudah dicabut }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+
+  /api/preset:
+    get:
+      operationId: getApiPreset
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Daftar preset nutrisi beserta versinya
+      responses:
+        "200": { description: Versi dan status validasi/kategori, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/PresetVersi" } } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+
+  /api/preset/{id}/versi:
+    post:
+      operationId: postApiPresetVersi
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Buat versi preset baru (admin non-demo)
+      description: Versi baru berstatus BELUM_TERVALIDASI. Server hanya memeriksa bentuk/rentang, bukan menetapkan nilai agronomi. Endpoint ini belum memakai Idempotency-Key.
+      parameters: [{ $ref: "#/components/parameters/IdBigint" }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PresetVersiRequest" } } } }
+      responses:
+        "201": { description: Versi baru dibuat, content: { application/json: { schema: { $ref: "#/components/schemas/PresetVersiResponse" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/SiklusForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+
+  /api/preset/{id}/versi/{v}/validasi:
+    post:
+      operationId: postApiPresetVersiValidasi
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Validasi versi preset (admin non-demo)
+      description: Catatan bukti 10–1000 karakter. Endpoint ini belum memakai Idempotency-Key.
+      parameters:
+        - { $ref: "#/components/parameters/IdBigint" }
+        - { name: v, in: path, required: true, schema: { type: integer, minimum: 1, maximum: 999999 } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PresetValidasiRequest" } } } }
+      responses:
+        "200": { description: Versi divalidasi, content: { application/json: { schema: { $ref: "#/components/schemas/PresetVersiResponse" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/SiklusForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { description: Versi sudah tervalidasi }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+
+  /api/preset/{id}/versi/{v}/aktifkan:
+    post:
+      operationId: postApiPresetVersiAktifkan
+      x-source: backend-nodejs/src/routes/siklusBudidaya.js
+      tags: [Siklus Budidaya]
+      summary: Aktifkan versi preset (admin non-demo)
+      description: Snapshot target siklus yang sudah berjalan tidak berubah. Endpoint ini belum memakai Idempotency-Key.
+      parameters:
+        - { $ref: "#/components/parameters/IdBigint" }
+        - { name: v, in: path, required: true, schema: { type: integer, minimum: 1, maximum: 999999 } }
+      responses:
+        "200": { description: Versi aktif diperbarui }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/SiklusForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { description: Versi ini sudah aktif }
+        "503": { $ref: "#/components/responses/SiklusBelumDimigrasi" }
+
+  /api/parameter:
+    get:
+      operationId: getApiParameter
+      x-source: backend-nodejs/src/routes/parameter.js
+      tags: [Siklus Budidaya]
+      summary: Status parameter keselamatan
+      responses:
+        "200": { description: Daftar status parameter, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/ParameterStatus" } } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/parameter/{tabel}/{param}/validasi:
+    post:
+      operationId: postApiParameterValidasi
+      x-source: backend-nodejs/src/routes/parameter.js
+      tags: [Siklus Budidaya]
+      summary: Validasi nilai parameter keselamatan (admin non-demo)
+      description: Nilai diperiksa dikunci dan dibandingkan dengan nilai aktif di dalam transaksi. Perubahan nilai kemudian menggugurkan validasi melalui trigger.
+      parameters:
+        - { name: tabel, in: path, required: true, schema: { type: string, enum: [konfigurasi_dosis, timing_operasi] } }
+        - { name: param, in: path, required: true, schema: { type: string, pattern: "^[a-z0-9_]{1,64}$" } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ParameterValidasiRequest" } } } }
+      responses:
+        "200": { description: Nilai berhasil divalidasi }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/SiklusForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { description: Nilai aktif tidak sah/berubah atau sudah divalidasi }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+  /api/dosing/siklus/{id}:
+    get:
+      operationId: getApiDosingSiklusById
+      x-source: backend-nodejs/src/routes/dosing.js
+      tags: [Dosing Persetujuan]
+      summary: Detail siklus dosing (+ persetujuan, percobaan, transisi)
+      parameters:
+        - { $ref: "#/components/parameters/IdBigint" }
+      responses:
+        "200":
+          description: Detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: boolean, example: true }
+                  data: { $ref: "#/components/schemas/DosingSiklusDetail" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/DosingBelumDimigrasi" }
+
+  /api/dosing/siklus/{id}/setujui:
+    post:
+      operationId: postApiDosingSiklusSetujui
+      x-source: backend-nodejs/src/routes/dosing.js
+      tags: [Dosing Persetujuan]
+      summary: Setujui siklus WAITING_APPROVAL dengan cakupan → APPROVED
+      description: >-
+        Otorisasi diperiksa lebih dulu dari status siklus. Cakupan tidak boleh melebihi batas global (maks_ml_per_suntikan / maks_ml_ph_per_suntikan),
+        sisa jatah harian, maks_gagal_berturut, dan maks_masa_persetujuan_menit; semua parameter itu wajib SIAP (409 parameter_belum_siap bila tidak).
+        Pengaju MASIH boleh menyetujui permintaannya sendiri (keputusan pemilik belum ditetapkan). Persetujuan tidak mengantre perintah apa pun.
+      parameters:
+        - { $ref: "#/components/parameters/IdBigint" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cakupan]
+              properties:
+                cakupan: { $ref: "#/components/schemas/DosingCakupan" }
+                alasan: { type: string, maxLength: 500, nullable: true }
+      responses:
+        "200": { $ref: "#/components/responses/DosingBerhasil" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/DosingForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "kode: transisi_tidak_sah (status_sekarang) · parameter_belum_siap"
+          content: { application/json: { schema: { $ref: "#/components/schemas/DosingGalat" } } }
+        "410":
+          description: "Permintaan sudah kedaluwarsa (kode kedaluwarsa); siklus menjadi EXPIRED"
+          content: { application/json: { schema: { $ref: "#/components/schemas/DosingGalat" } } }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "423":
+          description: "Penampung terkunci atau E-STOP aktif"
+          content: { application/json: { schema: { $ref: "#/components/schemas/DosingGalat" } } }
+        "503": { $ref: "#/components/responses/DosingBelumDimigrasi" }
+
+  /api/dosing/siklus/{id}/tolak:
+    post:
+      operationId: postApiDosingSiklusTolak
+      x-source: backend-nodejs/src/routes/dosing.js
+      tags: [Dosing Persetujuan]
+      summary: Tolak siklus WAITING_APPROVAL → REJECTED
+      parameters:
+        - { $ref: "#/components/parameters/IdBigint" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                alasan: { type: string, maxLength: 500, nullable: true }
+      responses:
+        "200": { $ref: "#/components/responses/DosingBerhasil" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/DosingForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "kode transisi_tidak_sah (hanya WAITING_APPROVAL yang bisa ditolak)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/DosingGalat" } } }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "503": { $ref: "#/components/responses/DosingBelumDimigrasi" }
+
+  /api/dosing/siklus/{id}/cabut:
+    post:
+      operationId: postApiDosingSiklusCabut
+      x-source: backend-nodejs/src/routes/dosing.js
+      tags: [Dosing Persetujuan]
+      summary: Cabut siklus aktif → CANCELLED (persetujuan dicabut; STOP diantre hanya bila RUNNING)
+      description: >-
+        Siklus aktif = WAITING_APPROVAL, APPROVED, RUNNING, MIXING, VERIFYING. Status akhir → 409. Satu-satunya perintah aktuator yang mungkin
+        dibuat adalah STOP (tidak pernah DOSIS), dan hanya bila siklus berstatus RUNNING.
+      parameters:
+        - { $ref: "#/components/parameters/IdBigint" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [alasan]
+              properties:
+                alasan: { type: string, minLength: 5, maxLength: 500 }
+      responses:
+        "200":
+          description: Dibatalkan
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - { $ref: "#/components/schemas/DosingBalasan" }
+                  - type: object
+                    properties:
+                      stop:
+                        type: object
+                        description: "Ada hanya bila siklus RUNNING: id_perintah STOP yang diantre, atau galat ringkas"
+                        properties:
+                          id_perintah: { type: integer }
+                          galat: { type: string }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/DosingForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "kode transisi_tidak_sah (status akhir tidak bisa dicabut)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/DosingGalat" } } }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "503": { $ref: "#/components/responses/DosingBelumDimigrasi" }
+
+  /api/dosing/siklus/{id}/jalankan:
+    post:
+      operationId: postApiDosingSiklusJalankan
+      x-source: backend-nodejs/src/routes/dosing.js
+      tags: [Dosing Persetujuan]
+      summary: "Percobaan berikut — SELALU DITOLAK selama gerbang eksekusi ditutup (EKSEKUSI_DIIZINKAN = false)"
+      description: >-
+        Tidak pernah membalas 200 dan tidak pernah mengantre DOSIS. Hanya siklus APPROVED dengan persetujuan berlaku yang sampai ke gerbang.
+        Gerbang menolak → 423 eksekusi_diblokir. Bila tiga bacaan terakhir mustahil → siklus FAULT, penampung LOCK, 423 sensor_rusak.
+        501 eksekusi_belum_ada hanya muncul bila gerbang dibuka tanpa jalur eksekusi (jalur RUNNING→VERIFYING belum ditulis).
+      parameters:
+        - { $ref: "#/components/parameters/IdBigint" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      responses:
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/DosingForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "kode transisi_tidak_sah (bukan APPROVED / persetujuan tidak berlaku)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/DosingGalat" } } }
+        "410":
+          description: "Persetujuan kedaluwarsa (kode kedaluwarsa); siklus menjadi EXPIRED"
+          content: { application/json: { schema: { $ref: "#/components/schemas/DosingGalat" } } }
+        "422": { $ref: "#/components/responses/ValidationFailed" }
+        "423":
+          description: "kode eksekusi_diblokir (alasan[]) · sensor_rusak · penampung_terkunci · estop"
+          content: { application/json: { schema: { $ref: "#/components/schemas/DosingGalat" } } }
+        "501":
+          description: "kode eksekusi_belum_ada — tidak tercapai selama gerbang ditutup"
+          content: { application/json: { schema: { $ref: "#/components/schemas/DosingGalat" } } }
+        "503": { $ref: "#/components/responses/DosingBelumDimigrasi" }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2426,7 +2987,35 @@ components:
       description: "PK varchar — nama sensor (kolom kalibrasi_sensor.sensor)"
       schema: { type: string, maxLength: 64 }
 
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: "UUID. Kunci+isi sama dari PEMILIK kunci → balasan diulang (replay:true); pengguna lain atau isi berbeda → 422 idempotency_bentrok"
+      schema: { type: string, format: uuid }
+
   responses:
+    DosingForbidden:
+      description: "Demo/role lain (kode akses_ditolak) atau petani tidak ditugaskan ke penampung (kode tidak_ditugaskan)"
+      content: { application/json: { schema: { $ref: "#/components/schemas/DosingGalat" } } }
+    DosingBelumDimigrasi:
+      description: "Tabel dosing_transisi (migrasi 2026-10-29_06) belum ada di database ini — kode belum_dimigrasi"
+      content: { application/json: { schema: { $ref: "#/components/schemas/DosingGalat" } } }
+    DosingBerhasil:
+      description: "Berhasil (replay:true bila permintaan diulang oleh pemilik kunci)"
+      content: { application/json: { schema: { $ref: "#/components/schemas/DosingBalasan" } } }
+    DosingReplay:
+      description: "Permintaan ulang oleh pemilik kunci dengan isi sama — balasan pertama diulang (replay:true)"
+      content: { application/json: { schema: { $ref: "#/components/schemas/DosingBalasan" } } }
+    SiklusForbidden:
+      description: "Demo/role bukan admin atau petani, penugasan petani tidak cukup, atau admin non-demo diperlukan"
+      content: { application/json: { schema: { $ref: "#/components/schemas/SiklusGalat" } } }
+    SiklusBelumDimigrasi:
+      description: "Skema siklus budidaya yang diperlukan belum tersedia di database ini — kode belum_dimigrasi"
+      content: { application/json: { schema: { $ref: "#/components/schemas/SiklusGalat" } } }
+    SiklusGalat:
+      description: "Konflik status/jalur; lihat kode respons dalam body"
+      content: { application/json: { schema: { $ref: "#/components/schemas/SiklusGalat" } } }
     Unauthorized:
       description: Tidak ada atau tidak valid token
       content:
@@ -2473,6 +3062,255 @@ components:
           example: { message: "Terjadi kesalahan pada server." }
 
   schemas:
+    SiklusStatus:
+      type: string
+      enum: [DRAFT, TANK_PREPARATION, WAITING_TANK_CONFIRMATION, SEEDING, WAITING_REJUVENATION_CONFIRMATION, WAITING_SEED_COUNT_CONFIRMATION, GROWTH, COMPLETED, CANCELLED]
+    SiklusGalat:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+        kode: { type: string }
+        status_sekarang: { $ref: "#/components/schemas/SiklusStatus" }
+        errors: { type: object, additionalProperties: true }
+        id_meja: { type: array, items: { type: integer } }
+    SiklusRingkas:
+      type: object
+      description: "Satu baris hasil daftar siklus; nilai bigint dapat diserialisasi PostgreSQL sebagai string."
+      additionalProperties: true
+      properties:
+        id: { oneOf: [{ type: integer }, { type: string }] }
+        id_tanaman: { oneOf: [{ type: integer }, { type: string }] }
+        id_meja_semai: { oneOf: [{ type: integer }, { type: string }], nullable: true }
+        status: { $ref: "#/components/schemas/SiklusStatus" }
+        perlu_tinjau: { type: boolean }
+        asal: { type: string, enum: [BARU, MIGRASI] }
+    SiklusDetail:
+      allOf:
+        - { $ref: "#/components/schemas/SiklusRingkas" }
+        - type: object
+          properties:
+            lot: { type: array, items: { type: object, additionalProperties: true } }
+            transisi: { type: array, items: { type: object, additionalProperties: true } }
+            konfirmasi: { type: array, items: { type: object, additionalProperties: true } }
+    SiklusWriteResponse:
+      type: object
+      required: [status, replay, data]
+      properties:
+        status: { type: boolean, enum: [true] }
+        replay: { type: boolean }
+        data: { $ref: "#/components/schemas/SiklusDetail" }
+    SiklusBuatRequest:
+      type: object
+      required: [id_tanaman, id_meja, mode_target, ph_aktual, tds_aktual_ppm, jumlah_benih]
+      properties:
+        id_tanaman: { type: integer, minimum: 1 }
+        id_meja: { type: integer, minimum: 1 }
+        mode_target: { type: string, enum: [PRESET, MANUAL] }
+        id_preset_versi: { type: integer, minimum: 1, description: Wajib untuk mode PRESET }
+        ph_aktual: { type: number, minimum: 0, maximum: 14 }
+        tds_aktual_ppm: { type: number, minimum: 0, maximum: 10000 }
+        jumlah_benih: { type: integer, minimum: 1, maximum: 1000000 }
+        target:
+          type: object
+          description: Wajib untuk mode MANUAL; seluruh batas pH/EC diperlukan.
+          required: [ec_min_ppm, ec_max_ppm, ph_min, ph_max]
+          properties:
+            ec_min_ppm: { type: number, minimum: 0, maximum: 5000 }
+            ec_max_ppm: { type: number, minimum: 0, maximum: 5000 }
+            ph_min: { type: number, minimum: 0, maximum: 14 }
+            ph_max: { type: number, minimum: 0, maximum: 14 }
+            ppm_awal: { type: number, minimum: 50, maximum: 2500, nullable: true }
+            ppm_target: { type: number, minimum: 50, maximum: 2500, nullable: true }
+            hari_capai: { type: integer, minimum: 1, maximum: 365, nullable: true }
+        keterangan: { type: string, maxLength: 500, nullable: true }
+    SiklusTransisiRequest:
+      type: object
+      required: [ke]
+      properties:
+        ke: { type: string, enum: [TANK_PREPARATION, CANCELLED] }
+        alasan: { type: string, maxLength: 500, description: Wajib minimal 5 karakter saat membatalkan }
+    SiklusBenihRequest:
+      type: object
+      required: [jumlah_benih, berhasil, gagal]
+      properties:
+        jumlah_benih: { type: integer, minimum: 0, maximum: 1000000 }
+        berhasil: { type: integer, minimum: 0, maximum: 1000000 }
+        gagal: { type: integer, minimum: 0, maximum: 1000000 }
+        id_meja_tujuan: { type: integer, minimum: 1, nullable: true }
+    KonfirmasiJawabRequest:
+      type: object
+      required: [jawaban]
+      properties:
+        jawaban: { type: string, enum: [SIAP, BELUM_SIAP] }
+    LotSelesaiRequest:
+      type: object
+      required: [berhasil, gagal]
+      properties:
+        berhasil: { type: integer, minimum: 0, maximum: 1000000 }
+        gagal: { type: integer, minimum: 0, maximum: 1000000 }
+        tujuan:
+          type: array
+          minItems: 1
+          maxItems: 20
+          items:
+            type: object
+            required: [id_meja, jumlah]
+            properties:
+              id_meja: { type: integer, minimum: 1 }
+              jumlah: { type: integer, minimum: 1, maximum: 1000000 }
+    KestabilanResponse:
+      type: object
+      required: [id_siklus, dievaluasi]
+      properties:
+        id_siklus: { type: integer }
+        dievaluasi: { type: boolean }
+        alasan: { type: string }
+        parameter: { type: array, items: { type: object, additionalProperties: true } }
+      additionalProperties: true
+    PenugasanRequest:
+      type: object
+      required: [id_user, id_meja]
+      properties:
+        id_user: { type: integer, minimum: 1 }
+        id_meja: { type: integer, minimum: 1 }
+    PenugasanCabutRequest:
+      type: object
+      required: [alasan]
+      properties:
+        alasan: { type: string, minLength: 5, maxLength: 500 }
+    Penugasan:
+      type: object
+      additionalProperties: true
+      properties:
+        id: { oneOf: [{ type: integer }, { type: string }] }
+        id_user: { oneOf: [{ type: integer }, { type: string }] }
+        id_meja: { oneOf: [{ type: integer }, { type: string }] }
+        aktif: { type: boolean }
+    PenugasanResponse:
+      type: object
+      properties:
+        status: { type: boolean, enum: [true] }
+        data: { $ref: "#/components/schemas/Penugasan" }
+    PresetVersi:
+      type: object
+      additionalProperties: true
+      properties:
+        id: { oneOf: [{ type: integer }, { type: string }] }
+        id_preset: { oneOf: [{ type: integer }, { type: string }] }
+        versi: { type: integer }
+        status_validasi: { type: string, enum: [BELUM_TERVALIDASI, TERVALIDASI] }
+        parameter: { type: object, additionalProperties: true }
+        kategori: { type: string, enum: [AKTIF_TERVALIDASI, AKTIF_RANCANGAN, TIDAK_AKTIF] }
+    PresetVersiRequest:
+      type: object
+      required: [parameter, catatan]
+      properties:
+        parameter: { type: object, additionalProperties: true, description: Bentuk/rentang divalidasi; angka target agronomi diisi oleh pemilik berwenang }
+        catatan: { type: string, minLength: 5, maxLength: 1000 }
+    PresetValidasiRequest:
+      type: object
+      required: [catatan]
+      properties:
+        catatan: { type: string, minLength: 10, maxLength: 1000 }
+    PresetVersiResponse:
+      type: object
+      properties:
+        status: { type: boolean, enum: [true] }
+        data: { $ref: "#/components/schemas/PresetVersi" }
+    ParameterStatus:
+      type: object
+      properties:
+        tabel: { type: string, enum: [konfigurasi_dosis, timing_operasi] }
+        param: { type: string }
+        status: { type: string, enum: [TIDAK_ADA, NULL, TIDAK_VALID, BELUM_TERVALIDASI, SIAP] }
+        nilai: { type: number, nullable: true }
+        alasan: { type: string, nullable: true }
+    ParameterValidasiRequest:
+      type: object
+      required: [nilai_diperiksa, bukti]
+      properties:
+        nilai_diperiksa: { type: number }
+        bukti: { type: string, minLength: 20, maxLength: 2000 }
+    DosingStatus:
+      type: string
+      enum: [WAITING_APPROVAL, APPROVED, RUNNING, MIXING, VERIFYING, SUCCESS, EXHAUSTED, REJECTED, EXPIRED, CANCELLED, FAULT]
+    DosingGalat:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+        kode: { type: string, example: transisi_tidak_sah }
+        status_sekarang: { type: string }
+        errors: { type: object, additionalProperties: true }
+        alasan: { type: array, items: { type: string }, description: "Untuk eksekusi_diblokir / sensor_rusak" }
+        parameter: { type: array, items: { type: object, additionalProperties: true }, description: "Untuk parameter_belum_siap" }
+    DosingCakupan:
+      type: object
+      required: [pompa_diizinkan, maks_ml_per_percobaan, maks_ml_total, maks_percobaan, berlaku_menit]
+      properties:
+        pompa_diizinkan: { type: array, minItems: 1, uniqueItems: true, items: { type: string, enum: [AB, PH_UP, PH_DOWN] } }
+        maks_ml_per_percobaan: { type: number, exclusiveMinimum: true, minimum: 0 }
+        maks_ml_total: { type: number, exclusiveMinimum: true, minimum: 0, description: ">= maks_ml_per_percobaan" }
+        maks_percobaan: { type: integer, minimum: 1, description: "<= maks_gagal_berturut (parameter)" }
+        berlaku_menit: { type: integer, minimum: 1, description: "<= maks_masa_persetujuan_menit (parameter)" }
+    DosingSiklusRingkas:
+      type: object
+      properties:
+        id: { type: integer }
+        id_meja: { type: integer }
+        id_siklus_budidaya: { type: integer }
+        status: { $ref: "#/components/schemas/DosingStatus" }
+        mode: { type: string, enum: [MANUAL, OTOMATIS] }
+        gagal_berturut: { type: integer }
+        berlaku_sampai: { type: string, format: date-time, description: "Batas jawab WAITING_APPROVAL" }
+        alasan: { type: string, nullable: true }
+        alasan_akhir: { type: string, nullable: true }
+        mulai_pada: { type: string }
+        selesai_pada: { type: string, nullable: true }
+        keputusan: { type: string, enum: [SETUJU, TOLAK], nullable: true }
+        persetujuan_berlaku_sampai: { type: string, format: date-time, nullable: true }
+        dicabut_pada: { type: string, format: date-time, nullable: true }
+    DosingSiklusDetail:
+      allOf:
+        - { $ref: "#/components/schemas/DosingSiklusRingkas" }
+        - type: object
+          properties:
+            persetujuan:
+              type: object
+              nullable: true
+              description: "Tanpa idempotency_key"
+              properties:
+                keputusan: { type: string, enum: [SETUJU, TOLAK] }
+                oleh: { type: integer }
+                pompa_diizinkan: { type: array, items: { type: string } }
+                maks_ml_per_percobaan: { type: number, nullable: true }
+                maks_ml_total: { type: number, nullable: true }
+                maks_percobaan: { type: integer, nullable: true }
+                berlaku_sampai: { type: string, format: date-time, nullable: true }
+                kondisi_henti: { type: array, items: { type: string }, nullable: true }
+                dicabut_pada: { type: string, format: date-time, nullable: true }
+                alasan_cabut: { type: string, nullable: true }
+            percobaan: { type: array, items: { type: object, additionalProperties: true } }
+            transisi:
+              type: array
+              items:
+                type: object
+                properties:
+                  id: { type: integer }
+                  dari: { type: string, nullable: true }
+                  ke: { $ref: "#/components/schemas/DosingStatus" }
+                  aktor_tipe: { type: string, enum: [user, system] }
+                  aktor_user_id: { type: integer, nullable: true }
+                  alasan: { type: string, nullable: true }
+                  data: { type: object, nullable: true, additionalProperties: true }
+                  terjadi_pada: { type: string, format: date-time }
+    DosingBalasan:
+      type: object
+      properties:
+        status: { type: boolean, example: true }
+        replay: { type: boolean }
+        data: { $ref: "#/components/schemas/DosingSiklusDetail" }
     Message:
       type: object
       required: [message]

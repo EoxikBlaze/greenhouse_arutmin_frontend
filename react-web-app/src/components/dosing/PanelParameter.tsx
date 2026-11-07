@@ -7,6 +7,7 @@ import {
   belumDiatur,
   cocok,
   judulParam,
+  PARAM_DISEMBUNYIKAN,
   kelompokkan,
   kelompokParam,
   tampilNilai,
@@ -53,7 +54,7 @@ export function PanelParameter({ dosis, timing }: { dosis: Daftar<ParameterRow>;
   const grup = useMemo(
     () =>
       kelompokkan(
-        aktif.rows.filter((r) => cocok(cari, r.param, judulParam(r.param), r.keterangan, kelompokParam(r.param))),
+        aktif.rows.filter((r) => !PARAM_DISEMBUNYIKAN.has(r.param) && cocok(cari, r.param, judulParam(r.param), r.keterangan, kelompokParam(r.param))),
         (r) => kelompokParam(r.param),
         URUT[sumber],
       ),

@@ -4,4 +4,6 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Debug saja: izinkan http:// ke backend di LAN untuk uji demo. Build rilis tetap memblokir. -->
+    <application android:usesCleartextTraffic="true"/>
 </manifest>

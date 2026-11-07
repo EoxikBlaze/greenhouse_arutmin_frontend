@@ -17,8 +17,8 @@ class DockItem {
 /// Navigasi bawah desain v2: kaca chrome (blur asli) mengambang, pil indikator
 /// hijau SOLID yang meluncur ke tab aktif, ikon + label selalu terlihat.
 ///
-/// Tahan pil hijau (sentuh lama) lalu geser: pil terangkat dan mengikuti jari seperti dock macOS /
-/// tab bar iOS; lepas untuk berpindah ke tab terdekat. Ketuk biasa tetap berpindah tab.
+/// Sentuh pil hijau: langsung terangkat (tanpa menunggu). Geser: pil mengikuti jari seperti tab bar iOS 26;
+/// lepas untuk berpindah ke tab terdekat. Ketuk biasa tetap berpindah tab.
 class DockNav extends StatefulWidget {
   const DockNav({
     super.key,
@@ -46,24 +46,37 @@ class DockNav extends StatefulWidget {
 }
 
 class _DockNavState extends State<DockNav> {
-  /// Posisi kiri pil saat ditahan dan digeser; null = pil mengikuti tab aktif.
+  /// Jari sedang menyentuh pil hijau (angkat langsung, tanpa menunggu tahan lama).
+  bool _tekan = false;
+
+  /// Posisi kiri pil saat digeser; null = pil mengikuti tab aktif.
   double? _geser;
   int? _sementara;
+  double _awalX = 0;
 
-  void _mulai(Offset p, double lebar) {
+  /// Geser lebih dari ini (piksel) = mulai menyeret pil.
+  static const double _ambangSeret = 8;
+
+  void _turun(Offset p, double lebar) {
     final kiri = widget.indeks * lebar;
     if (p.dx < kiri || p.dx > kiri + lebar) {
       return; // hanya pil hijau yang bisa ditahan
     }
-    HapticFeedback.mediumImpact();
+    HapticFeedback.lightImpact();
     setState(() {
-      _geser = kiri;
-      _sementara = widget.indeks;
+      _tekan = true;
+      _awalX = p.dx;
     });
   }
 
   void _gerak(Offset p, double lebar) {
-    if (_geser == null) return;
+    if (!_tekan) return;
+    if (_geser == null) {
+      if ((p.dx - _awalX).abs() < _ambangSeret) return;
+      HapticFeedback.mediumImpact();
+      _geser = widget.indeks * lebar;
+      _sementara = widget.indeks;
+    }
     final maks = lebar * (widget.item.length - 1);
     final kiri = (p.dx - lebar / 2).clamp(0.0, maks);
     final i = (kiri / lebar).round().clamp(0, widget.item.length - 1);
@@ -78,18 +91,22 @@ class _DockNavState extends State<DockNav> {
 
   void _lepas() {
     final tujuan = _sementara;
-    if (_geser == null) return;
+    final menyeret = _geser != null;
+    if (!_tekan && !menyeret) return;
     setState(() {
+      _tekan = false;
       _geser = null;
       _sementara = null;
     });
-    if (tujuan != null && tujuan != widget.indeks) widget.onPilih(tujuan);
+    if (menyeret && tujuan != null && tujuan != widget.indeks) {
+      widget.onPilih(tujuan);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final kurangiGerak = MediaQuery.disableAnimationsOf(context);
-    final diangkat = _geser != null;
+    final diangkat = _tekan || _geser != null;
     return KacaCair(
       varian: KacaVarian.chrome,
       radius: Tok.rChrome,
@@ -98,12 +115,13 @@ class _DockNavState extends State<DockNav> {
         builder: (context, k) {
           final lebar = k.maxWidth / widget.item.length;
           final aktif = _sementara ?? widget.indeks;
-          return GestureDetector(
+          // Listener (bukan gesture arena): ketuk biasa pada tab tetap jalan, pil langsung terangkat saat disentuh.
+          return Listener(
             behavior: HitTestBehavior.opaque,
-            onLongPressStart: (d) => _mulai(d.localPosition, lebar),
-            onLongPressMoveUpdate: (d) => _gerak(d.localPosition, lebar),
-            onLongPressEnd: (_) => _lepas(),
-            onLongPressCancel: _lepas,
+            onPointerDown: (e) => _turun(e.localPosition, lebar),
+            onPointerMove: (e) => _gerak(e.localPosition, lebar),
+            onPointerUp: (_) => _lepas(),
+            onPointerCancel: (_) => _lepas(),
             child: SizedBox(
               height: DockNav._tinggiItem,
               child: Stack(

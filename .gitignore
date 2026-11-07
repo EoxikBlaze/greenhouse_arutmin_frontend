@@ -22,12 +22,16 @@ deploy-pi/*
 deploy-pi/firmware/*
 !deploy-pi/firmware/aktuator/
 !deploy-pi/firmware/sensor/
+!deploy-pi/firmware/gabungan/
 deploy-pi/firmware/aktuator/*
 deploy-pi/firmware/sensor/*
+deploy-pi/firmware/gabungan/*
 !deploy-pi/firmware/aktuator/aktuator.ino
 !deploy-pi/firmware/aktuator/rahasia.h.contoh
 !deploy-pi/firmware/sensor/sensor.ino
 !deploy-pi/firmware/sensor/rahasia.h.contoh
+!deploy-pi/firmware/gabungan/gabungan.ino
+!deploy-pi/firmware/gabungan/rahasia.h.contoh
 scripts/
 
 # Sampah
@@ -58,3 +62,35 @@ _tmp_dist/
 
 # hasil render infografis/spanduk (±100 MB) — disimpan lokal, belum di GitHub; lihat docs/RENCANA_DAN_TODO.md
 docs/infografis/hasil/
+docs/_arsip_lokal/
+
+# Konfigurasi editor/catatan lokal & berkas progres internal (disimpan lokal sesuai kebijakan README)
+.obsidian/
+Claude outputs/
+docs/LOG_PERUBAHAN_VERTONIK_SMART_FARM.xlsx
+~$*
+docs/alat/
+docs/audit-ecc/
+docs/presentasi/
+docs/reports/
+docs/research_notes/
+docs/CHANGELOG.md
+docs/FASE3*.md
+docs/AUDIT_FASE1_SPESIFIKASI.md
+docs/AUDIT_MENYELURUH_FASE3E.md
+docs/ANALISIS_KEPUTUSAN_ARSITEKTUR_FASE3D.md
+docs/ANALISIS_MIGRASI_HIDRO_V41.md
+docs/ANALISIS_PROYEK_GARAP.md
+docs/DESAIN_TEKNIS_FASE3.md
+docs/HANDOFF_CODEX.md
+docs/KEPUTUSAN_ARSITEKTUR_FASE3E.md
+docs/KEPUTUSAN_TERTUNDA_FASE3D.md
+docs/PROMPT_LANJUTAN_CHATGPT.md
+docs/STATUS_PROYEK_REVIEW.md
+docs/TINJAUAN_MIGRASI_IOT_V41.md
+docs/RENCANA_ULANG_NOV2026.md
+docs/ALUR_APLIKASI_AWAM.md
+docs/PROJECT_OVERVIEW.md
+docs/PANDUAN_HOTSPOT_PI.md
+docs/PANDUAN_LENGKAP_PI_MQTT_ESP32.md
+docs/patch-lokal-9-berkas-sebelum-merge-punyaeka.patch

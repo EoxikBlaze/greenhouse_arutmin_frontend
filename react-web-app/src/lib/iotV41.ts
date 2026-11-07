@@ -115,6 +115,7 @@ export type IotV41State = {
   papan: IotV41Papan
   arsip_kalibrasi: ArsipKalibrasiRow[]
   arsip_ujilab: ArsipKalibrasiRow[]
+  takaran_buah?: { ppm_per_ml: number | null; ph_up_ml: number | null; ph_down_ml: number | null }
 }
 
 const bulat = (v: number, d = 2) => Math.round(v * 10 ** d) / 10 ** d
@@ -441,6 +442,9 @@ export function useIotV41State(pollMs = 8_000) {
   const reload = useCallback(async () => {
     try {
       const r = await api.get('/iot-v41/state')
+      if (!r.data || typeof r.data !== 'object' || !('params' in r.data) || !('kondisi' in r.data)) {
+        throw new Error('Respons /iot-v41/state tidak valid')
+      }
       const baru = r.data as IotV41State
       cacheMemoriState = baru
       setData(baru)

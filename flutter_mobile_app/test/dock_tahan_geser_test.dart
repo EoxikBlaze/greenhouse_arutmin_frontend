@@ -72,6 +72,20 @@ void main() {
     await t.pump(const Duration(milliseconds: 700));
     await g.up();
     await t.pumpAndSettle();
-    expect(dipilih, isEmpty);
+    // lepas di tempat semula = tetap di tab aktif (boleh memanggil ulang tab yang sama, tidak pindah)
+    expect(dipilih.where((i) => i != 1), isEmpty);
   });
+
+  testWidgets(
+    'pil langsung terangkat saat disentuh (tanpa menunggu tahan lama)',
+    (t) async {
+      await pasang(t, mulai: 3);
+      final g = await t.startGesture(t.getCenter(find.text('D')));
+      await t.pump(const Duration(milliseconds: 50));
+      final skala = t.widget<AnimatedScale>(find.byType(AnimatedScale));
+      expect(skala.scale, greaterThan(1));
+      await g.up();
+      await t.pumpAndSettle();
+    },
+  );
 }

@@ -2,38 +2,33 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AppShell } from './layouts/AppShell'
 import { RequireAuth } from './components/RequireAuth'
 import LoginPage from './pages/LoginPage'
-import DashboardPage from './pages/DashboardPage'
-import SensorRealtimePage from './pages/SensorRealtimePage'
-import WaterControlPage from './pages/WaterControlPage'
-import KebunSayaPage from './pages/KebunSayaPage'
-import CctvPage from './pages/CctvPage'
-import AsistenAiPage from './pages/AsistenAiPage'
-import DosingPage from './pages/DosingPage'
-import KalibrasiPage from './pages/KalibrasiPage'
-import NutrisiManualPage from './pages/NutrisiManualPage'
-import DataPage from './pages/DataPage'
 import {
+  DashboardPage,
+  SensorRealtimePage,
+  KebunSayaPage,
+  CctvPage,
+  AsistenAiPage,
+  DosingPage,
+  KalibrasiPage,
+  NutrisiManualPage,
+  DataPage,
+  AuditPage,
   MqttDiagnostikPage,
   PemulihanPapanPage,
   PengaturanAlatPage,
   PeringatanPage,
   SaklarModePage,
-} from './pages/HidroV41Pages'
-import {
   SemaiPage,
   PeremajaanPage,
   PendewasaanPage,
   PanenPage,
   DurasiSiklusPage,
-} from './pages/stagePages'
-import {
   JenisTanamanPage,
   AmbangSensorPage,
-} from './pages/masterPages'
-import { LaporanPage } from './pages/notifLaporanPages'
-import { ManajemenUserPage } from './pages/ManajemenUserPage'
-import { ProfilePage } from './pages/ProfilePage'
-import AuditPage from './pages/AuditPage'
+  LaporanPage,
+  ManajemenUserPage,
+  ProfilePage,
+} from './halaman'
 import TentangPage from './pages/TentangPage'
 import { GalatHalaman } from './components/GalatHalaman'
 
@@ -74,9 +69,9 @@ export const router = createBrowserRouter([
           { path: '/saklar', element: <RequireAuth allow={ADMIN_DEMO} element={<SaklarModePage />} /> },
           { path: '/dosing-manual', element: <RequireAuth allow={ADMIN_DEMO} element={<NutrisiManualPage />} /> },
           { path: '/pompa', element: <Navigate to="/dosing-manual" replace /> },
-          // Halaman Kuras dihapus; alamat lama diarahkan ke Pengairan.
-          { path: '/kuras-air', element: <Navigate to="/watercontrol" replace /> },
-          { path: '/air', element: <Navigate to="/watercontrol" replace /> },
+          { path: '/kuras-air', element: <Navigate to="/dashboard" replace /> },
+          { path: '/air', element: <Navigate to="/dashboard" replace /> },
+          { path: '/watercontrol', element: <Navigate to="/dashboard" replace /> },
           { path: '/data', element: <RequireAuth allow={ADMIN_DEMO} element={<DataPage />} /> },
           { path: '/ujilab', element: <Navigate to="/data" replace /> },
           { path: '/pengaturan-alat', element: <RequireAuth allow={ADMIN_DEMO} element={<PengaturanAlatPage />} /> },
@@ -88,7 +83,6 @@ export const router = createBrowserRouter([
           { path: '/log', element: <Navigate to="/audit" replace /> },
 
           // 02 · Kebun & Sensor — admin (demo read-only)
-          { path: '/watercontrol', element: <RequireAuth allow={ADMIN_DEMO} element={<WaterControlPage />} /> },
 
           // 03 · Data Tahap + Durasi Siklus — admin (demo read-only)
           { path: '/semai', element: <RequireAuth allow={ADMIN_DEMO} element={<SemaiPage />} /> },
@@ -115,7 +109,7 @@ export const router = createBrowserRouter([
           { path: '/master/jenis-tanaman', element: <Navigate to="/tanaman" replace /> },
           { path: '/master/meja-tanaman', element: <Navigate to="/tanaman" replace /> },
           { path: '/master/ambang-sensor', element: <Navigate to="/ambang" replace /> },
-          { path: '/water-control', element: <Navigate to="/watercontrol" replace /> },
+          { path: '/water-control', element: <Navigate to="/dashboard" replace /> },
           { path: '/tanam-saya', element: <Navigate to="/tanam" replace /> },
           { path: '/durasi-siklus', element: <Navigate to="/siklus" replace /> },
           { path: '/manajemen-user', element: <Navigate to="/user" replace /> },
