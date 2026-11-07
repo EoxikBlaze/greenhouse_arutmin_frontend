@@ -13,7 +13,15 @@ import type { Role } from '../lib/authTypes'
 export function RequireAuth({ allow, element }: { allow?: Role[]; element?: ReactElement }) {
   const { isAuthenticated, role } = useAuth()
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (!isAuthenticated) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{ pesanSesi: 'Silakan masuk terlebih dahulu untuk mengakses halaman tersebut.' }}
+      />
+    )
+  }
   // QW5 — redirect karena role tak diizinkan mengirim state notice, yang
   // ditampilkan AppShell sebagai role="status" di halaman tujuan (/dashboard).
   if (allow && !allow.includes(role)) {

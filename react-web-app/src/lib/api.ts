@@ -1,5 +1,8 @@
 import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios'
-import { currentToken, tokenCsrf } from './token'
+import { AUTH_KEY, currentToken, tokenCsrf } from './token'
+
+export const KUNCI_PESAN_SESI = 'vsf_pesan_sesi'
+export const EVENT_SESI_HABIS = 'vsf:sesi-habis'
 
 /**
  * Same-origin (default) — request dilewatkan proxy Vite ke backend
@@ -44,6 +47,31 @@ api.interceptors.request.use((config) => {
   }
   return config
 })
+
+// Tangkap 401 (Tidak terautentikasi / sesi habis) → simpan peringatan & arahkan kembali ke halaman login.
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    const status = (err as { response?: { status?: number } })?.response?.status
+    const url = String((err as { config?: { url?: string } })?.config?.url ?? '')
+    if (status === 401 && !url.includes('/login') && !url.includes('/logout')) {
+      bersihkanCacheApi()
+      try {
+        localStorage.removeItem(AUTH_KEY)
+        sessionStorage.setItem(
+          KUNCI_PESAN_SESI,
+          'Sesi Anda telah berakhir atau Anda belum masuk. Silakan login terlebih dahulu.',
+        )
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent(EVENT_SESI_HABIS))
+        }
+      } catch {
+        /* abaikan bila storage terkunci */
+      }
+    }
+    return Promise.reject(err)
+  },
+)
 
 const getAsli = api.get.bind(api)
 api.get = ((url: string, config?: AxiosRequestConfig) => {

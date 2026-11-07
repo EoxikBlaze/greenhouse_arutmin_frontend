@@ -54,4 +54,16 @@ describe('LoginPage', () => {
     expect(wadah.querySelectorAll('.vsf-banner-danger')).toHaveLength(1)
     expect(wadah.querySelector('#login-username-error')).toBeNull()
   })
+
+  it('menampilkan peringatan sesi ketika diarahkan kembali ke halaman login', async () => {
+    const peringatan = 'Silakan masuk terlebih dahulu untuk mengakses halaman tersebut.'
+    await act(async () => {
+      root.render(
+        <MemoryRouter initialEntries={[{ pathname: '/login', state: { pesanSesi: peringatan } }]}>
+          <LoginPage />
+        </MemoryRouter>,
+      )
+    })
+    expect(wadah.textContent).toContain(peringatan)
+  })
 })

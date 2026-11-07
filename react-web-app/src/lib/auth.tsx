@@ -1,5 +1,5 @@
-import { useMemo, useState, type ReactNode } from 'react'
-import { api } from './api'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { api, EVENT_SESI_HABIS } from './api'
 import { AuthCtx, defaultAuth, roleFromLevel, type AuthValue } from './authContext'
 import { AUTH_KEY } from './token'
 import { hapusSemuaChat } from './riwayatChat'
@@ -47,6 +47,22 @@ function save(data: Partial<AuthValue>) {
 
 export function AuthProvider({ children, value }: { children: ReactNode; value?: Partial<AuthValue> }) {
   const [state, setState] = useState<AuthValue>(() => ({ ...defaultAuth, ...load(), ...value }))
+
+  useEffect(() => {
+    const saatSesiHabis = () => {
+      save({})
+      hapusSemuaChat()
+      setState((s) => ({
+        ...s,
+        isAuthenticated: false,
+        username: '',
+        demo: false,
+        role: 'admin',
+      }))
+    }
+    window.addEventListener(EVENT_SESI_HABIS, saatSesiHabis)
+    return () => window.removeEventListener(EVENT_SESI_HABIS, saatSesiHabis)
+  }, [])
 
   const apiVal = useMemo<AuthValue>(
     () => {

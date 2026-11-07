@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState, type FormEvent } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/authContext'
+import { EVENT_SESI_HABIS, KUNCI_PESAN_SESI } from '../lib/api'
 import { Monogram } from '../layouts/AppShell'
 import { Ikon } from '../components/Ikon'
 
@@ -31,13 +32,44 @@ const LOGO_MITRA = [
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [errors, setErrors] = useState<{ username?: string; password?: string }>({})
   const [serverError, setServerError] = useState('')
+  const [pesanSesi, setPesanSesi] = useState<string>(() => {
+    const dariState = (location.state as { pesanSesi?: string } | null)?.pesanSesi
+    if (dariState) return dariState
+    try {
+      const dariStorage = sessionStorage.getItem(KUNCI_PESAN_SESI)
+      if (dariStorage) {
+        sessionStorage.removeItem(KUNCI_PESAN_SESI)
+        return dariStorage
+      }
+    } catch {
+      /* abaikan */
+    }
+    return ''
+  })
   const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    const saatSesiHabis = () => {
+      try {
+        const dariStorage = sessionStorage.getItem(KUNCI_PESAN_SESI)
+        if (dariStorage) {
+          sessionStorage.removeItem(KUNCI_PESAN_SESI)
+          setPesanSesi(dariStorage)
+        }
+      } catch {
+        /* abaikan */
+      }
+    }
+    window.addEventListener(EVENT_SESI_HABIS, saatSesiHabis)
+    return () => window.removeEventListener(EVENT_SESI_HABIS, saatSesiHabis)
+  }, [])
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -151,6 +183,17 @@ export default function LoginPage() {
           <p className="mt-2 text-[13.5px] leading-relaxed text-slate-600">
             Masuk dengan akun GARAP Anda untuk membuka dashboard greenhouse.
           </p>
+
+          {pesanSesi && !serverError && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="mt-5 flex items-start gap-2 rounded-std vsf-tone-warn px-3 py-2.5 text-[13px] font-medium"
+            >
+              <IconAlert />
+              <span>{pesanSesi}</span>
+            </div>
+          )}
 
           {/* S8 — error server diumumkan ke screen reader */}
           {serverError && (
