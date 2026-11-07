@@ -682,11 +682,13 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
   const ArutminHeader({
     super.key,
     this.subjudul = 'Dashboard',
-    this.adaNotif = true,
+    this.adaNotif = false,
     this.onNotifTap,
     this.onProfileTap,
     this.bisaKembali = false,
     this.onKembali,
+    this.fotoProfil,
+    this.inisial,
   });
 
   final String subjudul;
@@ -695,6 +697,8 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onProfileTap;
   final bool bisaKembali;
   final VoidCallback? onKembali;
+  final ImageProvider? fotoProfil;
+  final String? inisial;
 
   @override
   Size get preferredSize => const Size.fromHeight(84);
@@ -841,12 +845,27 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
                 InkWell(
                   borderRadius: BorderRadius.circular(999),
                   onTap: onProfileTap,
-                  child: const CircleAvatar(
+                  child: CircleAvatar(
                     radius: 20,
-                    backgroundColor: Color(0xFFE2E8F0),
-                    backgroundImage: AssetImage(
-                      'assets/tentang/tim/siti-azizahtusholihah.png',
-                    ),
+                    backgroundColor: Tok.gelap ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    backgroundImage: fotoProfil,
+                    child: fotoProfil == null
+                        ? (inisial != null && inisial!.trim().isNotEmpty
+                            ? Text(
+                                inisial!.trim().substring(0, inisial!.trim().length >= 2 ? 2 : 1).toUpperCase(),
+                                style: TextStyle(
+                                  fontFamily: Tok.fontJudul,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: Tok.gelap ? Colors.white : Tok.navy,
+                                ),
+                              )
+                            : Icon(
+                                Icons.person_rounded,
+                                size: 22,
+                                color: Tok.gelap ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                              ))
+                        : null,
                   ),
                 ),
               ],

@@ -5,6 +5,7 @@ import 'pages/asisten_page.dart';
 import 'pages/beranda_petani.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/login_page.dart';
+import 'pages/peringatan_page.dart';
 import 'pages/profil_page.dart';
 import 'pages/sensor_page.dart';
 import 'pages/tanam_page.dart';
@@ -19,6 +20,7 @@ import 'widgets/dock.dart';
 import 'widgets/halaman.dart';
 import 'widgets/ikon.dart';
 import 'widgets/kaca.dart';
+import 'widgets/rute.dart';
 
 /// GARAP — pemantauan rumah tanam hidroponik (Arutmin: navy, emas, moss).
 /// Terhubung ke perangkat rumah tanam (`http://garap.local` secara bawaan).
@@ -228,6 +230,7 @@ class _MainShellState extends State<_MainShell>
   late final AnimationController _pudar;
   final Set<int> _dibuka = {0};
   int _indeks = 0;
+  bool _adaNotif = false;
 
   @override
   void initState() {
@@ -261,6 +264,22 @@ class _MainShellState extends State<_MainShell>
       duration: const Duration(milliseconds: 380),
       value: 1,
     );
+    _cekAlertAktif();
+  }
+
+  Future<void> _cekAlertAktif() async {
+    try {
+      final res = await apiService.getJson('/alert-logs?limit=1');
+      if (!mounted) return;
+      final aktif = res is Map && res['aktif'] is num
+          ? (res['aktif'] as num).toInt()
+          : 0;
+      setState(() {
+        _adaNotif = aktif > 0;
+      });
+    } catch (_) {
+      // Abaikan galat polling notifikasi awal
+    }
   }
 
   @override
@@ -348,17 +367,29 @@ class _MainShellState extends State<_MainShell>
                   top: 0,
                   left: 0,
                   right: 0,
-                  child: ArutminHeader(
-                    subjudul: _subjudulTab(_indeks),
-                    onProfileTap: () => _bukaTab('Akun'),
-                    onNotifTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Semua alert dan sensor greenhouse terpantau normal.',
-                          ),
-                          duration: Duration(seconds: 2),
-                        ),
+                  child: Builder(
+                    builder: (context) {
+                      final u = apiService.user;
+                      final username = u?['username']?.toString() ?? '';
+                      final inisial = username.trim().isNotEmpty
+                          ? username.trim().substring(0, username.trim().length >= 2 ? 2 : 1).toUpperCase()
+                          : null;
+                      return ArutminHeader(
+                        subjudul: _subjudulTab(_indeks),
+                        adaNotif: _adaNotif,
+                        inisial: inisial,
+                        fotoProfil: null,
+                        onProfileTap: () => _bukaTab('Akun'),
+                        onNotifTap: () {
+                          Navigator.of(context).push(
+                            RuteHalus<void>(
+                              builder: (_) => PeringatanPage(
+                                api: apiService,
+                                onSelesai: _cekAlertAktif,
+                              ),
+                            ),
+                          ).then((_) => _cekAlertAktif());
+                        },
                       );
                     },
                   ),

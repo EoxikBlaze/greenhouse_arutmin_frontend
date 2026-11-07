@@ -15,6 +15,7 @@ import '../widgets/tren_batang.dart';
 import 'asisten_page.dart';
 import 'cctv_page.dart';
 import 'nutrisi_manual_page.dart';
+import 'peringatan_page.dart';
 import 'saklar_page.dart';
 import 'uji_lab_page.dart';
 import 'riwayat_monitoring_page.dart';
@@ -420,7 +421,32 @@ class _DashboardPageState extends State<DashboardPage> {
         const SizedBox(height: Tok.sp6),
         FadeUp(
           delay: FadeUp.urutan(i++),
-          child: const Eyebrow('Peringatan terbaru'),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Eyebrow('Peringatan terbaru'),
+              InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () => Navigator.of(context).push(
+                  RuteHalus<void>(
+                    builder: (_) => PeringatanPage(api: widget.api),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  child: Text(
+                    'Lihat semua',
+                    style: TextStyle(
+                      fontFamily: Tok.fontJudul,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Tok.emas,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: Tok.sp3),
         FadeUp(
@@ -432,12 +458,19 @@ class _DashboardPageState extends State<DashboardPage> {
                 : Column(
                     children: [
                       for (final a in alerts.whereType<Map<Object?, Object?>>())
-                        _BarisInfo(
-                          ikon: Ikon.peringatan,
-                          warna: Tok.warning,
-                          judul: '${a['type'] ?? '-'}',
-                          sub: '${a['value'] ?? ''}',
-                          waktu: waktuRelatif(a['created_at']?.toString()),
+                        InkWell(
+                          onTap: () => Navigator.of(context).push(
+                            RuteHalus<void>(
+                              builder: (_) => PeringatanPage(api: widget.api),
+                            ),
+                          ),
+                          child: _BarisInfo(
+                            ikon: Ikon.peringatan,
+                            warna: Tok.warning,
+                            judul: '${a['type'] ?? '-'}',
+                            sub: '${a['value'] ?? ''}',
+                            waktu: waktuRelatif(a['created_at']?.toString()),
+                          ),
                         ),
                     ],
                   ),
