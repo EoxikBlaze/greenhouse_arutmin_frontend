@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../theme/tema.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
+import '../util/performa.dart';
 import '../widgets/brand.dart';
 import '../widgets/ikon.dart';
 import '../widgets/kaca.dart';
@@ -504,6 +505,25 @@ class _PilihKaca extends StatelessWidget {
             pilih: mode.index,
             rata: true,
             onPilih: (i) => PreferensiKaca.atur(ModeKaca.values[i]),
+          ),
+          const SizedBox(height: Tok.sp4),
+          Text('Sistem render', style: Tok.h3),
+          const SizedBox(height: 2),
+          Text(
+            'Otomatis beralih ke mode Ringan saat CPU melambat (tanpa blur berat & hemat daya).',
+            style: Tok.kecil,
+          ),
+          const SizedBox(height: Tok.sp3),
+          ValueListenableBuilder<TingkatPerforma>(
+            valueListenable: PerformaRender.tingkat,
+            builder: (context, perf, _) => PilPilih(
+              label: const ['Bagus (Penuh)', 'Ringan (Hemat CPU)'],
+              pilih: perf == TingkatPerforma.ringan ? 1 : 0,
+              rata: true,
+              onPilih: (i) => PerformaRender.atur(
+                i == 1 ? TingkatPerforma.ringan : TingkatPerforma.bagus,
+              ),
+            ),
           ),
         ],
       ),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../theme/tokens.dart';
+import '../util/performa.dart';
 
 /// Permukaan "Liquid Glass" untuk Flutter (padanan blok Liquid Glass v5–v7 di web).
 ///
@@ -72,15 +73,26 @@ class PreferensiKaca {
   }
 }
 
-/// Menyebarkan [ModeKaca] ke permukaan kaca di bawahnya. Tanpa scope → standar.
+/// Menyebarkan [ModeKaca] dan status [ringan] ke permukaan kaca di bawahnya. Tanpa scope → standar.
 class KacaScope extends InheritedWidget {
-  const KacaScope({super.key, required this.mode, required super.child});
+  const KacaScope({
+    super.key,
+    required this.mode,
+    this.performaRingan,
+    required super.child,
+  });
 
   final ModeKaca mode;
+  final bool? performaRingan;
 
   static ModeKaca of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<KacaScope>()?.mode ??
       ModeKaca.standar;
+
+  /// Apakah sistem render sedang dalam mode ringan (tanpa blur berat, hemat CPU/GPU)?
+  static bool ringan(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<KacaScope>()?.performaRingan ??
+      PerformaRender.ringan;
 
   /// Permukaan harus solid: mode Pekat atau kontras tinggi dari sistem.
   static bool solid(BuildContext context) =>
@@ -91,7 +103,8 @@ class KacaScope extends InheritedWidget {
       of(context) == ModeKaca.jernih ? 0.72 : 1.0;
 
   @override
-  bool updateShouldNotify(KacaScope oldWidget) => oldWidget.mode != mode;
+  bool updateShouldNotify(KacaScope oldWidget) =>
+      oldWidget.mode != mode || oldWidget.performaRingan != performaRingan;
 }
 
 class KacaCair extends StatefulWidget {
@@ -146,6 +159,7 @@ class _KacaCairState extends State<KacaCair> {
   Widget build(BuildContext context) {
     final r = BorderRadius.circular(widget.radius);
     final solidMode = KacaScope.solid(context);
+    final ringanMode = KacaScope.ringan(context);
     final k = KacaScope.k(context);
     final chrome = widget.varian == KacaVarian.chrome || widget.blur;
     final solid = widget.varian == KacaVarian.solid;
@@ -177,9 +191,12 @@ class _KacaCairState extends State<KacaCair> {
         child: isi,
       );
     } else {
-      // (alpha atas, alpha bawah) per tingkat; nilai sama dengan token --lg-* web
-      // bening-buram: tint putih tipis + blur sedang (nilai sama dengan token --lg-* web)
-      final (double a, double b) = chrome
+      // (alpha atas, alpha bawah) per tingkat; nilai sama dengan token --lg-* web.
+      // Pada mode ringan (CPU lambat / 20x slower CPU), alpha dinaikkan sedikit agar
+      // tetap kontras dan jernih walau tanpa BackdropFilter blur.
+      final (double a, double b) = ringanMode
+          ? (chrome ? (0.86, 0.76) : (0.78, 0.64))
+          : chrome
           ? (0.56, 0.36)
           : widget.varian == KacaVarian.bening
           ? (0.5, 0.32)
@@ -188,8 +205,8 @@ class _KacaCairState extends State<KacaCair> {
           widget.warna ??
           (gelap
               ? [
-                  Tok.navy.withValues(alpha: 0.66),
-                  Tok.navy.withValues(alpha: 0.40),
+                  Tok.navy.withValues(alpha: ringanMode ? 0.85 : 0.66),
+                  Tok.navy.withValues(alpha: ringanMode ? 0.72 : 0.40),
                 ]
               : [Tok.putih(a), Tok.putih(b)]);
       final permukaan = Container(
@@ -203,59 +220,77 @@ class _KacaCairState extends State<KacaCair> {
           ),
           borderRadius: r,
         ),
-        // kilau spekular di kiri atas (padanan --lg-spec)
-        foregroundDecoration: BoxDecoration(
-          borderRadius: r,
-          gradient: RadialGradient(
-            center: const Alignment(-0.75, -1.1),
-            radius: 1.25,
-            colors: [
-              Colors.white.withValues(alpha: gelap || Tok.gelap ? 0.12 : 0.42),
-              Colors.white.withValues(alpha: 0),
-            ],
-          ),
-        ),
+        // kilau spekular di kiri atas (padanan --lg-spec); dimatikan di mode ringan
+        foregroundDecoration: ringanMode
+            ? null
+            : BoxDecoration(
+                borderRadius: r,
+                gradient: RadialGradient(
+                  center: const Alignment(-0.75, -1.1),
+                  radius: 1.25,
+                  colors: [
+                    Colors.white.withValues(
+                      alpha: gelap || Tok.gelap ? 0.12 : 0.42,
+                    ),
+                    Colors.white.withValues(alpha: 0),
+                  ],
+                ),
+              ),
         child: CustomPaint(
-          foregroundPainter: RimKaca(radius: widget.radius, gelap: gelap),
+          foregroundPainter: RimKaca(
+            radius: widget.radius,
+            gelap: gelap,
+            kecil: ringanMode,
+          ),
           child: isi,
         ),
       );
-      final pakaiBlur = chrome || (widget.buram && !gelap);
+      final pakaiBlur = !ringanMode && (chrome || (widget.buram && !gelap));
       final sigma = chrome ? 24.0 : 14.0;
-      final filter = ImageFilter.blur(sigmaX: sigma, sigmaY: sigma);
+      final filter = pakaiBlur
+          ? ImageFilter.blur(sigmaX: sigma, sigmaY: sigma)
+          : null;
       kaca = ClipRRect(
         borderRadius: r,
         child: !pakaiBlur
             ? permukaan
             : chrome
-            ? BackdropFilter(filter: filter, child: permukaan)
-            : BackdropFilter.grouped(filter: filter, child: permukaan),
+            ? BackdropFilter(filter: filter!, child: permukaan)
+            : BackdropFilter.grouped(filter: filter!, child: permukaan),
       );
     }
 
     final bayang = DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: r,
-        boxShadow: [
-          const BoxShadow(
-            color: Color(0x14141E28),
-            blurRadius: 2,
-            offset: Offset(0, 1),
-          ),
-          BoxShadow(
-            color: Color(chrome ? 0x52141E28 : 0x40141E28),
-            blurRadius: chrome ? 46 : 36,
-            spreadRadius: chrome ? -16 : -14,
-            offset: Offset(0, chrome ? 18 : 12),
-          ),
-        ],
+        boxShadow: ringanMode
+            ? const [
+                BoxShadow(
+                  color: Color(0x18141E28),
+                  blurRadius: 8,
+                  offset: Offset(0, 3),
+                ),
+              ]
+            : [
+                const BoxShadow(
+                  color: Color(0x14141E28),
+                  blurRadius: 2,
+                  offset: Offset(0, 1),
+                ),
+                BoxShadow(
+                  color: Color(chrome ? 0x52141E28 : 0x40141E28),
+                  blurRadius: chrome ? 46 : 36,
+                  spreadRadius: chrome ? -16 : -14,
+                  offset: Offset(0, chrome ? 18 : 12),
+                ),
+              ],
       ),
       child: kaca,
     );
 
     // Terisolasi agar blur/animasi di dalamnya tidak melukis ulang halaman.
     if (widget.onTap == null) return RepaintBoundary(child: bayang);
-    final diam = MediaQuery.disableAnimationsOf(context);
+    final diam = MediaQuery.disableAnimationsOf(context) || ringanMode;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTapDown: (_) => _atur(true),
@@ -355,6 +390,39 @@ class LatarCair extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ringan = KacaScope.ringan(context);
+    final lebarCache = ringan ? 640 : 1280;
+    if (ringan) {
+      return RepaintBoundary(
+        child: IgnorePointer(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              ColoredBox(
+                color: Tok.gelap
+                    ? const Color(0xFF04101E)
+                    : const Color(0xFF4B9BDC),
+              ),
+              Image.asset(
+                Tok.gelap
+                    ? 'assets/latar/bg-malam.jpg'
+                    : 'assets/latar/bg-lanskap.jpg',
+                fit: BoxFit.cover,
+                alignment: Alignment.center,
+                cacheWidth: lebarCache,
+                gaplessPlayback: true,
+                excludeFromSemantics: true,
+              ),
+              ColoredBox(
+                color: Tok.gelap
+                    ? const Color(0xFF04101E).withValues(alpha: 0.25)
+                    : Colors.white.withValues(alpha: 0.12),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return RepaintBoundary(
       child: IgnorePointer(
         child: Stack(
@@ -365,7 +433,7 @@ class LatarCair extends StatelessWidget {
               'assets/latar/bg-lanskap.jpg',
               fit: BoxFit.cover,
               alignment: Alignment.center,
-              cacheWidth: 1280,
+              cacheWidth: lebarCache,
               gaplessPlayback: true,
               excludeFromSemantics: true,
             ),
@@ -384,7 +452,7 @@ class LatarCair extends StatelessWidget {
                     'assets/latar/bg-malam.jpg',
                     fit: BoxFit.cover,
                     alignment: Alignment.center,
-                    cacheWidth: 1280,
+                    cacheWidth: lebarCache,
                     gaplessPlayback: true,
                     excludeFromSemantics: true,
                   ),

@@ -3,12 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
+import '../util/performa.dart';
 
 /// Apakah animasi yang berulang tanpa henti (loop) boleh dijalankan?
 ///
 /// Di dalam `flutter test`, animasi tak berujung membuat `pumpAndSettle()`
-/// tidak pernah selesai. Karena itu loop dimatikan otomatis di binding uji.
+/// tidak pernah selesai. Karena itu loop dimatikan otomatis di binding uji
+/// maupun saat sistem render berada di mode [TingkatPerforma.ringan].
 bool get animasiLoopAktif {
+  if (PerformaRender.ringan) return false;
   final nama = WidgetsBinding.instance.runtimeType.toString();
   return !nama.contains('TestWidgetsFlutterBinding');
 }
@@ -64,8 +67,10 @@ class _FadeUpState extends State<FadeUp> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    // Pengguna mengurangi gerakan: tampil langsung.
-    if (MediaQuery.disableAnimationsOf(context)) return widget.child;
+    // Pengguna mengurangi gerakan atau mode render ringan aktif: tampil langsung tanpa ticker.
+    if (MediaQuery.disableAnimationsOf(context) || PerformaRender.ringan) {
+      return widget.child;
+    }
     return AnimatedBuilder(
       animation: _a,
       child: widget.child,
@@ -104,11 +109,12 @@ class CountUp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (MediaQuery.disableAnimationsOf(context) || PerformaRender.ringan) {
+      return Text('$awalan${nilai.toStringAsFixed(desimal)}$akhiran', style: style);
+    }
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: nilai),
-      duration: MediaQuery.disableAnimationsOf(context)
-          ? Duration.zero
-          : durasi,
+      duration: durasi,
       curve: Tok.ease,
       builder: (context, v, _) =>
           Text('$awalan${v.toStringAsFixed(desimal)}$akhiran', style: style),
@@ -147,7 +153,7 @@ class _PulseDotState extends State<PulseDot>
     super.didChangeDependencies();
     final c = _c;
     if (c == null) return;
-    if (MediaQuery.disableAnimationsOf(context)) {
+    if (MediaQuery.disableAnimationsOf(context) || PerformaRender.ringan) {
       c.stop();
     } else if (!c.isAnimating) {
       c.repeat(reverse: true);
@@ -290,7 +296,7 @@ class _SkeletonBoxState extends State<SkeletonBox>
     super.didChangeDependencies();
     final c = _c;
     if (c == null) return;
-    if (MediaQuery.disableAnimationsOf(context)) {
+    if (MediaQuery.disableAnimationsOf(context) || PerformaRender.ringan) {
       c.stop();
     } else if (!c.isAnimating) {
       c.repeat(reverse: true);

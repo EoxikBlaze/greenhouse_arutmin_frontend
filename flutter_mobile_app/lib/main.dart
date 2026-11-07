@@ -12,6 +12,7 @@ import 'services/api_service.dart';
 import 'services/sesi_store.dart';
 import 'theme/tema.dart';
 import 'theme/tokens.dart';
+import 'util/performa.dart';
 import 'widgets/dock.dart';
 import 'widgets/halaman.dart';
 import 'widgets/ikon.dart';
@@ -26,6 +27,7 @@ final ApiService apiService = ApiService(penyimpan: const PenyimpanSesiAman());
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  PerformaRender.mulai();
   await apiService.pulihkanSesi();
   await PreferensiKaca.muat();
   await PreferensiTema.muat();
@@ -114,15 +116,21 @@ class GarapApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: _buatTema(),
       // Ikuti ukuran teks sistem, tapi batasi agar dock dan kartu tidak meluber.
-      // Mode kaca (Jernih/Standar/Pekat dari halaman Akun) disebar ke semua permukaan kaca.
+      // Mode kaca (Jernih/Standar/Pekat) dan tingkat performa otomatis (Bagus/Ringan)
+      // disebar ke semua permukaan kaca sehingga bila CPU melambat (mis. 20x slower CPU),
+      // sistem render langsung menurunkan blur dan animasi berat.
       builder: (context, child) => ValueListenableBuilder<ModeKaca>(
         valueListenable: PreferensiKaca.mode,
-        builder: (context, mode, _) => KacaScope(
-          mode: mode,
-          child: MediaQuery.withClampedTextScaling(
-            minScaleFactor: 1.0,
-            maxScaleFactor: 1.3,
-            child: TransisiTema(child: child!),
+        builder: (context, mode, _) => ValueListenableBuilder<TingkatPerforma>(
+          valueListenable: PerformaRender.tingkat,
+          builder: (context, perf, _) => KacaScope(
+            mode: mode,
+            performaRingan: perf == TingkatPerforma.ringan,
+            child: MediaQuery.withClampedTextScaling(
+              minScaleFactor: 1.0,
+              maxScaleFactor: 1.3,
+              child: TransisiTema(child: child!),
+            ),
           ),
         ),
       ),
