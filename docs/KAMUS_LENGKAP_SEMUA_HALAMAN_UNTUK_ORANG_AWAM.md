@@ -156,3 +156,4 @@ Kami telah menjalankan verifikasi komprehensif pada seluruh kode Flutter:
 ---
 
 *GARAP Smart Farm — Sistem Cerdas, Andal, dan Mudah Digunakan untuk Seluruh Petani Indonesia.*
+

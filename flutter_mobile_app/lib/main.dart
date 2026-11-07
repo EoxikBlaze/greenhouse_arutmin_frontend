@@ -292,9 +292,11 @@ class _MainShellState extends State<_MainShell>
           _pilih(0);
         }
       },
-      child: NavigasiBerandaScope(
-        onKembali: _indeks == 0 ? null : () => _pilih(0),
-        child: Scaffold(
+      child: ApiServiceScope(
+        api: apiService,
+        child: NavigasiBerandaScope(
+          onKembali: null,
+          child: Scaffold(
           extendBody: true,
           body: Stack(
             children: [
@@ -350,6 +352,7 @@ class _MainShellState extends State<_MainShell>
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

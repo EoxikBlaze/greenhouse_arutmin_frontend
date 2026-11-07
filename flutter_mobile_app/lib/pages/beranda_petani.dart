@@ -5,7 +5,10 @@ import '../theme/tokens.dart';
 import '../util/format.dart';
 import '../widgets/brand.dart';
 import '../widgets/dock.dart';
+import '../widgets/ikon.dart';
 import '../widgets/motion.dart';
+import '../widgets/rute.dart';
+import 'asisten_page.dart';
 
 /// Hasil penilaian satu angka sensor terhadap batas amannya.
 enum Penilaian { aman, perluDicek, belumAda }
@@ -167,21 +170,22 @@ class _BerandaPetaniState extends State<BerandaPetani> {
         const SizedBox(height: 20),
         SizedBox(
           width: double.infinity,
-          child: FilledButton(
-            onPressed: () => widget.onBukaTab?.call('Tanam'),
-            style: FilledButton.styleFrom(minimumSize: const Size(0, 56)),
-            child: const Text(
-              'Lihat tanaman saya',
+          child: FilledButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              RuteHalus<void>(
+                builder: (_) => AsistenPage(api: widget.api),
+              ),
+            ),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(0, 56),
+              backgroundColor: Tok.moss,
+              foregroundColor: Tok.putih(0.95),
+            ),
+            icon: const Icon(Ikon.ai, size: 22),
+            label: const Text(
+              'Tanya Asisten AI GARAP',
               style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
             ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextButton(
-          onPressed: () => widget.onBukaTab?.call('Sensor'),
-          child: Text(
-            'Lihat grafik lengkap',
-            style: TextStyle(fontSize: 15, color: Tok.hijauTeks),
           ),
         ),
       ],

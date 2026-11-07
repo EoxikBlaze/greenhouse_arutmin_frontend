@@ -11,7 +11,6 @@ import '../widgets/dock.dart';
 import '../widgets/halaman.dart';
 import '../widgets/motion.dart';
 import '../widgets/rute.dart';
-import 'asisten_page.dart';
 import 'cctv_page.dart';
 import 'riwayat_monitoring_page.dart';
 import 'tentang_page.dart';
@@ -211,16 +210,6 @@ class _ProfilPageState extends State<ProfilPage> {
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Column(
                     children: [
-                      if (!demo && role != 'petani')
-                        _Pintas(
-                          ikon: Ikon.ai,
-                          label: 'Asisten AI',
-                          onTap: () => Navigator.of(context).push(
-                            RuteHalus<void>(
-                              builder: (_) => AsistenPage(api: widget.api),
-                            ),
-                          ),
-                        ),
                       if (role != 'petani')
                         _Pintas(
                           ikon: Ikon.cctv,

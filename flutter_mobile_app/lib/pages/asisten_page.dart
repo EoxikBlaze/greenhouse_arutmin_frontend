@@ -279,6 +279,7 @@ class _AsistenPageState extends State<AsistenPage> {
       appBar: AppBarGlass(
         judul: 'Asisten AI',
         eyebrow: 'Ikhtisar',
+        tampilkanAi: false,
         aksi: [
           if (_pesan.isNotEmpty)
             IconButton(

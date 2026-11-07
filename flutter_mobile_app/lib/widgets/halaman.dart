@@ -1,9 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../services/api_service.dart';
 import '../theme/tokens.dart';
+import 'app_bar_glass.dart';
 import 'ikon.dart';
 import 'kaca.dart';
+
+/// Menyediakan akses [ApiService] ke seluruh widget turunan (termasuk PageTop dan AppBarGlass).
+class ApiServiceScope extends InheritedWidget {
+  const ApiServiceScope({
+    super.key,
+    required this.api,
+    required super.child,
+  });
+
+  final ApiService api;
+
+  static ApiService? of(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<ApiServiceScope>()
+        ?.api;
+  }
+
+  @override
+  bool updateShouldNotify(ApiServiceScope oldWidget) => api != oldWidget.api;
+}
 
 /// Menyediakan aksi kembali ke tab Beranda bagi halaman tab non-Beranda yang
 /// memakai [PageTop], sehingga di layar mobile selalu tersedia tombol kembali.
@@ -29,7 +51,7 @@ class NavigasiBerandaScope extends InheritedWidget {
 
 /// Kepala halaman dalam (padanan kartu judul di web): kartu kaca kecil berisi
 /// tombol kembali (bila halaman bisa di-pop atau berada di tab selain Beranda),
-/// eyebrow grup + judul, dengan [status] opsional di kanan.
+/// eyebrow grup + judul, dengan [status] opsional di kanan, dan tombol pintas AI.
 class PageTop extends StatelessWidget {
   const PageTop({
     super.key,
@@ -37,12 +59,14 @@ class PageTop extends StatelessWidget {
     required this.judul,
     this.status,
     this.onKembali,
+    this.tampilkanAi = true,
   });
 
   final String eyebrow;
   final String judul;
   final Widget? status;
   final VoidCallback? onKembali;
+  final bool tampilkanAi;
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +140,11 @@ class PageTop extends StatelessWidget {
                 ),
               ),
               if (status != null) ...[const SizedBox(width: 8), status!],
-              const SizedBox(width: 8),
+              if (tampilkanAi) ...[
+                const SizedBox(width: 6),
+                const TombolAiKaca(),
+              ],
+              const SizedBox(width: 6),
               const TombolTemaKaca(),
             ],
           ),
