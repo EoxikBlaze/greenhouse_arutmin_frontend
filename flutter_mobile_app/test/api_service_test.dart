@@ -73,6 +73,35 @@ void main() {
       });
     });
 
+    test('peran demo memblokir pengiriman data (hanya baca)', () async {
+      var jaringanDipanggil = false;
+      final api = ApiService(
+        client: MockClient((req) async {
+          if (req.url.path == '/login') {
+            return _json({
+              'status': true,
+              'token': 'tok-demo',
+              'user': {'username': 'demo', 'level': 'demo'},
+            }, 200);
+          }
+          jaringanDipanggil = true;
+          return _json({'status': true}, 200);
+        }),
+      );
+      await api.login(username: 'demo', password: 'demo123');
+      expect(api.role, 'demo');
+
+      await expectLater(
+        api.postJson('/meja/store', {'meja': 'M1'}),
+        throwsA(
+          isA<ApiException>()
+              .having((e) => e.statusCode, 'statusCode', 403)
+              .having((e) => e.message, 'message', contains('Mode demo')),
+        ),
+      );
+      expect(jaringanDipanggil, isFalse);
+    });
+
     test('422 salah password: pesan ramah dari backend', () async {
       final api = ApiService(
         client: MockClient(
@@ -300,7 +329,7 @@ void main() {
               .having(
                 (e) => e.message,
                 'message',
-                contains('Backend tidak terjangkau'),
+                contains('Sistem tidak terjangkau'),
               ),
         ),
       );
@@ -327,7 +356,7 @@ void main() {
                 .having(
                   (e) => e.message,
                   'message',
-                  contains('Backend tidak terjangkau'),
+                  contains('Sistem tidak terjangkau'),
                 ),
           ),
         );
@@ -367,7 +396,7 @@ void main() {
               .having(
                 (e) => e.message,
                 'message',
-                contains('Server sedang bermasalah'),
+                contains('Sistem sedang sibuk'),
               ),
         ),
       );

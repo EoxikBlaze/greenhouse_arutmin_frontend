@@ -201,10 +201,14 @@ class _SensorPageState extends State<SensorPage> {
     final t = _terbaru!;
     final online = t['is_online'] == true;
     final ago = keDouble(t['seconds_ago']);
-    final s = t['sensor'] is Map ? t['sensor'] as Map : const {};
-    final anom = t['anomalies'] is List ? t['anomalies'] as List : const [];
+    final s = t['sensor'] is Map
+        ? t['sensor'] as Map<Object?, Object?>
+        : const <Object?, Object?>{};
+    final anom = t['anomalies'] is List
+        ? t['anomalies'] as List<Object?>
+        : const <Object?>[];
     final bermasalah = <String>{
-      for (final a in anom.whereType<Map>()) '${a['sensor']}',
+      for (final a in anom.whereType<Map<Object?, Object?>>()) '${a['sensor']}',
     };
 
     final def = _sensor.firstWhere(
@@ -273,7 +277,7 @@ class _SensorPageState extends State<SensorPage> {
                           style: Tok.h3,
                         ),
                         const SizedBox(height: 4),
-                        for (final a in anom.whereType<Map>())
+                        for (final a in anom.whereType<Map<Object?, Object?>>())
                           Text(
                             '${a['sensor']}: ${fmtAngka(a['value'], desimal: 2)} '
                             '(batas ${fmtAngka(a['min'], desimal: 1)}–${fmtAngka(a['max'], desimal: 1)})',

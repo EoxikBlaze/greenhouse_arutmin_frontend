@@ -48,7 +48,7 @@ export function urlAmanBrowser(url: string | null | undefined): boolean {
 
 export function labelTipe(k: Pick<Kamera, 'tipe' | 'interval_detik'>) {
   if (k.tipe === 'mjpeg') return 'Aliran MJPEG'
-  if (k.tipe === 'rtsp') return `RTSP lewat server · tiap ${k.interval_detik} dtk`
+  if (k.tipe === 'rtsp') return `Aliran RTSP · tiap ${k.interval_detik} dtk`
   return `Snapshot tiap ${k.interval_detik} dtk`
 }
 

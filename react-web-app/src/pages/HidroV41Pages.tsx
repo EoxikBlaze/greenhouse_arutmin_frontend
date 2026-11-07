@@ -400,7 +400,7 @@ export function MqttDiagnostikPage() {
                   />
                 </label>
                 <label className="block">
-                  <span className="vsf-label vsf-label-tinta">Payload</span>
+                  <span className="vsf-label vsf-label-tinta">Isi Pesan</span>
                   <input
                     type="text"
                     className="vsf-input mt-1 w-full font-mono text-[13px]"

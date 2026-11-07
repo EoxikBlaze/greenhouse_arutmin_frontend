@@ -46,7 +46,7 @@ class _CctvPageState extends State<CctvPage> {
           _galat = 'Respons CCTV tidak sesuai kontrak.';
         } else {
           _list = l
-              .whereType<Map>()
+              .whereType<Map<Object?, Object?>>()
               .map((e) => Map<String, dynamic>.from(e))
               .toList();
           _galat = null;
@@ -193,7 +193,7 @@ class _KartuKamera extends StatelessWidget {
                         '${tipe == 'mjpeg'
                             ? 'Aliran MJPEG'
                             : tipe == 'rtsp'
-                            ? 'RTSP lewat server · $detik detik'
+                            ? 'Tayangan langsung · $detik detik'
                             : 'Snapshot tiap $detik detik'}',
                         style: Tok.kecil,
                       ),

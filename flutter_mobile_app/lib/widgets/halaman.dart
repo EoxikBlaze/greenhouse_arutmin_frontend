@@ -2,36 +2,85 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../theme/tokens.dart';
+import 'ikon.dart';
 import 'kaca.dart';
 
+/// Menyediakan aksi kembali ke tab Beranda bagi halaman tab non-Beranda yang
+/// memakai [PageTop], sehingga di layar mobile selalu tersedia tombol kembali.
+class NavigasiBerandaScope extends InheritedWidget {
+  const NavigasiBerandaScope({
+    super.key,
+    required this.onKembali,
+    required super.child,
+  });
+
+  final VoidCallback? onKembali;
+
+  static VoidCallback? of(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<NavigasiBerandaScope>()
+        ?.onKembali;
+  }
+
+  @override
+  bool updateShouldNotify(NavigasiBerandaScope oldWidget) =>
+      onKembali != oldWidget.onKembali;
+}
+
 /// Kepala halaman dalam (padanan kartu judul di web): kartu kaca kecil berisi
-/// eyebrow grup + judul, dengan [status] opsional di kanan. Menggantikan HeroHeader
-/// besar di halaman selain Beranda.
+/// tombol kembali (bila halaman bisa di-pop atau berada di tab selain Beranda),
+/// eyebrow grup + judul, dengan [status] opsional di kanan.
 class PageTop extends StatelessWidget {
   const PageTop({
     super.key,
     required this.eyebrow,
     required this.judul,
     this.status,
+    this.onKembali,
   });
 
   final String eyebrow;
   final String judul;
   final Widget? status;
+  final VoidCallback? onKembali;
 
   @override
   Widget build(BuildContext context) {
     final atas = MediaQuery.paddingOf(context).top;
+    final bisaPop = Navigator.canPop(context);
+    final aksiKembali =
+        onKembali ??
+        (bisaPop
+            ? () => Navigator.maybePop(context)
+            : NavigasiBerandaScope.of(context));
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: Tok.gelap ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Padding(
         padding: EdgeInsets.fromLTRB(16, atas + 12, 16, 0),
         child: KacaCair(
           radius: 24,
-          padding: const EdgeInsets.fromLTRB(18, 12, 12, 12),
+          padding: EdgeInsets.fromLTRB(
+            aksiKembali != null ? 8 : 18,
+            12,
+            12,
+            12,
+          ),
           warna: [Tok.putih(0.56), Tok.putih(0.38)],
           child: Row(
             children: [
+              if (aksiKembali != null) ...[
+                IconButton(
+                  tooltip: 'Kembali',
+                  icon: Icon(Ikon.kiri, color: Tok.tinta),
+                  style: IconButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                    backgroundColor: Tok.putih(0.7),
+                  ),
+                  onPressed: aksiKembali,
+                ),
+                const SizedBox(width: 10),
+              ],
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

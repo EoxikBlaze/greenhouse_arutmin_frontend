@@ -88,8 +88,8 @@ class _UjiLabPageState extends State<UjiLabPage> {
             ? Map<String, dynamic>.from(s['data'] as Map)
             : const {};
         _riwayat = r is Map && r['data'] is List
-            ? (r['data'] as List)
-                  .whereType<Map>()
+            ? (r['data'] as List<Object?>)
+                  .whereType<Map<Object?, Object?>>()
                   .map((e) => Map<String, dynamic>.from(e))
                   .toList()
             : const [];

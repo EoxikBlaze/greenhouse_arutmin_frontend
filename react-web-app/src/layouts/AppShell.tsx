@@ -430,6 +430,20 @@ export function AppShell() {
             >
               <Ikon nama={navOpen ? 'tutup' : 'menu'} className="h-5 w-5" />
             </button>
+            {!beranda && (
+              <button
+                type="button"
+                className="vsf-chrome-tautan !min-h-[44px] !min-w-[44px] justify-center !px-0"
+                aria-label="Kembali"
+                title="Kembali"
+                onClick={() => {
+                  if (window.history.length > 2) navigate(-1)
+                  else navigate('/dashboard')
+                }}
+              >
+                <Ikon nama="kiri" className="h-5 w-5" />
+              </button>
+            )}
             {/* Judul halaman di header (dulu kartu terpisah di bawah header + header kosong di desktop). */}
             <div className="min-w-0 flex-1 px-1">
               {beranda ? (

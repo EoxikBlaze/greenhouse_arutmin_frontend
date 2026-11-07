@@ -130,13 +130,17 @@ class _BerandaPetaniState extends State<BerandaPetani> {
     final iot = d['iotStatus'];
     final hidup = iot is Map && iot['online'] == true;
     final sensor = d['latest_sensor'] is Map
-        ? d['latest_sensor'] as Map
-        : const {};
-    final ambang = d['ambang'] is Map ? d['ambang'] as Map : const {};
+        ? d['latest_sensor'] as Map<Object?, Object?>
+        : const <Object?, Object?>{};
+    final ambang = d['ambang'] is Map
+        ? d['ambang'] as Map<Object?, Object?>
+        : const <Object?, Object?>{};
     final terakhir = iot is Map ? iot['last_seen']?.toString() : null;
 
     Widget angka(String label, String kunci, String satuan, int desimal) {
-      final batas = ambang[kunci] is Map ? ambang[kunci] as Map : const {};
+      final batas = ambang[kunci] is Map
+          ? ambang[kunci] as Map<Object?, Object?>
+          : const <Object?, Object?>{};
       return _KartuAngka(
         label: label,
         nilai: keDouble(sensor[kunci]),

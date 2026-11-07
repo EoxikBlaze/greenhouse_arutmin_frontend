@@ -11,10 +11,10 @@ export type AuthValue = {
   username: string
   demo: boolean
   /**
-   * Login ke backend. Mengembalikan redirect dari server
+   * Login ke sistem. Mengembalikan redirect
    * ('/dashboard' atau '/tanam'). Melempar AxiosError bila gagal.
    */
-  login: (username: string, password: string) => Promise<string>
+  login: (username: string, password: string, remember?: boolean) => Promise<string>
   logout: () => void
 }
 

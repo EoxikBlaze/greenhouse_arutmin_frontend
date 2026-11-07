@@ -281,7 +281,7 @@ class _WaterControlPageState extends State<WaterControlPage> {
         ),
         const SizedBox(height: Tok.sp4),
         Text(
-          'Akun demo hanya dapat melihat status; perintah akan ditolak server.',
+          'Akun demo hanya dapat melihat status; tombol kendali dinonaktifkan.',
           style: Tok.kecil,
         ),
         const SizedBox(height: Tok.sp6),

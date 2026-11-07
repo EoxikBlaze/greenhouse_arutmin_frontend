@@ -4,16 +4,19 @@ import { AuthCtx, defaultAuth, roleFromLevel, type AuthValue } from './authConte
 import { AUTH_KEY } from './token'
 import { hapusSemuaChat } from './riwayatChat'
 
-/** Persist data tampilan sesi (tanpa token — token ada di cookie HttpOnly). */
+type StoredAuth = Partial<AuthValue> & { token?: string }
+
+/** Persist data sesi beserta token Bearer ("Ingatkan saya" → localStorage, sesi sementara → sessionStorage). */
 function load(): Partial<AuthValue> {
   try {
-    const raw = localStorage.getItem(AUTH_KEY)
+    const raw = localStorage.getItem(AUTH_KEY) ?? sessionStorage.getItem(AUTH_KEY)
     if (!raw) return {}
-    const d = JSON.parse(raw)
-    // Sesi lama menyimpan token di sini: dibuang (token kini hanya di cookie HttpOnly).
-    if (d.token !== undefined) {
-      delete d.token
-      localStorage.setItem(AUTH_KEY, JSON.stringify(d))
+    const d = JSON.parse(raw) as StoredAuth
+    // Sesi lama tanpa token di browser nyata dibersihkan agar tidak memicu 401 palsu sebelum login.
+    if (!import.meta.env.VITEST && d.isAuthenticated && !d.token) {
+      localStorage.removeItem(AUTH_KEY)
+      sessionStorage.removeItem(AUTH_KEY)
+      return {}
     }
     const role = d.role ?? 'admin'
     return {
@@ -27,19 +30,27 @@ function load(): Partial<AuthValue> {
   }
 }
 
-function save(data: Partial<AuthValue>) {
+function save(data: StoredAuth, remember = true) {
   try {
-    localStorage.setItem(
-      AUTH_KEY,
-      JSON.stringify({
-        isAuthenticated: data.isAuthenticated,
-        username: data.username,
-        role: data.role,
-        demo: data.demo,
-      }),
-    )
-    // bersihkan sesi lama (migrasi localStorage)
-    sessionStorage.removeItem(AUTH_KEY)
+    if (!data.isAuthenticated) {
+      localStorage.removeItem(AUTH_KEY)
+      sessionStorage.removeItem(AUTH_KEY)
+      return
+    }
+    const payload = JSON.stringify({
+      isAuthenticated: data.isAuthenticated,
+      username: data.username,
+      role: data.role,
+      demo: data.demo,
+      token: data.token ?? '',
+    })
+    if (remember) {
+      localStorage.setItem(AUTH_KEY, payload)
+      sessionStorage.removeItem(AUTH_KEY)
+    } else {
+      sessionStorage.setItem(AUTH_KEY, payload)
+      localStorage.removeItem(AUTH_KEY)
+    }
   } catch {
     /* storage penuh/di-block — abaikan */
   }
@@ -66,32 +77,30 @@ export function AuthProvider({ children, value }: { children: ReactNode; value?:
 
   const apiVal = useMemo<AuthValue>(
     () => {
-      const login = async (username: string, password: string): Promise<string> => {
-        // Login NYATA — backend memverifikasi bcrypt + rate limit anti brute-force
-        const res = await api.post('/login', { username, password, sesi: 'cookie' })
+      const login = async (username: string, password: string, remember = true): Promise<string> => {
+        const res = await api.post('/login', { username, password, remember })
         const d = (res.data ?? {}) as {
+          token?: string
           user?: { username?: string; level?: string; is_demo?: boolean }
           redirect?: string
         }
-        // QW7 — pakai is_demo dari publicUser: akun demo seed punya level 'user'
-        // (bukan 'demo'), jadi level saja tak cukup untuk menandai role demo.
         const role = roleFromLevel(d.user?.level, d.user?.is_demo)
-        const next = {
+        const next: StoredAuth = {
           isAuthenticated: true,
           username: String(d.user?.username ?? username),
           role,
           demo: role === 'demo',
+          token: d.token ?? '',
         }
-        save(next)
+        save(next, remember)
         setState((s) => ({ ...s, ...next }))
         return String(d.redirect ?? (role === 'petani' ? '/tanam' : '/dashboard'))
       }
 
       const logout = () => {
-        // best-effort — server menghapus cookie sesi; sesi lokal dibuang
         api.post('/logout').catch(() => {})
         save({})
-        hapusSemuaChat() // riwayat Asisten AI tidak boleh terlihat oleh akun berikutnya di tab ini
+        hapusSemuaChat()
         setState((s) => ({
           ...s,
           isAuthenticated: false,

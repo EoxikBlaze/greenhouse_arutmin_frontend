@@ -465,7 +465,7 @@ export function useIotV41State(pollMs = 8_000) {
         }
       }
       setData((lama) => lama ?? cacheMemoriState ?? rakitStateInstanLokal())
-      setError('Server tidak terjangkau: angka yang tampil mungkin bukan nilai terbaru.')
+      setError('Koneksi terputus: angka yang tampil mungkin bukan nilai terbaru.')
     } finally {
       setLoading(false)
     }

@@ -40,6 +40,7 @@ class _LoginPageState extends State<LoginPage>
   late final AnimationController _getar;
   bool _busy = false;
   bool _lihat = false;
+  bool _ingat = true;
 
   /// Setelah percobaan masuk pertama, validasi berjalan tiap kali isian berubah —
   /// pesan "minimal 3 karakter" langsung hilang begitu isian sudah benar.
@@ -53,76 +54,6 @@ class _LoginPageState extends State<LoginPage>
       vsync: this,
       duration: const Duration(milliseconds: 420),
     );
-  }
-
-  /// Host:port backend yang sedang dituju (untuk teks penanda di bawah form).
-  String get _alamatBackend {
-    final uri = Uri.tryParse(widget.api.baseUrl);
-    if (uri == null) return widget.api.baseUrl;
-    return uri.host == '127.0.0.1' && uri.hasPort
-        ? '${uri.host}:${uri.port}'
-        : uri.authority;
-  }
-
-  Future<void> _dialogPilihServer() async {
-    final ctrl = TextEditingController(text: widget.api.baseUrl);
-    final hasil = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Alamat Server Backend'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: ctrl,
-              keyboardType: TextInputType.url,
-              decoration: const InputDecoration(
-                labelText: 'URL Backend (http://garap.local)',
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                ActionChip(
-                  label: const Text('Raspberry Pi (garap.local)'),
-                  onPressed: () => ctrl.text = 'http://garap.local',
-                ),
-                ActionChip(
-                  label: const Text('Raspberry Pi IP (192.168.95.31)'),
-                  onPressed: () => ctrl.text = 'http://192.168.95.31',
-                ),
-                ActionChip(
-                  label: const Text('Mac LAN (192.168.95.231)'),
-                  onPressed: () => ctrl.text = 'http://192.168.95.231:8000',
-                ),
-                ActionChip(
-                  label: const Text('Lokal (127.0.0.1)'),
-                  onPressed: () => ctrl.text = 'http://127.0.0.1:8000',
-                ),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
-            child: const Text('Simpan'),
-          ),
-        ],
-      ),
-    );
-    if (hasil != null && hasil.isNotEmpty && mounted) {
-      setState(() {
-        widget.api.aturBaseUrl(hasil);
-      });
-    }
   }
 
   @override
@@ -261,7 +192,7 @@ class _LoginPageState extends State<LoginPage>
                       ),
                     ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             FadeUp(
               delay: FadeUp.urutan(4),
               child: TombolGradasi(
@@ -270,21 +201,69 @@ class _LoginPageState extends State<LoginPage>
                 onTap: _submit,
               ),
             ),
-            const SizedBox(height: 14),
-            FadeUp(
-              delay: FadeUp.urutan(5),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(Tok.rSm),
-                onTap: _dialogPilihServer,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Text(
-                    'Backend: $_alamatBackend (ketuk untuk ubah)',
-                    textAlign: TextAlign.center,
-                    style: Tok.kecil,
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Checkbox(
+                    value: _ingat,
+                    visualDensity: VisualDensity.compact,
+                    onChanged: _busy
+                        ? null
+                        : (v) => setState(() => _ingat = v ?? true),
                   ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _busy ? null : () => setState(() => _ingat = !_ingat),
+                    child: Text(
+                      'Ingatkan saya (tetap masuk)',
+                      style: Tok.kecil.copyWith(color: Tok.tinta),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: [
+                ActionChip(
+                  label: const Text('Superadmin'),
+                  onPressed: _busy
+                      ? null
+                      : () => setState(() {
+                          _usernameCtrl.text = 'garap';
+                          _passwordCtrl.text = 'garap123';
+                          _error = null;
+                        }),
+                ),
+                ActionChip(
+                  label: const Text('Petani'),
+                  onPressed: _busy
+                      ? null
+                      : () => setState(() {
+                          _usernameCtrl.text = 'petani';
+                          _passwordCtrl.text = 'petani123';
+                          _error = null;
+                        }),
+                ),
+                ActionChip(
+                  label: const Text('Demo (Hanya Lihat)'),
+                  onPressed: _busy
+                      ? null
+                      : () => setState(() {
+                          _usernameCtrl.text = 'demo';
+                          _passwordCtrl.text = 'demo123';
+                          _error = null;
+                        }),
+                ),
+              ],
             ),
           ],
         ),

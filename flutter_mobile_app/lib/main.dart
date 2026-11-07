@@ -13,15 +13,15 @@ import 'services/sesi_store.dart';
 import 'theme/tema.dart';
 import 'theme/tokens.dart';
 import 'widgets/dock.dart';
+import 'widgets/halaman.dart';
 import 'widgets/ikon.dart';
 import 'widgets/kaca.dart';
 
-/// GARAP — monitoring greenhouse hidroponik (Arutmin: navy, emas, moss).
-/// Terhubung ke backend Node.js lokal: http://127.0.0.1:8000
-/// (di iOS Simulator, 127.0.0.1 = Mac host — tidak perlu konfigurasi tambahan).
+/// GARAP — pemantauan rumah tanam hidroponik (Arutmin: navy, emas, moss).
+/// Terhubung ke perangkat rumah tanam (`http://garap.local` secara bawaan).
 
-/// Satu klien API untuk seluruh aplikasi. Sesi disimpan di Keychain/Keystore
-/// sehingga petani tetap masuk setelah aplikasi ditutup (sampai token kedaluwarsa).
+/// Satu klien untuk seluruh aplikasi. Sesi disimpan di Keychain/Keystore
+/// sehingga pengguna tetap masuk setelah aplikasi ditutup.
 final ApiService apiService = ApiService(penyimpan: const PenyimpanSesiAman());
 
 Future<void> main() async {
@@ -276,46 +276,70 @@ class _MainShellState extends State<_MainShell>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      body: Stack(
-        children: [
-          // satu latar cair untuk semua tab — panel kaca di tiap halaman tampil di atasnya
-          const Positioned.fill(child: LatarCair()),
-          // BackdropGroup: semua panel kaca di tab berbagi satu blur latar (dock di luar grup).
-          BackdropGroup(
-            child: FadeTransition(
-              opacity: CurvedAnimation(parent: _pudar, curve: Tok.ease),
-              child: IndexedStack(
-                index: _indeks,
-                children: [
-                  // Tab tersembunyi: ticker dijeda (PipeFlow, PulseDot, skeleton) agar hemat baterai.
-                  for (var i = 0; i < _tab.length; i++)
-                    TickerMode(
-                      enabled: i == _indeks,
-                      child: _dibuka.contains(i)
-                          ? _tab[i].bangun(i == _indeks)
-                          : const SizedBox.shrink(),
+    return PopScope(
+      canPop: _indeks == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _indeks != 0) {
+          _pilih(0);
+        }
+      },
+      child: NavigasiBerandaScope(
+        onKembali: _indeks == 0 ? null : () => _pilih(0),
+        child: Scaffold(
+          extendBody: true,
+          body: Stack(
+            children: [
+              // satu latar cair untuk semua tab — panel kaca di tiap halaman tampil di atasnya
+              const Positioned.fill(child: LatarCair()),
+              // BackdropGroup: semua panel kaca di tab berbagi satu blur latar (dock di luar grup).
+              // ConstrainedBox menjaga keterbacaan di layar lebar (tablet/lanskap) sesuai pedoman tata letak adaptif Flutter.
+              BackdropGroup(
+                child: FadeTransition(
+                  opacity: CurvedAnimation(parent: _pudar, curve: Tok.ease),
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 840),
+                      child: IndexedStack(
+                        index: _indeks,
+                        children: [
+                          // Tab tersembunyi: ticker dijeda (PipeFlow, PulseDot, skeleton) agar hemat baterai.
+                          for (var i = 0; i < _tab.length; i++)
+                            TickerMode(
+                              enabled: i == _indeks,
+                              child: _dibuka.contains(i)
+                                  ? _tab[i].bangun(i == _indeks)
+                                  : const SizedBox.shrink(),
+                            ),
+                        ],
+                      ),
                     ),
-                ],
+                  ),
+                ),
               ),
-            ),
-          ),
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 0,
-            child: SafeArea(
-              top: false,
-              minimum: const EdgeInsets.only(bottom: 12),
-              child: DockNav(
-                item: [for (final t in _tab) DockItem(t.label, t.ikon)],
-                indeks: _indeks,
-                onPilih: _pilih,
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 0,
+                child: SafeArea(
+                  top: false,
+                  minimum: const EdgeInsets.only(bottom: 12),
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 520),
+                      child: DockNav(
+                        item: [for (final t in _tab) DockItem(t.label, t.ikon)],
+                        indeks: _indeks,
+                        onPilih: _pilih,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

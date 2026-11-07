@@ -61,8 +61,8 @@ class _NaikHarianPageState extends State<NaikHarianPage> {
       if (!mounted) return;
       final l = d is Map && d['data'] is List ? d['data'] as List : null;
       setState(() {
-        _list = (l ?? const [])
-            .whereType<Map>()
+        _list = (l ?? const <Object?>[])
+            .whereType<Map<Object?, Object?>>()
             .map((e) => Map<String, dynamic>.from(e))
             .toList();
         _ambangMaks = d is Map && d['ambang_tds'] is Map

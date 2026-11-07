@@ -270,18 +270,18 @@ class _DashboardPageState extends State<DashboardPage> {
     final sensor = d['latest_sensor'];
     final wc = d['water_control'];
     final alerts = d['recent_alerts'] is List
-        ? d['recent_alerts'] as List
-        : const [];
+        ? d['recent_alerts'] as List<Object?>
+        : const <Object?>[];
     final panen = d['recent_panen'] is List
-        ? d['recent_panen'] as List
-        : const [];
+        ? d['recent_panen'] as List<Object?>
+        : const <Object?>[];
 
     int n(String k) => (keDouble(d[k]) ?? 0).round();
     final batchAktif =
         n('semai_aktif') + n('peremajaan_aktif') + n('pendewasaan_aktif');
     final totalBatch =
         n('total_semai') + n('total_peremajaan') + n('total_pendewasaan');
-    final s = sensor is Map ? sensor : const {};
+    final s = sensor is Map ? sensor : const <Object?, Object?>{};
     final kontrol = widget.api.role == 'admin' || widget.api.role == 'demo';
     final katup = wc is Map ? '${wc['valve_state'] ?? '—'}' : '—';
     final ket = online ? 'perangkat online' : 'perangkat offline';
@@ -431,7 +431,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 ? const _Kosong('Tidak ada peringatan. Semua aman.')
                 : Column(
                     children: [
-                      for (final a in alerts.whereType<Map>())
+                      for (final a in alerts.whereType<Map<Object?, Object?>>())
                         _BarisInfo(
                           ikon: Ikon.peringatan,
                           warna: Tok.warning,
@@ -457,7 +457,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 ? const _Kosong('Belum ada data panen.')
                 : Column(
                     children: [
-                      for (final p in panen.whereType<Map>())
+                      for (final p in panen.whereType<Map<Object?, Object?>>())
                         _BarisInfo(
                           ikon: Ikon.panen,
                           warna: Tok.moss,
@@ -881,7 +881,7 @@ class _BarisTahap extends StatelessWidget {
 class _RingkasAir extends StatelessWidget {
   const _RingkasAir({required this.wc});
 
-  final Map wc;
+  final Map<Object?, Object?> wc;
 
   @override
   Widget build(BuildContext context) {

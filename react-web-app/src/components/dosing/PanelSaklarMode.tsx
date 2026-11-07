@@ -206,7 +206,7 @@ export function PanelSaklarMode({
               </button>
             </div>
             <p className="mt-2 text-[12px] text-abu">
-              Geser saklarnya dulu — belum ada yang disimpan sampai tombol di atas ditekan. Perubahan tersimpan di server dan tampil di Dashboard.
+              Geser saklarnya dulu — belum ada yang disimpan sampai tombol di atas ditekan. Perubahan tersimpan dan tampil di Dashboard.
             </p>
           </div>
         )}

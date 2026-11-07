@@ -34,11 +34,13 @@ class _SaklarPageState extends State<SaklarPage> {
   Future<void> _muat() async {
     try {
       final d = await widget.api.getJson('/saklar');
-      final data = d is Map && d['data'] is List ? d['data'] as List : const [];
+      final data = d is Map && d['data'] is List
+          ? d['data'] as List<Object?>
+          : const <Object?>[];
       if (!mounted) return;
       setState(() {
         _daftar = data
-            .whereType<Map>()
+            .whereType<Map<Object?, Object?>>()
             .map((e) => Map<String, dynamic>.from(e))
             .toList();
         _error = null;

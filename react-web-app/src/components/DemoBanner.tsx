@@ -1,22 +1,9 @@
-import { useEffect, useState } from 'react'
 import { Ikon } from './Ikon'
 
 /**
- * Banner mode demo (State Gallery .pen):
- * - aksi destruktif disabled (ditegakkan di level komponen)
- * - countdown "X menit lagi dihapus otomatis" — tick tiap 60 detik (role=status, polite)
- * Poles ROMBAK-A: chip "DEMO" navy/emas + ikon SVG (bukan emoji) + shadow halus.
- * Logika countdown TIDAK diubah.
+ * Banner mode demo — menjelaskan bahwa akun Demo hanya menerima & melihat data.
  */
 export function DemoBanner({ demo }: { demo: boolean }) {
-  const [menit, setMenit] = useState(60)
-
-  useEffect(() => {
-    if (!demo) return
-    const id = setInterval(() => setMenit((m) => Math.max(0, m - 1)), 60_000)
-    return () => clearInterval(id)
-  }, [demo])
-
   if (!demo) return null
   return (
     <div
@@ -29,7 +16,7 @@ export function DemoBanner({ demo }: { demo: boolean }) {
         Demo
       </span>
       <span>
-        <b>Aksi destruktif dinonaktifkan.</b> Data Demo: {menit} menit lagi dihapus otomatis.
+        <b>Mode Demo (Hanya Terima Data):</b> Akun ini hanya dapat melihat pantauan kebun dan tidak dapat mengirim atau mengubah data.
       </span>
     </div>
   )

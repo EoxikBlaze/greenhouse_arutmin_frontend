@@ -57,7 +57,7 @@ class _TanamPageState extends State<TanamPage> {
           _galat = 'Respons tanam tidak sesuai kontrak.';
         } else {
           _list = l
-              .whereType<Map>()
+              .whereType<Map<Object?, Object?>>()
               .map((e) => Map<String, dynamic>.from(e))
               .toList();
           // yang sudah waktunya dipindah tampil paling atas
@@ -603,7 +603,10 @@ class _SheetMulaiState extends State<_SheetMulai> {
       final d = await widget.api.getJson('/tanam/pilihan');
       if (!mounted) return;
       List<Map<String, dynamic>> daftar(Object? v) => v is List
-          ? v.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList()
+          ? v
+                .whereType<Map<Object?, Object?>>()
+                .map((e) => Map<String, dynamic>.from(e))
+                .toList()
           : const [];
       setState(() {
         _tanaman = daftar(d is Map ? d['tanaman'] : null);

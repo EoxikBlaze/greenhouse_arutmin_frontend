@@ -133,6 +133,15 @@ class ApiService {
     bool put = false,
   }) async {
     final uri = Uri.parse('$baseUrl$path');
+    if (body != null &&
+        role == 'demo' &&
+        path != '/login' &&
+        path != '/logout') {
+      throw const ApiException(
+        403,
+        'Mode demo hanya dapat menerima dan melihat data (tidak dapat mengirim atau mengubah data).',
+      );
+    }
     try {
       final http.Response res;
       if (body == null) {
@@ -153,10 +162,9 @@ class ApiService {
     } catch (_) {
       // Timeout / koneksi ditolak / DNS gagal — semuanya dibawa ke pesan
       // yang menyebut alamat backend agar pengguna tahu harus menyalakan apa.
-      throw ApiException(
+      throw const ApiException(
         null,
-        'Backend tidak terjangkau ($baseUrl). Pastikan server sedang '
-        'berjalan dan perangkat terhubung ke jaringan yang sama.',
+        'Sistem tidak terjangkau. Pastikan perangkat terhubung ke jaringan kebun.',
       );
     }
   }
@@ -205,12 +213,12 @@ class ApiService {
       );
     }
     if (res.statusCode == 404) {
-      throw const ApiException(404, 'Data tidak ditemukan di server (404).');
+      throw const ApiException(404, 'Data tidak ditemukan (404).');
     }
     if (res.statusCode >= 500) {
       throw ApiException(
         res.statusCode,
-        'Server sedang bermasalah (HTTP ${res.statusCode}). Coba lagi nanti.',
+        'Sistem sedang sibuk (${res.statusCode}). Coba lagi nanti.',
       );
     }
     throw ApiException(
@@ -267,7 +275,7 @@ class ApiService {
           )
           .timeout(batas ?? const Duration(seconds: 20));
     } catch (_) {
-      throw ApiException(null, 'Backend tidak terjangkau ($baseUrl).');
+      throw const ApiException(null, 'Sistem tidak terjangkau.');
     }
     if (res.statusCode != 200) {
       throw ApiException(
@@ -317,7 +325,7 @@ class ApiService {
     if (token == null || token.isEmpty) {
       throw const ApiException(
         200,
-        'Login berhasil tetapi token tidak diterima server.',
+        'Masuk berhasil tetapi sesi belum dapat dibuka.',
       );
     }
     _token = token;

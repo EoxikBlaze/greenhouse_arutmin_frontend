@@ -36,6 +36,7 @@ export default function LoginPage() {
   const { login } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [remember, setRemember] = useState(true)
   const [showPass, setShowPass] = useState(false)
   const [errors, setErrors] = useState<{ username?: string; password?: string }>({})
   const [serverError, setServerError] = useState('')
@@ -84,8 +85,7 @@ export default function LoginPage() {
 
     setSubmitting(true)
     try {
-      // Login NYATA ke backend (bcrypt + rate limit anti brute-force)
-      const redirect = await login(username, password)
+      const redirect = await login(username, password, remember)
       navigate(redirect || '/dashboard', { replace: true })
     } catch (err) {
       const data = (
@@ -208,7 +208,58 @@ export default function LoginPage() {
             </div>
           )}
 
-          <label className="mt-6 block text-[13px] font-semibold text-tinta" htmlFor="login-username">
+          <div className="mt-5">
+            <div className="text-[12px] font-semibold text-slate-600">Pilih cepat peran akun:</div>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => {
+                  setUsername('garap')
+                  setPassword('garap123')
+                  setErrors({})
+                  setServerError('')
+                  setPesanSesi('')
+                }}
+                className="flex flex-col items-start rounded-[14px] border border-slate-200 bg-white/85 px-3 py-2 text-left transition hover:border-arutmin-forest hover:bg-arutmin-mint/25"
+              >
+                <span className="text-[12.5px] font-bold text-navy">Superadmin</span>
+                <span className="text-[11px] text-slate-500">garap · Kendali penuh</span>
+              </button>
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => {
+                  setUsername('petani')
+                  setPassword('petani123')
+                  setErrors({})
+                  setServerError('')
+                  setPesanSesi('')
+                }}
+                className="flex flex-col items-start rounded-[14px] border border-slate-200 bg-white/85 px-3 py-2 text-left transition hover:border-arutmin-forest hover:bg-arutmin-mint/25"
+              >
+                <span className="text-[12.5px] font-bold text-navy">Petani</span>
+                <span className="text-[11px] text-slate-500">petani · Siklus tanam</span>
+              </button>
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => {
+                  setUsername('demo')
+                  setPassword('demo123')
+                  setErrors({})
+                  setServerError('')
+                  setPesanSesi('')
+                }}
+                className="flex flex-col items-start rounded-[14px] border border-slate-200 bg-white/85 px-3 py-2 text-left transition hover:border-arutmin-forest hover:bg-arutmin-mint/25"
+              >
+                <span className="text-[12.5px] font-bold text-navy">Demo</span>
+                <span className="text-[11px] text-slate-500">demo · Hanya lihat</span>
+              </button>
+            </div>
+          </div>
+
+          <label className="mt-5 block text-[13px] font-semibold text-tinta" htmlFor="login-username">
             Nama pengguna
           </label>
           <input
@@ -275,7 +326,18 @@ export default function LoginPage() {
             </div>
           )}
 
-          <button type="submit" className="vsf-btn-primary mt-7 w-full" disabled={submitting}>
+          <label className="mt-4 inline-flex cursor-pointer items-center gap-2.5 text-[13px] font-medium text-tinta select-none">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded border-slate-300 accent-arutmin-forest"
+              checked={remember}
+              disabled={submitting}
+              onChange={(e) => setRemember(e.target.checked)}
+            />
+            <span>Ingatkan saya (tetap masuk tanpa batas waktu)</span>
+          </label>
+
+          <button type="submit" className="vsf-btn-primary mt-5 w-full" disabled={submitting}>
             {submitting && <span className="vsf-spinner" aria-hidden />}
             {submitting ? 'Memproses…' : 'Masuk ke Dashboard'}
           </button>

@@ -61,8 +61,8 @@ class _NutrisiManualPageState extends State<NutrisiManualPage> {
       final d = await widget.api.getJson('/iot-v41/dosing-manual/riwayat');
       if (!mounted || d is! Map) return;
       setState(() {
-        _riwayat = (d['data'] is List ? d['data'] as List : const [])
-            .whereType<Map>()
+        _riwayat = (d['data'] is List ? d['data'] as List<Object?> : const <Object?>[])
+            .whereType<Map<Object?, Object?>>()
             .map((e) => Map<String, dynamic>.from(e))
             .toList();
         _batas = d['batas'] is Map

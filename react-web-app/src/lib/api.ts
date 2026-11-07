@@ -1,5 +1,5 @@
 import axios, { type AxiosRequestConfig, type AxiosResponse } from 'axios'
-import { AUTH_KEY, currentToken, tokenCsrf } from './token'
+import { AUTH_KEY, bearerToken, currentToken, isDemoSession, tokenCsrf } from './token'
 
 export const KUNCI_PESAN_SESI = 'vsf_pesan_sesi'
 export const EVENT_SESI_HABIS = 'vsf:sesi-habis'
@@ -37,10 +37,23 @@ export function bersihkanCacheApi() {
   getCacheSingkat.clear()
 }
 
-// Sesi lewat cookie HttpOnly (dikirim otomatis, same-origin). Mutasi wajib membawa token CSRF.
+// Sesi lewat Bearer token (bebas konflik cookie HTTP/HTTPS) + kompatibel cookie.
+// Akun Demo hanya boleh menerima data (GET/HEAD), tidak boleh mengirim data (POST/PUT/PATCH/DELETE).
 api.interceptors.request.use((config) => {
+  const tok = bearerToken()
+  if (tok) {
+    config.headers.Authorization = `Bearer ${tok}`
+  }
   const method = (config.method ?? 'get').toLowerCase()
+  const url = String(config.url ?? '')
   if (method !== 'get' && method !== 'head') {
+    if (isDemoSession() && !url.includes('/login') && !url.includes('/logout')) {
+      const pesan = 'Mode demo hanya dapat menerima dan melihat data (tidak dapat mengirim atau mengubah data).'
+      return Promise.reject({
+        response: { status: 403, data: { message: pesan } },
+        message: pesan,
+      })
+    }
     const csrf = tokenCsrf()
     if (csrf) config.headers['X-CSRF-Token'] = csrf
     bersihkanCacheApi()

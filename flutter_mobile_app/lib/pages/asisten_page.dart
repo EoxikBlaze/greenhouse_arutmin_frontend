@@ -53,8 +53,8 @@ class _Pintasan {
 
 const _labelSumber = <String, String>{
   'heuristik': 'Jawaban aturan (AI lokal tidak tersedia)',
-  'diagnosa': 'Diagnosa otomatis dari database',
-  'data': 'Data langsung dari database',
+  'diagnosa': 'Diagnosa otomatis kebun',
+  'data': 'Data langsung sensor',
   'sapaan': 'Asisten GARAP',
   'ollama': 'Dijawab AI lokal — cek ulang sebelum bertindak',
   'tolak': 'Permintaan ditolak oleh pengaman',
@@ -223,7 +223,7 @@ class _AsistenPageState extends State<AsistenPage> {
         'riwayat': riwayat,
       }, const Duration(seconds: 45));
       if (!mounted) return;
-      final map = d is Map ? d : const {};
+      final map = d is Map ? d : const <Object?, Object?>{};
       setState(() {
         var teksJawab = '${map['jawaban'] ?? 'Tidak ada jawaban.'}';
         var tabelJawab = _uraiTabel(map['tabel']);
