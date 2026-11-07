@@ -8,7 +8,6 @@ import '../widgets/dock.dart';
 import '../widgets/ikon.dart';
 import '../widgets/motion.dart';
 import '../widgets/navigasi_shell.dart';
-import '../widgets/rute.dart';
 import 'asisten_page.dart';
 
 /// Hasil penilaian satu angka sensor terhadap batas amannya.

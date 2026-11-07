@@ -21,7 +21,6 @@ import 'widgets/halaman.dart';
 import 'widgets/ikon.dart';
 import 'widgets/kaca.dart';
 import 'widgets/navigasi_shell.dart';
-import 'widgets/rute.dart';
 
 /// GARAP — pemantauan rumah tanam hidroponik (Arutmin: navy, emas, moss).
 /// Terhubung ke perangkat rumah tanam (`http://garap.local` secara bawaan).
