@@ -188,3 +188,4 @@ Tambahkan pencadangan database berkala ke `/var/backups/vertonik/` melalui cront
 ---
 
 *GARAP Smart Farm — Sistem Siap Operasional, Andal, dan Aman untuk Greenhouse Arutmin Asik 2026.*
+

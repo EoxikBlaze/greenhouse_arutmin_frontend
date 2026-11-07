@@ -100,6 +100,80 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
+  Future<void> _ubahServer() async {
+    final ctrl = TextEditingController(text: widget.api.baseUrl);
+    final hasil = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text(
+          'Alamat Server GARAP',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Pilih atau ketik alamat server backend GARAP:',
+              style: TextStyle(fontSize: 12),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: ctrl,
+              decoration: const InputDecoration(
+                isDense: true,
+                hintText: 'http://127.0.0.1:8000',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                ActionChip(
+                  label: const Text(
+                    'Lokal (127.0.0.1:8000)',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  onPressed: () => ctrl.text = 'http://127.0.0.1:8000',
+                ),
+                ActionChip(
+                  label: const Text(
+                    'Raspberry Pi (garap.local)',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  onPressed: () => ctrl.text = 'http://garap.local',
+                ),
+                ActionChip(
+                  label: const Text(
+                    'Android AVD (10.0.2.2:8000)',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  onPressed: () => ctrl.text = 'http://10.0.2.2:8000',
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+            child: const Text('Simpan'),
+          ),
+        ],
+      ),
+    );
+    if (hasil != null && hasil.isNotEmpty && mounted) {
+      widget.api.aturBaseUrl(hasil);
+      setState(() {});
+    }
+  }
+
   Widget _formulir() {
     return AnimatedBuilder(
       animation: _getar,
@@ -240,6 +314,17 @@ class _LoginPageState extends State<LoginPage>
                         _passwordCtrl.text = 'demo123';
                         _error = null;
                       }),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Center(
+              child: TextButton.icon(
+                onPressed: _busy ? null : _ubahServer,
+                icon: Icon(Icons.dns_outlined, size: 14, color: Tok.abuTeks),
+                label: Text(
+                  'Server: ${widget.api.baseUrl}',
+                  style: TextStyle(fontSize: 11, color: Tok.abuTeks),
+                ),
               ),
             ),
           ],

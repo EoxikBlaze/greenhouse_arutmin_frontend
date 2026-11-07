@@ -172,3 +172,4 @@ Jika Anda menemukan kejanggalan pada tanaman atau bingung langkah apa yang harus
 ---
 
 *GARAP Mobile — Kemudahan dan Kenyamanan Mengelola Kebun Cerdas di Genggaman Tangan Anda.*
+
