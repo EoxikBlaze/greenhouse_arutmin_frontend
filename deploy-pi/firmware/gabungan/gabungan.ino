@@ -84,6 +84,11 @@ const uint32_t MAKS_DURASI_MS[JUMLAH_OUT] = { 70000, 70000, 12000, 12000, 600000
 const uint32_t JEDA_AB_MS = 60000;    // jeda antara pompa A dan B (teman: jeda_ab_dtk 60–600 dtk, bawaan 300). Sesuaikan.
 const int PIN_FLOAT_BAWAH = 32;       // pemicu isi air (fw_hidro: HIGH = terangkat/air cukup, LOW = turun/air kurang)
 const int PIN_FLOAT_ATAS  = 33;       // batas penuh (fw_hidro: HIGH = penuh, INPUT_PULLUP: kabel putus = dianggap penuh)
+const int PIN_LAMPU_MERAH = 13;       // lampu pilot merah via ULN2003 (HIGH = nyala)
+const int PIN_LAMPU_HIJAU = 17;       // lampu pilot hijau via ULN2003 (HIGH = nyala)
+const int PIN_LAMPU_BIRU  = 23;       // lampu pilot biru via ULN2003 (HIGH = nyala)
+const int PIN_TOMBOL_RESET = 19;      // tombol reset ke GND (INPUT_PULLUP: ditekan = LOW)
+const uint8_t LCD_ALAMAT  = 0x27;     // LCD 20x4 I2C PCF8574 (otomatis terdeteksi saat boot)
 const int TINGKAT_FLOAT_TERANGKAT = HIGH;
 const uint32_t DEBOUNCE_FLOAT_MS = 150;
 struct StateFloat {
@@ -109,7 +114,10 @@ const uint32_t FAILSAFE_MS = 30000, HEARTBEAT_MS = 30000, COBA_MQTT_MS = 5000, U
 OneWire oneWire(PIN_DS18);
 DallasTemperature ds18(&oneWire);
 Adafruit_SHT31 sht;
-bool shtAda = false, adsAda = false;
+bool shtAda = false, adsAda = false, lcdAda = false;
+float phTerakhir = NAN, tdsTerakhir = NAN, suhuAirTerakhir = NAN, suhuUdaraTerakhir = NAN, rhTerakhir = NAN;
+char lcdCache[4][21];
+uint32_t lcdTerakhir = 0;
 WiFiClient wifiA;
 PubSubClient mqA(wifiA);
 uint32_t sTerakhir = 0;
@@ -426,6 +434,7 @@ void bacaDanKirimSensor() {
   float vPh = adsAda ? bacaVolt(ADS_KANAL_PH) : NAN, vEc = adsAda ? bacaVolt(ADS_KANAL_EC) * FAKTOR_PEMBAGI_EC : NAN;
   float ph = hitungPH(vPh);
   float tds = hitungTDS(vEc, (suhuAir > -50 && suhuAir < 80) ? suhuAir : 25.0f);
+  phTerakhir = ph; tdsTerakhir = tds; suhuAirTerakhir = suhuAir; suhuUdaraTerakhir = suhuUdara; rhTerakhir = lembap;
 
   JsonDocument d;
   // Sensor yang gagal baca DIHILANGKAN (jangan kirim angka palsu)
@@ -443,6 +452,77 @@ void bacaDanKirimSensor() {
   bool ok = false;
   if (mqA.connected()) { String body; serializeJson(d, body); ok = mqA.publish(T_DATA, body.c_str()); }
   Serial.printf("[%lu] kirim=%s ph=%.2f tds=%.0f air=%.1f rssi=%d\n", millis()/1000, ok ? "OK" : "GAGAL", ph, tds, suhuAir, WiFi.RSSI());
+}
+
+// ═══ LCD 20x4 I2C (0x27 PCF8574 tanpa library tambahan) & Lampu Pilot ═════
+void lcdTulisNib(uint8_t nib, uint8_t rs) {
+  uint8_t d = (nib & 0xF0) | 0x08 | (rs ? 0x01 : 0x00);
+  Wire.beginTransmission(LCD_ALAMAT); Wire.write(d | 0x04); Wire.endTransmission();
+  delayMicroseconds(1);
+  Wire.beginTransmission(LCD_ALAMAT); Wire.write(d & ~0x04); Wire.endTransmission();
+  delayMicroseconds(45);
+}
+void lcdKirim(uint8_t val, uint8_t rs) { lcdTulisNib(val & 0xF0, rs); lcdTulisNib((val << 4) & 0xF0, rs); }
+void lcdInit() {
+  Wire.beginTransmission(LCD_ALAMAT);
+  lcdAda = (Wire.endTransmission() == 0);
+  if (!lcdAda) return;
+  delay(50);
+  lcdTulisNib(0x30, 0); delay(5); lcdTulisNib(0x30, 0); delay(1); lcdTulisNib(0x30, 0); delay(1); lcdTulisNib(0x20, 0);
+  lcdKirim(0x28, 0); lcdKirim(0x0C, 0); lcdKirim(0x06, 0); lcdKirim(0x01, 0); delay(2);
+  for (int r = 0; r < 4; r++) { memset(lcdCache[r], ' ', 20); lcdCache[r][20] = 0; }
+}
+void lcdBaris(int r, const char* teks) {
+  if (!lcdAda || r < 0 || r > 3) return;
+  char buf[21]; size_t n = strlen(teks); if (n > 20) n = 20;
+  memcpy(buf, teks, n); memset(buf + n, ' ', 20 - n); buf[20] = 0;
+  if (strcmp(buf, lcdCache[r]) == 0) return;
+  static const uint8_t off[4] = { 0x00, 0x40, 0x14, 0x54 };
+  lcdKirim(0x80 | off[r], 0);
+  for (int i = 0; i < 20; i++) lcdKirim((uint8_t)buf[i], 1);
+  memcpy(lcdCache[r], buf, 21);
+}
+void perbaruiLampuDanLcd() {
+  bool darurat = estopLokal || estopServer;
+  bool kuning  = !darurat && (floatBawahRendah() || !mqA.connected() || terakhirServerOk == 0);
+  bool hijau   = !darurat && !kuning;
+  digitalWrite(PIN_LAMPU_MERAH, (darurat || kuning) ? HIGH : LOW);
+  digitalWrite(PIN_LAMPU_HIJAU, (hijau || kuning) ? HIGH : LOW);
+  digitalWrite(PIN_LAMPU_BIRU,  kerja.aktif ? HIGH : LOW);
+
+  if (!lcdAda || millis() - lcdTerakhir < 500) return;
+  lcdTerakhir = millis();
+  char b[24];
+  if (!isnan(tdsTerakhir) && tdsTerakhir >= 0 && tdsTerakhir < 5000)
+    snprintf(b, sizeof(b), "EC %.2fmS  %.0fppm", tdsTerakhir / 500.0f, tdsTerakhir);
+  else snprintf(b, sizeof(b), "EC ----    ----ppm");
+  lcdBaris(0, b);
+
+  char k1[12], k2[12];
+  if (!isnan(phTerakhir) && phTerakhir > 0 && phTerakhir < 14) snprintf(k1, sizeof(k1), "pH %.2f", phTerakhir);
+  else snprintf(k1, sizeof(k1), "pH --.--");
+  if (suhuAirTerakhir > -50 && suhuAirTerakhir < 80) snprintf(k2, sizeof(k2), "Air %.1fC", suhuAirTerakhir);
+  else snprintf(k2, sizeof(k2), "Air --.-C");
+  snprintf(b, sizeof(b), "%-9s %s", k1, k2);
+  lcdBaris(1, b);
+
+  if (!isnan(suhuUdaraTerakhir) && !isnan(rhTerakhir))
+    snprintf(b, sizeof(b), "Ruang %.0fC  RH %.0f%%", suhuUdaraTerakhir, rhTerakhir);
+  else snprintf(b, sizeof(b), "Ruang --C   RH --%%");
+  lcdBaris(2, b);
+
+  const char* st = "PENAMPUNG CUKUP";
+  if (darurat) st = "E-STOP AKTIF!";
+  else if (WiFi.status() != WL_CONNECTED) st = "WIFI MATI";
+  else if (!mqA.connected() || terakhirServerOk == 0) st = "TUNGGU SERVER...";
+  else if (kerja.aktif && kerja.out == P_ISI_AIR) st = "MENGISI AIR...";
+  else if (kerja.aktif && kerja.out == P_A) st = "DOSING A...";
+  else if (kerja.aktif && kerja.out == P_B) st = "DOSING B...";
+  else if (kerja.aktif && kerja.out == P_PH_UP) st = "pH UP...";
+  else if (kerja.aktif && kerja.out == P_PH_DOWN) st = "pH DOWN...";
+  else if (floatBawahRendah()) st = "PENAMPUNG KURANG";
+  else if (tandonPenuh()) st = "PENAMPUNG PENUH";
+  lcdBaris(3, st);
 }
 
 // ═══ Umum ══════════════════════════════════════════════════════════════════
@@ -465,7 +545,10 @@ void sambungWifi() {
 void setup() {
   // Output OFF sebelum apa pun
   for (int i = 0; i < JUMLAH_OUT; i++) { tulis(PIN_OUT[i], false); pinMode(PIN_OUT[i], OUTPUT); tulis(PIN_OUT[i], false); }
+  const int pinLampu[3] = { PIN_LAMPU_MERAH, PIN_LAMPU_HIJAU, PIN_LAMPU_BIRU };
+  for (int i = 0; i < 3; i++) { digitalWrite(pinLampu[i], LOW); pinMode(pinLampu[i], OUTPUT); digitalWrite(pinLampu[i], LOW); }
   pinMode(PIN_STATUS_ESTOP, INPUT);               // GPIO36 input-only, tanpa pull-up internal
+  pinMode(PIN_TOMBOL_RESET, INPUT_PULLUP);
   mulaiFloat(fBawah);
   mulaiFloat(fAtas);
   muatKalibrasiNvs();
@@ -476,7 +559,9 @@ void setup() {
   Wire.begin(PIN_SDA, PIN_SCL); Wire.setClock(100000);
   Wire.beginTransmission(ADS_ALAMAT); adsAda = (Wire.endTransmission() == 0);
   shtAda = sht.begin(SHT_ALAMAT);
-  Serial.printf("ADS1115 %s, SHT31 %s\n", adsAda ? "ada" : "TIDAK TERBACA", shtAda ? "ada" : "TIDAK TERBACA");
+  lcdInit();
+  if (lcdAda) { lcdBaris(0, "    GARAP SYSTEM    "); lcdBaris(1, " Vertonik Smart Farm"); lcdBaris(2, "--------------------"); lcdBaris(3, "  Menyiapkan alat..."); }
+  Serial.printf("ADS1115 %s, SHT31 %s, LCD %s\n", adsAda ? "ada" : "TIDAK TERBACA", shtAda ? "ada" : "TIDAK TERBACA", lcdAda ? "ada" : "TIDAK TERBACA");
   ds18.begin(); ds18.setWaitForConversion(false); ds18.requestTemperatures();
 
   mqA.setBufferSize(1024);
@@ -515,5 +600,6 @@ void loop() {
 
   // sensor: hanya saat pompa diam (pembacaan memblokir ±0,5 dtk dan akan memperpanjang durasi pompa)
   if (!kerja.aktif && millis() - sTerakhir >= INTERVAL_MS) { sTerakhir = millis(); bacaDanKirimSensor(); }
+  perbaruiLampuDanLcd();
   delay(20);
 }
