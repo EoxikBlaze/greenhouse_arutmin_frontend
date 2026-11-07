@@ -32,11 +32,12 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <Wire.h>
+#include <Preferences.h>
 #include <Adafruit_SHT31.h>
 #include <esp_task_wdt.h>
 #include "rahasia.h"
 
-#define FIRMWARE "gabungan-0.3"
+#define FIRMWARE "gabungan-0.4"
 #define KODE_A   "aktuator-01"        // = user MQTT di Pi (deploy-pi/mosquitto/garap.acl)
 #ifndef MQTT_PORT
 #define MQTT_PORT 1883
@@ -67,20 +68,33 @@ uint8_t gagalMqtt = 0;
 const uint32_t INTERVAL_MS = 5000;
 // id_meja penampung yang diukur probe ini (menu Meja di web). 0 = bacaan tersimpan tapi TIDAK dipakai otomasi dosis.
 const int ID_MEJA = 0;
-// Kalibrasi (GANTI setelah kalibrasi nyata): tegangan saat buffer pH 7,00 & 4,01; faktor TDS dari larutan 1413 µS/cm
-const float PH_V7 = 2.50f, PH_V4 = 3.05f, TDS_FAKTOR_KOREKSI = 1.0f;
+// Kalibrasi (disimpan otomatis di NVS / Preferences "garap_kal" saat dikalibrasi dari web, tanpa perlu flash ulang)
+float PH_V7 = 2.50f, PH_V4 = 3.05f, TDS_FAKTOR_KOREKSI = 1.0f;
+float PH_V7_LAMA = 2.50f, PH_V4_LAMA = 3.05f, TDS_FAKTOR_LAMA = 1.0f;
 
-// ═══ AKTUATOR ══════════════════════════════════════════════════════════════
+// ═══ AKTUATOR & PELAMPUNG (Mengikuti fw_hidro/Sensor.cpp & Config.h Wiring v2.0) ═══
 const bool RELAY_AKTIF_LOW = false;   // hasil uji teman: modul relay HIGH-trigger (jumper COM+HIGH); HIGH = pompa nyala
 enum Out { P_A, P_B, P_PH_UP, P_PH_DOWN, P_ISI_AIR, JUMLAH_OUT };
 const int PIN_OUT[JUMLAH_OUT]       = { 25, 26, 27, 18, 16 };
 const char* NAMA_OUT[JUMLAH_OUT]    = { "A", "B", "PH_UP", "PH_DOWN", "ISI_AIR" };
-// Laju pompa HASIL KALIBRASI (mL/detik). 0 = belum dikalibrasi → perintah berbasis mL ditolak.
-const float ML_PER_DETIK[JUMLAH_OUT] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+// Laju pompa HASIL KALIBRASI (mL/detik) disimpan di NVS. 0 = belum dikalibrasi → perintah berbasis mL ditolak.
+float ML_PER_DETIK[JUMLAH_OUT] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 // Batas durasi mutlak per output (ms) — lapis pengaman ketika perhitungan mL salah
 const uint32_t MAKS_DURASI_MS[JUMLAH_OUT] = { 70000, 70000, 12000, 12000, 600000 };
 const uint32_t JEDA_AB_MS = 60000;    // jeda antara pompa A dan B (teman: jeda_ab_dtk 60–600 dtk, bawaan 300). Sesuaikan.
-const int PIN_FLOAT_ATAS = 33;        // HIGH = penuh (INPUT_PULLUP: kabel putus = penuh)
+const int PIN_FLOAT_BAWAH = 32;       // pemicu isi air (fw_hidro: HIGH = terangkat/air cukup, LOW = turun/air kurang)
+const int PIN_FLOAT_ATAS  = 33;       // batas penuh (fw_hidro: HIGH = penuh, INPUT_PULLUP: kabel putus = dianggap penuh)
+const int TINGKAT_FLOAT_TERANGKAT = HIGH;
+const uint32_t DEBOUNCE_FLOAT_MS = 150;
+struct StateFloat {
+  int pin;
+  bool stabil;   // true = terangkat (air tinggi)
+  bool mentah;
+  uint32_t tUbah;
+};
+StateFloat fBawah = { PIN_FLOAT_BAWAH, false, false, 0 };
+StateFloat fAtas  = { PIN_FLOAT_ATAS,  false, false, 0 };
+Preferences prefKal;
 const int PIN_STATUS_ESTOP = 36;      // bus +12V aktuator lewat pembagi 33k/10k; bus mati (E-STOP ditekan) = LOW
 // 1 = baca E-STOP dari GPIO36. Pin mengambang terbaca "ditekan" → aktuator terkunci sampai pembagi terpasang.
 // Set 0 HANYA di meja uji tanpa pompa; wajib 1 di lapangan.
@@ -118,13 +132,56 @@ float mlJamAB = 0, mlJamPH = 0;
 struct Kerja { bool aktif = false; long id = 0; int out = -1, out2 = -1; uint8_t fase = 0; bool nyala = false, ab = false;
                uint32_t mulai = 0, durasi = 0, durasi2 = 0; float ml = 0, mlSelesai = 0; } kerja;
 
+// ═══ Fungsi pelampung (mengikuti fw_hidro/Sensor.cpp) & NVS Kalibrasi ═════
+bool bacaFloatTerangkat(const StateFloat& f) { return digitalRead(f.pin) == TINGKAT_FLOAT_TERANGKAT; }
+void mulaiFloat(StateFloat& f) {
+  pinMode(f.pin, INPUT_PULLUP);
+  f.mentah = f.stabil = bacaFloatTerangkat(f);
+  f.tUbah = millis();
+}
+void perbaruiFloatSatu(StateFloat& f, uint32_t now) {
+  bool m = bacaFloatTerangkat(f);
+  if (m != f.mentah) { f.mentah = m; f.tUbah = now; }
+  if (f.mentah != f.stabil && (uint32_t)(now - f.tUbah) >= DEBOUNCE_FLOAT_MS) f.stabil = f.mentah;
+}
+bool floatBawahRendah() { return !fBawah.stabil; }   // true = air kurang (pelampung bawah turun / LOW)
+bool tandonPenuh()      { return fAtas.stabil; }     // true = penuh (pelampung atas terangkat / HIGH)
+
+void muatKalibrasiNvs() {
+  if (!prefKal.begin("garap_kal", true)) return;
+  PH_V7 = prefKal.getFloat("ph_v7", PH_V7);
+  PH_V4 = prefKal.getFloat("ph_v4", PH_V4);
+  TDS_FAKTOR_KOREKSI = prefKal.getFloat("tds_fk", TDS_FAKTOR_KOREKSI);
+  PH_V7_LAMA = prefKal.getFloat("ph_v7_old", PH_V7);
+  PH_V4_LAMA = prefKal.getFloat("ph_v4_old", PH_V4);
+  TDS_FAKTOR_LAMA = prefKal.getFloat("tds_fk_old", TDS_FAKTOR_KOREKSI);
+  for (int i = 0; i < JUMLAH_OUT; i++) {
+    char k[12]; snprintf(k, sizeof(k), "laju_%d", i);
+    ML_PER_DETIK[i] = prefKal.getFloat(k, ML_PER_DETIK[i]);
+  }
+  prefKal.end();
+}
+void simpanKalibrasiNvs() {
+  if (!prefKal.begin("garap_kal", false)) return;
+  prefKal.putFloat("ph_v7", PH_V7);
+  prefKal.putFloat("ph_v4", PH_V4);
+  prefKal.putFloat("tds_fk", TDS_FAKTOR_KOREKSI);
+  prefKal.putFloat("ph_v7_old", PH_V7_LAMA);
+  prefKal.putFloat("ph_v4_old", PH_V4_LAMA);
+  prefKal.putFloat("tds_fk_old", TDS_FAKTOR_LAMA);
+  for (int i = 0; i < JUMLAH_OUT; i++) {
+    char k[12]; snprintf(k, sizeof(k), "laju_%d", i);
+    prefKal.putFloat(k, ML_PER_DETIK[i]);
+  }
+  prefKal.end();
+}
+
 // ═══ Fungsi aktuator (sama dengan aktuator.ino; mqtt → mqA) ═════════════════
 void tulis(int pin, bool hidup) { digitalWrite(pin, (hidup != RELAY_AKTIF_LOW) ? HIGH : LOW); }
 void semuaMati() {
   for (int i = 0; i < JUMLAH_OUT; i++) tulis(PIN_OUT[i], false);
 }
 bool estopDitekan() { return AKTIFKAN_BACA_ESTOP && digitalRead(PIN_STATUS_ESTOP) == LOW; }
-bool tandonPenuh() { return digitalRead(PIN_FLOAT_ATAS) == HIGH; }
 
 void lapor(long id, const char* status, const char* alasan, float mlNyata) {
   JsonDocument d; d["id"] = id; d["status"] = status;
@@ -189,6 +246,7 @@ bool mulaiPerintah(long id, const char* tipe, JsonObjectConst p, const char*& al
   int out = -1, out2 = -1; float ml = 0; uint32_t durasi = 0, durasi2 = 0; bool ab = false;
 
   if (t == "DOSIS") {
+    if (floatBawahRendah()) { alasan = "air_kurang_float_bawah"; return false; }
     String l = p["larutan"] | ""; ml = p["ml"] | 0.0f;
     ab = (l == "AB");
     out = ab ? P_A : (l == "PH_UP") ? P_PH_UP : (l == "PH_DOWN") ? P_PH_DOWN : -1;
@@ -209,6 +267,33 @@ bool mulaiPerintah(long id, const char* tipe, JsonObjectConst p, const char*& al
     if (aksi == "STOP") { tulis(PIN_OUT[P_ISI_AIR], false); lapor(id, "selesai", "isi_air_stop", 0); alasan = ""; return true; }
     if (tandonPenuh()) { alasan = "tandon_penuh"; return false; }
     out = P_ISI_AIR; durasi = MAKS_DURASI_MS[P_ISI_AIR];
+  } else if (t == "UJI_POMPA") {
+    String nama = p["pompa"] | ""; float dtk = p["detik"] | 0.0f;
+    for (int i = 0; i < JUMLAH_OUT; i++) if (nama.equalsIgnoreCase(NAMA_OUT[i])) { out = i; break; }
+    if (out < 0 || dtk <= 0 || dtk > 120.0f) { alasan = "parameter_uji_pompa"; return false; }
+    durasi = (uint32_t)(dtk * 1000.0f);
+  } else if (t == "KALIBRASI") {
+    if (! p["ph_v7"].isNull() && !p["ph_v4"].isNull()) {
+      PH_V7_LAMA = PH_V7; PH_V4_LAMA = PH_V4;
+      PH_V7 = p["ph_v7"].as<float>(); PH_V4 = p["ph_v4"].as<float>();
+    }
+    if (!p["tds_faktor"].isNull()) {
+      TDS_FAKTOR_LAMA = TDS_FAKTOR_KOREKSI;
+      TDS_FAKTOR_KOREKSI = p["tds_faktor"].as<float>();
+    }
+    if (!p["laju_a"].isNull())       ML_PER_DETIK[P_A]       = p["laju_a"].as<float>();
+    if (!p["laju_b"].isNull())       ML_PER_DETIK[P_B]       = p["laju_b"].as<float>();
+    if (!p["laju_ph_up"].isNull())   ML_PER_DETIK[P_PH_UP]   = p["laju_ph_up"].as<float>();
+    if (!p["laju_ph_down"].isNull()) ML_PER_DETIK[P_PH_DOWN] = p["laju_ph_down"].as<float>();
+    if (!p["laju_isi"].isNull())     ML_PER_DETIK[P_ISI_AIR] = p["laju_isi"].as<float>();
+    simpanKalibrasiNvs();
+    lapor(id, "selesai", "kalibrasi_disimpan_nvs", 0); alasan = ""; return true;
+  } else if (t == "BALIK_KALIBRASI") {
+    String sensor = p["sensor"] | "";
+    if (sensor.equalsIgnoreCase("ph")) { PH_V7 = PH_V7_LAMA; PH_V4 = PH_V4_LAMA; }
+    else if (sensor.equalsIgnoreCase("ec")) { TDS_FAKTOR_KOREKSI = TDS_FAKTOR_LAMA; }
+    simpanKalibrasiNvs();
+    lapor(id, "selesai", "kalibrasi_dikembalikan", 0); alasan = ""; return true;
   } else { alasan = "tipe_tak_dikenal"; return false; }   // BILAS & SAMPLING tidak ada di wiring satu tandon
 
   if (durasi == 0) {
@@ -259,6 +344,8 @@ void pesanMasuk(char* topik, byte* isi, unsigned int panjang) {
 void kirimStatusA() {
   JsonDocument d; d["online"] = true; d["firmware"] = FIRMWARE; d["rssi"] = WiFi.RSSI(); d["uptime"] = millis() / 1000;
   d["estop"] = (estopLokal || estopServer);
+  d["float_bawah_rendah"] = floatBawahRendah();
+  d["float_atas_penuh"] = tandonPenuh();
   String b; serializeJson(d, b);
   mqA.publish(T_STATUS_A, b.c_str(), true);
 }
@@ -348,6 +435,8 @@ void bacaDanKirimSensor() {
   if (!isnan(ph) && ph > 0 && ph < 14)                 d["ph"]        = round(ph * 100) / 100.0;
   if (!isnan(tds) && tds >= 0 && tds < 5000)            d["tds"]       = round(tds);
   if (ID_MEJA > 0)                         d["id_meja"]   = ID_MEJA;
+  d["float_bawah_rendah"] = floatBawahRendah();
+  d["float_atas_penuh"]   = tandonPenuh();
   d["rssi"] = WiFi.RSSI();
   d["firmware"] = FIRMWARE;
 
@@ -377,7 +466,9 @@ void setup() {
   // Output OFF sebelum apa pun
   for (int i = 0; i < JUMLAH_OUT; i++) { tulis(PIN_OUT[i], false); pinMode(PIN_OUT[i], OUTPUT); tulis(PIN_OUT[i], false); }
   pinMode(PIN_STATUS_ESTOP, INPUT);               // GPIO36 input-only, tanpa pull-up internal
-  pinMode(PIN_FLOAT_ATAS, INPUT_PULLUP);
+  mulaiFloat(fBawah);
+  mulaiFloat(fAtas);
+  muatKalibrasiNvs();
   Serial.begin(115200);
   esp_task_wdt_config_t wdt = { .timeout_ms = 15000, .idle_core_mask = 0, .trigger_panic = true };
   esp_task_wdt_reconfigure(&wdt); esp_task_wdt_add(NULL);
@@ -398,9 +489,13 @@ void setup() {
 
 void loop() {
   esp_task_wdt_reset();
+  uint32_t skr = millis();
+  perbaruiFloatSatu(fBawah, skr);
+  perbaruiFloatSatu(fAtas, skr);
   if (estopDitekan()) { if (!estopLokal) Serial.println("E-STOP fisik"); estopLokal = true; daruratBerhenti("tombol_estop"); }
-  // isi air berhenti sendiri saat float atas penuh
+  // isi air berhenti sendiri saat float atas penuh, dan pompa nutrisi berhenti bila float bawah turun (air kurang)
   if (kerja.aktif && kerja.out == P_ISI_AIR && tandonPenuh()) { semuaMati(); berhentiKerja("selesai", "tandon_penuh"); }
+  if (kerja.aktif && kerja.out != P_ISI_AIR && floatBawahRendah()) { semuaMati(); berhentiKerja("gagal", "air_kurang_float_bawah"); }
   // jendela per jam
   if (millis() - jamMulai > 3600000UL) { jamMulai = millis(); mlJamAB = mlJamPH = 0; }
   // fail-safe: detak server hilang (juga saat MQTT/WiFi putus)
