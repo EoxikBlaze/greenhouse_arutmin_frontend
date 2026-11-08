@@ -17,11 +17,11 @@ import {
   DialogHapusMaster,
   DialogMaster,
   MasterFrame,
-  SENSOR_INFO,
   TabelMaster,
   type HapusTarget,
   type KolomMaster,
 } from '../components/master/MasterKit'
+import { SENSOR_INFO } from '../lib/sensorInfo'
 
 /** Definisi satu field: dipakai bersama oleh kolom tabel DAN input form. */
 type FieldDef = {

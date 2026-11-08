@@ -2,15 +2,6 @@ import type { ReactNode } from 'react'
 import { Ikon } from '../Ikon'
 import { DialogKaca, DialogKonfirmasi, Kosong, Pesan, Rangka } from '../kaca/DialogKaca'
 
-/** Label ramah + satuan per kunci sensor; kunci data (ESP32) tidak diubah. */
-export const SENSOR_INFO: Record<string, { label: string; satuan: string }> = {
-  humidity: { label: 'Kelembapan', satuan: '%' },
-  airTemp: { label: 'Suhu udara', satuan: '°C' },
-  tds: { label: 'TDS', satuan: 'ppm' },
-  ph: { label: 'pH', satuan: '' },
-  waterTemp: { label: 'Suhu air', satuan: '°C' },
-}
-
 export type HapusTarget = { label: string; id: string }
 
 /** Cangkang halaman Master Data: satu kartu kaca berjudul dengan aksi tambah (navigasi tab ada di topbar). */

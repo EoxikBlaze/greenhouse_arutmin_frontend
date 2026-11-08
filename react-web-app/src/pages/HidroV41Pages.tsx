@@ -471,7 +471,7 @@ type PeringatanItem = {
 /** Baris GET /alert-logs (tabel alert_logs) → item tampilan. */
 type BarisAlert = { id: number | string; type: string; value: string; severity: string; acknowledged: boolean; created_at: string }
 const LEVEL_ALERT: Record<string, PeringatanItem['level']> = { critical: 'merah', warning: 'kuning', info: 'info' }
-export function dariBarisAlert(r: BarisAlert): PeringatanItem {
+function dariBarisAlert(r: BarisAlert): PeringatanItem {
   return { id: `a-${r.id}`, waktu: r.created_at, level: LEVEL_ALERT[r.severity] ?? 'info', kode: r.type.toUpperCase(), pesan: r.value, aktif: !r.acknowledged }
 }
 

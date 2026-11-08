@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act } from 'react'
+import { act, useEffect } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -24,7 +24,10 @@ let root: Root
 let hook: ReturnType<typeof useApiList<Baris>>
 
 function Probe({ path }: { path: string }) {
-  hook = useApiList<Baris>(path)
+  const res = useApiList<Baris>(path)
+  useEffect(() => {
+    hook = res
+  })
   return null
 }
 
