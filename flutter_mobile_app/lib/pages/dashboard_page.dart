@@ -383,7 +383,7 @@ class _DashboardPageState extends State<DashboardPage> {
               crossAxisCount: 2,
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              mainAxisExtent: 128,
+              mainAxisExtent: 148,
             ),
             itemCount: kpi.length,
             itemBuilder: (_, k) => KartuKpi(kpi[k]),

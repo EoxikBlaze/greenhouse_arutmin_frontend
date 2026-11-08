@@ -411,11 +411,13 @@ class _PeringatanPageState extends State<PeringatanPage> {
               // Filter Segmen
               FadeUp(
                 delay: FadeUp.urutan(3),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Eyebrow('Daftar Peringatan'),
+                    const SizedBox(height: 8),
                     PilPilih(
+                      rata: true,
                       label: const ['Semua', 'Aktif', 'Selesai'],
                       pilih: _filter,
                       onPilih: (i) => setState(() => _filter = i),
@@ -629,19 +631,23 @@ class _KartuPeringatan extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                decoration: BoxDecoration(
-                  color: Tok.isiKaca(0.5, 0.6),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  item.kode,
-                  style: TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Tok.tinta,
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                  decoration: BoxDecoration(
+                    color: Tok.isiKaca(0.5, 0.6),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    item.kode,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Tok.tinta,
+                    ),
                   ),
                 ),
               ),

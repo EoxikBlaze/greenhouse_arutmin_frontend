@@ -91,27 +91,31 @@ class KartuKpi extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            k.nilai == null
-                ? Text(
-                    k.teks ?? '—',
-                    style: TextStyle(
-                      fontFamily: Tok.fontJudul,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: warnaTeks,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: k.nilai == null
+                  ? Text(
+                      k.teks ?? '—',
+                      style: TextStyle(
+                        fontFamily: Tok.fontJudul,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: warnaTeks,
+                      ),
+                    )
+                  : CountUp(
+                      nilai: k.nilai!,
+                      desimal: k.desimal,
+                      akhiran: k.satuan,
+                      style: TextStyle(
+                        fontFamily: Tok.fontJudul,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700,
+                        color: warnaTeks,
+                      ),
                     ),
-                  )
-                : CountUp(
-                    nilai: k.nilai!,
-                    desimal: k.desimal,
-                    akhiran: k.satuan,
-                    style: TextStyle(
-                      fontFamily: Tok.fontJudul,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                      color: warnaTeks,
-                    ),
-                  ),
+            ),
             Text(
               k.ket,
               maxLines: 1,

@@ -86,10 +86,10 @@ class PageTop extends StatelessWidget {
           varian: KacaVarian.chrome,
           radius: 24,
           padding: EdgeInsets.fromLTRB(
-            aksiKembali != null ? 8 : 18,
-            12,
-            12,
-            12,
+            aksiKembali != null ? 8 : 14,
+            10,
+            10,
+            10,
           ),
           child: Row(
             children: [
@@ -98,12 +98,12 @@ class PageTop extends StatelessWidget {
                   tooltip: 'Kembali',
                   icon: Icon(Ikon.kiri, color: Tok.tinta),
                   style: IconButton.styleFrom(
-                    minimumSize: const Size(48, 48),
+                    minimumSize: const Size(44, 44),
                     backgroundColor: Tok.isiKaca(0.72, 0.72),
                   ),
                   onPressed: aksiKembali,
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
               ],
               Expanded(
                 child: Column(
@@ -128,7 +128,7 @@ class PageTop extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontFamily: Tok.fontJudul,
-                          fontSize: 24,
+                          fontSize: 22,
                           height: 1.2,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -0.3,
@@ -139,7 +139,16 @@ class PageTop extends StatelessWidget {
                   ],
                 ),
               ),
-              if (status != null) ...[const SizedBox(width: 8), status!],
+              if (status != null) ...[
+                const SizedBox(width: 6),
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerRight,
+                    child: status!,
+                  ),
+                ),
+              ],
               if (tampilkanAi) ...[
                 const SizedBox(width: 6),
                 const TombolAiKaca(),

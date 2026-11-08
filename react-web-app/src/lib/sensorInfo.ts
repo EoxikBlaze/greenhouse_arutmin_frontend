@@ -6,3 +6,4 @@ export const SENSOR_INFO: Record<string, { label: string; satuan: string }> = {
   ph: { label: 'pH', satuan: '' },
   waterTemp: { label: 'Suhu air', satuan: '°C' },
 }
+
