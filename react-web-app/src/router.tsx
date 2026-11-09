@@ -24,6 +24,7 @@ import {
   PanenPage,
   DurasiSiklusPage,
   JenisTanamanPage,
+  MejaTanamanPage,
   AmbangSensorPage,
   LaporanPage,
   ManajemenUserPage,
@@ -93,8 +94,7 @@ export const router = createBrowserRouter([
 
           // 04 · Master Data — admin (demo read-only)
           { path: '/tanaman', element: <RequireAuth allow={ADMIN_DEMO} element={<JenisTanamanPage />} /> },
-          // Fitur Meja dihapus (satu kebun melon); alamat lama diarahkan ke Jenis Tanaman.
-          { path: '/meja', element: <Navigate to="/tanaman" replace /> },
+          { path: '/meja', element: <RequireAuth allow={ADMIN_DEMO} element={<MejaTanamanPage />} /> },
           { path: '/ambang', element: <RequireAuth allow={ADMIN_DEMO} element={<AmbangSensorPage />} /> },
 
           // 05 · Laporan — admin (demo read-only)
@@ -107,7 +107,7 @@ export const router = createBrowserRouter([
 
           // alias gaya .pen / mockup → resource route Laravel
           { path: '/master/jenis-tanaman', element: <Navigate to="/tanaman" replace /> },
-          { path: '/master/meja-tanaman', element: <Navigate to="/tanaman" replace /> },
+          { path: '/master/meja-tanaman', element: <Navigate to="/meja" replace /> },
           { path: '/master/ambang-sensor', element: <Navigate to="/ambang" replace /> },
           { path: '/water-control', element: <Navigate to="/dashboard" replace /> },
           { path: '/tanam-saya', element: <Navigate to="/tanam" replace /> },

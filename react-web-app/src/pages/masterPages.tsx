@@ -391,6 +391,285 @@ export function JenisTanamanPage() {
   )
 }
 
+/* ============== 12 · MEJA TANAMAN — API NYATA ============== */
+
+const MEJA_FIELDS: FieldDef[] = [
+  { key: 'meja', label: 'Nama meja', header: 'Nama Meja', placeholder: 'Meja Selada', kind: 'text', core: true },
+  { key: 'jumlah_lubang', label: 'Jumlah lubang', header: 'Jumlah Lubang', placeholder: '10', kind: 'int', core: true },
+  { key: 'jenis_talang', label: 'Jenis talang', header: 'Jenis Talang', placeholder: 'NFT', kind: 'select', core: false, options: ['NFT', 'DFT'] },
+  { key: 'kapasitas_penampung_l', label: 'Kapasitas penampung (L)', header: 'Kapasitas (L)', placeholder: '70', kind: 'num', core: false },
+  { key: 'jumlah_talang', label: 'Jumlah talang', header: 'Jumlah Talang', placeholder: '12', kind: 'int', core: false },
+  { key: 'lubang_per_talang', label: 'Lubang per talang', header: 'Lubang/Talang', placeholder: '26', kind: 'int', core: false },
+  { key: 'panjang_talang_m', label: 'Panjang talang (m)', header: 'Panjang (m)', placeholder: '8.1', kind: 'num', core: false },
+  { key: 'laju_per_talang_lpm', label: 'Laju per talang (L/menit)', header: 'Laju (L/mnt)', placeholder: '1', kind: 'num', core: false },
+  { key: 'kenaikan_air_cm', label: 'Kenaikan air (cm)', header: 'Kenaikan (cm)', placeholder: '40', kind: 'int', core: false },
+]
+
+export type MejaRow = Record<string, unknown> & {
+  id_meja: string | number
+  meja: string
+  jumlah_lubang: number | string
+}
+
+function validateMeja(form: FormState): Record<string, string[]> {
+  const errs: Record<string, string[]> = {}
+  const nama = (form.meja ?? '').trim()
+  if (!nama) errs.meja = ['Kolom meja wajib diisi.']
+
+  const lubang = (form.jumlah_lubang ?? '').trim()
+  if (!lubang) errs.jumlah_lubang = ['Kolom jumlah_lubang wajib diisi.']
+  else {
+    const n = Number(lubang)
+    if (!Number.isInteger(n)) errs.jumlah_lubang = ['Kolom jumlah_lubang harus berupa bilangan bulat.']
+    else if (n < 1 || n > 1_000_000) errs.jumlah_lubang = ['Kolom jumlah_lubang harus antara 1 dan 1000000.']
+  }
+
+  for (const f of MEJA_FIELDS) {
+    if (f.core) continue
+    const v = (form[f.key] ?? '').trim()
+    if (!v) continue
+    const n = Number(v)
+    if (f.kind === 'int' && !Number.isInteger(n)) errs[f.key] = [`Kolom ${f.key} harus berupa bilangan bulat.`]
+    if (f.kind === 'num' && !Number.isFinite(n)) errs[f.key] = [`Kolom ${f.key} harus berupa angka.`]
+    if (f.key === 'kapasitas_penampung_l' && Number.isFinite(n) && n <= 0) {
+      errs[f.key] = ['Kolom kapasitas_penampung_l harus lebih besar dari 0.']
+    }
+  }
+  return errs
+}
+
+function payloadOfMeja(form: FormState): Record<string, unknown> {
+  const payload: Record<string, unknown> = {}
+  for (const f of MEJA_FIELDS) {
+    if (!(f.key in form)) continue
+    const v = (form[f.key] ?? '').trim()
+    if (v === '') continue
+    payload[f.key] = f.kind === 'text' || f.kind === 'select' ? v : Number(v)
+  }
+  return payload
+}
+
+export function MejaTanamanPage() {
+  const handleApiError = useApiError()
+  const { rows, loading, error, reload } = useApiList<MejaRow>('/meja')
+
+  const [open, setOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editing, setEditing] = useState<MejaRow | null>(null)
+  const [form, setForm] = useState<FormState>({})
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
+  const [formError, setFormError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  const [hapus, setHapus] = useState<HapusTarget | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const [flash, setFlash] = useState<string | null>(null)
+  useEffect(() => {
+    if (!flash) return
+    const id = setTimeout(() => setFlash(null), 4000)
+    return () => clearTimeout(id)
+  }, [flash])
+
+  const optActive = (key: string): boolean =>
+    present(rows, key) ||
+    (editing
+      ? editing[key] !== undefined && editing[key] !== null && String(editing[key]).trim() !== ''
+      : false)
+
+  function resetForm() {
+    setForm({})
+    setEditing(null)
+    setEditingId(null)
+    setFieldErrors({})
+    setFormError(null)
+  }
+
+  function openAdd() {
+    const next: FormState = {}
+    for (const f of MEJA_FIELDS) {
+      if (f.core || optActive(f.key)) next[f.key] = ''
+    }
+    setForm(next)
+    setEditing(null)
+    setEditingId(null)
+    setFieldErrors({})
+    setFormError(null)
+    setOpen(true)
+  }
+
+  function openEdit(row: MejaRow) {
+    const next: FormState = {}
+    for (const f of MEJA_FIELDS) {
+      if (!f.core && !optActive(f.key)) continue
+      const v = row[f.key]
+      const filled = v !== undefined && v !== null && String(v).trim() !== ''
+      next[f.key] = filled ? String(v) : ''
+    }
+    setForm(next)
+    setEditing(row)
+    setEditingId(String(row.id_meja))
+    setFieldErrors({})
+    setFormError(null)
+    setOpen(true)
+  }
+
+  async function save() {
+    if (submitting) return
+    setFormError(null)
+    const errs = validateMeja(form)
+    setFieldErrors(errs)
+    if (Object.keys(errs).length > 0) return
+
+    setSubmitting(true)
+    try {
+      const payload = payloadOfMeja(form)
+      if (editingId) await api.put(`/meja/${editingId}`, payload)
+      else await api.post('/meja', payload)
+      setOpen(false)
+      resetForm()
+      setFlash('Data meja tersimpan.')
+      reload()
+    } catch (err) {
+      const f = handleApiError(err)
+      setFieldErrors(f.fieldErrors)
+      setFormError(f.message)
+      if (f.status === 404) reload()
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function remove(id: string) {
+    if (deleting) return
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      await api.delete(`/meja/${id}`)
+      setHapus(null)
+      setFlash('Data meja dihapus.')
+      reload()
+    } catch (err) {
+      const f = handleApiError(err)
+      setDeleteError(f.message)
+      if (f.status === 404) reload()
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const { demo } = useAuth()
+  const columns: KolomMaster<MejaRow>[] = [
+    {
+      key: 'meja',
+      header: 'Nama meja',
+      render: (r) => (
+        <>
+          <b className="text-tinta">{cell(r.meja)}</b>
+          <small className="vsf-master-id">ID {String(r.id_meja)}</small>
+        </>
+      ),
+    },
+    {
+      key: 'jumlah_lubang',
+      header: 'Jumlah lubang',
+      kanan: true,
+      render: (r) => <span className="tabular-nums">{cell(r.jumlah_lubang)} lubang</span>,
+    },
+    ...MEJA_FIELDS.filter((f) => !f.core && present(rows, f.key)).map(
+      (f): KolomMaster<MejaRow> => ({
+        key: f.key,
+        header: f.header,
+        kanan: f.kind !== 'select',
+        render: (r) => <span className="tabular-nums">{cell(r[f.key])}</span>,
+      }),
+    ),
+  ]
+  const tutup = () => {
+    setOpen(false)
+    resetForm()
+  }
+
+  return (
+    <>
+      <MasterFrame
+        judul="Meja Tanaman"
+        deskripsi="Meja hidroponik dengan jumlah lubang dan spesifikasi instalasi."
+        jumlah={`${rows.length} meja`}
+        tambah="Tambah"
+        onTambah={openAdd}
+        flash={flash}
+      >
+        <TabelMaster
+          label="Meja Tanaman"
+          kolom={columns}
+          rows={rows}
+          rowKey={(r) => String(r.id_meja)}
+          memuat={loading}
+          galat={error}
+          onUlang={reload}
+          kosong="Belum ada meja — tambah meja pertama untuk memulai."
+          aksi={(r) => (
+            <AksiBaris
+              nama={cell(r.meja)}
+              terkunci={demo}
+              onUbah={() => openEdit(r)}
+              onHapus={() => {
+                setDeleteError(null)
+                setHapus({ label: cell(r.meja), id: String(r.id_meja) })
+              }}
+            />
+          )}
+        />
+      </MasterFrame>
+      {open && (
+        <DialogMaster
+          judul={editingId ? 'Ubah Meja Tanaman' : 'Tambah Meja Tanaman'}
+          sub="Isi nama dan jumlah lubang; kolom lain muncul bila tersedia."
+          galat={formError}
+          menyimpan={submitting}
+          onTutup={tutup}
+          onSimpan={() => void save()}
+        >
+          {'meja' in form && (
+            <Field label="Nama meja">
+              {inputFor(MEJA_FIELDS[0], form.meja ?? '', (v) => setForm((s) => ({ ...s, meja: v })))}
+              <FieldError message={fieldError(fieldErrors, 'meja')} />
+            </Field>
+          )}
+          {'jumlah_lubang' in form && (
+            <Field label="Jumlah lubang">
+              {inputFor(MEJA_FIELDS[1], form.jumlah_lubang ?? '', (v) => setForm((s) => ({ ...s, jumlah_lubang: v })))}
+              <FieldError message={fieldError(fieldErrors, 'jumlah_lubang')} />
+            </Field>
+          )}
+          {MEJA_FIELDS.filter((f) => !f.core && f.key in form).map((f) => (
+            <Field key={f.key} label={f.label}>
+              {inputFor(
+                f,
+                form[f.key] ?? '',
+                (v) => setForm((s) => ({ ...s, [f.key]: v })),
+                rows.map((r) => String(r[f.key] ?? '')).filter(Boolean),
+              )}
+              <FieldError message={fieldError(fieldErrors, f.key)} />
+            </Field>
+          ))}
+        </DialogMaster>
+      )}
+      {hapus && (
+        <DialogHapusMaster
+          target={hapus}
+          menghapus={deleting}
+          galat={deleteError}
+          onYa={() => void remove(hapus.id)}
+          onBatal={() => setHapus(null)}
+        />
+      )}
+    </>
+  )
+}
+
 /** Kolom tambahan sensor_thresholds (migrasi 2026-10-19) — tampil bila dikirim backend. */
 const AMBANG_OPT: FieldDef[] = [
   { key: 'deadband', label: 'Deadband (pita mati)', header: 'Deadband', placeholder: '0.2', kind: 'num', core: false },
