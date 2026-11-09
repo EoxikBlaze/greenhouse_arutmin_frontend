@@ -9,6 +9,7 @@ import { PanelParameter } from '../components/dosing/PanelParameter'
 import { PanelPerawatan } from '../components/dosing/PanelPerawatan'
 import { TargetPenampung, type TargetMeja } from '../components/dosing/PanelTarget'
 import { Segmen } from '../components/sensor/FilterBar'
+import { KartuSaranDosis } from '../components/analitik/KartuSaranDosis'
 
 /**
  * Konfigurasi Target Nutrisi — target naik harian per tanaman (ppm awal → target panen)
@@ -85,6 +86,7 @@ export default function DosingPage() {
 
       {tab === 'Target Nutrisi' && (
         <>
+          <KartuSaranDosis />
           <NaikHarian />
           <TargetPenampung data={target} onUbah={ubahTarget} />
         </>

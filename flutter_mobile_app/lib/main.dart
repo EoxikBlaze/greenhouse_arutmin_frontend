@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -11,6 +13,7 @@ import 'pages/sensor_page.dart';
 import 'pages/tanam_page.dart';
 import 'pages/watercontrol_page.dart';
 import 'services/api_service.dart';
+import 'services/notifikasi_service.dart';
 import 'services/sesi_store.dart';
 import 'theme/tema.dart';
 import 'theme/tokens.dart';
@@ -231,6 +234,9 @@ class _MainShellState extends State<_MainShell> {
   bool _adaNotif = false;
   Widget? _halamanDalam;
   String? _judulHalamanDalam;
+  final NotifikasiService _notifikasi = NotifikasiService();
+  Timer? _pantauAlert;
+  static const _jedaPantauAlert = Duration(seconds: 60);
 
   @override
   void initState() {
@@ -260,6 +266,25 @@ class _MainShellState extends State<_MainShell> {
       ),
     ];
     _cekAlertAktif();
+    _mulaiNotifikasi();
+  }
+
+  Future<void> _mulaiNotifikasi() async {
+    await _notifikasi.siapkan();
+    await _notifikasi.periksa(
+      apiService,
+    ); // acuan awal: peringatan lama tidak dinotifikasi
+    if (!mounted) return;
+    _pantauAlert = Timer.periodic(_jedaPantauAlert, (_) {
+      _cekAlertAktif();
+      _notifikasi.periksa(apiService);
+    });
+  }
+
+  @override
+  void dispose() {
+    _pantauAlert?.cancel();
+    super.dispose();
   }
 
   Future<void> _cekAlertAktif() async {
@@ -359,10 +384,7 @@ class _MainShellState extends State<_MainShell> {
                         return const LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.white,
-                          ],
+                          colors: [Colors.transparent, Colors.white],
                           stops: [0.0, 0.045],
                         ).createShader(bounds);
                       },
@@ -390,7 +412,9 @@ class _MainShellState extends State<_MainShell> {
                                         ? 'dalam-$_judulHalamanDalam'
                                         : 'tab-$_indeks',
                                   ),
-                                  child: _halamanDalam ?? _tab[_indeks].bangun(true),
+                                  child:
+                                      _halamanDalam ??
+                                      _tab[_indeks].bangun(true),
                                 ),
                               ),
                             ),
@@ -410,12 +434,20 @@ class _MainShellState extends State<_MainShell> {
                         final u = apiService.user;
                         final username = u?['username']?.toString() ?? '';
                         final inisial = username.trim().isNotEmpty
-                            ? username.trim().substring(0, username.trim().length >= 2 ? 2 : 1).toUpperCase()
+                            ? username
+                                  .trim()
+                                  .substring(
+                                    0,
+                                    username.trim().length >= 2 ? 2 : 1,
+                                  )
+                                  .toUpperCase()
                             : null;
                         return ArutminHeader(
                           subjudul: _judulHalamanDalam ?? _subjudulTab(_indeks),
                           bisaKembali: _halamanDalam != null,
-                          onKembali: _halamanDalam != null ? _tutupHalaman : null,
+                          onKembali: _halamanDalam != null
+                              ? _tutupHalaman
+                              : null,
                           adaNotif: _adaNotif,
                           inisial: inisial,
                           fotoProfil: null,
@@ -447,10 +479,7 @@ class _MainShellState extends State<_MainShell> {
                         top: false,
                         child: _TombolAiDiatasFooter(
                           onTap: () => _bukaHalaman(
-                            AsistenPage(
-                              api: apiService,
-                              tanpaAppBar: true,
-                            ),
+                            AsistenPage(api: apiService, tanpaAppBar: true),
                             'Asisten GARAP',
                           ),
                         ),
@@ -471,7 +500,9 @@ class _MainShellState extends State<_MainShell> {
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 520),
                             child: DockNav(
-                              item: [for (final t in _tab) DockItem(t.label, t.ikon)],
+                              item: [
+                                for (final t in _tab) DockItem(t.label, t.ikon),
+                              ],
                               indeks: _indeks,
                               onPilih: _pilih,
                             ),
@@ -530,11 +561,7 @@ class _TombolAiDiatasFooter extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.auto_awesome,
-                color: Colors.white,
-                size: 18,
-              ),
+              const Icon(Icons.auto_awesome, color: Colors.white, size: 18),
               const SizedBox(width: 8),
               const Text(
                 'Tanya AI',

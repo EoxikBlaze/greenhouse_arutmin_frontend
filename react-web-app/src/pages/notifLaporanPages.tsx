@@ -6,6 +6,7 @@ import { normalisasiMatriks, ringkasMatriks, unduhLaporanMatriks, type KunciMatr
 import { Ikon } from '../components/Ikon'
 import { DialogKaca } from '../components/kaca/DialogKaca'
 import { Segmen } from '../components/sensor/FilterBar'
+import { EksporCsv } from '../components/analitik/EksporCsv'
 
 /** 403 dari requireRole / demoGuard — dipresentasikan ramah, bukan banner merah. */
 function aksesDitolak(msg: string | null): boolean {
@@ -313,6 +314,8 @@ export function LaporanPage() {
         )}
         {adaData && <div className="mt-2 text-[12px] text-slate-500">Klik baris untuk melihat detail bulan.</div>}
       </section>
+
+      <EksporCsv />
 
       {pilih && <PopupBulan r={pilih} rows={rows} stat={stat} onTutup={() => setPilih(null)} />}
     </div>

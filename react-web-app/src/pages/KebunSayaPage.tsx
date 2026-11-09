@@ -7,6 +7,7 @@ import { NaikHarian } from '../components/NaikHarian'
 import { RingkasanKebun } from '../components/kebun/RingkasanKebun'
 import { KartuBatch } from '../components/kebun/KartuBatch'
 import { DialogMulaiSemai } from '../components/kebun/DialogMulaiSemai'
+import { KartuPrediksiPanen } from '../components/analitik/KartuPrediksiPanen'
 import { ringkasBatch, saring, type FilterTahap, type TanamRow } from '../lib/kebun'
 
 /** Ilustrasi empty-state: tunas dalam pot (SVG murni, bukan emoji). */
@@ -80,6 +81,8 @@ export default function KebunSayaPage() {
         onMulai={() => setMulaiOpen(true)}
         onMuat={reload}
       />
+
+      <KartuPrediksiPanen />
 
       {/* Satu state per layar: loading → error → kosong → daftar */}
       <section className="vsf-card p-4 sm:p-5">

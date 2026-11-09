@@ -11,6 +11,7 @@ import '../widgets/halaman.dart';
 import '../widgets/motion.dart';
 import '../widgets/navigasi_shell.dart';
 import 'cctv_page.dart';
+import 'laporan_page.dart';
 import 'riwayat_monitoring_page.dart';
 import 'tentang_page.dart';
 
@@ -231,6 +232,15 @@ class _ProfilPageState extends State<ProfilPage> {
                             tanpaAppBar: true,
                           ),
                           judul: 'Riwayat',
+                        ),
+                      ),
+                      _Pintas(
+                        ikon: Ikon.laporan,
+                        label: 'Laporan, perkiraan panen & ekspor',
+                        onTap: () => bukaHalamanApp(
+                          context,
+                          LaporanPage(api: widget.api),
+                          judul: 'Laporan',
                         ),
                       ),
                     ],

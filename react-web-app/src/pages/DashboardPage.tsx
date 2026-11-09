@@ -6,6 +6,7 @@ import { relatif, waktuBasi } from '../lib/waktu'
 import { Ikon, type NamaIkon } from '../components/Ikon'
 import { AngkaHidup } from '../components/AngkaHidup'
 import { TrenBatang } from '../components/TrenBatang'
+import { KartuPrediksiPanen } from '../components/analitik/KartuPrediksiPanen'
 import { tglJam } from '../lib/format'
 
 /**
@@ -367,6 +368,8 @@ export default function DashboardPage() {
                 })}
           </ul>
         </section>
+
+        <KartuPrediksiPanen className="xl:col-span-12" />
       </div>
     </div>
   )
