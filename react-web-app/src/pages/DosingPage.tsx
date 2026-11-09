@@ -7,24 +7,23 @@ import { PageHeader } from '../components/PageHeader'
 import { PanelFailSafe } from '../components/dosing/PanelFailSafe'
 import { PanelParameter } from '../components/dosing/PanelParameter'
 import { PanelPerawatan } from '../components/dosing/PanelPerawatan'
-import { PresetNutrisi, TargetPenampung, type Preset, type TargetMeja } from '../components/dosing/PanelTarget'
+import { TargetPenampung, type TargetMeja } from '../components/dosing/PanelTarget'
 import { Segmen } from '../components/sensor/FilterBar'
 
 /**
- * Konfigurasi dosing — terhubung ke endpoint KONFIGURASI V2 riil (routes/konfigurasi.js, routes/preset.js, routes/iotV41.js).
- * Empat tab: Target & Nutrisi · Parameter · Keamanan · Perawatan. Saklar, Pengaturan Alat, dan Uji Lab punya halaman sendiri (tidak dobel di sini).
- * Rute hanya untuk admin & demo (router.tsx); ubah/hapus/sinkron = admin saja.
+ * Konfigurasi Target Nutrisi — target naik harian per tanaman (ppm awal → target panen)
+ * dan batas target penampung EC/pH.
  */
 
 const TAB = [
-  'Target & Nutrisi',
+  'Target Nutrisi',
   'Parameter',
   'Keamanan',
   'Perawatan',
 ] as const
 type Tab = (typeof TAB)[number]
 const KUNCI: Record<Tab, string> = {
-  'Target & Nutrisi': 'target',
+  'Target Nutrisi': 'target',
   Parameter: 'parameter',
   Keamanan: 'keamanan',
   Perawatan: 'perawatan',
@@ -48,7 +47,6 @@ export default function DosingPage() {
   const ubahTarget = () => setVersiTarget((v) => v + 1)
 
   const target = useApiList<TargetMeja>(`/dosing/target?v=${versiTarget}`)
-  const preset = useApiList<Preset>('/dosing/preset')
   const dosis = useApiList<ParameterRow>('/konfigurasi-dosis')
   const timing = useApiList<ParameterRow>('/timing-operasi')
   const failSafe = useApiList<FailSafeRow>('/aturan-fail-safe')
@@ -61,24 +59,23 @@ export default function DosingPage() {
       terkunci: aktif.filter((r) => r.status_lock).length,
       otomatis: aktif.filter((r) => r.target_mode === 'otomatis').length,
       manual: aktif.filter((r) => r.target_mode === 'manual').length,
-      presetAktif: preset.rows.filter((p) => p.status === 'aktif').length,
       param: semuaParam.length,
       kosong: semuaParam.filter((r) => belumDiatur(r.nilai)).length,
     }
-  }, [target.rows, preset.rows, dosis.rows, timing.rows])
+  }, [target.rows, dosis.rows, timing.rows])
 
   return (
     <div className="vsf-halaman vsf-stagger">
       <PageHeader
-        judul="Pengaturan nutrisi"
-        deskripsi="Target EC/pH tiap penampung diambil dari preset nutrisi sesuai tanaman, tahap, dan umur batch. Halaman ini hanya menyimpan konfigurasi: eksekusi dosis oleh pompa sedang dinonaktifkan sampai validasi keselamatan selesai, sehingga tidak ada injeksi nutrisi otomatis yang berjalan."
+        judul="Target Nutrisi"
+        deskripsi="Target nutrisi naik harian (ppm awal hingga panen) dan batas target penampung EC/pH. Target ppm naik bertahap setiap hari sesuai umur tanaman untuk hasil panen optimal."
       />
 
-      <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Ringkasan nutrisi">
+      <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Ringkasan target nutrisi">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Stat label="Penampung" nilai={String(ring.meja)} sub={`${ring.terkunci} terkunci`} />
-          <Stat label="Mode target" nilai={`${ring.otomatis} otomatis`} sub={`${ring.manual} manual`} />
-          <Stat label="Preset aktif" nilai={`${ring.presetAktif}/${preset.rows.length}`} sub="dipakai untuk target" />
+          <Stat label="Penampung aktif" nilai={String(ring.meja)} sub={`${ring.terkunci} terkunci`} />
+          <Stat label="Mode kendali" nilai={`${ring.otomatis} otomatis`} sub={`${ring.manual} manual`} />
+          <Stat label="Target harian" nilai="Aktif" sub="Kurva kenaikan ppm" />
           <Stat label="Parameter" nilai={String(ring.param)} sub={`${ring.kosong} belum diatur`} />
         </div>
         <div className="mt-4">
@@ -86,11 +83,10 @@ export default function DosingPage() {
         </div>
       </section>
 
-      {tab === 'Target & Nutrisi' && (
+      {tab === 'Target Nutrisi' && (
         <>
-          <TargetPenampung data={target} onUbah={ubahTarget} />
           <NaikHarian />
-          <PresetNutrisi data={preset} onUbah={ubahTarget} />
+          <TargetPenampung data={target} onUbah={ubahTarget} />
         </>
       )}
       {tab === 'Parameter' && <PanelParameter dosis={dosis} timing={timing} />}

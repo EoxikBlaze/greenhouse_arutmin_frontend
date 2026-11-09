@@ -27,7 +27,7 @@ const TITLES: Record<string, string> = {
   '/tanam': 'Kebun Saya',
   '/saklar': 'Saklar',
   '/dosing-manual': 'Nutrisi Manual',
-  '/dosing': 'Pengaturan Nutrisi',
+  '/dosing': 'Target Nutrisi',
   '/kalibrasi': 'Kalibrasi',
   '/data': 'Data',
   '/audit': 'Catatan Aktivitas & Audit',
@@ -82,7 +82,7 @@ const NAV: NavGroup[] = [
       { to: '/tanam', label: 'Kebun Saya', ikon: 'tanam' },
       { to: '/saklar', label: 'Saklar', ikon: 'ambang', allow: ADMIN_DEMO },
       { to: '/dosing-manual', label: 'Nutrisi Manual', ikon: 'tetes', allow: ADMIN_DEMO },
-      { to: '/dosing', label: 'Pengaturan Nutrisi', ikon: 'dosing', allow: ADMIN_DEMO },
+      { to: '/dosing', label: 'Target Nutrisi', ikon: 'tetes', allow: ADMIN_DEMO },
     ],
   },
   {
@@ -114,7 +114,6 @@ const NAV: NavGroup[] = [
       { to: '/peremajaan', label: 'Peremajaan', ikon: 'tanam', langkah: 2, allow: ADMIN_DEMO },
       { to: '/pendewasaan', label: 'Pendewasaan', ikon: 'tanam', langkah: 3, allow: ADMIN_DEMO },
       { to: '/panen', label: 'Panen', ikon: 'tanam', langkah: 4, allow: ADMIN_DEMO },
-      { to: '/siklus', label: 'Durasi Siklus', ikon: 'siklus', allow: ADMIN_DEMO },
     ],
   },
   {

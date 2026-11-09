@@ -22,7 +22,6 @@ import {
   PeremajaanPage,
   PendewasaanPage,
   PanenPage,
-  DurasiSiklusPage,
   JenisTanamanPage,
   MejaTanamanPage,
   AmbangSensorPage,
@@ -90,7 +89,7 @@ export const router = createBrowserRouter([
           { path: '/peremajaan', element: <RequireAuth allow={ADMIN_DEMO} element={<PeremajaanPage />} /> },
           { path: '/pendewasaan', element: <RequireAuth allow={ADMIN_DEMO} element={<PendewasaanPage />} /> },
           { path: '/panen', element: <RequireAuth allow={ADMIN_DEMO} element={<PanenPage />} /> },
-          { path: '/siklus', element: <RequireAuth allow={ADMIN_DEMO} element={<DurasiSiklusPage />} /> },
+          { path: '/siklus', element: <Navigate to="/dosing" replace /> },
 
           // 04 · Master Data — admin (demo read-only)
           { path: '/tanaman', element: <RequireAuth allow={ADMIN_DEMO} element={<JenisTanamanPage />} /> },

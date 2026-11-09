@@ -10,6 +10,7 @@ import 'package:http/testing.dart';
 
 import 'package:flutter_mobile_app/pages/asisten_page.dart';
 import 'package:flutter_mobile_app/pages/dashboard_page.dart';
+import 'package:flutter_mobile_app/pages/profil_page.dart';
 import 'package:flutter_mobile_app/pages/tanam_page.dart';
 import 'package:flutter_mobile_app/services/api_service.dart';
 import 'package:flutter_mobile_app/theme/tokens.dart';
@@ -445,5 +446,89 @@ void main() {
     }
 
     await _ambilSnapshot(tester, key, '$artifactDir/screenshot_flutter_asisten_ai.png');
+  });
+
+  testWidgets('Ambil Screenshot 4: Profil Akun Rapi Tanpa Terpotong', (tester) async {
+    final api = _buatMockApi();
+    await api.login(username: 'garap', password: 'password123');
+    final key = GlobalKey();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(useMaterial3: true, fontFamily: Tok.fontIsi),
+        home: RepaintBoundary(
+          key: key,
+          child: MediaQuery(
+            data: const MediaQueryData(
+              size: Size(393, 852),
+              padding: EdgeInsets.only(top: 59, bottom: 34),
+            ),
+            child: ApiServiceScope(
+              api: api,
+              child: Scaffold(
+                body: Stack(
+                  children: [
+                    const Positioned.fill(child: LatarCair()),
+                    Positioned.fill(
+                      top: 59 + 92.0 - 12,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: ProfilPage(api: api, onLogout: () {}),
+                      ),
+                    ),
+                    const Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: ArutminHeader(
+                        subjudul: 'Profil Akun',
+                        bisaKembali: false,
+                        inisial: 'GA',
+                      ),
+                    ),
+                    Positioned(
+                      left: 16,
+                      right: 16,
+                      bottom: 0,
+                      child: SafeArea(
+                        top: false,
+                        minimum: const EdgeInsets.only(bottom: 12),
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 520),
+                            child: DockNav(
+                              item: const [
+                                DockItem('Beranda', Ikon.beranda),
+                                DockItem('Sensor', Ikon.sensor),
+                                DockItem('Kontrol', Ikon.air),
+                                DockItem('Tanam', Ikon.tanam),
+                                DockItem('Akun', Ikon.profil),
+                              ],
+                              indeks: 4,
+                              onPilih: (_) {},
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    for (var i = 0; i < 15; i++) {
+      await tester.pump(const Duration(milliseconds: 30));
+    }
+
+    expect(find.text('Profil Akun'), findsOneWidget);
+    expect(find.text('Administrator'), findsOneWidget);
+    expect(find.text('Riwayat monitoring'), findsOneWidget);
+
+    await _ambilSnapshot(tester, key, '$artifactDir/screenshot_flutter_profil_akun.png');
   });
 }

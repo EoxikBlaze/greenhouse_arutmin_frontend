@@ -351,31 +351,48 @@ class _MainShellState extends State<_MainShell> {
                   // Satu latar cair untuk semua tab dan halaman
                   const Positioned.fill(child: LatarCair()),
 
-                  // Konten tengah: transisi cross-fade lembut tanpa kedip
+                  // Konten tengah: transisi cross-fade lembut dengan top-fade halus agar tidak terpotong saat digulir
                   Positioned.fill(
-                    top: contentTop,
-                    child: BackdropGroup(
-                      child: Align(
-                        alignment: Alignment.topCenter,
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 840),
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 220),
-                            switchInCurve: Curves.easeOutCubic,
-                            switchOutCurve: Curves.easeInCubic,
-                            transitionBuilder: (child, animation) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: child,
-                              );
-                            },
-                            child: KeyedSubtree(
-                              key: ValueKey<String>(
-                                _halamanDalam != null
-                                    ? 'dalam-$_judulHalamanDalam'
-                                    : 'tab-$_indeks',
+                    top: contentTop - 12,
+                    child: ShaderMask(
+                      shaderCallback: (Rect bounds) {
+                        return const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.white,
+                          ],
+                          stops: [0.0, 0.045],
+                        ).createShader(bounds);
+                      },
+                      blendMode: BlendMode.dstIn,
+                      child: BackdropGroup(
+                        child: Align(
+                          alignment: Alignment.topCenter,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 840),
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 12),
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 220),
+                                switchInCurve: Curves.easeOutCubic,
+                                switchOutCurve: Curves.easeInCubic,
+                                transitionBuilder: (child, animation) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: child,
+                                  );
+                                },
+                                child: KeyedSubtree(
+                                  key: ValueKey<String>(
+                                    _halamanDalam != null
+                                        ? 'dalam-$_judulHalamanDalam'
+                                        : 'tab-$_indeks',
+                                  ),
+                                  child: _halamanDalam ?? _tab[_indeks].bangun(true),
+                                ),
                               ),
-                              child: _halamanDalam ?? _tab[_indeks].bangun(true),
                             ),
                           ),
                         ),

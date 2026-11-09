@@ -128,21 +128,8 @@ class _ProfilPageState extends State<ProfilPage> {
     return ListView(
       padding: EdgeInsets.zero,
       children: [
-        PageTop(
-          eyebrow: 'Sistem',
-          judul: 'Akun',
-          status: StatusPill(
-            terang: true,
-            warna: Tok.emas,
-            teks: role == 'admin'
-                ? 'Administrator'
-                : demo
-                ? 'Akun demo'
-                : 'Petani',
-          ),
-        ),
         Padding(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, DockNav.ruang(context)),
+          padding: EdgeInsets.fromLTRB(16, 12, 16, DockNav.ruang(context)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -151,8 +138,8 @@ class _ProfilPageState extends State<ProfilPage> {
                   child: Row(
                     children: [
                       Container(
-                        width: 64,
-                        height: 64,
+                        width: 60,
+                        height: 60,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
@@ -171,16 +158,31 @@ class _ProfilPageState extends State<ProfilPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              nama,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Tok.h2,
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    nama,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Tok.h2,
+                                  ),
+                                ),
+                                StatusPill(
+                                  terang: true,
+                                  warna: Tok.emas,
+                                  teks: role == 'admin'
+                                      ? 'Administrator'
+                                      : demo
+                                      ? 'Akun demo'
+                                      : 'Petani',
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 2),
                             Text(

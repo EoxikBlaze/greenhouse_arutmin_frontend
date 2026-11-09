@@ -6,6 +6,7 @@ import '../theme/tokens.dart';
 import 'app_bar_glass.dart';
 import 'ikon.dart';
 import 'kaca.dart';
+import 'navigasi_shell.dart';
 
 /// Menyediakan akses [ApiService] ke seluruh widget turunan (termasuk PageTop dan AppBarGlass).
 class ApiServiceScope extends InheritedWidget {
@@ -70,18 +71,19 @@ class PageTop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final atas = MediaQuery.paddingOf(context).top;
+    final diDalamShell = NavigasiShellScope.maybeOf(context) != null;
+    final atas = diDalamShell ? 0.0 : MediaQuery.paddingOf(context).top;
     final bisaPop = Navigator.canPop(context);
     final aksiKembali =
         onKembali ??
         (bisaPop
             ? () => Navigator.maybePop(context)
-            : NavigasiBerandaScope.of(context));
+            : (diDalamShell ? null : NavigasiBerandaScope.of(context)));
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: Tok.gelap ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(16, atas + 12, 16, 0),
+        padding: EdgeInsets.fromLTRB(16, atas > 0 ? atas + 12 : 8, 16, 0),
         child: KacaCair(
           varian: KacaVarian.chrome,
           radius: 24,
@@ -149,7 +151,7 @@ class PageTop extends StatelessWidget {
                   ),
                 ),
               ],
-              if (tampilkanAi) ...[
+              if (tampilkanAi && !diDalamShell) ...[
                 const SizedBox(width: 6),
                 const TombolAiKaca(),
               ],
