@@ -424,7 +424,8 @@ class _DashboardPageState extends State<DashboardPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Eyebrow('Peringatan terbaru'),
+              const Expanded(child: Eyebrow('Peringatan terbaru')),
+              const SizedBox(width: 8),
               InkWell(
                 borderRadius: BorderRadius.circular(8),
                 onTap: () => bukaHalamanApp(

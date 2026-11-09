@@ -906,15 +906,19 @@ class _SheetMulaiState extends State<_SheetMulai> {
                             children: [
                               const Icon(Icons.timeline_rounded, size: 15, color: Tok.moss),
                               const SizedBox(width: 6),
-                              Text(
-                                'Rencana Siklus Budidaya',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: Tok.tinta,
+                              Expanded(
+                                child: Text(
+                                  'Rencana Siklus Budidaya',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Tok.tinta,
+                                  ),
                                 ),
                               ),
-                              const Spacer(),
+                              const SizedBox(width: 6),
                               Text(
                                 'Total: ~${durasi[0]! + durasi[1]! + durasi[2]!} hari',
                                 style: const TextStyle(
