@@ -275,11 +275,11 @@ class _AsistenPageState extends State<AsistenPage> {
     _keBawah();
 
     try {
-      // Ollama bisa butuh hingga ±30 dtk → batas tunggu lebih longgar.
+      // Ollama di Raspberry Pi butuh hingga ±30-45 dtk → batas tunggu 60 dtk.
       final d = await widget.api.postJson('/api/ai/chat', {
         'pesan': t,
         'riwayat': riwayat,
-      }, const Duration(seconds: 45));
+      }, const Duration(seconds: 60));
       if (!mounted) return;
       final map = d is Map ? d : const <Object?, Object?>{};
       final saranList = <String>[];

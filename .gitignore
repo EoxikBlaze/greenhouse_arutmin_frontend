@@ -94,3 +94,6 @@ docs/PROJECT_OVERVIEW.md
 docs/PANDUAN_HOTSPOT_PI.md
 docs/PANDUAN_LENGKAP_PI_MQTT_ESP32.md
 docs/patch-lokal-9-berkas-sebelum-merge-punyaeka.patch
+
+# Build artefak mobile
+flutter_mobile_app/*.apk

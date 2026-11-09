@@ -7,8 +7,6 @@ export default defineConfig({
     environment: 'jsdom',
     environmentOptions: { jsdom: { url: 'http://localhost/' } },
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
-    pool: 'vmThreads',
-    maxWorkers: 2,
     testTimeout: 15000,
   },
 })
