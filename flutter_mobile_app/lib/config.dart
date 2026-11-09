@@ -12,11 +12,11 @@
 /// `flutter run` tanpa parameter tambahan.
 library;
 
-/// Alamat backend. Nilai default menunjuk ke Raspberry Pi (`http://garap.local`)
+/// Alamat backend. Nilai default menunjuk ke Raspberry Pi (`http://vertonik.local`)
 /// bila `API_BASE` tidak diberikan lewat `--dart-define`.
 const String apiBase = String.fromEnvironment(
   'API_BASE',
-  defaultValue: 'http://garap.local',
+  defaultValue: 'http://vertonik.local',
 );
 
 /// Batas waktu tunggu tiap request API (detik).

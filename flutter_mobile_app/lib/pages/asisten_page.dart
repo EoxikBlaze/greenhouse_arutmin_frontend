@@ -415,7 +415,7 @@ class _AsistenPageState extends State<AsistenPage> {
             SafeArea(
               top: false,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
+                padding: EdgeInsets.fromLTRB(12, 6, 12, widget.tanpaAppBar ? 90 : 10),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [

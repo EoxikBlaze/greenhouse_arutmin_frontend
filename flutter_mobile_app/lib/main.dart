@@ -417,23 +417,24 @@ class _MainShellState extends State<_MainShell> {
                     ),
                   ),
 
-                  // Tombol Asisten AI melayang tepat di atas footer dock (tetap di posisinya)
-                  Positioned(
-                    right: 20,
-                    bottom: 86,
-                    child: SafeArea(
-                      top: false,
-                      child: _TombolAiDiatasFooter(
-                        onTap: () => _bukaHalaman(
-                          AsistenPage(
-                            api: apiService,
-                            tanpaAppBar: true,
+                  // Tombol Asisten AI melayang tepat di atas footer dock (hanya di halaman utama, sembunyikan jika sedang di subpage/chat AI)
+                  if (_halamanDalam == null)
+                    Positioned(
+                      right: 20,
+                      bottom: 86,
+                      child: SafeArea(
+                        top: false,
+                        child: _TombolAiDiatasFooter(
+                          onTap: () => _bukaHalaman(
+                            AsistenPage(
+                              api: apiService,
+                              tanpaAppBar: true,
+                            ),
+                            'Asisten GARAP',
                           ),
-                          'Asisten GARAP',
                         ),
                       ),
                     ),
-                  ),
 
                   // Footer dock selalu dipin di bagian bawah (tidak bergerak saat ganti halaman)
                   Positioned(

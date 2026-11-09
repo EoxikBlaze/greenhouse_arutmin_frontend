@@ -140,17 +140,24 @@ class _LoginPageState extends State<LoginPage>
                 ),
                 ActionChip(
                   label: const Text(
-                    'Raspberry Pi (garap.local)',
+                    'Raspberry Pi (vertonik.local)',
                     style: TextStyle(fontSize: 11),
                   ),
-                  onPressed: () => ctrl.text = 'http://garap.local',
+                  onPressed: () => ctrl.text = 'http://vertonik.local',
                 ),
                 ActionChip(
                   label: const Text(
-                    'Android AVD (10.0.2.2:8000)',
+                    'Raspberry Pi IP (192.168.95.31)',
                     style: TextStyle(fontSize: 11),
                   ),
-                  onPressed: () => ctrl.text = 'http://10.0.2.2:8000',
+                  onPressed: () => ctrl.text = 'http://192.168.95.31',
+                ),
+                ActionChip(
+                  label: const Text(
+                    'Mac LAN (192.168.95.231:8000)',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  onPressed: () => ctrl.text = 'http://192.168.95.231:8000',
                 ),
               ],
             ),
