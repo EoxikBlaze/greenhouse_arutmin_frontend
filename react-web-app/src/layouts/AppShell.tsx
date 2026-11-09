@@ -517,8 +517,8 @@ export function AppShell() {
         <SiteFooter pekat />
       </main>
 
-      {/* Submenu grup aktif di footer: ikon dengan nama halaman di bawahnya. */}
-      {grupAktif && (
+      {/* Submenu grup aktif di footer: ikon dengan nama halaman di bawahnya. Sembunyikan di /asisten-ai agar tidak menutupi komposer chat. */}
+      {grupAktif && location.pathname !== '/asisten-ai' && (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center px-2 pb-[max(8px,env(safe-area-inset-bottom))] lg:pl-[92px]">
           <PillNav items={grupAktif.items} label={`Submenu ${grupAktif.label}`} className="vsf-pillnav-bawah pointer-events-auto max-w-full" />
         </div>

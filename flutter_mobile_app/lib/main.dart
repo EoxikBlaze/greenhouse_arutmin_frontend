@@ -322,6 +322,10 @@ class _MainShellState extends State<_MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final topInset = MediaQuery.paddingOf(context).top;
+    final safeTop = topInset > 14.0 ? topInset : 14.0;
+    final contentTop = safeTop + 92.0;
+
     return NavigasiShellScope(
       bukaHalaman: _bukaHalaman,
       tutupHalaman: _tutupHalaman,
@@ -349,7 +353,7 @@ class _MainShellState extends State<_MainShell> {
 
                   // Konten tengah: transisi cross-fade lembut tanpa kedip
                   Positioned.fill(
-                    top: MediaQuery.paddingOf(context).top + 80,
+                    top: contentTop,
                     child: BackdropGroup(
                       child: Align(
                         alignment: Alignment.topCenter,
@@ -436,27 +440,28 @@ class _MainShellState extends State<_MainShell> {
                       ),
                     ),
 
-                  // Footer dock selalu dipin di bagian bawah (tidak bergerak saat ganti halaman)
-                  Positioned(
-                    left: 16,
-                    right: 16,
-                    bottom: 0,
-                    child: SafeArea(
-                      top: false,
-                      minimum: const EdgeInsets.only(bottom: 12),
-                      child: Align(
-                        alignment: Alignment.bottomCenter,
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 520),
-                          child: DockNav(
-                            item: [for (final t in _tab) DockItem(t.label, t.ikon)],
-                            indeks: _halamanDalam != null ? -1 : _indeks,
-                            onPilih: _pilih,
+                  // Footer dock dipin di bagian bawah pada tab utama (sembunyikan di subpage/chat)
+                  if (_halamanDalam == null)
+                    Positioned(
+                      left: 16,
+                      right: 16,
+                      bottom: 0,
+                      child: SafeArea(
+                        top: false,
+                        minimum: const EdgeInsets.only(bottom: 12),
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 520),
+                            child: DockNav(
+                              item: [for (final t in _tab) DockItem(t.label, t.ikon)],
+                              indeks: _indeks,
+                              onPilih: _pilih,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),

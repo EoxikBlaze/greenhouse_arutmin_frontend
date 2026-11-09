@@ -716,7 +716,7 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
   final String? inisial;
 
   @override
-  Size get preferredSize => const Size.fromHeight(84);
+  Size get preferredSize => const Size.fromHeight(88);
 
   @override
   Widget build(BuildContext context) {
@@ -724,20 +724,21 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
       value: Tok.gelap ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: SafeArea(
         bottom: false,
+        minimum: const EdgeInsets.only(top: 14),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           child: Container(
-            height: 70,
+            height: 68,
             decoration: BoxDecoration(
               color: Tok.gelap ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: BorderRadius.circular(35),
+              borderRadius: BorderRadius.circular(34),
               border: Border.all(
                 color: Tok.gelap ? Colors.white12 : const Color(0xFFE2E8F0),
                 width: 1.2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: Tok.gelap ? 0.35 : 0.06),
+                  color: Colors.black.withValues(alpha: Tok.gelap ? 0.35 : 0.08),
                   blurRadius: 16,
                   offset: const Offset(0, 4),
                 ),
