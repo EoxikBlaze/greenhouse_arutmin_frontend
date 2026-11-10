@@ -309,6 +309,8 @@ class _LoginPageState extends State<LoginPage>
               ],
             ),
             const SizedBox(height: 10),
+            // Hanya akun demo (hanya-baca) yang boleh diisi otomatis: sandi admin/petani
+            // tidak boleh ada di kode sumber atau APK.
             Center(
               child: _TombolPeranCepat(
                 label: 'Demo (Hanya Lihat)',

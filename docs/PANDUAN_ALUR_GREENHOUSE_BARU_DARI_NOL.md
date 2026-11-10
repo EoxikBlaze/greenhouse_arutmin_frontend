@@ -37,7 +37,7 @@ node backend-nodejs/scripts/reset-db-nol.js
 
 ### Langkah 0: Masuk Sebagai Pemilik (Superadmin)
 1. Buka browser di laptop: `http://garap.local/login` (atau `localhost:5173/login`).
-2. Masukkan nama: **`garap`**, kata sandi: **`garap123`**.
+2. Masukkan nama: **`garap`**, kata sandi admin Anda (tanya pengelola; jangan ditulis di dokumen).
 3. Centang **"Ingatkan saya di perangkat ini"** ➔ klik tombol hijau **"Masuk ke Dashboard"**.
 
 ---

@@ -56,7 +56,7 @@ Alamat: `http://garap.local/` dan `/login`
 | **Login Akun Demo** | Klik tombol hijau **"Masuk ke Dashboard"** saat akun demo terisi. | Berhasil masuk ke dashboard, dan seluruh kartu sensor bertanda strip (`—`) karena data disembunyikan. | Error atau data sensor asli kebun bocor terlihat. |
 | **Keluar (Logout)** | Klik ikon profil di pojok kanan atas ➔ pilih **"Keluar"**. | Anda kembali ke layar login dengan aman. | Macet tidak mau keluar. |
 | **Uji Sandi Salah** | Ketik nama: `garap`, sandi: `salahbanget` ➔ klik Masuk. | Muncul kotak merah bertuliskan *"Username / Password salah"* tanpa error kode aneh. | Layar crash, muter-muter tanpa henti, atau error 500. |
-| **Login Resmi Superadmin** | Ketik nama: `garap`, sandi: `garap123`, centang *"Ingatkan saya"* ➔ klik Masuk. | Berhasil masuk ke Dashboard dengan akses penuh. | Gagal masuk. |
+| **Login Resmi Superadmin** | Ketik nama: `garap`, sandi admin Anda (tidak ditulis di sini), centang *"Ingatkan saya"* ➔ klik Masuk. | Berhasil masuk ke Dashboard dengan akses penuh. | Gagal masuk. |
 
 ---
 
