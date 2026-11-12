@@ -1,0 +1,41 @@
+export default {
+  no: '05', berkasMd: 'Monitoring_Hidroponik', judulPendek: 'Sistem Monitoring Hidroponik',
+  judul: 'Sistem Monitoring Hidroponik',
+  subjudul: 'Lima besaran yang dipantau GARAP, perjalanan datanya, dan cara membaca statusnya.',
+  tujuan: 'Operator memahami arti setiap angka sensor dan kapan harus bertindak.',
+  pembaca: ['Operator', 'Pengelola greenhouse'],
+  sumber: '`backend-nodejs/src/sanitySensor.js` (batas kewajaran, sensor basi 120 dtk), `deploy-pi/firmware/gabungan/gabungan.ino` (sensor & interval 5 dtk), Modul Juknas Bab I.4 & IV.',
+  layout: 'Header → grid 5 kartu sensor (ikon, satuan, alat ukur) → alur data 5 blok horizontal → 3 kartu status (Normal / Di luar ambang / Usang) → tabel batas kewajaran → screenshot halaman Sensor → info → footer.',
+  ilustrasi: 'Ikon lucide per sensor: droplet (pH), flask-conical (EC/TDS), thermometer (suhu air), sun (suhu udara), droplets (kelembapan). Screenshot halaman Sensor dari `04-ASSETS/screenshots/04-sensor-realtime.png`.',
+  catatan: ['**Tidak ada angka target tanaman** di infografis ini: batas aman diatur admin per meja di menu **Ambang Sensor** dan dapat berbeda per tanaman.', 'Tabel "batas kewajaran" bukan target tanaman — hanya deteksi probe lepas/kabel putus. Sumber kode menyebut nilainya belum dicocokkan dengan spesifikasi probe.', 'Website menampilkan nutrisi sebagai TDS (ppm); EC (mS/cm) dibaca dari probe yang sama.'],
+  keselamatan: '- Bacaan aneh (mis. pH melonjak) → periksa fisik tandon dulu, jangan langsung menambah nutrisi atau pH manual.',
+  blok: [
+    { tipe: 'kartu', eyebrow: 'Yang dipantau', judul: 'Lima besaran utama + level tandon', kolom: 3, item: [
+      { ikon: 'droplet', judul: 'pH air nutrisi', teks: 'Satuan pH. Probe pH via ADS1115 kanal A0.' },
+      { ikon: 'flask-conical', judul: 'EC / TDS nutrisi', teks: 'TDS dalam **ppm**, EC dalam **mS/cm**. Probe EC via ADS1115 kanal A1.' },
+      { ikon: 'thermometer', judul: 'Suhu air tandon', teks: 'Satuan **°C**. Probe tahan air DS18B20.' },
+      { ikon: 'sun', judul: 'Suhu udara', teks: 'Satuan **°C**. Sensor SHT31.' },
+      { ikon: 'droplets', judul: 'Kelembapan udara', teks: 'Satuan **% RH**. Sensor SHT31 yang sama.' },
+      { ikon: 'container', judul: 'Level tandon', teks: 'Pelampung bawah & atas: KURANG / CUKUP / PENUH.' },
+    ] },
+    { tipe: 'alur', eyebrow: 'Alur data', judul: 'Dari probe ke layar', item: [
+      { ikon: 'activity', judul: 'Sensor', teks: 'Probe di tandon & udara greenhouse.' },
+      { ikon: 'cpu', judul: 'ESP32', teks: 'Membaca & mengirim tiap 5 detik. Bacaan gagal tidak diganti angka palsu.' },
+      { ikon: 'radio-tower', judul: 'MQTT', teks: 'Topik `garap/aktuator-01/data` ke Raspberry Pi.' },
+      { ikon: 'database', judul: 'Backend + DB', teks: 'Diperiksa kewajarannya, disimpan di PostgreSQL.' },
+      { ikon: 'monitor-smartphone', judul: 'Dashboard', teks: 'Kartu sensor, grafik, peringatan.' },
+    ] },
+    { tipe: 'kartu', eyebrow: 'Membaca status', judul: 'Tiga kondisi yang perlu dikenali', kolom: 3, item: [
+      { lencana: ['Normal'], ikon: 'circle-check', judul: 'Di dalam batas aman', teks: 'Angka berada di rentang **Ambang Sensor**. Tidak perlu tindakan.' },
+      { lencana: ['Waspada', 'waspada'], nada: 'waspada', ikon: 'triangle-alert', judul: 'Di luar ambang', teks: 'Muncul di menu **Peringatan** (kuning waspada / merah kritis). Periksa tandon lalu lapor.' },
+      { lencana: ['Usang', 'netral'], ikon: 'clock', judul: 'Data tidak baru', teks: 'Alat offline → yang tampil bacaan terakhir. Backend menandai sensor basi bila > **120 detik** tanpa data.' },
+    ] },
+    { tipe: 'tabel', eyebrow: 'Batas kewajaran', judul: 'Angka di luar ini = probe bermasalah, bukan tanaman', lead: 'Dipakai sistem untuk mendeteksi probe lepas atau kabel putus. Bukan target budidaya.', kolom: ['Besaran', 'Rentang wajar', 'Jika di luar'], baris: [
+      ['pH', '3 – 9', 'Dianggap bacaan mustahil; dosing ditahan.'],
+      ['TDS', '50 – 2.500 ppm', 'Dianggap bacaan mustahil; dosing ditahan.'],
+      ['Suhu air', '5 – 45 °C', 'Dianggap bacaan mustahil; dosing ditahan.'],
+    ] },
+    { tipe: 'gambar', eyebrow: 'Di website', judul: 'Halaman Sensor', src: '04-sensor-realtime.png', alt: 'Halaman Sensor dengan grafik riwayat dan pilihan rentang waktu', keterangan: 'Grafik riwayat dengan pilihan rentang 6 Jam / 24 Jam / 7 Hari / Kustom dan ekspor CSV (tangkapan 28 Okt 2026).' },
+    { tipe: 'peringatan', nada: 'info', judulKotak: 'Batas aman tiap tanaman diatur admin', teks: 'Nilai min–maks aman per parameter ada di menu **Ambang Sensor**. Infografis ini sengaja tidak mencantumkan angka target agar tidak menggantikan pengaturan di sistem.' },
+  ],
+}

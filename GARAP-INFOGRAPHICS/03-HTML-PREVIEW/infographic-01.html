@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pengenalan GARAP — Infografis GARAP</title>
+<link rel="stylesheet" href="garap-infografis.css"></head>
+<body>
+<nav class="alat" aria-label="Navigasi preview"><a href="index.html">← Semua infografis</a>
+<div class="alat-kanan"><a class="tombol tombol-kaca" href="infographic-02.html">Berikutnya</a>
+<button class="tombol tombol-primer" type="button" onclick="window.print()">Cetak / PDF</button></div></nav>
+<main class="kanvas">
+<header class="kepala"><div class="kepala-eyebrow"><span class="nomor">INFOGRAFIS 01</span><span>GARAP · Vertonik Smart Farm</span></div>
+<h1>Mengenal GARAP – Smart Hidroponik</h1><p class="sub">Satu sistem untuk memantau air nutrisi, mencatat siklus tanam, dan mengamankan pompa di greenhouse.</p><div class="pembaca"><span class="chip-gelap">Operator</span><span class="chip-gelap">Pengelola greenhouse</span><span class="chip-gelap">Mitra</span></div></header>
+<div class="isi">
+<section class="seksi"><div class="seksi-kepala"><div class="eyebrow">Apa itu GARAP?</div><h2>Platform hidroponik pintar untuk greenhouse</h2></div><div class="grid k2"><div class="kartu butir">
+      <div class="lingkar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 9.536V7a4 4 0 0 1 4-4h1.5a.5.5 0 0 1 .5.5V5a4 4 0 0 1-4 4 4 4 0 0 0-4 4c0 2 1 3 1 5a5 5 0 0 1-1 3"/><path d="M4 9a5 5 0 0 1 8 4 5 5 0 0 1-8-4"/><path d="M5 21h14"/></svg></div>
+      
+      <h3>GARAP = Green Autonomous Responsive Agriculture Platform</h3><p>Sistem pemantauan, pencatatan budidaya, asisten agronomi lokal, dan pengendalian perangkat hidroponik berbasis IoT. Nama produk di layar: <strong>Vertonik Smart Farm</strong>.</p>
+      </div><div class="kartu butir">
+      <div class="lingkar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
+      
+      <h3>Tujuan sistem</h3>
+      <ul><li>Kondisi air nutrisi terpantau setiap saat.</li><li>Siklus tanam 4 tahap tercatat rapi.</li><li>Pompa dilindungi pengaman berlapis.</li><li>Keputusan operator didukung data, bukan tebakan.</li></ul></div></div></section>
+<section class="seksi"><div class="seksi-kepala"><div class="eyebrow">Gambaran umum</div><h2>Dari tandon ke layar Anda</h2><p class="lead">Data sensor naik ke server lokal, lalu tampil di website dan aplikasi. Perintah dari pengelola turun melalui jalur yang sama.</p></div><div class="alur"><div class="kartu alur-item"><div class="lingkar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20v2"/><path d="M12 2v2"/><path d="M17 20v2"/><path d="M17 2v2"/><path d="M2 12h2"/><path d="M2 17h2"/><path d="M2 7h2"/><path d="M20 12h2"/><path d="M20 17h2"/><path d="M20 7h2"/><path d="M7 20v2"/><path d="M7 2v2"/><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg></div><h3>Perangkat IoT</h3><p>ESP32 di panel membaca sensor tiap 5 detik dan mengendalikan pompa.</p></div><div class="alur-panah"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div><div class="kartu alur-item"><div class="lingkar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg></div><h3>Server lokal</h3><p>Raspberry Pi menyimpan data, menjalankan backend, MQTT, dan Asisten AI.</p></div><div class="alur-panah"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div><div class="kartu alur-item"><div class="lingkar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8"/><path d="M10 19v-3.96 3.15"/><path d="M7 19h5"/><rect width="6" height="10" x="16" y="12" rx="2"/></svg></div><h3>Website &amp; aplikasi mobile</h3><p>Operator memantau, mencatat tanam, dan menerima peringatan.</p></div></div></section>
+<section class="seksi"><div class="seksi-kepala"><div class="eyebrow">Komponen utama</div><h2>Empat bagian yang bekerja bersama</h2></div><div class="grid k4"><div class="kartu butir">
+      <div class="lingkar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg></div>
+      
+      <h3>Sensor</h3><p>pH, EC/TDS, suhu air, suhu &amp; kelembapan udara, pelampung tandon.</p>
+      </div><div class="kartu butir">
+      <div class="lingkar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20v2"/><path d="M12 2v2"/><path d="M17 20v2"/><path d="M17 2v2"/><path d="M2 12h2"/><path d="M2 17h2"/><path d="M2 7h2"/><path d="M20 12h2"/><path d="M20 17h2"/><path d="M20 7h2"/><path d="M7 20v2"/><path d="M7 2v2"/><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg></div>
+      
+      <h3>Panel ESP32</h3><p>Firmware <code>gabungan-0.6</code>, LCD 20×4, lampu pilot, tombol E-STOP &amp; RESET.</p>
+      </div><div class="kartu butir">
+      <div class="lingkar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg></div>
+      
+      <h3>Raspberry Pi</h3><p>Backend Node.js, PostgreSQL, broker Mosquitto, Nginx, Ollama.</p>
+      </div><div class="kartu butir">
+      <div class="lingkar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8"/><path d="M10 19v-3.96 3.15"/><path d="M7 19h5"/><rect width="6" height="10" x="16" y="12" rx="2"/></svg></div>
+      
+      <h3>Website &amp; Flutter</h3><p>Website React di browser dan aplikasi Android/iOS GARAP.</p>
+      </div></div></section>
+<section class="seksi"><div class="seksi-kepala"><div class="eyebrow">Manfaat</div><h2>Yang Anda dapatkan</h2></div><div class="grid k3"><div class="kartu butir">
+      <div class="lingkar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg></div>
+      
+      <h3>Pantau tanpa menebak</h3><p>Angka sensor terbaru, batas aman, dan grafik riwayat di satu layar.</p>
+      </div><div class="kartu butir">
+      <div class="lingkar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg></div>
+      
+      <h3>Peringatan dini</h3><p>Kondisi di luar ambang dan gangguan alat muncul di menu Peringatan.</p>
+      </div><div class="kartu butir">
+      <div class="lingkar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></div>
+      
+      <h3>Aman berlapis</h3><p>E-STOP fisik, pelampung, batas mL, dan detak server 30 detik di firmware.</p>
+      </div></div></section>
+<div class="peringatan info" role="note"><div class="lingkar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div>
+      <h3>Status saat ini: dosing otomatis belum dijalankan</h3><p>Sistem sudah memantau dan mencatat. Eksekusi dosis otomatis masih <strong>diblokir</strong> sampai parameter, rumus, kalibrasi, dan firmware tervalidasi (<code>EKSEKUSI_DIIZINKAN = false</code>).</p></div></div>
+</div>
+<footer class="kaki"><div class="sumber"><strong>Sumber data</strong> · <code>docs/juknas-juknis/MODUL_JUKNAS_JUKNIS_VERTONIK_GARAP.md</code> (Bab I–II), <code>react-web-app/src/router.tsx</code>, <code>flutter_mobile_app/lib/config.dart</code>, <code>deploy-pi/firmware/gabungan/gabungan.ino</code>.</div><div>Versi 1.0 · 12 Nov 2026</div></footer>
+</main></body></html>

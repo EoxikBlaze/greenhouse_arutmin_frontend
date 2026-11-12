@@ -1,0 +1,49 @@
+<svg viewBox="0 0 1160 680" xmlns="http://www.w3.org/2000/svg"><style>text{font-family:Inter,system-ui,sans-serif}.h{font-family:'Space Grotesk',Inter,sans-serif;font-weight:700}</style><defs><marker id="ph" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#2D452F"/></marker><marker id="phs" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10 0 L0 5 L10 10 z" fill="#2D452F"/></marker><marker id="pm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#C0392B"/></marker><marker id="pms" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10 0 L0 5 L10 10 z" fill="#C0392B"/></marker></defs><rect x="20" y="40" width="300" height="610" rx="20" fill="#F4F7F2" stroke="#E2E8DD" stroke-width="1.5"/>
+<text x="40" y="70" font-size="12.5" font-weight="700" letter-spacing="1.8" fill="#4F6075">LAPANGAN · PANEL GREENHOUSE</text>
+<rect x="360" y="40" width="480" height="610" rx="20" fill="rgba(10,31,56,.06)" stroke="#0A1F38" stroke-width="1.5"/>
+<text x="380" y="70" font-size="12.5" font-weight="700" letter-spacing="1.8" fill="#0A1F38">SERVER LOKAL · RASPBERRY PI</text>
+<rect x="880" y="40" width="260" height="610" rx="20" fill="#F4F7F2" stroke="#E2E8DD" stroke-width="1.5"/>
+<text x="900" y="70" font-size="12.5" font-weight="700" letter-spacing="1.8" fill="#4F6075">PENGGUNA</text>
+<g><rect x="40" y="90" width="260" height="170" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="56" y="118" font-size="17" fill="#2D452F">Sensor</text><text x="56" y="140" font-size="14" fill="#4F6075">pH + EC → ADS1115 (0x48)</text><text x="56" y="159" font-size="14" fill="#4F6075">Suhu air → DS18B20</text><text x="56" y="178" font-size="14" fill="#4F6075">Suhu &amp; RH udara → SHT31</text><text x="56" y="197" font-size="14" fill="#4F6075">Pelampung bawah &amp; atas</text><text x="56" y="216" font-size="14" fill="#4F6075">Bus +12V E-STOP</text></g>
+<g><rect x="40" y="300" width="260" height="110" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="56" y="328" font-size="17" fill="#2D452F">ESP32 · gabungan-0.6</text><text x="56" y="350" font-size="14" fill="#4F6075">Baca sensor tiap 5 detik</text><text x="56" y="369" font-size="14" fill="#4F6075">LCD 20×4 · lampu pilot</text><text x="56" y="388" font-size="14" fill="#4F6075">Batas aman pompa</text></g>
+<g><rect x="40" y="450" width="260" height="130" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="56" y="478" font-size="17" fill="#2D452F">Aktuator</text><text x="56" y="500" font-size="14" fill="#4F6075">Pompa A · B (nutrisi)</text><text x="56" y="519" font-size="14" fill="#4F6075">Pompa pH Up · pH Down</text><text x="56" y="538" font-size="14" fill="#4F6075">Pompa isi air</text><text x="56" y="557" font-size="14" fill="#4F6075">via relay 12 V</text></g>
+<g><rect x="390" y="90" width="200" height="90" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="406" y="118" font-size="17" fill="#2D452F">Mosquitto</text><text x="406" y="140" font-size="14" fill="#4F6075">Broker MQTT</text><text x="406" y="159" font-size="14" fill="#4F6075">port 1883</text></g>
+<g><rect x="390" y="300" width="200" height="110" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="406" y="328" font-size="17" fill="#2D452F">Backend Node.js</text><text x="406" y="350" font-size="14" fill="#4F6075">vertonik-api</text><text x="406" y="369" font-size="14" fill="#4F6075">port 8000</text><text x="406" y="388" font-size="14" fill="#4F6075">aturan &amp; gerbang dosis</text></g>
+<g><rect x="390" y="470" width="200" height="80" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="406" y="498" font-size="17" fill="#2D452F">PostgreSQL</text><text x="406" y="520" font-size="14" fill="#4F6075">data sensor, tanam, audit</text></g>
+<g><rect x="620" y="90" width="200" height="90" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="636" y="118" font-size="17" fill="#2D452F">Ollama</text><text x="636" y="140" font-size="14" fill="#4F6075">Asisten AI lokal</text><text x="636" y="159" font-size="14" fill="#4F6075">port 11434</text></g>
+<g><rect x="620" y="300" width="200" height="110" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="636" y="328" font-size="17" fill="#2D452F">Nginx</text><text x="636" y="350" font-size="14" fill="#4F6075">port 80 / 443</text><text x="636" y="369" font-size="14" fill="#4F6075">web + proxy /api</text><text x="636" y="388" font-size="14" fill="#4F6075">→ backend :8000</text></g>
+<g><rect x="900" y="200" width="220" height="100" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="916" y="228" font-size="17" fill="#2D452F">Website React</text><text x="916" y="250" font-size="14" fill="#4F6075">di browser HP/laptop</text><text x="916" y="269" font-size="14" fill="#4F6075">HTTP/HTTPS ke Nginx</text></g>
+<g><rect x="900" y="400" width="220" height="100" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="916" y="428" font-size="17" fill="#2D452F">Aplikasi Flutter</text><text x="916" y="450" font-size="14" fill="#4F6075">Android / iOS</text><text x="916" y="469" font-size="14" fill="#4F6075">REST API ke Nginx</text></g>
+<path d="M170 260 L170 298" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+<text x="180" y="284" font-size="13" font-weight="600" fill="#2D452F" text-anchor="start">I2C · OneWire · GPIO</text>
+<path d="M170 410 L170 448" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+<text x="180" y="434" font-size="13" font-weight="600" fill="#2D452F" text-anchor="start">GPIO → relay</text>
+<path d="M300 330 L340 330 L340 135 L388 135" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" marker-start="url(#phs)"/>
+<text x="306" y="320" font-size="13" font-weight="600" fill="#2D452F" text-anchor="start">MQTT</text>
+<path d="M300 390 L350 390 L350 620 L720 620 L720 412" fill="none" stroke="#2D452F" stroke-width="2.2" stroke-dasharray="7 6" marker-end="url(#ph)" />
+<text x="400" y="610" font-size="13" font-weight="600" fill="#2D452F" text-anchor="start">HTTP POST cadangan (sensor saja)</text>
+<path d="M490 182 L490 298" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" marker-start="url(#phs)"/>
+
+<text x="500" y="244" font-size="13" font-weight="600" fill="#2D452F">jembatan MQTT</text>
+<path d="M490 412 L490 468" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" marker-start="url(#phs)"/>
+
+<text x="500" y="446" font-size="13" font-weight="600" fill="#2D452F">SQL</text>
+<path d="M618 355 L592 355" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+
+<path d="M560 298 L560 260 L720 260 L720 182" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+
+<text x="730" y="228" font-size="13" font-weight="600" fill="#2D452F">tanya AI</text>
+<path d="M898 250 L860 250 L860 335 L822 335" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" marker-start="url(#phs)"/>
+
+<path d="M898 450 L860 450 L860 375 L822 375" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" marker-start="url(#phs)"/>
+</svg>

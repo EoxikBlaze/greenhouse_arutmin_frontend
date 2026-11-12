@@ -1,0 +1,36 @@
+export default {
+  no: '08', berkasMd: 'Pemeliharaan', judulPendek: 'Pemeliharaan Perangkat',
+  judul: 'Pemeliharaan Perangkat GARAP',
+  subjudul: 'Delapan pemeriksaan agar sensor, pompa, dan koneksi tetap andal — dan cara mencatatnya.',
+  tujuan: 'Operator dan teknisi melakukan pemeriksaan rutin dengan pembagian tugas yang jelas dan hasil yang terdokumentasi.',
+  pembaca: ['Operator', 'Teknisi'],
+  sumber: 'Modul Juknas Bab III.1 (checklist harian pagi & sore), Bab VI.1 (SOP kalibrasi), Lampiran (lembar commissioning); `react-web-app` halaman Kalibrasi & Target Nutrisi → Perawatan.',
+  layout: 'Header → kotak info frekuensi → grid 4×2 kartu pemeriksaan (lencana Operator/Teknisi) → kartu standar kalibrasi (2 kolom) → langkah dokumentasi → peringatan → footer.',
+  ilustrasi: 'Ikon lucide per kartu: activity, cable, plug, layout-panel-top, waves, droplets, wifi, notebook-pen. Lencana hijau "Operator" dan lencana abu "Teknisi" di tiap kartu.',
+  catatan: ['Frekuensi yang **sudah** ditetapkan SOP: pemeriksaan fisik panel, tandon, dan kebocoran selang = **harian pagi & sore (5–10 menit)**.', 'Frekuensi kalibrasi & pemeriksaan kabel/konektor **belum ditetapkan** di SOP; infografis mengarahkan ke jadwal di menu Kalibrasi dan tab Perawatan. Jangan menambahkan angka hari/minggu.'],
+  keselamatan: '- Pemeriksaan kabel, konektor, dan isi panel hanya oleh teknisi dengan daya dimatikan.\n- Uji pompa: air bersih ke gelas ukur, mode pemeliharaan aktif.',
+  blok: [
+    { tipe: 'peringatan', nada: 'info', ikon: 'calendar-clock', judulKotak: 'Frekuensi pemeriksaan', poin: ['**Harian, pagi & sore (5–10 menit):** lampu pilot, level tandon di LCD, kebocoran selang — sesuai SOP operator.', 'Pemeriksaan lain: ikuti jadwal yang tercatat di menu **Kalibrasi** dan tab **Perawatan** (Target Nutrisi). Frekuensinya belum ditetapkan dalam SOP tervalidasi.'] },
+    { tipe: 'kartu', eyebrow: 'Delapan pemeriksaan', judul: 'Apa yang diperiksa, oleh siapa', kolom: 4, item: [
+      { ikon: 'activity', lencana: ['Operator'], judul: 'Sensor', teks: 'Angka tampil & wajar di LCD/Dashboard. `pH --.--` / `EC ----` = lapor.' },
+      { ikon: 'cable', lencana: ['Teknisi', 'netral'], judul: 'Kabel', teks: 'Tidak terkelupas, tidak tertarik, jauh dari genangan.' },
+      { ikon: 'plug', lencana: ['Teknisi', 'netral'], judul: 'Konektor', teks: 'Terpasang kencang, tidak berkarat/berembun.' },
+      { ikon: 'layout-panel-top', lencana: ['Operator'], judul: 'Panel (dari luar)', teks: 'Tutup rapat, lampu **hijau saja**, tidak ada bau hangus.' },
+      { ikon: 'waves', lencana: ['Teknisi', 'netral'], judul: 'Pompa', teks: 'Uji 1 per 1 dengan air bersih; laju dikalibrasi ulang bila berubah.' },
+      { ikon: 'droplets', lencana: ['Operator'], judul: 'Kebocoran', teks: 'Selang pompa A, B, pH Up, pH Down, dan isi air kering.' },
+      { ikon: 'wifi', lencana: ['Operator'], judul: 'Koneksi', teks: 'Dashboard **Alat terhubung**; LCD bukan `WIFI MATI` / `TUNGGU SERVER...`.' },
+      { ikon: 'notebook-pen', lencana: ['Operator & Teknisi'], judul: 'Dokumentasi', teks: 'Catat hasil di riwayat kalibrasi & lembar pemeriksaan.' },
+    ] },
+    { tipe: 'kartu', eyebrow: 'Standar kalibrasi', judul: 'Nilai acuan di halaman Kalibrasi', kolom: 3, item: [
+      { ikon: 'flask-conical', judul: 'EC — 2 titik', teks: 'Larutan standar **1.413 µS/cm** dan **12.880 µS/cm**. Bilas probe di antara titik.' },
+      { ikon: 'droplet', judul: 'pH — 2 titik', teks: 'Buffer **pH 4,0** dan **pH 7,0**. Tunggu indikator stabil sebelum ambil titik.' },
+      { ikon: 'timer', judul: 'Laju pompa', teks: 'Jalankan **30 / 60 / 120 detik**, takar mL di gelas ukur, ulangi 3× (selisih ≤ 5%).' },
+    ] },
+    { tipe: 'langkah', eyebrow: 'Dokumentasi', judul: 'Mencatat hasil pemeriksaan', item: [
+      { ikon: 'clipboard-list', judul: 'Isi lembar pemeriksaan', teks: 'Tanggal, nama pemeriksa, item, hasil Lulus/Gagal, paraf (format Lampiran Modul Juknas).' },
+      { ikon: 'history', judul: 'Simpan di sistem', teks: 'Kalibrasi tersimpan otomatis di **Riwayat kalibrasi**; perubahan pengaturan tercatat di **Catatan Aktivitas**.' },
+      { ikon: 'send', judul: 'Laporkan temuan', teks: 'Item gagal → laporkan ke teknisi/admin dengan foto & waktu kejadian.' },
+    ] },
+    { tipe: 'peringatan', nada: 'waspada', judulKotak: 'Sebelum kalibrasi atau uji pompa', poin: ['Aktifkan **mode pemeliharaan** di halaman Kalibrasi agar tindakan otomatis dijeda.', 'Gunakan **air bersih** dan arahkan selang ke **gelas ukur**, bukan ke tandon tanaman.', 'Matikan mode pemeliharaan setelah selesai.'] },
+  ],
+}

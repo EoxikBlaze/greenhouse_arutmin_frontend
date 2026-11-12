@@ -1,0 +1,41 @@
+export default {
+  no: '10', berkasMd: 'Keselamatan', judulPendek: 'Keselamatan Operasional',
+  judul: 'Keselamatan Operasional',
+  subjudul: 'Listrik dan air berada di ruang yang sama. Kenali batas kewenangan Anda.',
+  tujuan: 'Mencegah kecelakaan listrik dan kerusakan alat di greenhouse yang lembap; menegaskan batas tugas operator.',
+  pembaca: ['Operator', 'Teknisi', 'Pengelola greenhouse', 'Mitra'],
+  sumber: 'Modul Juknas Bab I.2 (prinsip keselamatan), Bab V.1 (peringatan daya), Bab V.3 (batas pengaman firmware); `gabungan.ino` (E-STOP GPIO 36, fail-safe 30 dtk).',
+  layout: 'Header → peringatan merah larangan utama → grid 3 kartu risiko → langkah saat terjadi gangguan → tabel batas kewenangan Operator vs Teknisi → kartu pengaman bawaan sistem → footer.',
+  ilustrasi: 'Ikon lucide: zap, cloud-rain, layout-panel-top, octagon-x, hand, shield-check. Tidak memakai gambar orang tersengat atau ilustrasi dramatis. Merah hanya untuk larangan.',
+  catatan: ['Infografis ini **tidak** memberi instruksi perbaikan kelistrikan kepada operator.', 'Batas pengaman firmware dicantumkan sebagai informasi, bukan instruksi pengubahan.'],
+  keselamatan: '- Dilarang menyentuh instalasi listrik dalam kondisi basah.\n- E-STOP fisik adalah pemutus tertinggi.\n- Pompa 12 V wajib lewat relay/MOSFET + dioda flyback, tidak dari pin ESP32 (urusan teknisi).',
+  blok: [
+    { tipe: 'peringatan', nada: 'bahaya', ikon: 'zap', judulKotak: 'DILARANG menyentuh instalasi listrik dalam kondisi basah', poin: ['Tangan, kaki, atau lantai basah = jangan sentuh panel, stopkontak, atau kabel.', 'Jangan membuka panel listrik. Membuka panel hanya oleh teknisi dengan daya dimatikan.', 'Jangan menyemprot air di dekat panel dan Raspberry Pi.'] },
+    { tipe: 'kartu', eyebrow: 'Kenali risikonya', judul: 'Tiga sumber bahaya di greenhouse', kolom: 3, item: [
+      { ikon: 'zap', nada: 'bahaya', judul: 'Kelistrikan', teks: 'Panel memuat catu 12 V untuk lima pompa dan relay. Korsleting dapat melukai dan merusak alat.' },
+      { ikon: 'cloud-rain', nada: 'waspada', judul: 'Lingkungan lembap', teks: 'Embun, percikan, dan genangan dekat tandon membuat permukaan menghantarkan listrik.' },
+      { ikon: 'layout-panel-top', judul: 'Pemeriksaan panel', teks: 'Operator memeriksa **dari luar saja**: tutup rapat, lampu pilot, bau hangus, kebocoran di sekitar.' },
+    ] },
+    { tipe: 'langkah', eyebrow: 'Saat terjadi gangguan', judul: 'Urutan tindakan darurat', item: [
+      { ikon: 'octagon-x', judul: 'Tekan E-STOP fisik', teks: 'Kebocoran, selang lepas, korsleting, atau pompa berjalan tidak wajar → tekan tombol merah. Tidak perlu menunggu website.', aksi: 'E-STOP', aksiBahaya: true },
+      { ikon: 'footprints', judul: 'Menjauh dari area basah', teks: 'Jangan berdiri di genangan dekat panel. Jauhkan orang lain.' },
+      { ikon: 'phone-call', judul: 'Hubungi teknisi / admin', teks: 'Sampaikan apa yang terlihat: lampu, pesan LCD, lokasi bocor, waktu kejadian.' },
+      { ikon: 'notebook-pen', judul: 'Catat kejadian', teks: 'Admin menandai peringatan selesai **setelah** kondisi fisik diperiksa.' },
+    ] },
+    { tipe: 'tabel', eyebrow: 'Batas kewenangan', judul: 'Siapa boleh melakukan apa', kolom: ['Kegiatan', 'Operator', 'Teknisi'], baris: [
+      ['Memantau Dashboard, Peringatan, LCD, lampu pilot', 'Boleh', 'Boleh'],
+      ['Menekan E-STOP saat darurat', 'Boleh — wajib', 'Boleh'],
+      ['Menekan tombol RESET singkat (lihat IP)', 'Boleh', 'Boleh'],
+      ['Membuka panel, menyentuh kabel/relay/sekring', '**Tidak boleh**', 'Boleh, daya dimatikan'],
+      ['Kalibrasi sensor & pompa, uji pompa', '**Tidak boleh**', 'Boleh, mode pemeliharaan'],
+      ['Mengubah Saklar, Pengaturan Alat, firmware', '**Tidak boleh**', 'Admin/teknisi berwenang'],
+      ['Mengaktifkan eksekusi dosing', '**Tidak boleh**', '**Tidak boleh** — diblokir di kode'],
+    ] },
+    { tipe: 'kartu', eyebrow: 'Pengaman bawaan', judul: 'Sistem juga menjaga Anda', kolom: 4, item: [
+      { ikon: 'octagon-x', judul: 'E-STOP terbaca', teks: 'ESP32 membaca bus +12 V; E-STOP ditekan = semua aktuator dikunci.' },
+      { ikon: 'heart-pulse', judul: 'Detak server', teks: 'Tanpa detak server > **30 detik**, pompa berhenti otomatis.' },
+      { ikon: 'container', judul: 'Pelampung', teks: 'Isi air berhenti saat pelampung atas terangkat; kabel putus dianggap penuh.' },
+      { ikon: 'shield-check', judul: 'Batas mL', teks: 'Nutrisi AB maks **214 mL**/perintah & **450 mL**/jam; pH maks **10 mL**/perintah & **30 mL**/jam.' },
+    ] },
+  ],
+}

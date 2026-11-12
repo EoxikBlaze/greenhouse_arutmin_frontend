@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arsitektur Sistem — Infografis GARAP</title>
+<link rel="stylesheet" href="garap-infografis.css"></head>
+<body>
+<nav class="alat" aria-label="Navigasi preview"><a href="index.html">← Semua infografis</a>
+<div class="alat-kanan"><a class="tombol tombol-kaca" href="infographic-01.html">Sebelumnya</a><a class="tombol tombol-kaca" href="infographic-03.html">Berikutnya</a>
+<button class="tombol tombol-primer" type="button" onclick="window.print()">Cetak / PDF</button></div></nav>
+<main class="kanvas">
+<header class="kepala"><div class="kepala-eyebrow"><span class="nomor">INFOGRAFIS 02</span><span>GARAP · Vertonik Smart Farm</span></div>
+<h1>Arsitektur Sistem GARAP</h1><p class="sub">Siapa berbicara dengan siapa, lewat jalur apa — sesuai konfigurasi yang terpasang.</p><div class="pembaca"><span class="chip-gelap">Teknisi</span><span class="chip-gelap">Administrator</span><span class="chip-gelap">Mitra teknis</span></div></header>
+<div class="isi">
+<section class="seksi"><div class="seksi-kepala"><div class="eyebrow">Peta komunikasi</div><h2>Tiga zona, satu pusat data</h2></div><div class="diagram" role="img" aria-label="Diagram arsitektur: sensor dan aktuator terhubung ke ESP32; ESP32 berkomunikasi MQTT dengan Mosquitto di Raspberry Pi dan HTTP cadangan ke Nginx; Mosquitto terhubung ke backend; backend ke PostgreSQL dan Ollama; Nginx meneruskan ke backend; website dan aplikasi Flutter terhubung ke Nginx."><svg viewBox="0 0 1160 680" xmlns="http://www.w3.org/2000/svg"><defs><marker id="ph" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#2D452F"/></marker><marker id="phs" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10 0 L0 5 L10 10 z" fill="#2D452F"/></marker><marker id="pm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#C0392B"/></marker><marker id="pms" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10 0 L0 5 L10 10 z" fill="#C0392B"/></marker></defs><rect x="20" y="40" width="300" height="610" rx="20" fill="#F4F7F2" stroke="#E2E8DD" stroke-width="1.5"/>
+<text x="40" y="70" font-size="12.5" font-weight="700" letter-spacing="1.8" fill="#4F6075">LAPANGAN · PANEL GREENHOUSE</text>
+<rect x="360" y="40" width="480" height="610" rx="20" fill="rgba(10,31,56,.06)" stroke="#0A1F38" stroke-width="1.5"/>
+<text x="380" y="70" font-size="12.5" font-weight="700" letter-spacing="1.8" fill="#0A1F38">SERVER LOKAL · RASPBERRY PI</text>
+<rect x="880" y="40" width="260" height="610" rx="20" fill="#F4F7F2" stroke="#E2E8DD" stroke-width="1.5"/>
+<text x="900" y="70" font-size="12.5" font-weight="700" letter-spacing="1.8" fill="#4F6075">PENGGUNA</text>
+<g><rect x="40" y="90" width="260" height="170" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="56" y="118" font-size="17" fill="#2D452F">Sensor</text><text x="56" y="140" font-size="14" fill="#4F6075">pH + EC → ADS1115 (0x48)</text><text x="56" y="159" font-size="14" fill="#4F6075">Suhu air → DS18B20</text><text x="56" y="178" font-size="14" fill="#4F6075">Suhu &amp; RH udara → SHT31</text><text x="56" y="197" font-size="14" fill="#4F6075">Pelampung bawah &amp; atas</text><text x="56" y="216" font-size="14" fill="#4F6075">Bus +12V E-STOP</text></g>
+<g><rect x="40" y="300" width="260" height="110" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="56" y="328" font-size="17" fill="#2D452F">ESP32 · gabungan-0.6</text><text x="56" y="350" font-size="14" fill="#4F6075">Baca sensor tiap 5 detik</text><text x="56" y="369" font-size="14" fill="#4F6075">LCD 20×4 · lampu pilot</text><text x="56" y="388" font-size="14" fill="#4F6075">Batas aman pompa</text></g>
+<g><rect x="40" y="450" width="260" height="130" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="56" y="478" font-size="17" fill="#2D452F">Aktuator</text><text x="56" y="500" font-size="14" fill="#4F6075">Pompa A · B (nutrisi)</text><text x="56" y="519" font-size="14" fill="#4F6075">Pompa pH Up · pH Down</text><text x="56" y="538" font-size="14" fill="#4F6075">Pompa isi air</text><text x="56" y="557" font-size="14" fill="#4F6075">via relay 12 V</text></g>
+<g><rect x="390" y="90" width="200" height="90" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="406" y="118" font-size="17" fill="#2D452F">Mosquitto</text><text x="406" y="140" font-size="14" fill="#4F6075">Broker MQTT</text><text x="406" y="159" font-size="14" fill="#4F6075">port 1883</text></g>
+<g><rect x="390" y="300" width="200" height="110" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="406" y="328" font-size="17" fill="#2D452F">Backend Node.js</text><text x="406" y="350" font-size="14" fill="#4F6075">vertonik-api</text><text x="406" y="369" font-size="14" fill="#4F6075">port 8000</text><text x="406" y="388" font-size="14" fill="#4F6075">aturan &amp; gerbang dosis</text></g>
+<g><rect x="390" y="470" width="200" height="80" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="406" y="498" font-size="17" fill="#2D452F">PostgreSQL</text><text x="406" y="520" font-size="14" fill="#4F6075">data sensor, tanam, audit</text></g>
+<g><rect x="620" y="90" width="200" height="90" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="636" y="118" font-size="17" fill="#2D452F">Ollama</text><text x="636" y="140" font-size="14" fill="#4F6075">Asisten AI lokal</text><text x="636" y="159" font-size="14" fill="#4F6075">port 11434</text></g>
+<g><rect x="620" y="300" width="200" height="110" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="636" y="328" font-size="17" fill="#2D452F">Nginx</text><text x="636" y="350" font-size="14" fill="#4F6075">port 80 / 443</text><text x="636" y="369" font-size="14" fill="#4F6075">web + proxy /api</text><text x="636" y="388" font-size="14" fill="#4F6075">→ backend :8000</text></g>
+<g><rect x="900" y="200" width="220" height="100" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="916" y="228" font-size="17" fill="#2D452F">Website React</text><text x="916" y="250" font-size="14" fill="#4F6075">di browser HP/laptop</text><text x="916" y="269" font-size="14" fill="#4F6075">HTTP/HTTPS ke Nginx</text></g>
+<g><rect x="900" y="400" width="220" height="100" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="916" y="428" font-size="17" fill="#2D452F">Aplikasi Flutter</text><text x="916" y="450" font-size="14" fill="#4F6075">Android / iOS</text><text x="916" y="469" font-size="14" fill="#4F6075">REST API ke Nginx</text></g>
+<path d="M170 260 L170 298" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+<text x="180" y="284" font-size="13" font-weight="600" fill="#2D452F" text-anchor="start">I2C · OneWire · GPIO</text>
+<path d="M170 410 L170 448" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+<text x="180" y="434" font-size="13" font-weight="600" fill="#2D452F" text-anchor="start">GPIO → relay</text>
+<path d="M300 330 L340 330 L340 135 L388 135" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" marker-start="url(#phs)"/>
+<text x="306" y="320" font-size="13" font-weight="600" fill="#2D452F" text-anchor="start">MQTT</text>
+<path d="M300 390 L350 390 L350 620 L720 620 L720 412" fill="none" stroke="#2D452F" stroke-width="2.2" stroke-dasharray="7 6" marker-end="url(#ph)" />
+<text x="400" y="610" font-size="13" font-weight="600" fill="#2D452F" text-anchor="start">HTTP POST cadangan (sensor saja)</text>
+<path d="M490 182 L490 298" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" marker-start="url(#phs)"/>
+
+<text x="500" y="244" font-size="13" font-weight="600" fill="#2D452F">jembatan MQTT</text>
+<path d="M490 412 L490 468" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" marker-start="url(#phs)"/>
+
+<text x="500" y="446" font-size="13" font-weight="600" fill="#2D452F">SQL</text>
+<path d="M618 355 L592 355" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+
+<path d="M560 298 L560 260 L720 260 L720 182" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+
+<text x="730" y="228" font-size="13" font-weight="600" fill="#2D452F">tanya AI</text>
+<path d="M898 250 L860 250 L860 335 L822 335" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" marker-start="url(#phs)"/>
+
+<path d="M898 450 L860 450 L860 375 L822 375" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" marker-start="url(#phs)"/>
+</svg></div></section>
+<section class="seksi"><div class="seksi-kepala"><div class="eyebrow">Kontrak MQTT</div><h2>Topik yang dipakai ESP32 dan server</h2></div><table class="tabel"><thead><tr><th scope="col">Topik</th><th scope="col">Arah</th><th scope="col">Isi</th></tr></thead><tbody><tr><td data-label="Topik"><code>garap/&lt;kode&gt;/data</code></td><td data-label="Arah">ESP32 → server</td><td data-label="Isi">Bacaan sensor (format sama dengan HTTP POST).</td></tr><tr><td data-label="Topik"><code>garap/&lt;kode&gt;/status</code></td><td data-label="Arah">ESP32 → server</td><td data-label="Isi">Online, versi firmware, sinyal, uptime, E-STOP (retained).</td></tr><tr><td data-label="Topik"><code>garap/&lt;kode&gt;/perintah</code></td><td data-label="Arah">server → ESP32</td><td data-label="Isi">Perintah aktuator (QoS 1).</td></tr><tr><td data-label="Topik"><code>garap/&lt;kode&gt;/hasil</code></td><td data-label="Arah">ESP32 → server</td><td data-label="Isi">Hasil perintah; diulang sampai ada <code>ack</code>.</td></tr><tr><td data-label="Topik"><code>garap/&lt;kode&gt;/ack</code></td><td data-label="Arah">server → ESP32</td><td data-label="Isi">Tanda hasil sudah diterima.</td></tr><tr><td data-label="Topik"><code>garap/server/status</code></td><td data-label="Arah">server → semua</td><td data-label="Isi">Detak server tiap 5 detik. Hilang &gt; 30 detik = pompa berhenti.</td></tr></tbody></table></section>
+<section class="seksi"><div class="seksi-kepala"><div class="eyebrow">Alamat &amp; port</div><h2>Yang perlu diingat teknisi</h2></div><div class="grid k2"><div class="kartu butir">
+      <div class="lingkar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></svg></div>
+      
+      <h3>Di dalam Raspberry Pi</h3>
+      <ul><li>Nginx <code>80</code> / <code>443</code></li><li>Backend <code>8000</code> (hanya lewat Nginx)</li><li>Mosquitto <code>1883</code></li><li>Ollama <code>11434</code> (lokal)</li></ul></div><div class="kartu butir">
+      <div class="lingkar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h.01"/><path d="M2 8.82a15 15 0 0 1 20 0"/><path d="M5 12.859a10 10 0 0 1 14 0"/><path d="M8.5 16.429a5 5 0 0 1 7 0"/></svg></div>
+      
+      <h3>Dari jaringan greenhouse</h3>
+      <ul><li><code>http://vertonik.local</code> atau <code>http://&lt;IP-Pi&gt;</code></li><li>Hotspot Pi <code>Vertoniksmartfarm</code>: <code>http://10.42.0.1</code></li><li>ESP32 hanya Wi-Fi <strong>2,4 GHz</strong></li><li>Kode alat lapangan: <code>aktuator-01</code></li></ul></div></div></section>
+<div class="peringatan info" role="note"><div class="lingkar"><svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></div><div>
+      <h3>Website dan aplikasi tidak pernah langsung ke ESP32</h3><p>Semua perintah melewati backend di Raspberry Pi, dicatat di Catatan Aktivitas, dan diperiksa aturan keselamatan sebelum dikirim.</p></div></div>
+</div>
+<footer class="kaki"><div class="sumber"><strong>Sumber data</strong> · <code>backend-nodejs/src/mqttJembatan.js</code> (topik MQTT), <code>deploy-pi/nginx/vertonik.conf</code>, <code>backend-nodejs/src/config.js</code>, <code>flutter_mobile_app/lib/config.dart</code>, <code>deploy-pi/firmware/gabungan/gabungan.ino</code>, Modul Juknas Bab II &amp; V.</div><div>Versi 1.0 · 12 Nov 2026</div></footer>
+</main></body></html>

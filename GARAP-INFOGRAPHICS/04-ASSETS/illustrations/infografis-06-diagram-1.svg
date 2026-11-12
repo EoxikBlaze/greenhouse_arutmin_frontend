@@ -1,0 +1,50 @@
+<svg viewBox="0 0 1160 400" xmlns="http://www.w3.org/2000/svg"><style>text{font-family:Inter,system-ui,sans-serif}.h{font-family:'Space Grotesk',Inter,sans-serif;font-weight:700}</style><defs><marker id="ph" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#2D452F"/></marker><marker id="phs" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10 0 L0 5 L10 10 z" fill="#2D452F"/></marker><marker id="pm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#C0392B"/></marker><marker id="pms" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10 0 L0 5 L10 10 z" fill="#C0392B"/></marker></defs><text x="10" y="36" font-size="12.5" font-weight="700" letter-spacing="1.8" fill="#4F6075">STATUS SIKLUS BUDIDAYA DI BACKEND</text>
+<rect x="10" y="60" width="262" height="96" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="26" y="92" font-size="18" fill="#2D452F">1. Rencana dibuat</text>
+<text x="26" y="116" font-family="ui-monospace,Menlo,monospace" font-size="11.5" fill="#4F6075">DRAFT</text>
+<text x="26" y="140" font-size="13" font-weight="600" fill="#4E7733">maju oleh: user</text>
+<rect x="298" y="60" width="262" height="96" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="314" y="92" font-size="18" fill="#2D452F">2. Siapkan tandon</text>
+<text x="314" y="116" font-family="ui-monospace,Menlo,monospace" font-size="11.5" fill="#4F6075">TANK_PREPARATION</text>
+<text x="314" y="140" font-size="13" font-weight="600" fill="#4E7733">maju oleh: system</text>
+<rect x="586" y="60" width="262" height="96" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="602" y="92" font-size="18" fill="#2D452F">3. Konfirmasi tandon</text>
+<text x="602" y="116" font-family="ui-monospace,Menlo,monospace" font-size="11.5" fill="#4F6075">WAITING_TANK_CONFIRMATION</text>
+<text x="602" y="140" font-size="13" font-weight="600" fill="#4E7733">maju oleh: user</text>
+<rect x="874" y="60" width="262" height="96" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="890" y="92" font-size="18" fill="#2D452F">4. Semai</text>
+<text x="890" y="116" font-family="ui-monospace,Menlo,monospace" font-size="11.5" fill="#4F6075">SEEDING</text>
+<text x="890" y="140" font-size="13" font-weight="600" fill="#4E7733">maju oleh: user / system</text>
+<rect x="10" y="230" width="262" height="96" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="26" y="262" font-size="18" fill="#2D452F">5. Konfirmasi bibit siap</text>
+<text x="26" y="286" font-family="ui-monospace,Menlo,monospace" font-size="11.5" fill="#4F6075">WAITING_REJUVENATION_CONFIRMATION</text>
+<text x="26" y="310" font-size="13" font-weight="600" fill="#4E7733">maju oleh: user</text>
+<rect x="298" y="230" width="262" height="96" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="314" y="262" font-size="18" fill="#2D452F">6. Konfirmasi jumlah bibit</text>
+<text x="314" y="286" font-family="ui-monospace,Menlo,monospace" font-size="11.5" fill="#4F6075">WAITING_SEED_COUNT_CONFIRMATION</text>
+<text x="314" y="310" font-size="13" font-weight="600" fill="#4E7733">maju oleh: user</text>
+<rect x="586" y="230" width="262" height="96" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="602" y="262" font-size="18" fill="#2D452F">7. Tumbuh</text>
+<text x="602" y="286" font-family="ui-monospace,Menlo,monospace" font-size="11.5" fill="#4F6075">GROWTH</text>
+<text x="602" y="310" font-size="13" font-weight="600" fill="#4E7733">maju oleh: user / system</text>
+<rect x="874" y="230" width="262" height="96" rx="12" fill="#EEF5ED" stroke="#6B9D4A" stroke-width="1.5"/>
+<text class="h" x="890" y="262" font-size="18" fill="#2D452F">8. Selesai</text>
+<text x="890" y="286" font-family="ui-monospace,Menlo,monospace" font-size="11.5" fill="#4F6075">COMPLETED</text>
+
+<path d="M274 108 L296 108" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+
+<path d="M562 108 L584 108" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+
+<path d="M850 108 L872 108" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+
+<path d="M274 278 L296 278" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+
+<path d="M562 278 L584 278" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+
+<path d="M850 278 L872 278" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+
+<path d="M1005 158 L1005 194 L141 194 L141 228" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+
+<rect x="10" y="340" width="1136" height="52" rx="10" fill="#FFFBEB" stroke="#E0A42B"/>
+<text x="26" y="362" font-size="14" fill="#92400E">Dari status mana pun sebelum Selesai, pengguna dapat membatalkan → CANCELLED (alasan minimal 5 karakter).</text>
+<text x="26" y="381" font-size="14" fill="#92400E">Bibit tidak pernah dianggap siap tanpa jawaban pengguna.</text></svg>

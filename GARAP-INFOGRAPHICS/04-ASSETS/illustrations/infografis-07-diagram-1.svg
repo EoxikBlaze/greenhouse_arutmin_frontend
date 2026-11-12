@@ -1,0 +1,32 @@
+<svg viewBox="0 0 1160 330" xmlns="http://www.w3.org/2000/svg"><style>text{font-family:Inter,system-ui,sans-serif}.h{font-family:'Space Grotesk',Inter,sans-serif;font-weight:700}</style><defs><marker id="ph" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#2D452F"/></marker><marker id="phs" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10 0 L0 5 L10 10 z" fill="#2D452F"/></marker><marker id="pm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#C0392B"/></marker><marker id="pms" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M10 0 L0 5 L10 10 z" fill="#C0392B"/></marker></defs><g><rect x="10" y="40" width="250" height="120" rx="12" fill="#EEF5ED" stroke="#6B9D4A" stroke-width="1.5"/>
+<text class="h" x="26" y="68" font-size="17" fill="#2D452F">1 · Monitoring</text><text x="26" y="90" font-size="14" fill="#4F6075">Sensor dibaca tiap 5 detik</text><text x="26" y="109" font-size="14" fill="#4F6075">dan disimpan</text></g>
+<g><rect x="300" y="40" width="250" height="120" rx="12" fill="#EEF5ED" stroke="#6B9D4A" stroke-width="1.5"/>
+<text class="h" x="316" y="68" font-size="17" fill="#2D452F">2 · Rekomendasi</text><text x="316" y="90" font-size="14" fill="#4F6075">Kartu "Saran nutrisi"</text><text x="316" y="109" font-size="14" fill="#4F6075">teks saja, tanpa tombol</text></g>
+<g><rect x="590" y="40" width="250" height="120" rx="12" fill="#EEF5ED" stroke="#6B9D4A" stroke-width="1.5"/>
+<text class="h" x="606" y="68" font-size="17" fill="#2D452F">3 · Persetujuan</text><text x="606" y="90" font-size="14" fill="#4F6075">Operator setujui / tolak</text><text x="606" y="109" font-size="14" fill="#4F6075">via API backend</text></g>
+<g><rect x="880" y="40" width="270" height="120" rx="12" fill="#FEF2F2" stroke="#C0392B" stroke-width="1.5"/>
+<text class="h" x="896" y="68" font-size="17" fill="#B91C1C">4 · Eksekusi pompa</text><text x="896" y="90" font-size="14" fill="#B91C1C">DIBLOKIR</text><text x="896" y="109" font-size="14" fill="#B91C1C">EKSEKUSI_DIIZINKAN = false</text></g>
+<path d="M262 100 L298 100" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+
+<path d="M552 100 L588 100" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+
+<path d="M842 100 L878 100" fill="none" stroke="#C0392B" stroke-width="2.2"  marker-end="url(#pm)" />
+
+<line x1="845" y1="80" x2="875" y2="120" stroke="#C0392B" stroke-width="4"/><line x1="875" y1="80" x2="845" y2="120" stroke="#C0392B" stroke-width="4"/>
+<text x="10" y="24" font-size="12.5" font-weight="700" letter-spacing="1.8" fill="#4F6075">EMPAT HAL BERBEDA — JANGAN DICAMPUR</text>
+<text x="10" y="200" font-size="12.5" font-weight="700" letter-spacing="1.8" fill="#4F6075">STATUS SIKLUS DOSING (BACKEND)</text>
+<g><rect x="10" y="215" width="200" height="70" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="26" y="243" font-size="14" fill="#2D452F">WAITING_APPROVAL</text><text x="26" y="265" font-size="14" fill="#4F6075">menunggu operator</text></g>
+<g><rect x="250" y="215" width="160" height="70" rx="12" fill="#FFFFFF" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="266" y="243" font-size="14" fill="#2D452F">APPROVED</text><text x="266" y="265" font-size="14" fill="#4F6075">disetujui</text></g>
+<g><rect x="450" y="215" width="220" height="70" rx="12" fill="#FEF2F2" stroke="#C0392B" stroke-width="1.5"/>
+<text class="h" x="466" y="243" font-size="14" fill="#B91C1C">GERBANG DOSIS</text><text x="466" y="265" font-size="14" fill="#B91C1C">menolak: 423 diblokir</text></g>
+<g><rect x="710" y="215" width="440" height="70" rx="12" fill="#F4F7F2" stroke="#D7E0D2" stroke-width="1.5"/>
+<text class="h" x="726" y="243" font-size="14" fill="#4F6075">RUNNING → MIXING → VERIFYING</text><text x="726" y="265" font-size="14" fill="#4F6075">belum pernah dijalankan (jalur nonaktif)</text></g>
+<path d="M212 250 L248 250" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+
+<path d="M412 250 L448 250" fill="none" stroke="#2D452F" stroke-width="2.2"  marker-end="url(#ph)" />
+
+<path d="M672 250 L708 250" fill="none" stroke="#C0392B" stroke-width="2.2" stroke-dasharray="7 6" marker-end="url(#pm)" />
+
+<text x="10" y="315" font-size="13.5" fill="#4F6075">Akhir lain: REJECTED (ditolak) · EXPIRED (lewat masa persetujuan) · CANCELLED (dicabut) · FAULT (gangguan → penampung dikunci)</text></svg>
