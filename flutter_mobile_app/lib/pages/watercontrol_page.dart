@@ -11,7 +11,6 @@ import '../widgets/navigasi_shell.dart';
 import '../widgets/rute.dart';
 import '../widgets/status_penampung.dart';
 import 'naik_harian_page.dart';
-import 'nutrisi_manual_page.dart';
 import 'saklar_page.dart';
 import 'uji_lab_page.dart';
 
@@ -133,6 +132,31 @@ class _WaterControlPageState extends State<WaterControlPage> {
       ),
     );
     if (ok == true) await _aksi('/watercontrol/fill');
+  }
+
+  /// STOP semua pompa: POST /iot-v41/stop. Balasan = diantre, belum tentu pompa sudah mati.
+  Future<void> _stopPompa() async {
+    final ok = await konfirmasi(
+      context,
+      judul: 'Hentikan semua pompa?',
+      isi: 'Perintah STOP dikirim ke alat. Untuk keadaan darurat, tekan tombol E-STOP fisik.',
+      labelYa: 'Ya, kirim STOP',
+    );
+    if (!ok || !mounted) return;
+    String teks;
+    try {
+      final d = await widget.api.kirimJson(
+        '/iot-v41/stop',
+        const <String, dynamic>{},
+      );
+      teks = d is Map
+          ? '${d['message'] ?? 'Perintah STOP masuk antrean.'}'
+          : 'Perintah STOP masuk antrean.';
+    } on ApiException catch (e) {
+      teks = '${e.message} Gunakan tombol darurat fisik bila perlu.';
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(teks)));
   }
 
   Future<void> _konfirmasiMode(bool otomatis) async {
@@ -312,7 +336,7 @@ class _WaterControlPageState extends State<WaterControlPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Pintasan langsung ke kendali saklar aktuator, suntik nutrisi manual, target harian, dan uji lab.',
+                  'Pintasan langsung ke kendali saklar aktuator, STOP pompa, target harian, dan uji lab.',
                   style: Tok.kecil,
                 ),
                 const SizedBox(height: 12),
@@ -330,13 +354,9 @@ class _WaterControlPageState extends State<WaterControlPage> {
                       label: const Text('Saklar Aktuator'),
                     ),
                     OutlinedButton.icon(
-                      onPressed: () => bukaHalamanApp(
-                        context,
-                        NutrisiManualPage(api: widget.api, tanpaAppBar: true),
-                        judul: 'Nutrisi',
-                      ),
-                      icon: const Icon(Ikon.tetes, size: 18),
-                      label: const Text('Nutrisi Manual'),
+                      onPressed: _stopPompa,
+                      icon: const Icon(Icons.stop_circle_outlined, size: 18),
+                      label: const Text('STOP pompa'),
                     ),
                     OutlinedButton.icon(
                       onPressed: () => bukaHalamanApp(

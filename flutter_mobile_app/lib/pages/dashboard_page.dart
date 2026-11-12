@@ -14,7 +14,6 @@ import '../widgets/navigasi_shell.dart';
 import '../widgets/tren_batang.dart';
 import 'asisten_page.dart';
 import 'cctv_page.dart';
-import 'nutrisi_manual_page.dart';
 import 'peringatan_page.dart';
 import 'saklar_page.dart';
 import 'uji_lab_page.dart';
@@ -138,12 +137,22 @@ class _DashboardPageState extends State<DashboardPage> {
                       _ItemMenu(
                         Ikon.ai,
                         'Asisten AI',
-                        () => pilih(() => dorong(AsistenPage(api: widget.api, tanpaAppBar: true), 'Asisten GARAP')),
+                        () => pilih(
+                          () => dorong(
+                            AsistenPage(api: widget.api, tanpaAppBar: true),
+                            'Asisten GARAP',
+                          ),
+                        ),
                       ),
                     _ItemMenu(
                       Ikon.cctv,
                       'CCTV',
-                      () => pilih(() => dorong(CctvPage(api: widget.api, tanpaAppBar: true), 'CCTV')),
+                      () => pilih(
+                        () => dorong(
+                          CctvPage(api: widget.api, tanpaAppBar: true),
+                          'CCTV',
+                        ),
+                      ),
                     ),
                   ],
                   const _GrupMenu('Kebun & sensor'),
@@ -168,13 +177,11 @@ class _DashboardPageState extends State<DashboardPage> {
                     _ItemMenu(
                       Ikon.ambang,
                       'Saklar',
-                      () => pilih(() => dorong(SaklarPage(api: widget.api, tanpaAppBar: true), 'Saklar')),
-                    ),
-                    _ItemMenu(
-                      Ikon.tetes,
-                      'Nutrisi manual',
                       () => pilih(
-                        () => dorong(NutrisiManualPage(api: widget.api, tanpaAppBar: true), 'Nutrisi'),
+                        () => dorong(
+                          SaklarPage(api: widget.api, tanpaAppBar: true),
+                          'Saklar',
+                        ),
                       ),
                     ),
                   ],
@@ -183,13 +190,24 @@ class _DashboardPageState extends State<DashboardPage> {
                     _ItemMenu(
                       Ikon.dosing,
                       'Uji lab',
-                      () => pilih(() => dorong(UjiLabPage(api: widget.api, tanpaAppBar: true), 'Uji Lab')),
+                      () => pilih(
+                        () => dorong(
+                          UjiLabPage(api: widget.api, tanpaAppBar: true),
+                          'Uji Lab',
+                        ),
+                      ),
                     ),
                   _ItemMenu(
                     Ikon.laporan,
                     'Riwayat monitoring',
                     () => pilih(
-                      () => dorong(RiwayatMonitoringPage(api: widget.api, tanpaAppBar: true), 'Riwayat'),
+                      () => dorong(
+                        RiwayatMonitoringPage(
+                          api: widget.api,
+                          tanpaAppBar: true,
+                        ),
+                        'Riwayat',
+                      ),
                     ),
                   ),
                   const _GrupMenu('Sistem'),
@@ -201,7 +219,12 @@ class _DashboardPageState extends State<DashboardPage> {
                   _ItemMenu(
                     Ikon.info,
                     'Tentang kami',
-                    () => pilih(() => dorong(const TentangPage(tanpaAppBar: true), 'Tentang Kami')),
+                    () => pilih(
+                      () => dorong(
+                        const TentangPage(tanpaAppBar: true),
+                        'Tentang Kami',
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -434,7 +457,10 @@ class _DashboardPageState extends State<DashboardPage> {
                   judul: 'Peringatan',
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   child: Text(
                     'Lihat semua',
                     style: TextStyle(

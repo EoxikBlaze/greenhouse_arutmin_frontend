@@ -1,17 +1,7 @@
-import 'package:flutter_mobile_app/pages/nutrisi_manual_page.dart';
 import 'package:flutter_mobile_app/pages/uji_lab_page.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('labelStatusDosing: berjalan / selesai / gagal / dibatalkan', () {
-    expect(labelStatusDosing('berjalan'), 'berjalan');
-    expect(labelStatusDosing('sukses'), 'selesai');
-    expect(labelStatusDosing('dibatalkan'), 'dibatalkan');
-    expect(labelStatusDosing('gagal'), 'gagal');
-    expect(labelStatusDosing('lock'), 'gagal');
-    expect(labelStatusDosing(null), 'gagal');
-  });
-
   group('susunHasilUjiLab', () {
     final spek = {
       'brix': {'nama': 'Brix', 'min': 0, 'max': 40},

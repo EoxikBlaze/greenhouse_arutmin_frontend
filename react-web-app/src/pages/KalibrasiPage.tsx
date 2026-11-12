@@ -9,6 +9,7 @@ import { Pesan } from '../components/kaca/DialogKaca'
 import { PanelKalibrasiLangsungV41 } from '../components/kalibrasi/PanelKalibrasiLangsungV41'
 import { RingkasanKalibrasi } from '../components/kalibrasi/RingkasanKalibrasi'
 import { KartuAlat } from '../components/kalibrasi/KartuAlat'
+import { TombolStopPompa } from '../components/TombolStopPompa'
 import { DialogCatat } from '../components/kalibrasi/DialogCatat'
 import { DialogRiwayat } from '../components/kalibrasi/DialogRiwayat'
 import { DialogAtur } from '../components/kalibrasi/DialogAtur'
@@ -46,6 +47,8 @@ export default function KalibrasiPage() {
   return (
     <div className="vsf-halaman vsf-stagger">
       <RingkasanKalibrasi rows={rows} terkini={terkini ?? null} status={status} onStatus={setStatus} />
+
+      {bolehTulis && <TombolStopPompa />}
 
       <PanelKalibrasiLangsungV41 iot={iotV41.data} loading={iotV41.loading} onReload={muatSemua} />
 

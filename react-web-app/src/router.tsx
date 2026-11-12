@@ -10,7 +10,6 @@ import {
   AsistenAiPage,
   DosingPage,
   KalibrasiPage,
-  NutrisiManualPage,
   DataPage,
   AuditPage,
   MqttDiagnostikPage,
@@ -67,8 +66,8 @@ export const router = createBrowserRouter([
 
           // Halaman mandiri IoT Hidroponik 1 Penampung v4.1 (sesuai menu sidebar Hidro Control)
           { path: '/saklar', element: <RequireAuth allow={ADMIN_DEMO} element={<SaklarModePage />} /> },
-          { path: '/dosing-manual', element: <RequireAuth allow={ADMIN_DEMO} element={<NutrisiManualPage />} /> },
-          { path: '/pompa', element: <Navigate to="/dosing-manual" replace /> },
+          { path: '/dosing-manual', element: <Navigate to="/dosing" replace /> },
+          { path: '/pompa', element: <Navigate to="/dosing" replace /> },
           { path: '/kuras-air', element: <Navigate to="/dashboard" replace /> },
           { path: '/air', element: <Navigate to="/dashboard" replace /> },
           { path: '/watercontrol', element: <Navigate to="/dashboard" replace /> },

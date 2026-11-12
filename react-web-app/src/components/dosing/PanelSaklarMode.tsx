@@ -49,7 +49,6 @@ const DAFTAR_SAKLAR: readonly SaklarItem[] = [
 
 const ATURAN_SAKLAR = [
   'Saklar OFF = otomasi (preset, jadwal, AI) tidak boleh menyalakan aktuator itu; hanya jadi peringatan.',
-  'Halaman Nutrisi Manual tetap boleh menyalakan aktuator walau saklarnya OFF (override manual). Fail-safe dan LOCK tetap berlaku.',
   'Setiap perubahan saklar dicatat di Catatan Aktivitas (siapa, kapan, dari/ke).',
   'Mode pemeliharaan mematikan semua tindakan dan membekukan hitungan.',
   'Saklar pH mati juga berfungsi sebagai tidur pH.',

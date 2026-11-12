@@ -26,7 +26,6 @@ const TITLES: Record<string, string> = {
   '/peringatan': 'Peringatan',
   '/tanam': 'Kebun Saya',
   '/saklar': 'Saklar',
-  '/dosing-manual': 'Nutrisi Manual',
   '/dosing': 'Target Nutrisi',
   '/kalibrasi': 'Kalibrasi',
   '/data': 'Data',
@@ -81,7 +80,6 @@ const NAV: NavGroup[] = [
     items: [
       { to: '/tanam', label: 'Kebun Saya', ikon: 'tanam' },
       { to: '/saklar', label: 'Saklar', ikon: 'ambang', allow: ADMIN_DEMO },
-      { to: '/dosing-manual', label: 'Nutrisi Manual', ikon: 'tetes', allow: ADMIN_DEMO },
       { to: '/dosing', label: 'Target Nutrisi', ikon: 'tetes', allow: ADMIN_DEMO },
     ],
   },

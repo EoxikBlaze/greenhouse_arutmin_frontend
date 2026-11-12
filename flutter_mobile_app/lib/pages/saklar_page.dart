@@ -8,7 +8,7 @@ import '../widgets/kaca.dart';
 import '../widgets/switch_kaca.dart';
 
 /// Saklar aktuator — GET /saklar, PUT /saklar/:kode {aktif}. Hanya admin yang boleh mengubah.
-/// OFF = otomasi (preset/jadwal/AI) tidak boleh menyalakannya; Nutrisi Manual tetap boleh (override).
+/// OFF = otomasi (preset/jadwal/AI) tidak boleh menyalakannya.
 class SaklarPage extends StatefulWidget {
   const SaklarPage({super.key, required this.api, this.tanpaAppBar = false});
 
@@ -86,8 +86,7 @@ class _SaklarPageState extends State<SaklarPage> {
           children: [
             Panel(
               child: Text(
-                'Saklar OFF: otomasi tidak boleh menyalakan aktuator itu. '
-                'Halaman Nutrisi Manual tetap boleh (override manual).'
+                'Saklar OFF: otomasi tidak boleh menyalakan aktuator itu.'
                 '${_bolehUbah ? '' : ' Hanya admin yang dapat mengubah saklar.'}',
                 style: Tok.kecil,
               ),

@@ -117,11 +117,11 @@ void main() {
         find.descendant(of: find.byType(SheetKaca), matching: find.text(teks));
 
     testWidgets(
-      'admin melihat Saklar, Nutrisi manual, Uji lab, Kontrol air; tanpa Meja tanaman',
+      'admin melihat Saklar, Uji lab, Kontrol air; tanpa Nutrisi manual dan Meja tanaman',
       (tester) async {
         await bukaMenu(tester, 'admin');
         expect(diSheet('Saklar'), findsOneWidget);
-        expect(diSheet('Nutrisi manual'), findsOneWidget);
+        expect(diSheet('Nutrisi manual'), findsNothing);
         expect(diSheet('Uji lab'), findsOneWidget);
         expect(diSheet('Kontrol air'), findsOneWidget);
         expect(diSheet('Meja tanaman'), findsNothing);
@@ -129,7 +129,7 @@ void main() {
     );
 
     testWidgets(
-      'petani tidak melihat menu kendali (Saklar, Nutrisi manual, Uji lab, Kontrol air)',
+      'petani tidak melihat menu kendali (Saklar, Uji lab, Kontrol air)',
       (tester) async {
         await bukaMenu(tester, 'user');
         expect(diSheet('Saklar'), findsNothing);
