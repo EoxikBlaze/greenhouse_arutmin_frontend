@@ -1,13 +1,27 @@
-// Salin menjadi rahasia.h (di-.gitignore) lalu isi. JANGAN commit rahasia.h.
+// Salin menjadi rahasia.h (di-.gitignore) lalu isi sesuai jaringan & kunci Pi. JANGAN commit rahasia.h.
 #pragma once
-// Daftar Wi-Fi yang dicoba (dipilih yang terkuat yang terjangkau). Hanya 2,4 GHz. Tambah/kurangi sesuai kebutuhan.
+
+// Daftar Wi-Fi 2,4 GHz yang dicoba otomatis (dipilih sinyal terkuat yang tersedia).
+// Modem baru: boleh set Wi-Fi modem ke "VertonikModem", atau tambah dinamis via Serial: wifi NAMA|SANDI.
 #define WIFI_JARINGAN { \
-  { "WALAWE",        "SANDI_HOTSPOT_WALAWE" }, \
-  { "VERTONIK",      "SANDI_HOTSPOT_PI" }, \
-  { "Rumah permata", "SANDI_WIFI_RUMAH" } \
+  { "VertonikModem",     "SANDI_MODEM" }, \
+  { "Pokjar Permata",    "SANDI_POKJAR" }, \
+  { "Biruni",            "SANDI_BIRUNI" }, \
+  { "Rumah Permata",     "SANDI_RUMAH_PERMATA" }, \
+  { "WALAWE",            "SANDI_HOTSPOT_HP" }, \
+  { "Vertoniksmartfarm", "SANDI_HOTSPOT_PI" } \
 }
-// Cadangan bila mDNS (garap.local / vertonik.local) tidak ketemu. Di hotspot WALAWE IP Pi adalah 192.168.95.31; di Wi-Fi rumah 192.168.1.172.
-#define SERVER_IP   "192.168.95.31"
-// Satu ESP32 = satu login 'aktuator-01'. Kunci (juga sandi MQTT-nya); di backend perannya 'gabungan' (sensor + aktuator).
+
+// Cadangan bila mDNS (garap.local / vertonik.local / vertonic.local) & probe subnet tidak ketemu.
+#define SERVER_IP   "192.168.0.100"
+
+// ID meja/penampung dari menu Meja di web (0 = tersimpan sebagai bacaan umum; >= 1 = penampung tertentu)
+#define ID_MEJA     0
+
+// Satu ESP32 = satu login 'aktuator-01' dari /etc/vertonik/kunci-perangkat.txt di Pi.
 #define API_KEY_AKTUATOR "vsf_xxxxxxxx_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-// #define MQTT_PORT 1883                          // port Mosquitto di Pi (bawaan 1883)
+// #define MQTT_PORT 1883
+
+// Set 0 HANYA untuk uji meja tanpa tombol E-STOP fisik & pembagi 33k/10k di GPIO36.
+// Di lapangan/box panel nyata biarkan 1 agar pin mengambang tidak memicu pompa.
+// #define AKTIFKAN_BACA_ESTOP 1

@@ -1,26 +1,26 @@
 /*
- * GARAP — ESP32 GABUNGAN (sensor + aktuator dalam SATU papan)  v0.3  ⚠ BELUM DIUJI PADA PERANGKAT KERAS
- * Gabungan sensor/sensor.ino + aktuator/aktuator.ino dalam SATU sambungan MQTT ke broker Pi: login & API key
- * 'aktuator-01' saja. Di backend perangkat ini berperan 'gabungan' (sensor + aktuator), jadi satu kunci cukup.
- *   garap/aktuator-01/data   : bacaan sensor tiap 5 dtk
- *   garap/aktuator-01/status : status tiap 30 dtk (retained, LWT)  ·  perintah/ack/hasil + detak server (lihat aktuator.ino)
- * v0.3 JARINGAN: ESP32 mencoba beberapa Wi-Fi (WIFI_JARINGAN di rahasia.h; dipilih yang terkuat yang terjangkau,
- *   mis. hotspot Pi 'VERTONIK' dan Wi-Fi rumah). Alamat server dicari sendiri tiap sambung ulang:
- *   gateway = 10.42.0.1 (hotspot Pi) → itulah Pi; selain itu mDNS 'vertonik.local'; terakhir SERVER_IP dari rahasia.h.
- *   Jadi IP Pi yang berganti-ganti tidak perlu flash ulang. Tanpa WIFI_JARINGAN, WIFI_SSID/WIFI_PASS lama tetap jalan.
+ * GARAP — ESP32 GABUNGAN (sensor + aktuator dalam SATU papan)  v0.6  ⚠ UJI BERTAHAP SESUAI PANDUAN HARDWARE
+ * Gabungan sensor + aktuator dalam SATU sambungan MQTT ke broker Pi: login & API key 'aktuator-01'.
+ * Di backend perangkat ini berperan 'gabungan' (sensor + aktuator), jadi satu kunci cukup.
+ *   garap/aktuator-01/data   : bacaan sensor tiap 5 dtk (otomatis cadangan HTTP port 80 jika port 1883 diblokir firewall)
+ *   garap/aktuator-01/status : status tiap 30 dtk (retained, LWT)  ·  perintah/ack/hasil + detak server
+ * v0.6 SIAP MODEM & PAKAI:
+ *   - Multi-Wi-Fi 2,4 GHz + preset Modem ('VertonikModem') + iPhone ('Siki') + Hotspot Pi ('Vertoniksmartfarm').
+ *   - Tambah Wi-Fi modem / IP Pi lewat Serial Monitor (NVS persisten, tanpa compile ulang): wifi <SSID>|<SANDI>, server <IP>.
+ *   - Pencarian server otomatis lintas subnet modem apa saja (192.168.8.x, 192.168.100.x, 192.168.1.x, 192.168.0.x, 172.20.10.x).
+ *   - Cadangan HTTP POST (/api/device/v1/sensor & heartbeat) bila port MQTT 1883 belum dibuka di router/ufw baru
+ *     (pompa tetap terkunci aman oleh fail-safe MQTT agar tidak jalan tanpa detak server real-time).
+ *   - Tombol RESET (GPIO 19): tekan singkat tampilkan info Wi-Fi/IP di LCD + cetak status; lepas latch E-STOP lokal jika aman.
+ *   - Menu Serial Monitor 115200 baud: ketik status, scan, cari, baca, wifi <SSID>|<SANDI>, server <IP>, help.
  * Library: ArduinoJson 7.x, PubSubClient 2.8, OneWire, DallasTemperature, Adafruit SHT31 (+ Adafruit BusIO).
- * Board: "ESP32 Dev Module". Salin rahasia.h.contoh → rahasia.h dan isi (satu API key: aktuator-01).
+ * Board: "ESP32 Dev Module". Konfigurasi ada di rahasia.h (satu API key: aktuator-01).
  *
- * PETA PIN = ikut firmware teman (Config.h "1 Penampung Portable", Wiring v2.0), satu tandon / satu meja:
- *   I2C SDA 21 / SCL 22 : ADS1115 0x48 (A0 = pH, A1 = EC lewat pembagi 10k/10k) + SHT31 0x44 (suhu/RH udara)
+ * PETA PIN = Wiring v2.0 / 1 Penampung Portable:
+ *   I2C SDA 21 / SCL 22 : ADS1115 0x48 (A0 = pH, A1 = EC lewat pembagi 10k/10k) + SHT31 0x44 (suhu/RH udara) + LCD 0x27
  *   DS18B20 suhu air 4 · pompa A 25, B 26, pH Up 27, pH Down 18, pompa isi 16 (relay HIGH-trigger)
- *   float bawah 32, float atas 33 (HIGH = penuh, putus kabel = penuh) · E-STOP: bus +12V lewat pembagi 33k/10k ke 36
- *   Terpasang di wiring tapi BELUM dipakai firmware ini: lampu 13/17/23, tombol reset 19, RTC 0x68, LCD 0x27.
- * Perintah 'AB' dari server = pompa A lalu (setelah jeda) pompa B, masing-masing separuh dari mL yang diminta.
+ *   float bawah 32, float atas 33 (HIGH = penuh, putus kabel = penuh) · lampu merah 13, hijau 17, biru 23
+ *   tombol reset 19 (INPUT_PULLUP) · E-STOP: bus +12V lewat pembagi 33k/10k ke 36
  *
- * PERTAHANAN BERLAPIS aktuator (sama dengan aktuator.ino) + dua tambahan papan gabungan:
- *   - Sensor TIDAK dibaca selagi pompa jalan (pembacaan ADS1115/SHT31 memblokir ±0,5 dtk → durasi pompa molor).
- *   - ML_PER_DETIK = 0 → setiap DOSIS/BILAS ditolak "belum_dikalibrasi" sampai diisi hasil gelas ukur.
  * WAJIB sebelum dipakai di tanaman: kalibrasi pH/TDS & laju pompa, uji dengan AIR dulu, pompa 12 V lewat
  * relay/MOSFET + dioda flyback. Jangan beri daya pompa dari pin ESP32.
  */
@@ -35,12 +35,19 @@
 #include <Preferences.h>
 #include <Adafruit_SHT31.h>
 #include <esp_task_wdt.h>
+#include <math.h>
 #include "rahasia.h"
 
-#define FIRMWARE "gabungan-0.4"
+#define FIRMWARE "gabungan-0.6"
 #define KODE_A   "aktuator-01"        // = user MQTT di Pi (deploy-pi/mosquitto/garap.acl)
 #ifndef MQTT_PORT
 #define MQTT_PORT 1883
+#endif
+#ifndef HTTP_PORT
+#define HTTP_PORT 80
+#endif
+#ifndef ID_MEJA
+#define ID_MEJA 0                     // atur di rahasia.h; 0 = bacaan umum, >= 1 = penampung tertentu
 #endif
 
 // ═══ JARINGAN ══════════════════════════════════════════════════════════════
@@ -49,12 +56,15 @@ struct Jaringan { const char* ssid; const char* pass; };
 #define WIFI_JARINGAN { { WIFI_SSID, WIFI_PASS } }   // format lama: satu jaringan
 #endif
 const Jaringan JARINGAN[] = WIFI_JARINGAN;
-const char* NAMA_MDNS_SERVER = "garap";             // → garap.local (siapkan-sd.sh) dengan fallback vertonik.local
-const char* NAMA_MDNS_CADANGAN = "vertonik";        // → vertonik.local (nama host lama)
-const IPAddress IP_HOTSPOT_PI(10, 42, 0, 1);       // alamat tetap Pi saat memancarkan hotspot (vertonik-hotspot)
+const char* NAMA_MDNS_SERVER   = "garap";           // → garap.local
+const char* NAMA_MDNS_CADANGAN = "vertonik";        // → vertonik.local
+const char* NAMA_MDNS_ALIAS    = "vertonic";        // → vertonic.local (alias Avahi di Pi)
+const IPAddress IP_HOTSPOT_PI(10, 42, 0, 1);       // alamat tetap Pi saat memancarkan hotspot (Vertoniksmartfarm)
 WiFiMulti wifiMulti;
 IPAddress serverIp;                                 // 0.0.0.0 = belum ditemukan
 uint8_t gagalMqtt = 0;
+String nvsWifiSsid = "", nvsWifiPass = "", nvsServerIp = "";
+Preferences prefNet;
 
 // ═══ SENSOR ════════════════════════════════════════════════════════════════
 #define PIN_SDA   21
@@ -66,8 +76,7 @@ uint8_t gagalMqtt = 0;
 #define SHT_ALAMAT 0x44
 #define PIN_DS18  4
 const uint32_t INTERVAL_MS = 5000;
-// id_meja penampung yang diukur probe ini (menu Meja di web). 0 = bacaan tersimpan tapi TIDAK dipakai otomasi dosis.
-const int ID_MEJA = 0;
+const int MEJA_AKTIF = ID_MEJA;
 // Kalibrasi (disimpan otomatis di NVS / Preferences "garap_kal" saat dikalibrasi dari web, tanpa perlu flash ulang)
 float PH_V7 = 2.50f, PH_V4 = 3.05f, TDS_FAKTOR_KOREKSI = 1.0f;
 float PH_V7_LAMA = 2.50f, PH_V4_LAMA = 3.05f, TDS_FAKTOR_LAMA = 1.0f;
@@ -117,12 +126,15 @@ Adafruit_SHT31 sht;
 bool shtAda = false, adsAda = false, lcdAda = false;
 float phTerakhir = NAN, tdsTerakhir = NAN, suhuAirTerakhir = NAN, suhuUdaraTerakhir = NAN, rhTerakhir = NAN;
 char lcdCache[4][21];
-uint32_t lcdTerakhir = 0;
+uint32_t lcdTerakhir = 0, lcdInfoSampai = 0;
 WiFiClient wifiA;
 PubSubClient mqA(wifiA);
 uint32_t sTerakhir = 0;
-bool estopLokal = false, estopServer = false;
-uint32_t terakhirServerOk = 0, terakhirHB = 0, jamMulai = 0, terakhirCoba = 0;
+bool estopLokal = false, estopServer = false, httpFallbackOk = false;
+uint32_t terakhirServerOk = 0, terakhirHB = 0, terakhirHBHttp = 0, jamMulai = 0, terakhirCoba = 0;
+bool resetBtnTerakhir = HIGH, resetBtnSudahAksi = false;
+uint32_t resetBtnWaktu = 0;
+String serialBuf;
 const char* T_DATA     = "garap/" KODE_A "/data";
 const char* T_PERINTAH = "garap/" KODE_A "/perintah";
 const char* T_ACK      = "garap/" KODE_A "/ack";
@@ -154,6 +166,34 @@ void perbaruiFloatSatu(StateFloat& f, uint32_t now) {
 }
 bool floatBawahRendah() { return !fBawah.stabil; }   // true = air kurang (pelampung bawah turun / LOW)
 bool tandonPenuh()      { return fAtas.stabil; }     // true = penuh (pelampung atas terangkat / HIGH)
+
+void muatJaringanNvs() {
+  if (!prefNet.begin("garap_net", true)) return;
+  nvsWifiSsid = prefNet.getString("ssid", "");
+  nvsWifiPass = prefNet.getString("pass", "");
+  nvsServerIp = prefNet.getString("srv", "");
+  prefNet.end();
+}
+void simpanWifiNvs(const String& ssid, const String& pass) {
+  if (!prefNet.begin("garap_net", false)) return;
+  if (ssid.length() > 0) {
+    prefNet.putString("ssid", ssid);
+    prefNet.putString("pass", pass);
+  } else {
+    prefNet.remove("ssid");
+    prefNet.remove("pass");
+  }
+  prefNet.end();
+  nvsWifiSsid = ssid;
+  nvsWifiPass = pass;
+}
+void simpanServerNvs(const String& ipStr) {
+  if (!prefNet.begin("garap_net", false)) return;
+  if (ipStr.length() > 0) prefNet.putString("srv", ipStr);
+  else prefNet.remove("srv");
+  prefNet.end();
+  nvsServerIp = ipStr;
+}
 
 void muatKalibrasiNvs() {
   if (!prefKal.begin("garap_kal", true)) return;
@@ -281,19 +321,31 @@ bool mulaiPerintah(long id, const char* tipe, JsonObjectConst p, const char*& al
     if (out < 0 || dtk <= 0 || dtk > 120.0f) { alasan = "parameter_uji_pompa"; return false; }
     durasi = (uint32_t)(dtk * 1000.0f);
   } else if (t == "KALIBRASI") {
-    if (! p["ph_v7"].isNull() && !p["ph_v4"].isNull()) {
+    if (!p["ph_v7"].isNull() && !p["ph_v4"].isNull()) {
+      float v7 = p["ph_v7"].as<float>(), v4 = p["ph_v4"].as<float>();
+      if (!isfinite(v7) || !isfinite(v4) || fabsf(v4 - v7) < 0.05f) {
+        alasan = "kalibrasi_ph_tak_sah"; return false;
+      }
       PH_V7_LAMA = PH_V7; PH_V4_LAMA = PH_V4;
-      PH_V7 = p["ph_v7"].as<float>(); PH_V4 = p["ph_v4"].as<float>();
+      PH_V7 = v7; PH_V4 = v4;
     }
     if (!p["tds_faktor"].isNull()) {
+      float fk = p["tds_faktor"].as<float>();
+      if (!isfinite(fk) || fk <= 0.01f || fk > 20.0f) { alasan = "kalibrasi_tds_tak_sah"; return false; }
       TDS_FAKTOR_LAMA = TDS_FAKTOR_KOREKSI;
-      TDS_FAKTOR_KOREKSI = p["tds_faktor"].as<float>();
+      TDS_FAKTOR_KOREKSI = fk;
     }
-    if (!p["laju_a"].isNull())       ML_PER_DETIK[P_A]       = p["laju_a"].as<float>();
-    if (!p["laju_b"].isNull())       ML_PER_DETIK[P_B]       = p["laju_b"].as<float>();
-    if (!p["laju_ph_up"].isNull())   ML_PER_DETIK[P_PH_UP]   = p["laju_ph_up"].as<float>();
-    if (!p["laju_ph_down"].isNull()) ML_PER_DETIK[P_PH_DOWN] = p["laju_ph_down"].as<float>();
-    if (!p["laju_isi"].isNull())     ML_PER_DETIK[P_ISI_AIR] = p["laju_isi"].as<float>();
+    auto setLaju = [&](int idx, const char* kunci) -> bool {
+      if (p[kunci].isNull()) return true;
+      float v = p[kunci].as<float>();
+      if (!isfinite(v) || v < 0.0f || v > 500.0f) return false;
+      ML_PER_DETIK[idx] = v;
+      return true;
+    };
+    if (!setLaju(P_A, "laju_a") || !setLaju(P_B, "laju_b") || !setLaju(P_PH_UP, "laju_ph_up")
+        || !setLaju(P_PH_DOWN, "laju_ph_down") || !setLaju(P_ISI_AIR, "laju_isi")) {
+      alasan = "laju_pompa_tak_sah"; return false;
+    }
     simpanKalibrasiNvs();
     lapor(id, "selesai", "kalibrasi_disimpan_nvs", 0); alasan = ""; return true;
   } else if (t == "BALIK_KALIBRASI") {
@@ -358,24 +410,62 @@ void kirimStatusA() {
   mqA.publish(T_STATUS_A, b.c_str(), true);
 }
 
-// Urutan: gateway = hotspot Pi → mDNS → SERVER_IP (rahasia.h). Hasil dipasang ke klien MQTT.
+bool cekPortServer(const IPAddress& ip, uint16_t port, uint16_t timeoutMs = 350) {
+  if ((uint32_t)ip == 0) return false;
+  WiFiClient c;
+  bool ok = c.connect(ip, port, timeoutMs);
+  c.stop();
+  esp_task_wdt_reset();
+  return ok;
+}
+
+IPAddress probeKandidatServer() {
+  IPAddress kand[24]; int n = 0;
+  IPAddress lokal = WiFi.localIP(), gw = WiFi.gatewayIP();
+  auto tambah = [&](const IPAddress& p) {
+    if ((uint32_t)p == 0 || p == lokal || p == gw) return;
+    for (int i = 0; i < n; i++) if (kand[i] == p) return;
+    if (n < 24) kand[n++] = p;
+  };
+  IPAddress ipDef; bool adaDef = ipDef.fromString(SERVER_IP);
+  if (adaDef && ipDef[0] == lokal[0] && ipDef[1] == lokal[1] && ipDef[2] == lokal[2]) tambah(ipDef);
+
+  if (lokal[0] == 172 && lokal[1] == 20 && lokal[2] == 10) {
+    for (uint8_t h = 2; h <= 14; h++) tambah(IPAddress(172, 20, 10, h));
+  } else if ((lokal[0] == 192 && lokal[1] == 168) || lokal[0] == 10) {
+    // Berlaku otomatis untuk subnet modem 4G apa pun (192.168.8.x, .100.x, .1.x, .0.x, .43.x, dst.)
+    const uint8_t tetap[] = { 50, 100, 101, 172, 200 };
+    for (uint8_t h : tetap) tambah(IPAddress(lokal[0], lokal[1], lokal[2], h));
+    for (uint8_t h = 2; h <= 15; h++) tambah(IPAddress(lokal[0], lokal[1], lokal[2], h));
+    for (uint8_t h = 102; h <= 105; h++) tambah(IPAddress(lokal[0], lokal[1], lokal[2], h));
+  }
+  if (adaDef) tambah(ipDef);
+
+  for (int i = 0; i < n; i++) if (cekPortServer(kand[i], MQTT_PORT, 130)) return kand[i];
+  for (int i = 0; i < n; i++) if (cekPortServer(kand[i], HTTP_PORT, 130)) return kand[i];
+  return adaDef ? ipDef : ((n > 0) ? kand[0] : IPAddress());
+}
+
+// Urutan: gateway hotspot Pi (10.42.0.1) → override NVS → mDNS (garap/vertonik/vertonic) → probe IP subnet → SERVER_IP.
 void cariServer() {
   static bool mdnsMulai = false;
   IPAddress ip;
-  if (WiFi.gatewayIP() == IP_HOTSPOT_PI) ip = IP_HOTSPOT_PI;
-  else {
+  if (WiFi.gatewayIP() == IP_HOTSPOT_PI) {
+    ip = IP_HOTSPOT_PI;
+  } else if (nvsServerIp.length() > 0 && ip.fromString(nvsServerIp)) {
+    // pakai IP statis Pi yang disimpan lewat Serial ('server <ip>')
+  } else {
     if (!mdnsMulai) mdnsMulai = MDNS.begin("garap-esp32");
-    if (mdnsMulai) {
-      ip = MDNS.queryHost(NAMA_MDNS_SERVER, 2000);
+    const char* hosts[3] = { NAMA_MDNS_SERVER, NAMA_MDNS_CADANGAN, NAMA_MDNS_ALIAS };
+    for (int i = 0; i < 3 && (uint32_t)ip == 0 && mdnsMulai; i++) {
+      ip = MDNS.queryHost(hosts[i], 1200);
       esp_task_wdt_reset();
-      if ((uint32_t)ip == 0) ip = MDNS.queryHost(NAMA_MDNS_CADANGAN, 2000);
     }
-    esp_task_wdt_reset();
-    if ((uint32_t)ip == 0) ip.fromString(SERVER_IP);
+    if ((uint32_t)ip == 0) ip = probeKandidatServer();
   }
   serverIp = ip;
   mqA.setServer(serverIp, MQTT_PORT);
-  Serial.printf("Server: %s\n", serverIp.toString().c_str());
+  Serial.printf("Server Pi: %s\n", serverIp.toString().c_str());
 }
 
 void sambungMqttA() {
@@ -386,11 +476,14 @@ void sambungMqttA() {
   if (mqA.connect(KODE_A, KODE_A, API_KEY_AKTUATOR, T_STATUS_A, 1, true, "{\"online\":false}")) {
     mqA.subscribe(T_PERINTAH, 1); mqA.subscribe(T_ACK, 1); mqA.subscribe(T_SERVER, 1);
     kirimStatusA(); terakhirHB = millis();
-    gagalMqtt = 0;
+    gagalMqtt = 0; httpFallbackOk = false;
     Serial.printf("MQTT aktuator tersambung ke %s\n", serverIp.toString().c_str());
   } else {
     gagalMqtt++;
-    Serial.printf("MQTT aktuator gagal, kode=%d%s\n", mqA.state(), mqA.state() == 5 ? " (API_KEY_AKTUATOR ditolak broker)" : "");
+    int st = mqA.state();
+    Serial.printf("MQTT gagal, kode=%d%s\n", st,
+      st == 5 ? " (API_KEY_AKTUATOR ditolak broker)" :
+      st == -2 ? " (port 1883 tak terjangkau/ufw → sensor dialihkan ke HTTP)" : "");
   }
 }
 
@@ -420,11 +513,41 @@ float bacaVolt(uint8_t kanal) {                   // median 9 sampel; NAN bila a
   for (int i = 1; i < 9; i++) for (int j = i; j > 0 && s[j] < s[j-1]; j--) { float t = s[j]; s[j] = s[j-1]; s[j-1] = t; }
   return s[4];
 }
-float hitungPH(float v) { float slope = (4.01f - 7.0f) / (PH_V4 - PH_V7); return 7.0f + slope * (v - PH_V7); }
+float hitungPH(float v) {
+  float dv = PH_V4 - PH_V7;
+  if (isnan(v) || fabsf(dv) < 0.01f) return NAN;
+  return 7.0f + ((4.01f - 7.0f) / dv) * (v - PH_V7);
+}
 float hitungTDS(float v, float suhu) {   // rumus umum modul TDS analog (kompensasi suhu 25 °C)
+  if (isnan(v) || v < 0.0f) return NAN;
   float k = 1.0f + 0.02f * (suhu - 25.0f), vk = v / k;
   float tds = (133.42f * vk*vk*vk - 255.86f * vk*vk + 857.39f * vk) * 0.5f;
   return tds * TDS_FAKTOR_KOREKSI;
+}
+
+bool kirimHttpPost(const char* path, const String& body) {
+  if (WiFi.status() != WL_CONNECTED || (uint32_t)serverIp == 0) return false;
+  WiFiClient c;
+  c.setTimeout(1500);
+  if (!c.connect(serverIp, HTTP_PORT, 1500)) { esp_task_wdt_reset(); return false; }
+  c.printf("POST %s HTTP/1.1\r\nHost: %s\r\nContent-Type: application/json\r\nX-API-KEY: %s\r\nConnection: close\r\nContent-Length: %u\r\n\r\n%s",
+           path, serverIp.toString().c_str(), API_KEY_AKTUATOR, (unsigned)body.length(), body.c_str());
+  uint32_t t0 = millis();
+  while (c.connected() && !c.available() && millis() - t0 < 1500) delay(5);
+  String status = c.available() ? c.readStringUntil('\n') : "";
+  c.stop();
+  esp_task_wdt_reset();
+  return status.indexOf(" 200") > 0 || status.indexOf(" 201") > 0;
+}
+
+void kirimHeartbeatHttp() {
+  JsonDocument d;
+  d["firmware"] = FIRMWARE;
+  d["rssi"] = WiFi.RSSI();
+  d["uptime"] = millis() / 1000;
+  d["estop"] = (estopLokal || estopServer);
+  String body; serializeJson(d, body);
+  httpFallbackOk = kirimHttpPost("/api/device/v1/heartbeat/aktuator", body);
 }
 
 void bacaDanKirimSensor() {
@@ -438,20 +561,32 @@ void bacaDanKirimSensor() {
 
   JsonDocument d;
   // Sensor yang gagal baca DIHILANGKAN (jangan kirim angka palsu)
-  if (suhuAir > -50 && suhuAir < 80)       d["waterTemp"] = round(suhuAir * 10) / 10.0;
-  if (!isnan(suhuUdara))                   d["airTemp"]   = round(suhuUdara * 10) / 10.0;
-  if (!isnan(lembap))                      d["humidity"]  = round(lembap * 10) / 10.0;
-  if (!isnan(ph) && ph > 0 && ph < 14)                 d["ph"]        = round(ph * 100) / 100.0;
-  if (!isnan(tds) && tds >= 0 && tds < 5000)            d["tds"]       = round(tds);
-  if (ID_MEJA > 0)                         d["id_meja"]   = ID_MEJA;
+  if (suhuAir > -50 && suhuAir < 80)        d["waterTemp"] = round(suhuAir * 10) / 10.0;
+  if (!isnan(suhuUdara))                    d["airTemp"]   = round(suhuUdara * 10) / 10.0;
+  if (!isnan(lembap))                       d["humidity"]  = round(lembap * 10) / 10.0;
+  if (!isnan(ph) && ph > 0 && ph < 14)      d["ph"]        = round(ph * 100) / 100.0;
+  // Tegangan mentah probe pH: dipakai server untuk kalibrasi dua titik (KALIBRASI ph_v7/ph_v4 = tegangan, bukan pH).
+  if (!isnan(vPh) && vPh > 0 && vPh < 5)    d["ph_volt"]   = round(vPh * 10000) / 10000.0;
+  if (!isnan(tds) && tds >= 0 && tds < 5000) d["tds"]      = round(tds);
+  if (MEJA_AKTIF > 0)                       d["id_meja"]   = MEJA_AKTIF;
   d["float_bawah_rendah"] = floatBawahRendah();
   d["float_atas_penuh"]   = tandonPenuh();
   d["rssi"] = WiFi.RSSI();
   d["firmware"] = FIRMWARE;
 
-  bool ok = false;
-  if (mqA.connected()) { String body; serializeJson(d, body); ok = mqA.publish(T_DATA, body.c_str()); }
-  Serial.printf("[%lu] kirim=%s ph=%.2f tds=%.0f air=%.1f rssi=%d\n", millis()/1000, ok ? "OK" : "GAGAL", ph, tds, suhuAir, WiFi.RSSI());
+  String body; serializeJson(d, body);
+  bool ok = false; const char* jalur = "GAGAL";
+  if (mqA.connected()) {
+    ok = mqA.publish(T_DATA, body.c_str());
+    jalur = ok ? "MQTT" : "MQTT_GAGAL";
+    if (ok) httpFallbackOk = false;
+  } else if (WiFi.status() == WL_CONNECTED && (uint32_t)serverIp != 0) {
+    ok = kirimHttpPost("/api/device/v1/sensor", body);
+    httpFallbackOk = ok;
+    jalur = ok ? "HTTP" : "GAGAL";
+  }
+  Serial.printf("[%lu] kirim=%s ph=%.2f tds=%.0f air=%.1f rssi=%d\n",
+                millis() / 1000, jalur, ph, tds, suhuAir, WiFi.RSSI());
 }
 
 // ═══ LCD 20x4 I2C (0x27 PCF8574 tanpa library tambahan) & Lampu Pilot ═════
@@ -493,6 +628,19 @@ void perbaruiLampuDanLcd() {
   if (!lcdAda || millis() - lcdTerakhir < 500) return;
   lcdTerakhir = millis();
   char b[24];
+
+  if ((int32_t)(lcdInfoSampai - millis()) > 0) {
+    snprintf(b, sizeof(b), "WIFI:%s", WiFi.status() == WL_CONNECTED ? WiFi.SSID().c_str() : "(putus)");
+    lcdBaris(0, b);
+    snprintf(b, sizeof(b), "ESP :%s", WiFi.status() == WL_CONNECTED ? WiFi.localIP().toString().c_str() : "0.0.0.0");
+    lcdBaris(1, b);
+    snprintf(b, sizeof(b), "SRV :%s", (uint32_t)serverIp ? serverIp.toString().c_str() : "0.0.0.0");
+    lcdBaris(2, b);
+    const char* mode = mqA.connected() ? "MODE: MQTT AKTIF" : (httpFallbackOk ? "MODE: HTTP (NO MQTT)" : "MODE: MENUNGGU...");
+    lcdBaris(3, mode);
+    return;
+  }
+
   if (!isnan(tdsTerakhir) && tdsTerakhir >= 0 && tdsTerakhir < 5000)
     snprintf(b, sizeof(b), "EC %.2fmS  %.0fppm", tdsTerakhir / 500.0f, tdsTerakhir);
   else snprintf(b, sizeof(b), "EC ----    ----ppm");
@@ -514,6 +662,7 @@ void perbaruiLampuDanLcd() {
   const char* st = "PENAMPUNG CUKUP";
   if (darurat) st = "E-STOP AKTIF!";
   else if (WiFi.status() != WL_CONNECTED) st = "WIFI MATI";
+  else if (!mqA.connected() && httpFallbackOk) st = "HTTP SENSOR ONLY";
   else if (!mqA.connected() || terakhirServerOk == 0) st = "TUNGGU SERVER...";
   else if (kerja.aktif && kerja.out == P_ISI_AIR) st = "MENGISI AIR...";
   else if (kerja.aktif && kerja.out == P_A) st = "DOSING A...";
@@ -525,12 +674,119 @@ void perbaruiLampuDanLcd() {
   lcdBaris(3, st);
 }
 
-// ═══ Umum ══════════════════════════════════════════════════════════════════
+// ═══ Diagnostik Serial, Tombol Reset (GPIO 19), & Wi-Fi ═══════════════════
+void cetakStatus() {
+  Serial.println("\n=== STATUS ESP32 GARAP (" FIRMWARE ") ===");
+  Serial.printf("Wi-Fi   : %s  IP=%s  GW=%s  RSSI=%d\n",
+                WiFi.status() == WL_CONNECTED ? WiFi.SSID().c_str() : "(putus)",
+                WiFi.status() == WL_CONNECTED ? WiFi.localIP().toString().c_str() : "0.0.0.0",
+                WiFi.status() == WL_CONNECTED ? WiFi.gatewayIP().toString().c_str() : "0.0.0.0",
+                WiFi.RSSI());
+  if (nvsWifiSsid.length() > 0 || nvsServerIp.length() > 0) {
+    Serial.printf("NVS Net : wifi=%s  server=%s\n",
+                  nvsWifiSsid.length() > 0 ? nvsWifiSsid.c_str() : "-",
+                  nvsServerIp.length() > 0 ? nvsServerIp.c_str() : "-");
+  }
+  Serial.printf("Server  : %s  MQTT=%s(%d)  HTTP=%s  Meja=%d\n",
+                serverIp.toString().c_str(),
+                mqA.connected() ? "OK" : "PUTUS", mqA.state(),
+                httpFallbackOk ? "OK" : "-", MEJA_AKTIF);
+  Serial.printf("Pengaman: estopBaca=%d estopLokal=%d estopServer=%d floatBawahKurang=%d floatAtasPenuh=%d\n",
+                AKTIFKAN_BACA_ESTOP, estopLokal, estopServer, floatBawahRendah(), tandonPenuh());
+  Serial.printf("Kal NVS : pH_v7=%.3f pH_v4=%.3f tds_fk=%.3f | laju(A=%.2f B=%.2f Up=%.2f Dn=%.2f Isi=%.2f)\n",
+                PH_V7, PH_V4, TDS_FAKTOR_KOREKSI,
+                ML_PER_DETIK[P_A], ML_PER_DETIK[P_B], ML_PER_DETIK[P_PH_UP], ML_PER_DETIK[P_PH_DOWN], ML_PER_DETIK[P_ISI_AIR]);
+}
+
+void pindaiWifi() {
+  Serial.println("Memindai Wi-Fi 2,4 GHz sekitar...");
+  esp_task_wdt_reset();
+  int n = WiFi.scanNetworks();
+  esp_task_wdt_reset();
+  for (int i = 0; i < n; i++) Serial.printf("  [%d] %-24s %d dBm\n", i + 1, WiFi.SSID(i).c_str(), WiFi.RSSI(i));
+  WiFi.scanDelete();
+}
+
+void cekTombolReset(uint32_t now) {
+  bool baca = digitalRead(PIN_TOMBOL_RESET);
+  if (baca != resetBtnTerakhir) {
+    resetBtnTerakhir = baca;
+    resetBtnWaktu = now;
+    if (baca == HIGH) resetBtnSudahAksi = false;
+  }
+  if (baca == LOW && !resetBtnSudahAksi && (uint32_t)(now - resetBtnWaktu) >= 60) {
+    resetBtnSudahAksi = true;
+    lcdInfoSampai = now + 4000;
+    lcdTerakhir = 0;
+    if (estopLokal && !estopDitekan() && !estopServer && terakhirServerOk != 0 && now - terakhirServerOk < FAILSAFE_MS) {
+      estopLokal = false;
+      Serial.println("Tombol RESET: E-STOP lokal dibersihkan");
+    }
+    cetakStatus();
+  }
+}
+
+void prosesSerial() {
+  while (Serial.available()) {
+    char c = (char)Serial.read();
+    if (c == '\r') continue;
+    if (c != '\n') { if (serialBuf.length() < 128) serialBuf += c; continue; }
+    String raw = serialBuf; serialBuf = ""; raw.trim();
+    if (!raw.length()) continue;
+    String cmd = raw; cmd.toLowerCase();
+    if (cmd == "status") cetakStatus();
+    else if (cmd == "scan") pindaiWifi();
+    else if (cmd == "cari") { serverIp = IPAddress(); gagalMqtt = 0; cariServer(); }
+    else if (cmd == "baca") { bacaDanKirimSensor(); }
+    else if (cmd == "wifi hapus") {
+      simpanWifiNvs("", "");
+      Serial.println("NVS Wi-Fi kustom dihapus (mulai ulang atau pakai jaringan bawaan).");
+    } else if (cmd.startsWith("wifi ")) {
+      String arg = raw.substring(5);
+      int sep = arg.indexOf('|');
+      if (sep <= 0) {
+        Serial.println("Format: wifi NAMA_WIFI|SANDI_WIFI  (atau: wifi hapus)");
+      } else {
+        String ssid = arg.substring(0, sep); ssid.trim();
+        String pass = arg.substring(sep + 1);
+        if (ssid.length() == 0 || ssid.length() > 32 || (pass.length() > 0 && (pass.length() < 8 || pass.length() > 63))) {
+          Serial.println("SSID (1-32) atau sandi (kosong / 8-63 karakter) tidak valid.");
+        } else {
+          simpanWifiNvs(ssid, pass);
+          wifiMulti.addAP(nvsWifiSsid.c_str(), nvsWifiPass.c_str());
+          WiFi.disconnect(false);
+          serverIp = IPAddress(); gagalMqtt = 0;
+          Serial.printf("Wi-Fi NVS disimpan: %s — menyambung ulang...\n", nvsWifiSsid.c_str());
+        }
+      }
+    } else if (cmd == "server hapus") {
+      simpanServerNvs("");
+      serverIp = IPAddress(); gagalMqtt = 0;
+      Serial.println("Server IP NVS dihapus — mencari otomatis...");
+      cariServer();
+    } else if (cmd.startsWith("server ")) {
+      String ipStr = raw.substring(7); ipStr.trim();
+      IPAddress uji;
+      if (!uji.fromString(ipStr) || (uint32_t)uji == 0) {
+        Serial.println("Format: server 192.168.8.50  (atau: server hapus)");
+      } else {
+        simpanServerNvs(uji.toString());
+        gagalMqtt = 0;
+        if (mqA.connected()) mqA.disconnect();
+        cariServer();
+      }
+    } else {
+      Serial.println("Perintah Serial: status | scan | cari | baca | wifi SSID|SANDI | wifi hapus | server IP | server hapus | help");
+    }
+  }
+}
+
 void sambungWifi() {
   if (WiFi.status() == WL_CONNECTED) return;
   static bool siap = false;
   if (!siap) {
     WiFi.mode(WIFI_STA); WiFi.setSleep(false); WiFi.setAutoReconnect(true);
+    if (nvsWifiSsid.length() > 0) wifiMulti.addAP(nvsWifiSsid.c_str(), nvsWifiPass.c_str());
     for (const Jaringan& j : JARINGAN) wifiMulti.addAP(j.ssid, j.pass);
     siap = true;
   }
@@ -551,8 +807,10 @@ void setup() {
   pinMode(PIN_TOMBOL_RESET, INPUT_PULLUP);
   mulaiFloat(fBawah);
   mulaiFloat(fAtas);
+  muatJaringanNvs();
   muatKalibrasiNvs();
   Serial.begin(115200);
+  Serial.println("\nGARAP IoT " FIRMWARE " siap (ketik 'help' di Serial Monitor 115200 baud)");
   esp_task_wdt_config_t wdt = { .timeout_ms = 15000, .idle_core_mask = 0, .trigger_panic = true };
   esp_task_wdt_reconfigure(&wdt); esp_task_wdt_add(NULL);
 
@@ -577,6 +835,8 @@ void loop() {
   uint32_t skr = millis();
   perbaruiFloatSatu(fBawah, skr);
   perbaruiFloatSatu(fAtas, skr);
+  cekTombolReset(skr);
+  prosesSerial();
   if (estopDitekan()) { if (!estopLokal) Serial.println("E-STOP fisik"); estopLokal = true; daruratBerhenti("tombol_estop"); }
   // isi air berhenti sendiri saat float atas penuh, dan pompa nutrisi berhenti bila float bawah turun (air kurang)
   if (kerja.aktif && kerja.out == P_ISI_AIR && tandonPenuh()) { semuaMati(); berhentiKerja("selesai", "tandon_penuh"); }
@@ -597,6 +857,7 @@ void loop() {
   if (estopLokal && !estopDitekan() && !estopServer
       && terakhirServerOk != 0 && millis() - terakhirServerOk < FAILSAFE_MS) { estopLokal = false; Serial.println("E-STOP dilepas"); }
   if (mqA.connected() && millis() - terakhirHB >= HEARTBEAT_MS) { terakhirHB = millis(); kirimStatusA(); }
+  else if (!mqA.connected() && millis() - terakhirHBHttp >= HEARTBEAT_MS) { terakhirHBHttp = millis(); kirimHeartbeatHttp(); }
 
   // sensor: hanya saat pompa diam (pembacaan memblokir ±0,5 dtk dan akan memperpanjang durasi pompa)
   if (!kerja.aktif && millis() - sTerakhir >= INTERVAL_MS) { sTerakhir = millis(); bacaDanKirimSensor(); }
