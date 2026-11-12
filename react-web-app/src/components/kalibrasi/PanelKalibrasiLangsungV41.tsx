@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/authContext'
 import { useApiError } from '../../lib/crudApi'
+import { kalimatHasil, useHasilPerintah } from '../../lib/useHasilPerintah'
 import { tglPendek } from '../../lib/format'
 import {
   hitungLajuPompa,
@@ -54,6 +55,9 @@ export function PanelKalibrasiLangsungV41({
   const [ec12880, setEc12880] = useState<number | null>(null)
   const [ph40, setPh40] = useState<number | null>(null)
   const [ph70, setPh70] = useState<number | null>(null)
+  // Tegangan probe saat tiap titik diambil: inilah yang disimpan alat (bukan bacaan pH).
+  const [volt40, setVolt40] = useState<number | null>(null)
+  const [volt70, setVolt70] = useState<number | null>(null)
 
   // State kalibrasi pompa 2-langkah
   const [pompa, setPompa] = useState<PompaKey>('a')
@@ -64,6 +68,9 @@ export function PanelKalibrasiLangsungV41({
   const [sibuk, setSibuk] = useState<string | null>(null)
   const [pesan, setPesan] = useState<string | null>(null)
   const [galat, setGalat] = useState<string | null>(null)
+  // Perintah terakhir yang dikirim ke alat (uji pompa / laju pompa); statusnya dipantau sampai alat melapor.
+  const [perintahAlat, setPerintahAlat] = useState<{ id: number | string; label: string } | null>(null)
+  const hasilAlat = useHasilPerintah(perintahAlat?.id ?? null)
 
   useEffect(() => {
     if (!pesan) return
@@ -155,24 +162,41 @@ export function PanelKalibrasiLangsungV41({
       setGalat('Aktifkan mode pemeliharaan terlebih dahulu sebelum mengambil titik kalibrasi.')
       return
     }
-    const bacaanPh = phNow > 0 ? phNow : titik === '40' ? 4.0 : 7.0
+    const voltNow = k?.ph_volt ?? null
+    if (voltNow === null || !(phNow > 0)) {
+      setGalat('Alat belum mengirim bacaan dan tegangan probe pH (alat offline, probe lepas, atau firmware lama). Titik tidak direkam.')
+      return
+    }
+    const bacaanPh = phNow
     const next40 = titik === '40' ? bacaanPh : ph40
     const next70 = titik === '70' ? bacaanPh : ph70
-    if (titik === '40') setPh40(bacaanPh)
-    else setPh70(bacaanPh)
+    const nextVolt40 = titik === '40' ? voltNow : volt40
+    const nextVolt70 = titik === '70' ? voltNow : volt70
+    if (titik === '40') {
+      setPh40(bacaanPh)
+      setVolt40(voltNow)
+    } else {
+      setPh70(bacaanPh)
+      setVolt70(voltNow)
+    }
 
     if (next40 !== null && next70 !== null) {
       setSibuk('kal_ph')
       try {
-        await api.post('/iot-v41/kalibrasi-dua-titik', {
+        const r = await api.post('/iot-v41/kalibrasi-dua-titik', {
           sensor: 'ph',
           aksi: 'simpan',
           titik_1: next40,
           titik_2: next70,
+          volt4: nextVolt40,
+          volt7: nextVolt70,
         })
         setPh40(null)
         setPh70(null)
-        setPesan(`Kalibrasi pH 2-titik (pH 4,0=${fmt(next40, 2)} & 7,0=${fmt(next70, 2)}) tersimpan beserta riwayatnya. Belum dikirim ke alat.`)
+        setVolt40(null)
+        setVolt70(null)
+        setPerintahAlat(r.data?.id_perintah ? { id: r.data.id_perintah, label: 'Kalibrasi pH ke alat' } : null)
+        setPesan(String(r.data?.message ?? 'Kalibrasi pH dua titik tersimpan.'))
         onReload()
       } catch (err) {
         const f = handleApiError(err)
@@ -193,15 +217,18 @@ export function PanelKalibrasiLangsungV41({
     setGalat(null)
     setPesan(null)
     try {
-      await api.post('/iot-v41/kalibrasi-dua-titik', { sensor, aksi: 'balik' })
+      const r = await api.post('/iot-v41/kalibrasi-dua-titik', { sensor, aksi: 'balik' })
       if (sensor === 'ec') {
         setEc1413(null)
         setEc12880(null)
       } else {
         setPh40(null)
         setPh70(null)
+        setVolt40(null)
+        setVolt70(null)
       }
-      setPesan(`Kalibrasi ${sensor.toUpperCase()} dikembalikan ke nilai sebelumnya.`)
+      setPerintahAlat(r.data?.id_perintah ? { id: r.data.id_perintah, label: `Balik kalibrasi ${sensor.toUpperCase()} ke alat` } : null)
+      setPesan(String(r.data?.message ?? `Kalibrasi ${sensor.toUpperCase()} dikembalikan ke nilai sebelumnya.`))
       onReload()
     } catch (err) {
       const f = handleApiError(err)
@@ -211,7 +238,7 @@ export function PanelKalibrasiLangsungV41({
     }
   }
 
-  function mulaiUjiPompa(e: React.FormEvent) {
+  async function mulaiUjiPompa(e: React.FormEvent) {
     e.preventDefault()
     if (!bolehUbah || sibuk) return
     setGalat(null)
@@ -219,9 +246,19 @@ export function PanelKalibrasiLangsungV41({
       setGalat('Aktifkan mode pemeliharaan terlebih dahulu sebelum menyalakan pompa kalibrasi.')
       return
     }
-    setSesiPompa({ pompa, detik })
-    setMlTakar('')
-    setPesan(`Pompa ${pompa.toUpperCase()} dijadwalkan jalan ${detik} detik. Tampung di gelas ukur lalu isi hasil mL di bawah.`)
+    setSibuk('uji_pompa')
+    setPesan(null)
+    try {
+      const r = await api.post('/iot-v41/uji-pompa', { pompa, detik })
+      setPerintahAlat({ id: r.data?.id_perintah, label: `Uji pompa ${pompa.toUpperCase()} ${detik} detik` })
+      setSesiPompa({ pompa, detik })
+      setMlTakar('')
+      setPesan(String(r.data?.message ?? 'Uji pompa masuk antrean.'))
+    } catch (err) {
+      setGalat(handleApiError(err).message)
+    } finally {
+      setSibuk(null)
+    }
   }
 
   async function simpanKalibrasiPompa(e: React.FormEvent) {
@@ -238,13 +275,14 @@ export function PanelKalibrasiLangsungV41({
     setPesan(null)
     const infoPompa = DAFTAR_POMPA.find((d) => d.kode === sesiPompa.pompa)
     try {
-      await api.post('/iot-v41/kalibrasi-pompa', {
+      const r = await api.post('/iot-v41/kalibrasi-pompa', {
         pompa: sesiPompa.pompa,
         detik: sesiPompa.detik,
         ml: mlNum,
       })
       if (infoPompa) simpanCacheLokal({ [infoPompa.paramLaju]: laju })
-      setPesan(`Laju ${infoPompa?.label ?? sesiPompa.pompa} = ${fmt(laju, 2)} mL/detik (${fmt(mlNum, 1)} mL ÷ ${sesiPompa.detik} dtk) disimpan.`)
+      setPerintahAlat(r.data?.id_perintah ? { id: r.data.id_perintah, label: `Laju ${infoPompa?.label ?? sesiPompa.pompa} ke alat` } : null)
+      setPesan(String(r.data?.message ?? `Laju ${infoPompa?.label ?? sesiPompa.pompa} = ${fmt(laju, 2)} mL/detik disimpan.`))
       setSesiPompa(null)
       setMlTakar('')
       onReload()
@@ -281,6 +319,11 @@ export function PanelKalibrasiLangsungV41({
         <div>
           {pesan && <Pesan jenis="ok">{pesan}</Pesan>}
           {galat && <Pesan jenis="galat" onTutup={() => setGalat(null)}>{galat}</Pesan>}
+          {perintahAlat && (
+            <Pesan jenis={hasilAlat?.status === 'gagal' || hasilAlat?.status === 'kedaluwarsa' ? 'galat' : 'ok'}>
+              {perintahAlat.label}: {kalimatHasil(hasilAlat)}
+            </Pesan>
+          )}
         </div>
       )}
 
@@ -496,7 +539,7 @@ export function PanelKalibrasiLangsungV41({
               Urutannya: <b>1)</b> selang pompa diarahkan ke gelas ukur → <b>2)</b> tekan &ldquo;Jalankan pompa&rdquo; → <b>3)</b> tunggu sampai pompa berhenti sendiri → <b>4)</b> baca berapa mL di gelas → <b>5)</b> isi angka mL-nya di bawah. Lajunya dihitung sendiri (mL ÷ detik).
             </p>
 
-            <form onSubmit={mulaiUjiPompa} className="mt-3 space-y-2.5">
+            <form onSubmit={(e) => void mulaiUjiPompa(e)} className="mt-3 space-y-2.5">
               <label className="block">
                 <span className="vsf-label vsf-label-tinta">Pompa yang dikalibrasi</span>
                 <select
@@ -542,7 +585,7 @@ export function PanelKalibrasiLangsungV41({
             {sesiPompa && bolehUbah && (
               <form onSubmit={(e) => void simpanKalibrasiPompa(e)} className="vsf-blok mt-3 space-y-2 p-3">
                 <div className="text-[12px] font-semibold text-tinta">
-                  Pompa {sesiPompa.pompa.toUpperCase()} telah dijalankan selama <b>{sesiPompa.detik} detik</b>.
+                  Uji pompa {sesiPompa.pompa.toUpperCase()} <b>{sesiPompa.detik} detik</b> sudah diminta. Isi hasil takar setelah alat melapor selesai.
                 </div>
                 <label className="block">
                   <span className="vsf-label vsf-label-tinta">Hasil takar di gelas ukur (mL)</span>

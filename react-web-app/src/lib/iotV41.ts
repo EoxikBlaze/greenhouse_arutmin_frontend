@@ -58,6 +58,8 @@ export type IotV41Kondisi = {
   ec_ms: number
   ec_us: number
   ph: number
+  /** Tegangan mentah probe pH dari alat (V); null/undefined bila alat belum mengirimnya atau datanya basi. */
+  ph_volt?: number | null
   suhu_air: number | null
   suhu_ruang: number | null
   rh: number | null
