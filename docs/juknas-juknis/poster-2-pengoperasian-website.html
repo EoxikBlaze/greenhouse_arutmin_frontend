@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Poster 2 — Cara Pengoperasian Website & Aplikasi (GARAP · Pokjar Permata)</title>
+  <style>
+    @page {
+      size: A3 portrait;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 297mm;
+      height: 420mm;
+      background: #f4f7fb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #0f172a;
+    }
+
+    .poster {
+      width: 297mm;
+      height: 419mm;
+      padding: 10mm 11mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 5.5mm;
+      background: linear-gradient(180deg, #eff6ff 0%, #ffffff 38%, #f3faf5 100%);
+    }
+
+    .header {
+      background: linear-gradient(125deg, #0f2942 0%, #174e31 62%, #2e7d4b 100%);
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 16px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      box-shadow: 0 6px 18px rgba(15, 41, 66, 0.16);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .kop-kicker {
+      font-size: 11.5pt;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #a7f3d0;
+    }
+
+    .header h1 {
+      margin: 3px 0 4px 0;
+      font-size: 24pt;
+      line-height: 1.08;
+      letter-spacing: -0.01em;
+    }
+
+    .header p {
+      margin: 0;
+      font-size: 11pt;
+      color: #e2e8f0;
+    }
+
+    .badge-tag {
+      background: rgba(255, 255, 255, 0.14);
+      border: 1.5px solid rgba(167, 243, 208, 0.55);
+      border-radius: 10px;
+      padding: 10px 14px;
+      text-align: right;
+      min-width: 195px;
+    }
+    .badge-tag .big {
+      font-size: 13pt;
+      font-weight: 800;
+      color: #ffffff;
+    }
+    .badge-tag .small {
+      font-size: 9.2pt;
+      color: #bbf7d0;
+      margin-top: 2px;
+    }
+
+    .sec {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 12px 16px;
+    }
+
+    .sec-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 9px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 6px;
+    }
+
+    .num-pill {
+      background: #174e31;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 11.5pt;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .sec-title {
+      font-size: 13.5pt;
+      font-weight: 800;
+      color: #0e3520;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      background: #eef2f6;
+      border: 1px solid #cbd5e1;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-size: 8.8pt;
+    }
+
+    /* Zone 1: Access & Roles */
+    .access-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 12px;
+    }
+
+    .url-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 9px;
+    }
+    .url-card {
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-top: 4px solid #1d4ed8;
+      border-radius: 9px;
+      padding: 9px 10px;
+    }
+    .url-card strong {
+      display: block;
+      font-size: 9.8pt;
+      color: #1e3a8a;
+      margin-bottom: 3px;
+    }
+    .url-card p {
+      margin: 0;
+      font-size: 9pt;
+      line-height: 1.38;
+      color: #334155;
+    }
+
+    .role-box {
+      background: #f4faf6;
+      border: 1.5px solid #b8dcc5;
+      border-radius: 9px;
+      padding: 9px 12px;
+      font-size: 9.2pt;
+      line-height: 1.4;
+    }
+    .role-box strong { color: #0e3520; }
+
+    /* Zone 2: Daily 5 steps */
+    .steps-5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 9px;
+    }
+    .op-card {
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 10px 10px;
+    }
+    .op-badge {
+      display: inline-block;
+      background: #174e31;
+      color: #ffffff;
+      font-size: 8.5pt;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 999px;
+      margin-bottom: 5px;
+    }
+    .op-card h3 {
+      margin: 0 0 4px 0;
+      font-size: 10.6pt;
+      color: #0f172a;
+    }
+    .op-card p {
+      margin: 0;
+      font-size: 8.9pt;
+      line-height: 1.36;
+      color: #334155;
+    }
+
+    /* Zone 3 & 4 */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6mm;
+    }
+
+    .cycle-flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+      margin-bottom: 9px;
+    }
+    .cycle-pill {
+      background: #eaf5ee;
+      border: 1.5px solid #2e7d4b;
+      border-radius: 8px;
+      padding: 7px 6px;
+      text-align: center;
+    }
+    .cycle-pill strong {
+      display: block;
+      font-size: 9.5pt;
+      color: #0e3520;
+    }
+    .cycle-pill span {
+      font-size: 8.3pt;
+      color: #334155;
+    }
+
+    .mini-list {
+      margin: 0;
+      padding-left: 17px;
+      font-size: 9.3pt;
+      line-height: 1.42;
+      color: #1e293b;
+    }
+    .mini-list li { margin-bottom: 4px; }
+
+    /* Troubleshooting banner */
+    .trouble-box {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 14px;
+      padding: 14px 18px;
+    }
+    .trouble-box h2 {
+      margin: 0 0 8px 0;
+      font-size: 13.5pt;
+      color: #fde047;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .trouble-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .t-item {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 9px;
+      padding: 9px 11px;
+      font-size: 9.1pt;
+      line-height: 1.38;
+    }
+    .t-item .t-head {
+      display: block;
+      font-weight: 800;
+      color: #86efac;
+      font-size: 9.8pt;
+      margin-bottom: 4px;
+    }
+    .t-item p { margin: 0; }
+    .t-item code {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9.2pt;
+      color: #475569;
+      border-top: 1.5px solid #cbd5e1;
+      padding-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="poster">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="brand">
+        <svg width="58" height="58" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <rect width="64" height="64" rx="16" fill="#ffffff" fill-opacity="0.14"/>
+          <path d="M18 42C18 26 30 16 46 16C46 32 36 44 20 44" stroke="#a7f3d0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M18 46L37 27" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="46" cy="46" r="5" fill="#4ade80"/>
+        </svg>
+        <div>
+          <div class="kop-kicker">Vertonik Smart Farm (GARAP) &bull; Pokjar Permata</div>
+          <h1>CARA PENGOPERASIAN WEBSITE &amp; APLIKASI</h1>
+          <p>Panduan Operator Harian, Siklus Tanam, Target Nutrisi, Saklar &amp; Kalibrasi Online</p>
+        </div>
+      </div>
+      <div class="badge-tag">
+        <div class="big">POSTER 2 / 2</div>
+        <div class="small">Untuk Petani, Admin &amp; Operator</div>
+        <div class="small">Web React &amp; Aplikasi HP GARAP</div>
+      </div>
+    </header>
+
+    <!-- 1. AKSES & HAK PERAN -->
+    <section class="sec">
+      <div class="sec-head">
+        <div class="num-pill">1</div>
+        <div class="sec-title">Cara Membuka Website &amp; Pembagian Akun Pengguna</div>
+      </div>
+      <div class="access-grid">
+        <div class="url-cards">
+          <div class="url-card">
+            <strong>Wi-Fi Kebun / Modem</strong>
+            <p>Hubungkan HP/laptop ke Wi-Fi yang sama dengan Pi (<code>Pokjar Permata</code> / Modem), lalu buka:<br/><code>http://vertonik.local</code><br/>atau <code>http://&lt;IP-Pi&gt;</code></p>
+          </div>
+          <div class="url-card">
+            <strong>Hotspot Darurat Pi</strong>
+            <p>Saat router mati, sambung ke Wi-Fi <code>Vertoniksmartfarm</code> lalu buka:<br/><code>http://10.42.0.1</code></p>
+          </div>
+          <div class="url-card">
+            <strong>Akses Luar Kebun</strong>
+            <p>Gunakan link HTTPS <strong>Cloudflare Tunnel</strong> atau IP <strong>Tailscale VPN</strong> (bila tunnel sudah aktif di Raspberry Pi).</p>
+          </div>
+        </div>
+        <div class="role-box">
+          <strong>Hak Akses Login:</strong><br/>
+          &bull; <strong>Petani:</strong> Pantau <em>Dashboard</em>, <em>Sensor</em>, <em>Peringatan</em>, <em>CCTV</em>, <em>Asisten AI</em>, <em>Kebun Saya</em>, &amp; <em>Akun Saya</em>.<br/>
+          &bull; <strong>Admin:</strong> Akses penuh termasuk <em>Saklar</em>, <em>Target Nutrisi</em>, <em>Kalibrasi</em>, <em>Siklus Tanam</em>, <em>Master Data</em>, &amp; <em>User</em>.<br/>
+          &bull; <strong>Demo:</strong> Mode peninjauan <strong>baca-saja</strong> (semua perubahan otomatis ditolak server).
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. RUTINITAS HARIAN -->
+    <section class="sec">
+      <div class="sec-head">
+        <div class="num-pill">2</div>
+        <div class="sec-title">5 Langkah Pantau Harian Operator (Semua Pengguna &mdash; 5 Menit Pagi &amp; Sore)</div>
+      </div>
+      <div class="steps-5">
+        <div class="op-card">
+          <span class="op-badge">LANGKAH 1</span>
+          <h3>Dashboard</h3>
+          <p>Buka <code>/dashboard</code>. Cek status <strong>perangkat online</strong> &amp; 7 angka sensor (pH, suhu air, TDS/EC, suhu/RH udara, level tandon) agar tetap dalam <em>batas aman</em>.</p>
+        </div>
+        <div class="op-card">
+          <span class="op-badge">LANGKAH 2</span>
+          <h3>Grafik Sensor</h3>
+          <p>Buka <code>/sensor-realtime</code>. Pilih rentang <strong>6 Jam</strong> / <strong>24 Jam</strong> / <strong>7 Hari</strong> untuk cek kestabilan pH &amp; nutrisi atau unduh data CSV.</p>
+        </div>
+        <div class="op-card">
+          <span class="op-badge">LANGKAH 3</span>
+          <h3>Cek Peringatan</h3>
+          <p>Buka <code>/peringatan</code>. Periksa tanda merah (<code>AIR_DIGANTI</code>) / kuning (<code>MODE_PEMELIHARAAN</code>). Tangani tandon nyata dulu sebelum menekan <em>tandai selesai</em>.</p>
+        </div>
+        <div class="op-card">
+          <span class="op-badge">LANGKAH 4</span>
+          <h3>Kebun &amp; CCTV</h3>
+          <p>Cek progres umur HST &amp; prediksi panen di <strong>Kebun Saya</strong> (<code>/tanam</code>), serta pantau kondisi daun &amp; meja di <strong>CCTV</strong> (<code>/cctv</code>).</p>
+        </div>
+        <div class="op-card">
+          <span class="op-badge">LANGKAH 5</span>
+          <h3>Asisten AI</h3>
+          <p>Buka <code>/asisten-ai</code>. Klik <strong>Langkah Selanjutnya</strong> untuk analisa cepat kondisi tandon, atau ketik gejala daun &amp; pertanyaan budidaya.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 & 4. SIKLUS TANAM + TARGET/SAKLAR & ADMIN TEKNIS -->
+    <div class="grid-2">
+      <section class="sec">
+        <div class="sec-head">
+          <div class="num-pill">3</div>
+          <div class="sec-title">Alur Siklus Tanam, Target Nutrisi &amp; Saklar (Admin)</div>
+        </div>
+        <div class="cycle-flow">
+          <div class="cycle-pill">
+            <strong>1. Semai</strong>
+            <span><code>/semai</code><br/>Benih &amp; jumlah</span>
+          </div>
+          <div class="cycle-pill">
+            <strong>2. Peremajaan</strong>
+            <span><code>/peremajaan</code><br/>Pindah netpot</span>
+          </div>
+          <div class="cycle-pill">
+            <strong>3. Pendewasaan</strong>
+            <span><code>/pendewasaan</code><br/>Kurva naik ppm</span>
+          </div>
+          <div class="cycle-pill">
+            <strong>4. Panen</strong>
+            <span><code>/panen</code><br/>Catat bobot &amp; hasil</span>
+          </div>
+        </div>
+        <ul class="mini-list">
+          <li><strong>Memajukan Tahap:</strong> Buka menu tahap aktif &rarr; klik detail baris &rarr; tekan <strong>Tandai Selesai</strong> untuk meneruskan batch secara berurutan sampai Panen.</li>
+          <li><strong>Target Nutrisi (<code>/dosing</code>):</strong> Punya 4 tab: <em>Target Nutrisi</em> (kurva ppm harian &amp; target penampung), <em>Parameter</em> (konfigurasi &amp; timing), <em>Keamanan</em> (aturan fail-safe), &amp; <em>Perawatan</em>.</li>
+          <li><strong>Saklar &amp; Mode (<code>/saklar</code>):</strong> Atur 5 saklar izin (<em>Nutrisi A+B</em>, <em>pH up</em>, <em>pH down</em>, <em>Pengenceran</em>, &amp; <em>Isi air otomatis</em>) lalu klik <strong>Simpan pengaturan</strong>.</li>
+          <li><strong>Master Data:</strong> Atur katalog varietas di <code>/tanaman</code>, meja di <code>/meja</code>, &amp; batas aman di <code>/ambang</code>.</li>
+        </ul>
+      </section>
+
+      <section class="sec">
+        <div class="sec-head">
+          <div class="num-pill">4</div>
+          <div class="sec-title">Kendali Teknis, Kalibrasi, Pemulihan &amp; Laporan</div>
+        </div>
+        <ul class="mini-list">
+          <li><strong>Tombol Darurat Web (<code>/kalibrasi</code>):</strong> Tekan tombol merah <strong>STOP pompa</strong> bila perlu menghentikan pompa dari aplikasi (untuk darurat listrik/bocor tetap utamakan <strong>E-STOP fisik</strong>).</li>
+          <li><strong>Kalibrasi Langsung (<code>/kalibrasi</code>):</strong> Klik <strong>Aktifkan pemeliharaan</strong> terlebih dahulu untuk kalibrasi 2-titik EC/pH maupun kalibrasi laju pompa (<code>30/60/120 detik</code>).</li>
+          <li><strong>Pengaturan Alat (<code>/pengaturan-alat</code>):</strong> Isi volume tandon (L), jumlah &amp; debit talang, jeda A&rarr;B, batas aman EC/pH, serta batas mL koreksi pH.</li>
+          <li><strong>Pemulihan Papan (<code>/pemulihan-papan</code>) &amp; Koneksi (<code>/mqtt-diagnostik</code>):</strong> Siapkan paket parameter &amp; 6 riwayat kalibrasi saat ganti papan ESP32 baru, serta cek topik MQTT <code>garap/aktuator-01/...</code>.</li>
+          <li><strong>Data, Laporan &amp; Audit:</strong> Hitung takaran uji lab di <code>/data</code>, unduh rekap Excel <code>.xlsx</code> di <code>/laporan</code>, &amp; periksa jejak aktivitas permanen di <code>/audit</code>.</li>
+        </ul>
+      </section>
+    </div>
+
+    <!-- 5. TROUBLESHOOTING CEPAT -->
+    <section class="trouble-box">
+      <h2>Penanganan Cepat Masalah Umum Website &amp; Aplikasi</h2>
+      <div class="trouble-grid">
+        <div class="t-item">
+          <div class="t-head">1. Website Tidak Bisa Dibuka</div>
+          <p>Pastikan HP/laptop terhubung ke Wi-Fi yang sama dengan Raspberry Pi (bukan paket data seluler, kecuali memakai tunnel). Tekan tombol <strong>RESET (GPIO 19)</strong> di panel IoT untuk mengecek IP Pi (<code>SRV</code>) di LCD, atau gunakan Wi-Fi hotspot Pi <code>Vertoniksmartfarm</code> &rarr; <code>http://10.42.0.1</code>.</p>
+        </div>
+        <div class="t-item">
+          <div class="t-head">2. Status "Perangkat Offline" / Usang</div>
+          <p>Angka sensor yang tampil adalah bacaan terakhir. Cek lampu pilot pada panel: bila <em>Merah+Hijau</em> atau LCD bertuliskan <code>WIFI MATI</code> / <code>TUNGGU SERVER...</code>, pastikan router 2,4 GHz hidup dan fitur <em>AP/Client Isolation</em> modem dalam keadaan mati.</p>
+        </div>
+        <div class="t-item">
+          <div class="t-head">3. Pompa Tidak Mau Menyala / Ditolak</div>
+          <p>Cek apakah <strong>Mode Pemeliharaan</strong> masih aktif di <code>/kalibrasi</code>, saklar di <code>/saklar</code> sedang OFF, E-STOP aktif (lampu merah), pelampung bawah kurang air, atau laju pompa belum dikalibrasi (<code>belum_dikalibrasi</code>).</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span><strong>Vertonik Smart Farm (GARAP) &bull; Pokjar Permata</strong></span>
+      <span>Acuan Lengkap: <em>Modul Juknas &amp; Juknis Operasional Website &amp; Alat IoT</em></span>
+    </footer>
+
+  </div>
+</body>
+</html>
+

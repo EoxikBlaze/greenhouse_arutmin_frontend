@@ -1,0 +1,3266 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "GARAP / Vertonik Smart Hidroponik",
+    "languages": [
+      "JavaScript",
+      "TypeScript",
+      "Dart",
+      "C++ (Arduino)",
+      "SQL"
+    ],
+    "frameworks": [
+      "Express",
+      "React",
+      "Vite",
+      "Flutter",
+      "PostgreSQL",
+      "MQTT (Mosquitto)",
+      "Ollama",
+      "ESP32 Arduino"
+    ],
+    "description": "Sistem hidroponik pintar 1 penampung (Raspberry Pi + ESP32): monitoring pH/EC/suhu, alur persetujuan dosing nutrisi yang eksekusinya masih diblokir demi keselamatan, kendali aktuator berpagar E-STOP, kalibrasi, uji lab, siklus budidaya, dan asisten AI lokal, diakses lewat web dan aplikasi mobile petani.",
+    "analyzedAt": "2026-11-12T00:00:00Z",
+    "gitCommitHash": "875d7378a3b92ce71352d3c9c84a620d873cf234"
+  },
+  "nodes": [
+    {
+      "id": "domain:monitoring-sensor",
+      "type": "domain",
+      "name": "Monitoring Sensor & Peringatan",
+      "summary": "Menerima bacaan pH, TDS/EC, suhu air, suhu/RH udara dan status pelampung dari ESP32 lewat MQTT atau HTTP, memvalidasinya, lalu menyimpannya ke tabel monitorings per penampung (meja). Menyajikan data realtime/riwayat ke web dan mobile serta mencatat peringatan (alert_logs) yang bisa ditandai selesai admin.",
+      "tags": [
+        "iot",
+        "sensor",
+        "mqtt",
+        "monitoring",
+        "peringatan"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entities": [
+          "monitorings",
+          "perangkat",
+          "alert_logs",
+          "sensor_thresholds",
+          "kunci API perangkat (vsf_)",
+          "meja/penampung"
+        ],
+        "businessRules": [
+          "Bacaan di luar batas FISIK ditolak di pintu masuk; bacaan di luar SANITY tetap disimpan agar probe lepas terlihat dan menahan gerbang dosis",
+          "Bacaan identik digabung jadi satu baris (updated_at, n_konfirmasi, celah_maks_detik)",
+          "Perangkat wajib kunci API ber-scope (sensor:tulis / aktuator:perintah / data:baca); MQTT dicek ulang: perangkat ada, aktif, peran cocok",
+          "Bacaan lebih tua dari SENSOR_BASI_DETIK dianggap basi",
+          "Hanya admin yang boleh menandai peringatan selesai (ack)"
+        ],
+        "crossDomainInteractions": [
+          "Bacaan terakhir dipakai gerbang dosis dan evaluasi kestabilan siklus budidaya",
+          "Data sensor & peringatan menjadi konteks asisten AI dan laporan"
+        ]
+      }
+    },
+    {
+      "id": "flow:kirim-bacaan-sensor",
+      "type": "flow",
+      "name": "Kirim Bacaan Sensor (ESP32 → Server)",
+      "summary": "ESP32 gabungan membaca probe tiap 5 detik dan menerbitkan ke garap/<kode>/data (cadangan HTTP POST /api/device/v1/sensor); server memvalidasi lalu menyimpan ke monitorings.",
+      "tags": [
+        "mqtt",
+        "esp32",
+        "ingest"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "MQTT garap/<kode>/data · POST /api/device/v1/sensor",
+        "entryType": "event"
+      }
+    },
+    {
+      "id": "step:kirim-bacaan-sensor:baca-probe",
+      "type": "step",
+      "name": "Baca probe di ESP32",
+      "summary": "Firmware membaca pH/EC (ADS1115), suhu air (DS18B20), SHT31, pelampung bawah/atas lalu menerbitkan JSON tiap 5 detik.",
+      "tags": [
+        "firmware",
+        "esp32"
+      ],
+      "complexity": "moderate",
+      "filePath": "deploy-pi/firmware/gabungan/gabungan.ino",
+      "lineRange": [
+        1,
+        40
+      ]
+    },
+    {
+      "id": "step:kirim-bacaan-sensor:terbit-mqtt",
+      "type": "step",
+      "name": "Terbit ke MQTT atau cadangan HTTP",
+      "summary": "Data dikirim ke topik garap/aktuator-01/data; bila port 1883 diblokir dikirim lewat HTTP POST ke /api/device/v1/sensor.",
+      "tags": [
+        "mqtt",
+        "http"
+      ],
+      "complexity": "moderate",
+      "filePath": "deploy-pi/firmware/gabungan/gabungan.ino",
+      "lineRange": [
+        528,
+        548
+      ]
+    },
+    {
+      "id": "step:kirim-bacaan-sensor:cek-perangkat",
+      "type": "step",
+      "name": "Verifikasi perangkat & kunci",
+      "summary": "Jembatan MQTT mencocokkan topik dan memeriksa perangkat aktif & perannya; jalur HTTP memakai requireKunci('sensor:tulis').",
+      "tags": [
+        "keamanan",
+        "auth-perangkat"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/mqttJembatan.js",
+      "lineRange": [
+        53,
+        120
+      ]
+    },
+    {
+      "id": "step:kirim-bacaan-sensor:validasi-bacaan",
+      "type": "step",
+      "name": "Validasi bacaan",
+      "summary": "simpanBacaan memeriksa payload, batas fisik/panjang field, dan id_meja yang ada.",
+      "tags": [
+        "validasi"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/routes/device.js",
+      "lineRange": [
+        69,
+        85
+      ]
+    },
+    {
+      "id": "step:kirim-bacaan-sensor:simpan-monitoring",
+      "type": "step",
+      "name": "Simpan ke monitorings",
+      "summary": "saveSensorRows menyimpan bacaan per penampung (baris identik digabung) dan menandai perangkat terlihat (firmware, RSSI).",
+      "tags": [
+        "database"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/routes/monitoring.js",
+      "lineRange": [
+        83,
+        171
+      ]
+    },
+    {
+      "id": "step:kirim-bacaan-sensor:detak-status",
+      "type": "step",
+      "name": "Detak & status perangkat",
+      "summary": "Heartbeat/status (online, firmware, rssi, uptime, estop) memperbarui status perangkat; server menerbitkan garap/server/status tiap 5 dtk.",
+      "tags": [
+        "heartbeat"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/device.js",
+      "lineRange": [
+        98,
+        115
+      ]
+    },
+    {
+      "id": "flow:pantau-sensor-realtime",
+      "type": "flow",
+      "name": "Pantau Sensor Realtime & Riwayat",
+      "summary": "Pengguna web/mobile melihat bacaan terbaru, grafik, riwayat, dan ekspor CSV monitoring.",
+      "tags": [
+        "dashboard",
+        "realtime",
+        "riwayat"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "GET /api/latest-sensor, /monitoring/chart-data, /monitoring/tarik",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:pantau-sensor-realtime:ambil-terbaru",
+      "type": "step",
+      "name": "Ambil bacaan terbaru",
+      "summary": "latestSensorPayload menyusun bacaan terakhir beserta ambang & anomali.",
+      "tags": [
+        "api"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/monitoring.js",
+      "lineRange": [
+        25,
+        75
+      ]
+    },
+    {
+      "id": "step:pantau-sensor-realtime:grafik-riwayat",
+      "type": "step",
+      "name": "Grafik & tarik riwayat",
+      "summary": "Rute /monitoring/chart-data dan /monitoring/tarik(/csv) menyajikan data historis dan ekspor CSV.",
+      "tags": [
+        "grafik",
+        "csv"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/monitoring.js",
+      "lineRange": [
+        281,
+        338
+      ]
+    },
+    {
+      "id": "step:pantau-sensor-realtime:tampil-web",
+      "type": "step",
+      "name": "Tampilan web",
+      "summary": "Halaman Sensor Realtime / Dashboard di web menampilkan nilai dan grafik.",
+      "tags": [
+        "react",
+        "web"
+      ],
+      "complexity": "simple",
+      "filePath": "react-web-app/src/pages/SensorRealtimePage.tsx"
+    },
+    {
+      "id": "step:pantau-sensor-realtime:tampil-mobile",
+      "type": "step",
+      "name": "Tampilan mobile",
+      "summary": "Halaman sensor dan riwayat monitoring di aplikasi Flutter.",
+      "tags": [
+        "flutter",
+        "mobile"
+      ],
+      "complexity": "simple",
+      "filePath": "flutter_mobile_app/lib/pages/sensor_page.dart"
+    },
+    {
+      "id": "flow:kelola-peringatan",
+      "type": "flow",
+      "name": "Catat & Tangani Peringatan",
+      "summary": "Peringatan dari perangkat (notif-hardware/saveAlert) dan sistem disimpan di alert_logs, ditampilkan di web/mobile, lalu ditandai selesai oleh admin.",
+      "tags": [
+        "alert",
+        "notifikasi"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "POST /api/notif-hardware · POST /alert-logs/:id/ack",
+        "entryType": "event"
+      }
+    },
+    {
+      "id": "step:kelola-peringatan:catat-alert",
+      "type": "step",
+      "name": "Catat peringatan perangkat",
+      "summary": "Perangkat ber-kunci mengirim peringatan; server menyisipkan baris alert_logs.",
+      "tags": [
+        "alert"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/monitoring.js",
+      "lineRange": [
+        387,
+        409
+      ]
+    },
+    {
+      "id": "step:kelola-peringatan:deteksi-anomali",
+      "type": "step",
+      "name": "Deteksi anomali ambang",
+      "summary": "anomalies membandingkan bacaan dengan sensor_thresholds untuk ditampilkan sebagai peringatan.",
+      "tags": [
+        "ambang"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/monitoring.js",
+      "lineRange": [
+        35,
+        48
+      ]
+    },
+    {
+      "id": "step:kelola-peringatan:daftar-peringatan",
+      "type": "step",
+      "name": "Daftar peringatan",
+      "summary": "GET /alert-logs dan halaman peringatan mobile menampilkan peringatan.",
+      "tags": [
+        "ui"
+      ],
+      "complexity": "simple",
+      "filePath": "flutter_mobile_app/lib/pages/peringatan_page.dart"
+    },
+    {
+      "id": "step:kelola-peringatan:ack-peringatan",
+      "type": "step",
+      "name": "Tandai selesai (admin)",
+      "summary": "POST /alert-logs/:id/ack khusus admin non-demo, memperbarui acknowledged dan menyiapkan audit.",
+      "tags": [
+        "admin",
+        "audit"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/alertLogs.js",
+      "lineRange": [
+        26,
+        37
+      ]
+    },
+    {
+      "id": "domain:dosing-nutrisi",
+      "type": "domain",
+      "name": "Dosing Nutrisi (Alur Persetujuan)",
+      "summary": "Mengatur permintaan dosis nutrisi A+B dan pH per penampung lewat state machine bertahap (WAITING_APPROVAL → APPROVED → RUNNING → MIXING → VERIFYING → SUCCESS/EXHAUSTED/FAULT). Saat ini pengajuan, persetujuan, penolakan, dan pencabutan berfungsi, tetapi EKSEKUSI DOSIS DIBLOKIR di gerbang dosis (EKSEKUSI_DIIZINKAN = false) dan perintah DOSIS tidak pernah dikirim ke perangkat.",
+      "tags": [
+        "dosing",
+        "nutrisi",
+        "persetujuan",
+        "keselamatan",
+        "state-machine"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entities": [
+          "dosing_events (siklus dosing)",
+          "persetujuan_dosing",
+          "dosing_rounds (percobaan)",
+          "dosing_transisi",
+          "penampung_states",
+          "konfigurasi_dosis",
+          "preset_versi.batas_operasi",
+          "target_nutrisi"
+        ],
+        "businessRules": [
+          "EKSEKUSI_DIIZINKAN = false: gerbang selalu menambah alasan eksekusi_dosis_diblokir sehingga jalankan() membalas 423 eksekusi_diblokir; bila diubah pun jalur berakhir 501 eksekusi_belum_ada",
+          "Antrean aktuator tidak pernah men-dequeue/mengirim tipe DOSIS (daftar-izin TIPE_DIKIRIM) baik lewat HTTP maupun MQTT",
+          "POST /api/aktuator/perintah dengan tipe DOSIS ditolak 423 butuh_alur_persetujuan",
+          "Satu penampung hanya boleh punya satu siklus dosing aktif; transisi hanya lewat JALUR yang sah",
+          "Cakupan persetujuan (pompa, maks mL, maks percobaan, masa berlaku) beku dan tidak boleh melebihi batas global konfigurasi_dosis yang SIAP",
+          "Tiap operasi tulis wajib Idempotency-Key dan dicatat di dosing_transisi + audit dalam satu transaksi",
+          "Penampung terkunci atau E-STOP aktif → 423; 3 bacaan mustahil berturut → FAULT + kunci penampung",
+          "Petani hanya untuk penampung yang ditugaskan kepadanya"
+        ],
+        "crossDomainInteractions": [
+          "Membaca siklus budidaya & preset versi dari Siklus Budidaya",
+          "Memakai bacaan terakhir dari Monitoring Sensor",
+          "Memakai pagar Kendali Aktuator (kunciPenampung, STOP saat dicabut)"
+        ]
+      }
+    },
+    {
+      "id": "flow:ajukan-setujui-dosing",
+      "type": "flow",
+      "name": "Ajukan & Setujui Dosing",
+      "summary": "Petani/admin mengajukan dosing manual untuk penampung semai sebuah siklus budidaya, lalu menyetujui dengan cakupan beku, menolak, atau mencabutnya.",
+      "tags": [
+        "persetujuan",
+        "idempotensi"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "POST /api/dosing/siklus, /siklus/:id/setujui|tolak|cabut",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:ajukan-setujui-dosing:form-dosing",
+      "type": "step",
+      "name": "Halaman Dosing (web)",
+      "summary": "Pengguna menyusun pengajuan dan persetujuan di halaman Dosing.",
+      "tags": [
+        "react"
+      ],
+      "complexity": "moderate",
+      "filePath": "react-web-app/src/pages/DosingPage.tsx"
+    },
+    {
+      "id": "step:ajukan-setujui-dosing:validasi-rute",
+      "type": "step",
+      "name": "Validasi rute & Idempotency-Key",
+      "summary": "Router memeriksa migrasi tersedia (503 belum_dimigrasi), id, dan header Idempotency-Key.",
+      "tags": [
+        "validasi"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/routes/dosing.js",
+      "lineRange": [
+        24,
+        79
+      ]
+    },
+    {
+      "id": "step:ajukan-setujui-dosing:ajukan",
+      "type": "step",
+      "name": "Ajukan → WAITING_APPROVAL",
+      "summary": "ajukan() cek penugasan, status siklus budidaya, parameter maks_masa_persetujuan_menit SIAP, penampung tidak terkunci/E-STOP, lalu membuat dosing_events + transisi + audit + notifikasi.",
+      "tags": [
+        "state-machine"
+      ],
+      "complexity": "complex",
+      "filePath": "backend-nodejs/src/dosingSiklus.js",
+      "lineRange": [
+        185,
+        235
+      ]
+    },
+    {
+      "id": "step:ajukan-setujui-dosing:setujui",
+      "type": "step",
+      "name": "Setujui dengan cakupan beku",
+      "summary": "setujui() memvalidasi cakupan (pompa_diizinkan, maks_ml_per_percobaan, maks_ml_total, maks_percobaan, berlaku_menit) terhadap batas global & jatah harian → APPROVED.",
+      "tags": [
+        "cakupan",
+        "batas"
+      ],
+      "complexity": "complex",
+      "filePath": "backend-nodejs/src/dosingSiklus.js",
+      "lineRange": [
+        237,
+        283
+      ]
+    },
+    {
+      "id": "step:ajukan-setujui-dosing:tolak-cabut",
+      "type": "step",
+      "name": "Tolak atau cabut",
+      "summary": "tolak() → REJECTED; cabut() → CANCELLED (mengantre STOP bila siklus sedang berjalan).",
+      "tags": [
+        "pencabutan"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/dosingSiklus.js",
+      "lineRange": [
+        284,
+        330
+      ]
+    },
+    {
+      "id": "step:ajukan-setujui-dosing:kedaluwarsa",
+      "type": "step",
+      "name": "Kedaluwarsa otomatis",
+      "summary": "kedaluwarsakan() memindahkan siklus yang lewat masa berlaku ke EXPIRED dengan notifikasi.",
+      "tags": [
+        "cron"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/dosingSiklus.js",
+      "lineRange": [
+        433,
+        462
+      ]
+    },
+    {
+      "id": "flow:jalankan-dosing-diblokir",
+      "type": "flow",
+      "name": "Jalankan Dosing (Diblokir)",
+      "summary": "Permintaan menjalankan siklus APPROVED selalu berhenti di gerbang dosis: 423 eksekusi_diblokir (status tidak berubah) atau FAULT + kunci penampung bila sensor dicurigai rusak.",
+      "tags": [
+        "gerbang-dosis",
+        "diblokir",
+        "keselamatan"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "POST /api/dosing/siklus/:id/jalankan",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:jalankan-dosing-diblokir:cek-status",
+      "type": "step",
+      "name": "Cek status & kedaluwarsa",
+      "summary": "jalankan() mengunci penampung → siklus dosing, cek penugasan, status APPROVED + persetujuan SETUJU; persetujuan lewat → EXPIRED (410).",
+      "tags": [
+        "state-machine"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/dosingSiklus.js",
+      "lineRange": [
+        338,
+        352
+      ]
+    },
+    {
+      "id": "step:jalankan-dosing-diblokir:cek-kunci-estop",
+      "type": "step",
+      "name": "Cek kunci penampung & E-STOP",
+      "summary": "wajibTidakTerkunci menolak 423 bila penampung terkunci atau E-STOP aktif.",
+      "tags": [
+        "estop"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/dosingSiklus.js",
+      "lineRange": [
+        165,
+        169
+      ]
+    },
+    {
+      "id": "step:jalankan-dosing-diblokir:evaluasi-gerbang",
+      "type": "step",
+      "name": "Evaluasi gerbang dosis",
+      "summary": "gerbangSiklus memakai preset versi snapshot siklus dan 3 bacaan terakhir; evaluasiGerbang memeriksa preset TERVALIDASI, batas_operasi, sensor basi/tidak wajar/di luar batas, dan selalu menambah eksekusi_dosis_diblokir karena EKSEKUSI_DIIZINKAN = false.",
+      "tags": [
+        "gerbang"
+      ],
+      "complexity": "complex",
+      "filePath": "backend-nodejs/src/gerbangDosis.js",
+      "lineRange": [
+        21,
+        93
+      ]
+    },
+    {
+      "id": "step:jalankan-dosing-diblokir:fault-sensor",
+      "type": "step",
+      "name": "FAULT bila sensor rusak 3x",
+      "summary": "Bila wajib_lock (3 bacaan mustahil berturut) siklus → FAULT dan penampung dikunci, balasan 423 sensor_rusak.",
+      "tags": [
+        "fault",
+        "lock"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/dosingSiklus.js",
+      "lineRange": [
+        353,
+        360
+      ]
+    },
+    {
+      "id": "step:jalankan-dosing-diblokir:tolak-423",
+      "type": "step",
+      "name": "Tolak 423 eksekusi_diblokir",
+      "summary": "Gerbang tidak boleh → DosingGalat 423 eksekusi_diblokir beserta daftar alasan; status siklus tidak berubah.",
+      "tags": [
+        "diblokir"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/dosingSiklus.js",
+      "lineRange": [
+        361,
+        362
+      ]
+    },
+    {
+      "id": "step:jalankan-dosing-diblokir:jalur-501",
+      "type": "step",
+      "name": "Penjaga 501 eksekusi_belum_ada",
+      "summary": "Bila flag diubah, kode tetap menolak keras 501 karena jalur eksekusi belum diimplementasikan.",
+      "tags": [
+        "guard"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/dosingSiklus.js",
+      "lineRange": [
+        364,
+        366
+      ]
+    },
+    {
+      "id": "step:jalankan-dosing-diblokir:containment-antrean",
+      "type": "step",
+      "name": "Containment antrean: DOSIS tidak dikirim",
+      "summary": "TIPE_DIKIRIM mengecualikan DOSIS sehingga ambilPerintah (HTTP) dan jembatan MQTT tidak pernah mengirim perintah DOSIS ke ESP32.",
+      "tags": [
+        "containment"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/aktuator.js",
+      "lineRange": [
+        18,
+        29
+      ]
+    },
+    {
+      "id": "flow:sinkron-target-nutrisi",
+      "type": "flow",
+      "name": "Sinkron Target Nutrisi dari Preset",
+      "summary": "Server mengisi target EC/pH tiap penampung dari preset target_nutrisi (tanaman × tahap × umur) dan kurva naik harian, saat start, tiap 10 menit, dan setelah perubahan.",
+      "tags": [
+        "preset",
+        "target",
+        "ec",
+        "ph"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "cron 10 menit · POST /dosing/sinkron",
+        "entryType": "cron"
+      }
+    },
+    {
+      "id": "step:sinkron-target-nutrisi:batch-per-meja",
+      "type": "step",
+      "name": "Cari batch tanam aktif per meja",
+      "summary": "batchPerMeja mencari semai/peremajaan/pendewasaan berstatus proses.",
+      "tags": [
+        "tanam"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/presetDosing.js",
+      "lineRange": [
+        25,
+        55
+      ]
+    },
+    {
+      "id": "step:sinkron-target-nutrisi:pilih-preset",
+      "type": "step",
+      "name": "Pilih preset paling spesifik",
+      "summary": "pilihPreset mengutamakan preset tanaman itu dan rentang umur tersempit; target = titik tengah.",
+      "tags": [
+        "preset"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/presetDosing.js",
+      "lineRange": [
+        56,
+        95
+      ]
+    },
+    {
+      "id": "step:sinkron-target-nutrisi:naik-harian",
+      "type": "step",
+      "name": "Hitung naik harian ppm",
+      "summary": "naikHarian menaikkan ppm bertahap dari ppm_awal ke ppm_target sejak Peremajaan.",
+      "tags": [
+        "kurva"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/presetDosing.js",
+      "lineRange": [
+        74,
+        87
+      ]
+    },
+    {
+      "id": "step:sinkron-target-nutrisi:simpan-target",
+      "type": "step",
+      "name": "Simpan target (lewati mode manual)",
+      "summary": "sinkronTarget menulis target per penampung; penampung bermode manual tidak disentuh.",
+      "tags": [
+        "database"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/presetDosing.js",
+      "lineRange": [
+        104,
+        128
+      ]
+    },
+    {
+      "id": "step:sinkron-target-nutrisi:kelola-preset",
+      "type": "step",
+      "name": "Kelola preset (admin)",
+      "summary": "Rute /dosing/preset, /target, /naik-harian untuk CRUD preset oleh admin.",
+      "tags": [
+        "admin"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/preset.js",
+      "lineRange": [
+        29,
+        230
+      ]
+    },
+    {
+      "id": "domain:kendali-aktuator",
+      "type": "domain",
+      "name": "Kendali Aktuator & Keselamatan",
+      "summary": "Antrean perintah server → ESP32 aktuator (pompa A, B, pH Up, pH Down, isi air) dengan pagar keselamatan berlapis: batas konfigurasi_dosis, kunci penampung, E-STOP, saklar izin, TTL, dan antrean maksimal. Mencakup saklar izin per aktuator, mode isi air, mode pemeliharaan, dan kontrol air yang saat ini dinonaktifkan.",
+      "tags": [
+        "aktuator",
+        "keselamatan",
+        "estop",
+        "saklar",
+        "mqtt"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entities": [
+          "perintah_aktuator",
+          "aktuator_state (estop)",
+          "saklar_aktuator",
+          "penampung_states (lock, mode_pemeliharaan)",
+          "water_controls",
+          "pemetaan_katup"
+        ],
+        "businessRules": [
+          "Siapa pun (pengguna, otomasi, AI) hanya bisa mengantre perintah yang lolos pagar; firmware juga punya batas sendiri",
+          "E-STOP aktif → semua perintah berisiko ditolak 423 sampai di-reset admin",
+          "Saklar OFF: otomasi tidak boleh menyalakan aktuator; perintah pengguna tetap boleh",
+          "Antrean maks 10 perintah menunggu/dikirim per perangkat; STOP_DARURAT dan STOP didahulukan",
+          "Firmware menolak perintah tanpa detak server segar, saat E-STOP, pelampung bawah rendah, atau melebihi batas mL/jam/durasi",
+          "Kontrol air /watercontrol fill/stop/setMode selalu 503 kontrol_air_nonaktif"
+        ],
+        "crossDomainInteractions": [
+          "Dipakai Dosing Nutrisi untuk kunci penampung & STOP",
+          "Kalibrasi memakai antrean untuk UJI_POMPA",
+          "Status perangkat datang dari Monitoring Sensor"
+        ]
+      }
+    },
+    {
+      "id": "flow:antre-perintah-aktuator",
+      "type": "flow",
+      "name": "Antre & Kirim Perintah Aktuator",
+      "summary": "Admin non-demo mengantre perintah (kecuali DOSIS), server memvalidasi pagar, ESP32 mengambil via MQTT/HTTP, menjalankan, lalu melaporkan hasil dengan ack.",
+      "tags": [
+        "antrean",
+        "perintah"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "POST /api/aktuator/perintah",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:antre-perintah-aktuator:tolak-dosis-langsung",
+      "type": "step",
+      "name": "Tolak DOSIS langsung",
+      "summary": "Rute menolak tipe DOSIS dengan 423 butuh_alur_persetujuan.",
+      "tags": [
+        "containment"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/aktuator.js",
+      "lineRange": [
+        53,
+        61
+      ]
+    },
+    {
+      "id": "step:antre-perintah-aktuator:pagar-server",
+      "type": "step",
+      "name": "Pagar keselamatan server",
+      "summary": "buatPerintah: batas konfigurasi_dosis wajib terisi, validasiPerintah, perangkat aktuator ada, E-STOP, saklar, batas antrean, meja ada.",
+      "tags": [
+        "validasi",
+        "keselamatan"
+      ],
+      "complexity": "complex",
+      "filePath": "backend-nodejs/src/aktuator.js",
+      "lineRange": [
+        201,
+        347
+      ]
+    },
+    {
+      "id": "step:antre-perintah-aktuator:kirim-perintah",
+      "type": "step",
+      "name": "Kirim ke perangkat",
+      "summary": "ambilPerintah (HTTP GET /api/device/v1/perintah) atau jembatan MQTT garap/<kode>/perintah mengirim hanya tipe di TIPE_DIKIRIM.",
+      "tags": [
+        "mqtt",
+        "http"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/aktuator.js",
+      "lineRange": [
+        364,
+        377
+      ]
+    },
+    {
+      "id": "step:antre-perintah-aktuator:eksekusi-firmware",
+      "type": "step",
+      "name": "Eksekusi di firmware",
+      "summary": "mulaiPerintah memeriksa E-STOP, sibuk, pelampung, batas mL & laju kalibrasi sebelum menyalakan relay.",
+      "tags": [
+        "firmware"
+      ],
+      "complexity": "complex",
+      "filePath": "deploy-pi/firmware/gabungan/gabungan.ino",
+      "lineRange": [
+        288,
+        372
+      ]
+    },
+    {
+      "id": "step:antre-perintah-aktuator:lapor-hasil",
+      "type": "step",
+      "name": "Laporan hasil & ack",
+      "summary": "Firmware mengirim garap/<kode>/hasil sampai ack; laporHasil memperbarui status & kategori volume.",
+      "tags": [
+        "hasil"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/aktuator.js",
+      "lineRange": [
+        385,
+        439
+      ]
+    },
+    {
+      "id": "flow:estop-darurat",
+      "type": "flow",
+      "name": "E-STOP Darurat & Buka Kunci",
+      "summary": "Admin memicu STOP_DARURAT dari aplikasi (atau tombol fisik/bus 12V di alat); semua output mati sampai admin me-reset E-STOP dan membuka kunci penampung.",
+      "tags": [
+        "estop",
+        "darurat"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "POST /api/aktuator/estop · /estop/reset · /penampung/:id/buka-kunci",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:estop-darurat:picu-estop",
+      "type": "step",
+      "name": "Picu E-STOP",
+      "summary": "Rute mengantre STOP_DARURAT; aktuator_state estop = 1.",
+      "tags": [
+        "estop"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/aktuator.js",
+      "lineRange": [
+        82,
+        90
+      ]
+    },
+    {
+      "id": "step:estop-darurat:firmware-berhenti",
+      "type": "step",
+      "name": "Firmware mematikan semua output",
+      "summary": "Firmware menerima STOP_DARURAT atau estop di garap/server/status lalu daruratBerhenti; E-STOP lokal dibaca dari GPIO36.",
+      "tags": [
+        "firmware"
+      ],
+      "complexity": "moderate",
+      "filePath": "deploy-pi/firmware/gabungan/gabungan.ino",
+      "lineRange": [
+        373,
+        400
+      ]
+    },
+    {
+      "id": "step:estop-darurat:reset-estop",
+      "type": "step",
+      "name": "Reset E-STOP",
+      "summary": "Admin me-reset latch E-STOP di server.",
+      "tags": [
+        "admin"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/aktuator.js",
+      "lineRange": [
+        92,
+        95
+      ]
+    },
+    {
+      "id": "step:estop-darurat:buka-kunci",
+      "type": "step",
+      "name": "Buka kunci penampung",
+      "summary": "bukaKunci membuka LOCK penampung setelah diperiksa; hitungan harian tetap.",
+      "tags": [
+        "lock"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/aktuator.js",
+      "lineRange": [
+        101,
+        113
+      ]
+    },
+    {
+      "id": "flow:saklar-dan-mode",
+      "type": "flow",
+      "name": "Saklar Izin & Mode Isi Air",
+      "summary": "Admin mengatur saklar izin per aktuator (OFF = otomasi/AI tidak boleh menyalakan) dan mode isi air manual/otomatis serta mode pemeliharaan.",
+      "tags": [
+        "saklar",
+        "mode",
+        "pemeliharaan"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "PUT /saklar/:kode · PUT /iot-v41/saklar · POST /iot-v41/pemeliharaan",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:saklar-dan-mode:daftar-saklar",
+      "type": "step",
+      "name": "Baca saklar",
+      "summary": "daftar() membaca saklar_aktuator; baris hilang = OFF (aman).",
+      "tags": [
+        "saklar"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/saklar.js",
+      "lineRange": [
+        13,
+        20
+      ]
+    },
+    {
+      "id": "step:saklar-dan-mode:ubah-saklar",
+      "type": "step",
+      "name": "Ubah saklar (admin)",
+      "summary": "PUT /saklar/:kode khusus admin non-demo, mencatat pengubah.",
+      "tags": [
+        "admin"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/saklar.js",
+      "lineRange": [
+        18,
+        37
+      ]
+    },
+    {
+      "id": "step:saklar-dan-mode:mode-isi",
+      "type": "step",
+      "name": "Simpan 4 saklar & mode isi air",
+      "summary": "PUT /iot-v41/saklar menyimpan saklar tindakan + mode_isi manual/otomatis dalam transaksi.",
+      "tags": [
+        "mode"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/routes/iotV41.js",
+      "lineRange": [
+        249,
+        287
+      ]
+    },
+    {
+      "id": "step:saklar-dan-mode:pemeliharaan",
+      "type": "step",
+      "name": "Mode pemeliharaan",
+      "summary": "POST /iot-v41/pemeliharaan menyalakan/mematikan mode pemeliharaan dengan batas waktu.",
+      "tags": [
+        "pemeliharaan"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/iotV41.js",
+      "lineRange": [
+        430,
+        467
+      ]
+    },
+    {
+      "id": "step:saklar-dan-mode:ui-saklar",
+      "type": "step",
+      "name": "Halaman saklar mobile",
+      "summary": "Aplikasi Flutter menampilkan dan mengubah saklar.",
+      "tags": [
+        "flutter"
+      ],
+      "complexity": "simple",
+      "filePath": "flutter_mobile_app/lib/pages/saklar_page.dart"
+    },
+    {
+      "id": "flow:kontrol-air-nonaktif",
+      "type": "flow",
+      "name": "Kontrol Air (Nonaktif)",
+      "summary": "Isi/stop air dan ubah mode dari aplikasi dinonaktifkan karena perangkat tidak mengonfirmasi; rancangan ISI_AIR lewat antrean aktuator ada di kontrolAir.js tetapi belum dipasang.",
+      "tags": [
+        "kontrol-air",
+        "nonaktif"
+      ],
+      "complexity": "simple",
+      "domainMeta": {
+        "entryPoint": "POST /watercontrol/fill|stop|setMode",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:kontrol-air-nonaktif:baca-status",
+      "type": "step",
+      "name": "Baca status water_controls",
+      "summary": "GET /watercontrol dan /status membaca baris water_controls.",
+      "tags": [
+        "status"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/watercontrol.js",
+      "lineRange": [
+        22,
+        30
+      ]
+    },
+    {
+      "id": "step:kontrol-air-nonaktif:tolak-503",
+      "type": "step",
+      "name": "Tolak 503 kontrol_air_nonaktif",
+      "summary": "fill/stop/setMode selalu membalas 503 tanpa mengubah DB.",
+      "tags": [
+        "nonaktif"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/watercontrol.js",
+      "lineRange": [
+        10,
+        34
+      ]
+    },
+    {
+      "id": "step:kontrol-air-nonaktif:rancangan-isi-air",
+      "type": "step",
+      "name": "Rancangan ISI_AIR (belum dipasang)",
+      "summary": "mintaKontrolAir mengantre ISI_AIR idempoten; status fisik katup hanya dari laporan perangkat sah.",
+      "tags": [
+        "rancangan"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/kontrolAir.js",
+      "lineRange": [
+        1,
+        62
+      ]
+    },
+    {
+      "id": "domain:kalibrasi-uji-lab",
+      "type": "domain",
+      "name": "Kalibrasi & Uji Lab",
+      "summary": "Menjaga akurasi alat dan mencatat mutu: kalibrasi sensor pH/EC (dua titik), kalibrasi laju pompa peristaltik lewat uji pompa, kalkulator uji lab larutan EC/pH, dan pencatatan uji lab hasil panen per kategori Buah/Sayur.",
+      "tags": [
+        "kalibrasi",
+        "uji-lab",
+        "mutu"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entities": [
+          "kalibrasi_log",
+          "konstanta PH_V7/PH_V4/TDS_FAKTOR_KOREKSI",
+          "laju pompa (mL/detik)",
+          "uji_lab hasil panen",
+          "parameter Uji Lab (Buah/Sayur)"
+        ],
+        "businessRules": [
+          "Kalibrasi sensor hanya oleh admin non-demo",
+          "Uji pompa butuh UJI_POMPA_DIIZINKAN=1, mode pemeliharaan aktif, satu uji pada satu waktu, dan bukan dari otomasi/AI",
+          "202 uji pompa = diantre, bukan bukti pompa jalan",
+          "Firmware menolak perintah berbasis mL bila laju pompa belum dikalibrasi",
+          "Nilai uji lab panen divalidasi terhadap rentang per parameter"
+        ],
+        "crossDomainInteractions": [
+          "Uji pompa memakai antrean Kendali Aktuator",
+          "Hasil kalibrasi menentukan keabsahan bacaan Monitoring Sensor",
+          "Uji lab panen terkait lot/siklus budidaya"
+        ]
+      }
+    },
+    {
+      "id": "flow:kalibrasi-sensor",
+      "type": "flow",
+      "name": "Kalibrasi Sensor pH/EC",
+      "summary": "Admin mengukur larutan buffer/referensi lalu server menghitung konstanta kalibrasi dan menyimpan riwayatnya.",
+      "tags": [
+        "ph",
+        "ec",
+        "kalibrasi"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "POST /kalibrasi/:sensor · POST /iot-v41/kalibrasi-dua-titik",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:kalibrasi-sensor:daftar-jadwal",
+      "type": "step",
+      "name": "Lihat status & jadwal kalibrasi",
+      "summary": "GET /kalibrasi dan riwayat per sensor dengan statusJadwal.",
+      "tags": [
+        "jadwal"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/kalibrasi.js",
+      "lineRange": [
+        51,
+        86
+      ]
+    },
+    {
+      "id": "step:kalibrasi-sensor:hitung-konstanta",
+      "type": "step",
+      "name": "Hitung konstanta",
+      "summary": "konstantaPh (dua buffer) dan konstantaEc (referensi µS/cm) menghitung konstanta baru.",
+      "tags": [
+        "rumus"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/routes/kalibrasi.js",
+      "lineRange": [
+        35,
+        50
+      ]
+    },
+    {
+      "id": "step:kalibrasi-sensor:simpan-kalibrasi",
+      "type": "step",
+      "name": "Simpan kalibrasi (admin)",
+      "summary": "POST/PUT /kalibrasi/:sensor menyimpan hasil & log.",
+      "tags": [
+        "admin"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/routes/kalibrasi.js",
+      "lineRange": [
+        87,
+        160
+      ]
+    },
+    {
+      "id": "step:kalibrasi-sensor:dua-titik",
+      "type": "step",
+      "name": "Kalibrasi dua titik v4.1",
+      "summary": "POST /iot-v41/kalibrasi-dua-titik untuk alur kalibrasi perangkat v4.1.",
+      "tags": [
+        "v4.1"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/routes/iotV41.js",
+      "lineRange": [
+        553,
+        654
+      ]
+    },
+    {
+      "id": "step:kalibrasi-sensor:ui-kalibrasi",
+      "type": "step",
+      "name": "Halaman kalibrasi web",
+      "summary": "Halaman Kalibrasi menuntun pengguna.",
+      "tags": [
+        "react"
+      ],
+      "complexity": "simple",
+      "filePath": "react-web-app/src/pages/KalibrasiPage.tsx"
+    },
+    {
+      "id": "flow:kalibrasi-laju-pompa",
+      "type": "flow",
+      "name": "Uji & Kalibrasi Laju Pompa",
+      "summary": "Admin menyalakan pompa sungguhan beberapa detik dalam mode pemeliharaan, mengukur mL dengan gelas ukur, lalu menyimpan laju mL/detik.",
+      "tags": [
+        "pompa",
+        "kalibrasi"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "POST /iot-v41/uji-pompa · /iot-v41/kalibrasi-pompa",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:kalibrasi-laju-pompa:cek-izin-uji",
+      "type": "step",
+      "name": "Cek izin uji pompa",
+      "summary": "Ditolak 423 bila UJI_POMPA_DIIZINKAN mati, 409 bila bukan pemeliharaan atau uji lain berjalan.",
+      "tags": [
+        "pagar"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/iotV41.js",
+      "lineRange": [
+        468,
+        480
+      ]
+    },
+    {
+      "id": "step:kalibrasi-laju-pompa:antre-uji",
+      "type": "step",
+      "name": "Antre UJI_POMPA",
+      "summary": "buatPerintah UJI_POMPA (TTL 60 dtk) dan catat kalibrasi_log; balas 202 diantre.",
+      "tags": [
+        "antrean"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/routes/iotV41.js",
+      "lineRange": [
+        481,
+        499
+      ]
+    },
+    {
+      "id": "step:kalibrasi-laju-pompa:hitung-laju",
+      "type": "step",
+      "name": "Hitung laju pompa",
+      "summary": "hitungLajuPompa menghitung mL ÷ detik dari hasil gelas ukur.",
+      "tags": [
+        "rumus"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/iotV41.js",
+      "lineRange": [
+        152,
+        185
+      ]
+    },
+    {
+      "id": "step:kalibrasi-laju-pompa:simpan-laju",
+      "type": "step",
+      "name": "Simpan laju pompa",
+      "summary": "POST /iot-v41/kalibrasi-pompa menyimpan laju untuk dipakai perangkat.",
+      "tags": [
+        "kalibrasi"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/iotV41.js",
+      "lineRange": [
+        500,
+        552
+      ]
+    },
+    {
+      "id": "flow:uji-lab-larutan",
+      "type": "flow",
+      "name": "Kalkulator Uji Lab Larutan",
+      "summary": "Menghitung ppm per mL A+B dan mL pH Up/Down per satuan pH per liter dari uji kecil, sebagai dasar pratinjau dosis.",
+      "tags": [
+        "uji-lab",
+        "ec",
+        "ph"
+      ],
+      "complexity": "simple",
+      "domainMeta": {
+        "entryPoint": "POST /iot-v41/ujilab",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:uji-lab-larutan:uji-ec",
+      "type": "step",
+      "name": "Hitung uji lab EC",
+      "summary": "hitungUjiLabEc menghitung ppm_per_ml dari EC awal/akhir.",
+      "tags": [
+        "ec"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/iotV41.js",
+      "lineRange": [
+        90,
+        124
+      ]
+    },
+    {
+      "id": "step:uji-lab-larutan:uji-ph",
+      "type": "step",
+      "name": "Hitung uji lab pH",
+      "summary": "hitungUjiLabPh menghitung ph_up/down mL per pH per liter.",
+      "tags": [
+        "ph"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/iotV41.js",
+      "lineRange": [
+        125,
+        151
+      ]
+    },
+    {
+      "id": "step:uji-lab-larutan:simpan-ujilab",
+      "type": "step",
+      "name": "Simpan hasil uji",
+      "summary": "POST /iot-v41/ujilab menyimpan hasil ke parameter.",
+      "tags": [
+        "database"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/iotV41.js",
+      "lineRange": [
+        360,
+        429
+      ]
+    },
+    {
+      "id": "step:uji-lab-larutan:pratinjau-dosis",
+      "type": "step",
+      "name": "Pratinjau dosis A+B",
+      "summary": "hitungPratinjauDosis menampilkan kekurangan, porsi 65%, batas 300 ppm, total mL (hanya pratinjau).",
+      "tags": [
+        "pratinjau"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/iotV41.js",
+      "lineRange": [
+        186,
+        229
+      ]
+    },
+    {
+      "id": "flow:uji-lab-panen",
+      "type": "flow",
+      "name": "Uji Lab Hasil Panen",
+      "summary": "Mencatat hasil uji lab panen (pH, EC, Brix, diameter, bobot, tinggi, jumlah daun, nitrat) per kategori Buah/Sayur.",
+      "tags": [
+        "panen",
+        "mutu"
+      ],
+      "complexity": "simple",
+      "domainMeta": {
+        "entryPoint": "POST /uji-lab",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:uji-lab-panen:spesifikasi",
+      "type": "step",
+      "name": "Ambil spesifikasi parameter",
+      "summary": "GET /uji-lab/parameter mengembalikan parameter Buah (bawaan, melon) dan Sayur.",
+      "tags": [
+        "parameter"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/ujiLab.js",
+      "lineRange": [
+        19,
+        20
+      ]
+    },
+    {
+      "id": "step:uji-lab-panen:validasi-uji",
+      "type": "step",
+      "name": "Validasi nilai",
+      "summary": "validasi() memeriksa kategori, tanggal, dan rentang tiap parameter.",
+      "tags": [
+        "validasi"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/ujiLab.js",
+      "lineRange": [
+        23,
+        56
+      ]
+    },
+    {
+      "id": "step:uji-lab-panen:simpan-uji",
+      "type": "step",
+      "name": "Simpan / hapus uji",
+      "summary": "POST & DELETE /uji-lab menyimpan atau menghapus catatan uji.",
+      "tags": [
+        "database"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/ujiLab.js",
+      "lineRange": [
+        42,
+        80
+      ]
+    },
+    {
+      "id": "step:uji-lab-panen:ui-ujilab",
+      "type": "step",
+      "name": "Halaman uji lab mobile",
+      "summary": "Aplikasi Flutter mencatat dan menampilkan uji lab.",
+      "tags": [
+        "flutter"
+      ],
+      "complexity": "simple",
+      "filePath": "flutter_mobile_app/lib/pages/uji_lab_page.dart"
+    },
+    {
+      "id": "domain:siklus-budidaya",
+      "type": "domain",
+      "name": "Siklus Budidaya & Tanam",
+      "summary": "Mengelola daur tanam per penampung: siklus budidaya bertahap (DRAFT → persiapan tandon → semai → peremajaan → hitung bibit → pertumbuhan → selesai) dengan konfirmasi pengguna, alur tanam lama per tahap (semai/peremajaan/pendewasaan/panen), penugasan petani ke penampung, dan prediksi panen.",
+      "tags": [
+        "budidaya",
+        "tanam",
+        "siklus",
+        "penugasan",
+        "panen"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entities": [
+          "siklus_budidaya",
+          "siklus_lot",
+          "siklus_transisi",
+          "permintaan_konfirmasi",
+          "penugasan",
+          "semai/peremajaan/pendewasaan/panen",
+          "tanaman",
+          "meja (penampung)"
+        ],
+        "businessRules": [
+          "Transisi hanya lewat JALUR sah per aktor (user/system); siklus/lot perlu_tinjau tidak bisa dilanjutkan",
+          "Bibit tidak pernah dianggap siap tanpa jawaban pengguna",
+          "Parameter yang belum SIAP membuat fitur terkait berhenti atau operasi ditolak (tanpa angka tebakan)",
+          "Petani hanya bisa menulis untuk penampung dengan penugasan aktif, dicek dalam transaksi (FOR SHARE)",
+          "Layanan siklus tidak menyentuh aktuator/pompa sama sekali"
+        ],
+        "crossDomainInteractions": [
+          "Menjadi induk siklus dosing (Dosing Nutrisi)",
+          "Tahap tanam menentukan target preset nutrisi",
+          "Evaluasi kestabilan memakai data Monitoring Sensor"
+        ]
+      }
+    },
+    {
+      "id": "flow:jalankan-siklus-budidaya",
+      "type": "flow",
+      "name": "Jalankan Siklus Budidaya",
+      "summary": "Pengguna membuat siklus, memindahkannya antar tahap, menjawab konfirmasi tandon/rejuvenasi/jumlah benih, hingga lot selesai.",
+      "tags": [
+        "state-machine",
+        "konfirmasi"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "POST /api/siklus, /siklus/:id/transisi|konfirmasi|benih, /api/konfirmasi/:id/jawab, /api/lot/:id/selesai",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:jalankan-siklus-budidaya:buat-siklus",
+      "type": "step",
+      "name": "Buat siklus",
+      "summary": "buatSiklus memvalidasi target manual/preset dan membuat siklus DRAFT dengan transisi + audit.",
+      "tags": [
+        "create"
+      ],
+      "complexity": "complex",
+      "filePath": "backend-nodejs/src/siklusBudidaya.js",
+      "lineRange": [
+        206,
+        264
+      ]
+    },
+    {
+      "id": "step:jalankan-siklus-budidaya:transisi-manual",
+      "type": "step",
+      "name": "Transisi manual",
+      "summary": "transisiManual memeriksa JALUR dan wajibBolehLanjut lalu mengubah status.",
+      "tags": [
+        "state-machine"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/siklusBudidaya.js",
+      "lineRange": [
+        265,
+        297
+      ]
+    },
+    {
+      "id": "step:jalankan-siklus-budidaya:cek-tandon",
+      "type": "step",
+      "name": "Cek kestabilan tandon",
+      "summary": "wajibTandonDalamPita & evaluasiKestabilan memastikan bacaan segar, tanpa celah, dan di pita target.",
+      "tags": [
+        "kestabilan"
+      ],
+      "complexity": "complex",
+      "filePath": "backend-nodejs/src/kestabilan.js",
+      "lineRange": [
+        31,
+        82
+      ]
+    },
+    {
+      "id": "step:jalankan-siklus-budidaya:konfirmasi",
+      "type": "step",
+      "name": "Minta & jawab konfirmasi",
+      "summary": "mintaKonfirmasi / jawabKonfirmasi menangani permintaan_konfirmasi (tandon siap, rejuvenasi).",
+      "tags": [
+        "konfirmasi"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/siklusBudidaya.js",
+      "lineRange": [
+        355,
+        421
+      ]
+    },
+    {
+      "id": "step:jalankan-siklus-budidaya:konfirmasi-benih",
+      "type": "step",
+      "name": "Konfirmasi jumlah benih",
+      "summary": "konfirmasiBenih mencatat hitungan benih → GROWTH atau COMPLETED.",
+      "tags": [
+        "benih"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/siklusBudidaya.js",
+      "lineRange": [
+        422,
+        465
+      ]
+    },
+    {
+      "id": "step:jalankan-siklus-budidaya:selesai-lot",
+      "type": "step",
+      "name": "Selesaikan lot",
+      "summary": "selesaikanLot menutup lot panen; siklus bisa COMPLETED.",
+      "tags": [
+        "panen"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/siklusBudidaya.js",
+      "lineRange": [
+        466,
+        520
+      ]
+    },
+    {
+      "id": "flow:tanam-per-tahap",
+      "type": "flow",
+      "name": "Tanam per Tahap (Kebun Saya)",
+      "summary": "Alur tanam lama: mulai batch tanam, selesaikan tiap tahap semai → peremajaan → pendewasaan → panen; dipakai petani di web/mobile.",
+      "tags": [
+        "tanam",
+        "tahap"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "POST /tanam/mulai · POST /tanam/:tipe/:id/selesai",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:tanam-per-tahap:pilihan-tanam",
+      "type": "step",
+      "name": "Pilihan meja & tanaman",
+      "summary": "GET /tanam dan /tanam/pilihan menampilkan batch dan opsi.",
+      "tags": [
+        "ui"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/tanam.js",
+      "lineRange": [
+        87,
+        138
+      ]
+    },
+    {
+      "id": "step:tanam-per-tahap:mulai-tanam",
+      "type": "step",
+      "name": "Mulai tanam",
+      "summary": "POST /tanam/mulai membuat batch semai baru.",
+      "tags": [
+        "create"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/routes/tanam.js",
+      "lineRange": [
+        139,
+        177
+      ]
+    },
+    {
+      "id": "step:tanam-per-tahap:selesai-tahap",
+      "type": "step",
+      "name": "Selesaikan tahap",
+      "summary": "POST /tanam/:tipe/:id/selesai memindahkan batch ke tahap berikut lalu memicu sinkron target.",
+      "tags": [
+        "tahap"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/routes/tanam.js",
+      "lineRange": [
+        178,
+        254
+      ]
+    },
+    {
+      "id": "step:tanam-per-tahap:ui-tanam",
+      "type": "step",
+      "name": "Halaman tanam",
+      "summary": "Halaman Kebun Saya (web) dan tanam_page (mobile).",
+      "tags": [
+        "ui"
+      ],
+      "complexity": "simple",
+      "filePath": "flutter_mobile_app/lib/pages/tanam_page.dart"
+    },
+    {
+      "id": "flow:penugasan-petani",
+      "type": "flow",
+      "name": "Penugasan Petani ke Penampung",
+      "summary": "Admin menugaskan atau mencabut petani pada penampung; penugasan menjadi dasar otorisasi tulis petani.",
+      "tags": [
+        "penugasan",
+        "otorisasi"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "POST /api/penugasan · /api/penugasan/:id/cabut",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:penugasan-petani:tugaskan",
+      "type": "step",
+      "name": "Tugaskan petani",
+      "summary": "tugaskan() oleh admin membuat penugasan aktif + audit.",
+      "tags": [
+        "admin"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/penugasan.js",
+      "lineRange": [
+        57,
+        81
+      ]
+    },
+    {
+      "id": "step:penugasan-petani:cabut-tugas",
+      "type": "step",
+      "name": "Cabut penugasan",
+      "summary": "cabut() mengakhiri penugasan dengan alasan.",
+      "tags": [
+        "admin"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/penugasan.js",
+      "lineRange": [
+        82,
+        103
+      ]
+    },
+    {
+      "id": "step:penugasan-petani:wajib-ditugaskan",
+      "type": "step",
+      "name": "Cek penugasan dalam transaksi",
+      "summary": "wajibDitugaskan: admin semua penampung; petani hanya yang ditugaskan; demo/user ditolak 403.",
+      "tags": [
+        "otorisasi"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/penugasan.js",
+      "lineRange": [
+        31,
+        45
+      ]
+    },
+    {
+      "id": "flow:prediksi-panen",
+      "type": "flow",
+      "name": "Prediksi Panen & Naik Harian",
+      "summary": "Memperkirakan tanggal panen tiap batch dari durasi tanaman dan menampilkannya di web/mobile.",
+      "tags": [
+        "prediksi",
+        "panen"
+      ],
+      "complexity": "simple",
+      "domainMeta": {
+        "entryPoint": "GET /api/analitik/prediksi-panen",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:prediksi-panen:durasi-tanaman",
+      "type": "step",
+      "name": "Ambil durasi tanaman",
+      "summary": "durasiTanaman membaca durasi tiap tahap tanaman.",
+      "tags": [
+        "data"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/analitik.js",
+      "lineRange": [
+        42,
+        49
+      ]
+    },
+    {
+      "id": "step:prediksi-panen:prediksi-batch",
+      "type": "step",
+      "name": "Prediksi semua batch",
+      "summary": "prediksiSemuaBatch menghitung perkiraan panen.",
+      "tags": [
+        "prediksi"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/analitik.js",
+      "lineRange": [
+        50,
+        89
+      ]
+    },
+    {
+      "id": "step:prediksi-panen:ui-naik-harian",
+      "type": "step",
+      "name": "Halaman naik harian mobile",
+      "summary": "Menampilkan kurva naik harian ppm.",
+      "tags": [
+        "flutter"
+      ],
+      "complexity": "simple",
+      "filePath": "flutter_mobile_app/lib/pages/naik_harian_page.dart"
+    },
+    {
+      "id": "domain:asisten-ai-laporan",
+      "type": "domain",
+      "name": "Asisten AI & Laporan",
+      "summary": "Asisten keputusan budidaya berbasis AI lokal (Ollama di Raspberry Pi) dengan pengaman berlapis, ditambah ringkasan analitik, saran dosis berupa teks, laporan, dan ekspor CSV/PDF.",
+      "tags": [
+        "ai",
+        "ollama",
+        "laporan",
+        "analitik"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entities": [
+          "percakapan AI",
+          "strike pengguna",
+          "ringkasan sensor/tahap/panen",
+          "laporan",
+          "ekspor CSV"
+        ],
+        "businessRules": [
+          "Pesan melewati 6 lapis pengaman (normalisasi, deteksi injeksi, gerbang topik, anti brute-force, isolasi prompt, canary + saringan keluaran)",
+          "Ollama mati/timeout/balasan tidak valid → fallback heuristik",
+          "AI tidak pernah mengirim nilai mentah ke perangkat; saran dosis hanya teks",
+          "Laporan & manajemen user hanya admin/demo"
+        ],
+        "crossDomainInteractions": [
+          "Membaca data Monitoring Sensor, peringatan, tahap & panen dari Siklus Budidaya"
+        ]
+      }
+    },
+    {
+      "id": "flow:chat-asisten-ai",
+      "type": "flow",
+      "name": "Chat Asisten AI",
+      "summary": "Pengguna bertanya ke asisten; pesan disaring, diberi konteks data kebun, dikirim ke Ollama, lalu jawabannya disaring sebelum ditampilkan.",
+      "tags": [
+        "chat",
+        "llm",
+        "keamanan-ai"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "POST /api/ai/chat",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:chat-asisten-ai:validasi-chat",
+      "type": "step",
+      "name": "Validasi pesan",
+      "summary": "validasiChat memeriksa body dan peran pengguna.",
+      "tags": [
+        "validasi"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/ai.js",
+      "lineRange": [
+        822,
+        844
+      ]
+    },
+    {
+      "id": "step:chat-asisten-ai:periksa-pesan",
+      "type": "step",
+      "name": "Pengaman L1–L4",
+      "summary": "periksaPesan: normalisasi, deteksi injeksi, gerbang topik hidroponik, strike anti brute-force.",
+      "tags": [
+        "guard"
+      ],
+      "complexity": "complex",
+      "filePath": "backend-nodejs/src/aiGuard.js",
+      "lineRange": [
+        31,
+        353
+      ]
+    },
+    {
+      "id": "step:chat-asisten-ai:kumpul-konteks",
+      "type": "step",
+      "name": "Kumpulkan konteks kebun",
+      "summary": "kumpulData/konteksTambahan mengambil sensor, ambang, peringatan, tahap, panen.",
+      "tags": [
+        "konteks"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/routes/ai.js",
+      "lineRange": [
+        126,
+        294
+      ]
+    },
+    {
+      "id": "step:chat-asisten-ai:panggil-ollama",
+      "type": "step",
+      "name": "Panggil Ollama",
+      "summary": "panggilOllamaChat mengirim pesan terisolasi ke model lokal.",
+      "tags": [
+        "ollama"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/routes/ai.js",
+      "lineRange": [
+        921,
+        954
+      ]
+    },
+    {
+      "id": "step:chat-asisten-ai:saring-keluaran",
+      "type": "step",
+      "name": "Saring keluaran",
+      "summary": "saringKeluaran membuang bocoran prompt/canary/tautan.",
+      "tags": [
+        "guard"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/aiGuard.js",
+      "lineRange": [
+        417,
+        434
+      ]
+    },
+    {
+      "id": "step:chat-asisten-ai:ui-asisten",
+      "type": "step",
+      "name": "Halaman asisten",
+      "summary": "Halaman Asisten AI di web dan asisten_page di mobile.",
+      "tags": [
+        "ui"
+      ],
+      "complexity": "simple",
+      "filePath": "flutter_mobile_app/lib/pages/asisten_page.dart"
+    },
+    {
+      "id": "flow:langkah-selanjutnya-ai",
+      "type": "flow",
+      "name": "Rekomendasi Langkah Selanjutnya",
+      "summary": "Asisten membuat temuan dari data penampung lalu meminta Ollama menyusun langkah selanjutnya, dengan fallback heuristik.",
+      "tags": [
+        "rekomendasi",
+        "heuristik"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "POST /api/ai/langkah-selanjutnya",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:langkah-selanjutnya-ai:temuan",
+      "type": "step",
+      "name": "Susun temuan",
+      "summary": "temuan() mengevaluasi sensor, ambang, umur bacaan, dan tahap.",
+      "tags": [
+        "analisis"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/routes/ai.js",
+      "lineRange": [
+        315,
+        440
+      ]
+    },
+    {
+      "id": "step:langkah-selanjutnya-ai:prompt-ringkas",
+      "type": "step",
+      "name": "Bangun prompt fakta terverifikasi",
+      "summary": "faktaTerverifikasi & promptRingkas menyusun prompt.",
+      "tags": [
+        "prompt"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/routes/ai.js",
+      "lineRange": [
+        477,
+        564
+      ]
+    },
+    {
+      "id": "step:langkah-selanjutnya-ai:validasi-llm",
+      "type": "step",
+      "name": "Validasi balasan LLM",
+      "summary": "parseJsonLlm & validasiOutputLlm memeriksa JSON dan kata domain.",
+      "tags": [
+        "validasi"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/routes/ai.js",
+      "lineRange": [
+        565,
+        632
+      ]
+    },
+    {
+      "id": "step:langkah-selanjutnya-ai:fallback",
+      "type": "step",
+      "name": "Fallback heuristik",
+      "summary": "heuristik() dipakai bila Ollama gagal atau balasan tidak sah.",
+      "tags": [
+        "fallback"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/ai.js",
+      "lineRange": [
+        441,
+        462
+      ]
+    },
+    {
+      "id": "flow:laporan-ekspor",
+      "type": "flow",
+      "name": "Laporan, Analitik & Ekspor",
+      "summary": "Menyajikan ringkasan analitik, saran dosis (teks), laporan, dan ekspor CSV untuk pengelola.",
+      "tags": [
+        "laporan",
+        "csv",
+        "analitik"
+      ],
+      "complexity": "simple",
+      "domainMeta": {
+        "entryPoint": "GET /laporan, /api/analitik/ringkasan, /api/analitik/ekspor/:jenis.csv",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:laporan-ekspor:saran-dosis",
+      "type": "step",
+      "name": "Saran dosis (teks)",
+      "summary": "GET /api/analitik/saran-dosis memberi saran tanpa mengirim perintah.",
+      "tags": [
+        "saran"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/analitik.js",
+      "lineRange": [
+        69,
+        100
+      ]
+    },
+    {
+      "id": "step:laporan-ekspor:ringkasan",
+      "type": "step",
+      "name": "Ringkasan analitik",
+      "summary": "GET /api/analitik/ringkasan merangkum periode.",
+      "tags": [
+        "analitik"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/analitik.js",
+      "lineRange": [
+        101,
+        152
+      ]
+    },
+    {
+      "id": "step:laporan-ekspor:ekspor-csv",
+      "type": "step",
+      "name": "Ekspor CSV",
+      "summary": "GET /api/analitik/ekspor/:jenis.csv dan /laporan/csv.",
+      "tags": [
+        "csv"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/analitik.js",
+      "lineRange": [
+        153,
+        200
+      ]
+    },
+    {
+      "id": "step:laporan-ekspor:ui-laporan",
+      "type": "step",
+      "name": "Halaman laporan",
+      "summary": "Laporan PDF di mobile (laporan_page) dan halaman notif/laporan web.",
+      "tags": [
+        "ui"
+      ],
+      "complexity": "simple",
+      "filePath": "flutter_mobile_app/lib/pages/laporan_page.dart"
+    },
+    {
+      "id": "domain:akses-audit",
+      "type": "domain",
+      "name": "Akses Pengguna & Audit",
+      "summary": "Autentikasi pengguna (JWT HS256 + bcrypt, cookie sesi), peran admin/petani/demo, manajemen user, kunci API perangkat, dan jejak audit semua aksi tulis yang sukses.",
+      "tags": [
+        "auth",
+        "rbac",
+        "audit",
+        "keamanan"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entities": [
+          "users (level admin/petani/user, demo)",
+          "audit_logs",
+          "kunci_api",
+          "sesi/JWT"
+        ],
+        "businessRules": [
+          "Rahasia JWT wajib ada; server fail-fast saat start",
+          "Petani ditolak dari menu pengelola (requireRole); demo hanya boleh membaca, tulis → 403",
+          "Login dibatasi 10/menit; tulis 60/menit; baca 300/menit",
+          "Audit hanya mencatat metode tulis 2xx; nilai kata sandi tidak pernah disimpan; kegagalan audit tidak merusak request",
+          "Kunci API perangkat tampil sekali, disimpan sebagai hash, dibandingkan timingSafeEqual"
+        ],
+        "crossDomainInteractions": [
+          "Melindungi semua domain lain lewat requireAuth/requireRole/demoGuard",
+          "Kunci API dipakai Monitoring Sensor & Kendali Aktuator"
+        ]
+      }
+    },
+    {
+      "id": "flow:login-pengguna",
+      "type": "flow",
+      "name": "Login & Otorisasi Peran",
+      "summary": "Pengguna masuk lewat web/mobile, server memverifikasi sandi, menerbitkan token, lalu setiap rute memeriksa peran.",
+      "tags": [
+        "login",
+        "jwt",
+        "rbac"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "POST /login",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:login-pengguna:verifikasi-login",
+      "type": "step",
+      "name": "Verifikasi sandi",
+      "summary": "verifyLogin mencocokkan bcrypt (kompatibel Laravel).",
+      "tags": [
+        "bcrypt"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/auth.js",
+      "lineRange": [
+        251,
+        267
+      ]
+    },
+    {
+      "id": "step:login-pengguna:terbit-token",
+      "type": "step",
+      "name": "Terbitkan token",
+      "summary": "signToken menandatangani JWT; rute /login mengatur cookie sesi.",
+      "tags": [
+        "jwt"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/auth.js",
+      "lineRange": [
+        17,
+        66
+      ]
+    },
+    {
+      "id": "step:login-pengguna:cek-auth",
+      "type": "step",
+      "name": "Cek autentikasi",
+      "summary": "requireAuth memverifikasi token dan status akun.",
+      "tags": [
+        "middleware"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/auth.js",
+      "lineRange": [
+        106,
+        126
+      ]
+    },
+    {
+      "id": "step:login-pengguna:cek-peran",
+      "type": "step",
+      "name": "Cek peran & demo",
+      "summary": "requireRole dan demoGuard membatasi petani dan akun demo.",
+      "tags": [
+        "rbac"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/auth.js",
+      "lineRange": [
+        127,
+        183
+      ]
+    },
+    {
+      "id": "step:login-pengguna:ui-login",
+      "type": "step",
+      "name": "Halaman login",
+      "summary": "LoginPage web dan login_page mobile.",
+      "tags": [
+        "ui"
+      ],
+      "complexity": "simple",
+      "filePath": "flutter_mobile_app/lib/pages/login_page.dart"
+    },
+    {
+      "id": "flow:kelola-pengguna-kunci",
+      "type": "flow",
+      "name": "Kelola Pengguna & Kunci Perangkat",
+      "summary": "Admin membuat/mengubah/menghapus pengguna serta membuat, mencabut, dan merotasi kunci API perangkat.",
+      "tags": [
+        "user",
+        "api-key"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "/user · /api/kunci",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:kelola-pengguna-kunci:crud-user",
+      "type": "step",
+      "name": "CRUD pengguna",
+      "summary": "Rute /user (admin/demo) mengelola akun.",
+      "tags": [
+        "admin"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/user.js",
+      "lineRange": [
+        61,
+        190
+      ]
+    },
+    {
+      "id": "step:kelola-pengguna-kunci:buat-kunci",
+      "type": "step",
+      "name": "Buat kunci API",
+      "summary": "buatKunci membangkitkan vsf_<prefix>_<rahasia> dan menyimpan hash.",
+      "tags": [
+        "kunci"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/kunci.js",
+      "lineRange": [
+        27,
+        49
+      ]
+    },
+    {
+      "id": "step:kelola-pengguna-kunci:cek-kunci",
+      "type": "step",
+      "name": "Verifikasi kunci perangkat",
+      "summary": "cekKunci/requireKunci memeriksa scope, kedaluwarsa, dan status.",
+      "tags": [
+        "scope"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/kunci.js",
+      "lineRange": [
+        50,
+        94
+      ]
+    },
+    {
+      "id": "step:kelola-pengguna-kunci:rotasi-kunci",
+      "type": "step",
+      "name": "Cabut / rotasi kunci",
+      "summary": "Rute /api/kunci DELETE dan /:id/rotasi.",
+      "tags": [
+        "rotasi"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/aktuator.js",
+      "lineRange": [
+        142,
+        168
+      ]
+    },
+    {
+      "id": "flow:jejak-audit",
+      "type": "flow",
+      "name": "Jejak Audit",
+      "summary": "Middleware auditTrail mencatat setiap aksi tulis sukses ke audit_logs; admin melihatnya di halaman Audit.",
+      "tags": [
+        "audit"
+      ],
+      "complexity": "simple",
+      "domainMeta": {
+        "entryPoint": "middleware semua request · GET /audit-logs",
+        "entryType": "event"
+      }
+    },
+    {
+      "id": "step:jejak-audit:pasang-middleware",
+      "type": "step",
+      "name": "Pasang auditTrail",
+      "summary": "Middleware menempel res.on(finish) tanpa mengubah balasan.",
+      "tags": [
+        "middleware"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/audit.js",
+      "lineRange": [
+        242,
+        252
+      ]
+    },
+    {
+      "id": "step:jejak-audit:susun-entri",
+      "type": "step",
+      "name": "Susun entri",
+      "summary": "entriDariRute memakai req.audit atau peta URL→tabel; ringkas menyamarkan rahasia.",
+      "tags": [
+        "redaksi"
+      ],
+      "complexity": "moderate",
+      "filePath": "backend-nodejs/src/audit.js",
+      "lineRange": [
+        95,
+        241
+      ]
+    },
+    {
+      "id": "step:jejak-audit:tulis-audit",
+      "type": "step",
+      "name": "Tulis audit_logs",
+      "summary": "tulisAudit menyimpan entri; galat hanya dilog.",
+      "tags": [
+        "database"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/audit.js",
+      "lineRange": [
+        156,
+        211
+      ]
+    },
+    {
+      "id": "step:jejak-audit:lihat-audit",
+      "type": "step",
+      "name": "Lihat audit (admin)",
+      "summary": "GET /audit-logs khusus admin; halaman AuditPage.",
+      "tags": [
+        "admin"
+      ],
+      "complexity": "simple",
+      "filePath": "backend-nodejs/src/routes/audit.js",
+      "lineRange": [
+        57,
+        90
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "source": "domain:monitoring-sensor",
+      "target": "flow:kirim-bacaan-sensor",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:kirim-bacaan-sensor",
+      "target": "step:kirim-bacaan-sensor:baca-probe",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.17
+    },
+    {
+      "source": "flow:kirim-bacaan-sensor",
+      "target": "step:kirim-bacaan-sensor:terbit-mqtt",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.33
+    },
+    {
+      "source": "flow:kirim-bacaan-sensor",
+      "target": "step:kirim-bacaan-sensor:cek-perangkat",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:kirim-bacaan-sensor",
+      "target": "step:kirim-bacaan-sensor:validasi-bacaan",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.67
+    },
+    {
+      "source": "flow:kirim-bacaan-sensor",
+      "target": "step:kirim-bacaan-sensor:simpan-monitoring",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.83
+    },
+    {
+      "source": "flow:kirim-bacaan-sensor",
+      "target": "step:kirim-bacaan-sensor:detak-status",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:monitoring-sensor",
+      "target": "flow:pantau-sensor-realtime",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:pantau-sensor-realtime",
+      "target": "step:pantau-sensor-realtime:ambil-terbaru",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.25
+    },
+    {
+      "source": "flow:pantau-sensor-realtime",
+      "target": "step:pantau-sensor-realtime:grafik-riwayat",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:pantau-sensor-realtime",
+      "target": "step:pantau-sensor-realtime:tampil-web",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.75
+    },
+    {
+      "source": "flow:pantau-sensor-realtime",
+      "target": "step:pantau-sensor-realtime:tampil-mobile",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:monitoring-sensor",
+      "target": "flow:kelola-peringatan",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:kelola-peringatan",
+      "target": "step:kelola-peringatan:catat-alert",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.25
+    },
+    {
+      "source": "flow:kelola-peringatan",
+      "target": "step:kelola-peringatan:deteksi-anomali",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:kelola-peringatan",
+      "target": "step:kelola-peringatan:daftar-peringatan",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.75
+    },
+    {
+      "source": "flow:kelola-peringatan",
+      "target": "step:kelola-peringatan:ack-peringatan",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:dosing-nutrisi",
+      "target": "flow:ajukan-setujui-dosing",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:ajukan-setujui-dosing",
+      "target": "step:ajukan-setujui-dosing:form-dosing",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.17
+    },
+    {
+      "source": "flow:ajukan-setujui-dosing",
+      "target": "step:ajukan-setujui-dosing:validasi-rute",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.33
+    },
+    {
+      "source": "flow:ajukan-setujui-dosing",
+      "target": "step:ajukan-setujui-dosing:ajukan",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:ajukan-setujui-dosing",
+      "target": "step:ajukan-setujui-dosing:setujui",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.67
+    },
+    {
+      "source": "flow:ajukan-setujui-dosing",
+      "target": "step:ajukan-setujui-dosing:tolak-cabut",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.83
+    },
+    {
+      "source": "flow:ajukan-setujui-dosing",
+      "target": "step:ajukan-setujui-dosing:kedaluwarsa",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:dosing-nutrisi",
+      "target": "flow:jalankan-dosing-diblokir",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:jalankan-dosing-diblokir",
+      "target": "step:jalankan-dosing-diblokir:cek-status",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.14
+    },
+    {
+      "source": "flow:jalankan-dosing-diblokir",
+      "target": "step:jalankan-dosing-diblokir:cek-kunci-estop",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.29
+    },
+    {
+      "source": "flow:jalankan-dosing-diblokir",
+      "target": "step:jalankan-dosing-diblokir:evaluasi-gerbang",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.43
+    },
+    {
+      "source": "flow:jalankan-dosing-diblokir",
+      "target": "step:jalankan-dosing-diblokir:fault-sensor",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.57
+    },
+    {
+      "source": "flow:jalankan-dosing-diblokir",
+      "target": "step:jalankan-dosing-diblokir:tolak-423",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.71
+    },
+    {
+      "source": "flow:jalankan-dosing-diblokir",
+      "target": "step:jalankan-dosing-diblokir:jalur-501",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.86
+    },
+    {
+      "source": "flow:jalankan-dosing-diblokir",
+      "target": "step:jalankan-dosing-diblokir:containment-antrean",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:dosing-nutrisi",
+      "target": "flow:sinkron-target-nutrisi",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:sinkron-target-nutrisi",
+      "target": "step:sinkron-target-nutrisi:batch-per-meja",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:sinkron-target-nutrisi",
+      "target": "step:sinkron-target-nutrisi:pilih-preset",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:sinkron-target-nutrisi",
+      "target": "step:sinkron-target-nutrisi:naik-harian",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:sinkron-target-nutrisi",
+      "target": "step:sinkron-target-nutrisi:simpan-target",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "flow:sinkron-target-nutrisi",
+      "target": "step:sinkron-target-nutrisi:kelola-preset",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:kendali-aktuator",
+      "target": "flow:antre-perintah-aktuator",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:antre-perintah-aktuator",
+      "target": "step:antre-perintah-aktuator:tolak-dosis-langsung",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:antre-perintah-aktuator",
+      "target": "step:antre-perintah-aktuator:pagar-server",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:antre-perintah-aktuator",
+      "target": "step:antre-perintah-aktuator:kirim-perintah",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:antre-perintah-aktuator",
+      "target": "step:antre-perintah-aktuator:eksekusi-firmware",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "flow:antre-perintah-aktuator",
+      "target": "step:antre-perintah-aktuator:lapor-hasil",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:kendali-aktuator",
+      "target": "flow:estop-darurat",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:estop-darurat",
+      "target": "step:estop-darurat:picu-estop",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.25
+    },
+    {
+      "source": "flow:estop-darurat",
+      "target": "step:estop-darurat:firmware-berhenti",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:estop-darurat",
+      "target": "step:estop-darurat:reset-estop",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.75
+    },
+    {
+      "source": "flow:estop-darurat",
+      "target": "step:estop-darurat:buka-kunci",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:kendali-aktuator",
+      "target": "flow:saklar-dan-mode",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:saklar-dan-mode",
+      "target": "step:saklar-dan-mode:daftar-saklar",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:saklar-dan-mode",
+      "target": "step:saklar-dan-mode:ubah-saklar",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:saklar-dan-mode",
+      "target": "step:saklar-dan-mode:mode-isi",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:saklar-dan-mode",
+      "target": "step:saklar-dan-mode:pemeliharaan",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "flow:saklar-dan-mode",
+      "target": "step:saklar-dan-mode:ui-saklar",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:kendali-aktuator",
+      "target": "flow:kontrol-air-nonaktif",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:kontrol-air-nonaktif",
+      "target": "step:kontrol-air-nonaktif:baca-status",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.33
+    },
+    {
+      "source": "flow:kontrol-air-nonaktif",
+      "target": "step:kontrol-air-nonaktif:tolak-503",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.67
+    },
+    {
+      "source": "flow:kontrol-air-nonaktif",
+      "target": "step:kontrol-air-nonaktif:rancangan-isi-air",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:kalibrasi-uji-lab",
+      "target": "flow:kalibrasi-sensor",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:kalibrasi-sensor",
+      "target": "step:kalibrasi-sensor:daftar-jadwal",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:kalibrasi-sensor",
+      "target": "step:kalibrasi-sensor:hitung-konstanta",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:kalibrasi-sensor",
+      "target": "step:kalibrasi-sensor:simpan-kalibrasi",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:kalibrasi-sensor",
+      "target": "step:kalibrasi-sensor:dua-titik",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "flow:kalibrasi-sensor",
+      "target": "step:kalibrasi-sensor:ui-kalibrasi",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:kalibrasi-uji-lab",
+      "target": "flow:kalibrasi-laju-pompa",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:kalibrasi-laju-pompa",
+      "target": "step:kalibrasi-laju-pompa:cek-izin-uji",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.25
+    },
+    {
+      "source": "flow:kalibrasi-laju-pompa",
+      "target": "step:kalibrasi-laju-pompa:antre-uji",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:kalibrasi-laju-pompa",
+      "target": "step:kalibrasi-laju-pompa:hitung-laju",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.75
+    },
+    {
+      "source": "flow:kalibrasi-laju-pompa",
+      "target": "step:kalibrasi-laju-pompa:simpan-laju",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:kalibrasi-uji-lab",
+      "target": "flow:uji-lab-larutan",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:uji-lab-larutan",
+      "target": "step:uji-lab-larutan:uji-ec",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.25
+    },
+    {
+      "source": "flow:uji-lab-larutan",
+      "target": "step:uji-lab-larutan:uji-ph",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:uji-lab-larutan",
+      "target": "step:uji-lab-larutan:simpan-ujilab",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.75
+    },
+    {
+      "source": "flow:uji-lab-larutan",
+      "target": "step:uji-lab-larutan:pratinjau-dosis",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:kalibrasi-uji-lab",
+      "target": "flow:uji-lab-panen",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:uji-lab-panen",
+      "target": "step:uji-lab-panen:spesifikasi",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.25
+    },
+    {
+      "source": "flow:uji-lab-panen",
+      "target": "step:uji-lab-panen:validasi-uji",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:uji-lab-panen",
+      "target": "step:uji-lab-panen:simpan-uji",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.75
+    },
+    {
+      "source": "flow:uji-lab-panen",
+      "target": "step:uji-lab-panen:ui-ujilab",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:siklus-budidaya",
+      "target": "flow:jalankan-siklus-budidaya",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:jalankan-siklus-budidaya",
+      "target": "step:jalankan-siklus-budidaya:buat-siklus",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.17
+    },
+    {
+      "source": "flow:jalankan-siklus-budidaya",
+      "target": "step:jalankan-siklus-budidaya:transisi-manual",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.33
+    },
+    {
+      "source": "flow:jalankan-siklus-budidaya",
+      "target": "step:jalankan-siklus-budidaya:cek-tandon",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:jalankan-siklus-budidaya",
+      "target": "step:jalankan-siklus-budidaya:konfirmasi",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.67
+    },
+    {
+      "source": "flow:jalankan-siklus-budidaya",
+      "target": "step:jalankan-siklus-budidaya:konfirmasi-benih",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.83
+    },
+    {
+      "source": "flow:jalankan-siklus-budidaya",
+      "target": "step:jalankan-siklus-budidaya:selesai-lot",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:siklus-budidaya",
+      "target": "flow:tanam-per-tahap",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:tanam-per-tahap",
+      "target": "step:tanam-per-tahap:pilihan-tanam",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.25
+    },
+    {
+      "source": "flow:tanam-per-tahap",
+      "target": "step:tanam-per-tahap:mulai-tanam",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:tanam-per-tahap",
+      "target": "step:tanam-per-tahap:selesai-tahap",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.75
+    },
+    {
+      "source": "flow:tanam-per-tahap",
+      "target": "step:tanam-per-tahap:ui-tanam",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:siklus-budidaya",
+      "target": "flow:penugasan-petani",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:penugasan-petani",
+      "target": "step:penugasan-petani:tugaskan",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.33
+    },
+    {
+      "source": "flow:penugasan-petani",
+      "target": "step:penugasan-petani:cabut-tugas",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.67
+    },
+    {
+      "source": "flow:penugasan-petani",
+      "target": "step:penugasan-petani:wajib-ditugaskan",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:siklus-budidaya",
+      "target": "flow:prediksi-panen",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:prediksi-panen",
+      "target": "step:prediksi-panen:durasi-tanaman",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.33
+    },
+    {
+      "source": "flow:prediksi-panen",
+      "target": "step:prediksi-panen:prediksi-batch",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.67
+    },
+    {
+      "source": "flow:prediksi-panen",
+      "target": "step:prediksi-panen:ui-naik-harian",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:asisten-ai-laporan",
+      "target": "flow:chat-asisten-ai",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:chat-asisten-ai",
+      "target": "step:chat-asisten-ai:validasi-chat",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.17
+    },
+    {
+      "source": "flow:chat-asisten-ai",
+      "target": "step:chat-asisten-ai:periksa-pesan",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.33
+    },
+    {
+      "source": "flow:chat-asisten-ai",
+      "target": "step:chat-asisten-ai:kumpul-konteks",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:chat-asisten-ai",
+      "target": "step:chat-asisten-ai:panggil-ollama",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.67
+    },
+    {
+      "source": "flow:chat-asisten-ai",
+      "target": "step:chat-asisten-ai:saring-keluaran",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.83
+    },
+    {
+      "source": "flow:chat-asisten-ai",
+      "target": "step:chat-asisten-ai:ui-asisten",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:asisten-ai-laporan",
+      "target": "flow:langkah-selanjutnya-ai",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:langkah-selanjutnya-ai",
+      "target": "step:langkah-selanjutnya-ai:temuan",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.25
+    },
+    {
+      "source": "flow:langkah-selanjutnya-ai",
+      "target": "step:langkah-selanjutnya-ai:prompt-ringkas",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:langkah-selanjutnya-ai",
+      "target": "step:langkah-selanjutnya-ai:validasi-llm",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.75
+    },
+    {
+      "source": "flow:langkah-selanjutnya-ai",
+      "target": "step:langkah-selanjutnya-ai:fallback",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:asisten-ai-laporan",
+      "target": "flow:laporan-ekspor",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:laporan-ekspor",
+      "target": "step:laporan-ekspor:saran-dosis",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.25
+    },
+    {
+      "source": "flow:laporan-ekspor",
+      "target": "step:laporan-ekspor:ringkasan",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:laporan-ekspor",
+      "target": "step:laporan-ekspor:ekspor-csv",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.75
+    },
+    {
+      "source": "flow:laporan-ekspor",
+      "target": "step:laporan-ekspor:ui-laporan",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:akses-audit",
+      "target": "flow:login-pengguna",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:login-pengguna",
+      "target": "step:login-pengguna:verifikasi-login",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:login-pengguna",
+      "target": "step:login-pengguna:terbit-token",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:login-pengguna",
+      "target": "step:login-pengguna:cek-auth",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "flow:login-pengguna",
+      "target": "step:login-pengguna:cek-peran",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "flow:login-pengguna",
+      "target": "step:login-pengguna:ui-login",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:akses-audit",
+      "target": "flow:kelola-pengguna-kunci",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:kelola-pengguna-kunci",
+      "target": "step:kelola-pengguna-kunci:crud-user",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.25
+    },
+    {
+      "source": "flow:kelola-pengguna-kunci",
+      "target": "step:kelola-pengguna-kunci:buat-kunci",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:kelola-pengguna-kunci",
+      "target": "step:kelola-pengguna-kunci:cek-kunci",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.75
+    },
+    {
+      "source": "flow:kelola-pengguna-kunci",
+      "target": "step:kelola-pengguna-kunci:rotasi-kunci",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:akses-audit",
+      "target": "flow:jejak-audit",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:jejak-audit",
+      "target": "step:jejak-audit:pasang-middleware",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.25
+    },
+    {
+      "source": "flow:jejak-audit",
+      "target": "step:jejak-audit:susun-entri",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:jejak-audit",
+      "target": "step:jejak-audit:tulis-audit",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.75
+    },
+    {
+      "source": "flow:jejak-audit",
+      "target": "step:jejak-audit:lihat-audit",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:monitoring-sensor",
+      "target": "domain:dosing-nutrisi",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Bacaan terakhir & riwayat 3 bacaan dipakai gerbang dosis (sensor basi/mustahil/di luar batas operasi)",
+      "weight": 0.9
+    },
+    {
+      "source": "domain:monitoring-sensor",
+      "target": "domain:siklus-budidaya",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Bacaan tandon dipakai evaluasi kestabilan sebelum semai",
+      "weight": 0.7
+    },
+    {
+      "source": "domain:dosing-nutrisi",
+      "target": "domain:kendali-aktuator",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Memanggil kunciPenampung saat FAULT dan mengantre STOP saat siklus berjalan dicabut; DOSIS dikecualikan dari pengiriman",
+      "weight": 0.9
+    },
+    {
+      "source": "domain:siklus-budidaya",
+      "target": "domain:dosing-nutrisi",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Siklus dosing hanya untuk siklus budidaya aktif; preset versi snapshot siklus menentukan batas operasi; tahap tanam menentukan target preset",
+      "weight": 0.8
+    },
+    {
+      "source": "domain:kalibrasi-uji-lab",
+      "target": "domain:kendali-aktuator",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Uji pompa kalibrasi diantre sebagai perintah UJI_POMPA",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:kalibrasi-uji-lab",
+      "target": "domain:monitoring-sensor",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Konstanta kalibrasi menentukan akurasi bacaan pH/EC",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:asisten-ai-laporan",
+      "target": "domain:monitoring-sensor",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Asisten & laporan membaca sensor, ambang, dan peringatan",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:asisten-ai-laporan",
+      "target": "domain:siklus-budidaya",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Asisten & prediksi membaca tahap tanam dan panen",
+      "weight": 0.5
+    },
+    {
+      "source": "domain:akses-audit",
+      "target": "domain:dosing-nutrisi",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Otorisasi petani via penugasan dan audit tiap transisi dosing",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:akses-audit",
+      "target": "domain:kendali-aktuator",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Kunci API ber-scope aktuator:perintah dan rute admin non-demo",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:kendali-aktuator",
+      "target": "domain:monitoring-sensor",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "Status E-STOP dan heartbeat perangkat dilaporkan lewat kanal yang sama",
+      "weight": 0.4
+    }
+  ],
+  "layers": [],
+  "tour": []
+}

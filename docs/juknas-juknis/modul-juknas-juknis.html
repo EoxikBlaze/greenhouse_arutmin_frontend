@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modul Juknas & Juknis — Vertonik Smart Farm (GARAP) · Pokjar Permata</title>
+  <style>
+    :root {
+      --forest: #174e31;
+      --forest-dark: #0e3520;
+      --moss: #2e7d4b;
+      --mint: #eaf5ee;
+      --mint-border: #b8dcc5;
+      --amber: #b45309;
+      --amber-bg: #fffbeb;
+      --amber-border: #fcd34d;
+      --red: #b91c1c;
+      --red-bg: #fef2f2;
+      --red-border: #fca5a5;
+      --blue: #1d4ed8;
+      --blue-bg: #eff6ff;
+      --ink: #0f172a;
+      --muted: #475569;
+      --line: #cbd5e1;
+      --bg-soft: #f8fafc;
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 14mm 14mm 15mm 14mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      font-size: 9.8pt;
+      line-height: 1.5;
+      background: #ffffff;
+    }
+
+    /* Running Kop Banner on content pages (subtle top bar per section) */
+    .kop-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--forest);
+      padding-bottom: 6px;
+      margin-bottom: 14px;
+      font-size: 8pt;
+      color: var(--muted);
+    }
+    .kop-bar strong {
+      color: var(--forest-dark);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* Cover Page */
+    .cover {
+      min-height: 266mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 12mm 10mm;
+      border: 2px solid var(--forest);
+      border-radius: 10px;
+      background: linear-gradient(165deg, #ffffff 0%, #f3faf5 62%, #e4f2e8 100%);
+      page-break-after: always;
+    }
+
+    .cover-kop {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border-bottom: 3px double var(--forest);
+      padding-bottom: 14px;
+    }
+
+    .cover-kop-text .inst {
+      font-size: 13pt;
+      font-weight: 800;
+      color: var(--forest-dark);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .cover-kop-text .sub {
+      font-size: 9.5pt;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .cover-hero {
+      margin: 18px 0;
+    }
+
+    .badge-doc {
+      display: inline-block;
+      background: var(--forest);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 8.5pt;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+    }
+
+    .cover h1 {
+      font-size: 25pt;
+      line-height: 1.15;
+      color: var(--forest-dark);
+      margin: 0 0 10px 0;
+      letter-spacing: -0.01em;
+    }
+
+    .cover .subtitle {
+      font-size: 12pt;
+      color: #334155;
+      margin: 0 0 18px 0;
+      max-width: 92%;
+    }
+
+    .cover-diagram {
+      background: #ffffff;
+      border: 1px solid var(--mint-border);
+      border-radius: 10px;
+      padding: 14px;
+      margin: 12px 0;
+    }
+
+    .cover-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .meta-box {
+      background: #ffffff;
+      border: 1px solid var(--mint-border);
+      border-left: 4px solid var(--forest);
+      border-radius: 6px;
+      padding: 8px 11px;
+    }
+    .meta-box .lbl {
+      font-size: 7.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .meta-box .val {
+      font-size: 9.5pt;
+      font-weight: 700;
+      color: var(--ink);
+      margin-top: 2px;
+    }
+
+    .cover-footer {
+      border-top: 1px solid var(--mint-border);
+      padding-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 8.5pt;
+      color: var(--muted);
+    }
+
+    /* Typography & Structure */
+    .part-banner {
+      background: linear-gradient(90deg, var(--forest-dark) 0%, var(--forest) 70%, var(--moss) 100%);
+      color: #ffffff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin: 14px 0 12px 0;
+      break-inside: avoid;
+      page-break-after: avoid;
+    }
+    .part-banner .part-kicker {
+      font-size: 8pt;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.85;
+      font-weight: 700;
+    }
+    .part-banner h2 {
+      margin: 2px 0 0 0;
+      font-size: 13.5pt;
+      color: #ffffff;
+      border: none;
+      padding: 0;
+    }
+
+    h3 {
+      font-size: 11.2pt;
+      color: var(--forest-dark);
+      border-bottom: 1.5px solid var(--mint-border);
+      padding-bottom: 3px;
+      margin: 14px 0 7px 0;
+      page-break-after: avoid;
+    }
+
+    h4 {
+      font-size: 10pt;
+      color: var(--forest);
+      margin: 10px 0 4px 0;
+      page-break-after: avoid;
+    }
+
+    p {
+      margin: 0 0 7px 0;
+    }
+
+    ul, ol {
+      margin: 3px 0 8px 0;
+      padding-left: 18px;
+    }
+
+    li {
+      margin-bottom: 3px;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 8.6pt;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      padding: 1px 4px;
+      border-radius: 4px;
+      color: #0f172a;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 7px 0 11px 0;
+      font-size: 8.8pt;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 5px 7px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--mint);
+      color: var(--forest-dark);
+      font-weight: 700;
+      font-size: 8.4pt;
+    }
+
+    tr {
+      break-inside: avoid;
+    }
+
+    tr:nth-child(even) td {
+      background: #fafcfb;
+    }
+
+    /* Callouts & Cards */
+    .callout {
+      border-radius: 7px;
+      padding: 9px 11px;
+      margin: 8px 0 11px 0;
+      break-inside: avoid;
+      font-size: 9pt;
+    }
+    .callout-title {
+      font-weight: 800;
+      font-size: 9pt;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .callout.danger {
+      background: var(--red-bg);
+      border: 1px solid var(--red-border);
+      border-left: 5px solid var(--red);
+    }
+    .callout.danger .callout-title { color: var(--red); }
+
+    .callout.warn {
+      background: var(--amber-bg);
+      border: 1px solid var(--amber-border);
+      border-left: 5px solid var(--amber);
+    }
+    .callout.warn .callout-title { color: var(--amber); }
+
+    .callout.info {
+      background: var(--mint);
+      border: 1px solid var(--mint-border);
+      border-left: 5px solid var(--forest);
+    }
+    .callout.info .callout-title { color: var(--forest-dark); }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 6px 0 10px 0;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 9px 11px;
+      background: var(--bg-soft);
+      break-inside: avoid;
+    }
+    .card h5 {
+      margin: 0 0 5px 0;
+      font-size: 9.5pt;
+      color: var(--forest-dark);
+    }
+
+    .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      vertical-align: middle;
+      margin-right: 4px;
+      border: 1px solid rgba(0,0,0,0.2);
+    }
+    .dot-green { background: #16a34a; }
+    .dot-red { background: #dc2626; }
+    .dot-blue { background: #2563eb; }
+
+    .toc {
+      border: 1px solid var(--mint-border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      background: var(--bg-soft);
+      margin-bottom: 14px;
+      break-inside: avoid;
+    }
+    .toc h3 { margin-top: 0; }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 18px;
+      font-size: 9pt;
+    }
+    .toc-item {
+      border-bottom: 1px dotted #cbd5e1;
+      padding: 2px 0;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    .sign-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 18px;
+      break-inside: avoid;
+    }
+    .sign-box {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px;
+      text-align: center;
+      font-size: 8.5pt;
+    }
+    .sign-space {
+      height: 46px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HALAMAN SAMPUL -->
+  <section class="cover">
+    <div>
+      <div class="cover-kop">
+        <svg width="52" height="52" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <rect width="64" height="64" rx="16" fill="#174e31"/>
+          <path d="M18 42C18 26 30 16 46 16C46 32 36 44 20 44" stroke="#a7f3d0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M18 46L37 27" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="46" cy="46" r="5" fill="#4ade80"/>
+        </svg>
+        <div class="cover-kop-text">
+          <div class="inst">Vertonik Smart Farm (GARAP) &bull; Pokjar Permata</div>
+          <div class="sub">Platform Hidroponik Cerdas Berbasis IoT, MQTT, Web React, Aplikasi Mobile &amp; AI Lokal</div>
+        </div>
+      </div>
+
+      <div class="cover-hero">
+        <span class="badge-doc">Dokumen Operasional &amp; Teknis Resmi</span>
+        <h1>MODUL JUKNAS &amp; JUKNIS<br/>OPERASIONAL WEBSITE &amp; ALAT IoT</h1>
+        <p class="subtitle">
+          Petunjuk Pelaksanaan (Juknas) dan Petunjuk Teknis (Juknis) Pengoperasian Sistem Greenhouse, Panel Kontrol ESP32 (<code>gabungan-0.6</code>), Kalibrasi Sensor &amp; Pompa, Jaringan Modem/Pi, serta Standar Keselamatan Kerja (K3).
+        </p>
+
+        <div class="cover-diagram">
+          <div style="font-size:8.5pt;font-weight:800;color:#174e31;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">
+            Arsitektur Sistem Terpadu Greenhouse Pokjar Permata
+          </div>
+          <svg viewBox="0 0 730 138" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#174e31"/>
+              </marker>
+              <marker id="arr-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#1d4ed8"/>
+              </marker>
+            </defs>
+            <rect x="4" y="14" width="194" height="110" rx="8" fill="#eaf5ee" stroke="#2e7d4b" stroke-width="1.5"/>
+            <text x="101" y="34" text-anchor="middle" font-size="10.2" font-weight="800" fill="#0e3520">1. PANEL &amp; ALAT IoT (ESP32)</text>
+            <text x="101" y="51" text-anchor="middle" font-size="8.8" fill="#334155">Firmware: gabungan-0.6</text>
+            <text x="101" y="66" text-anchor="middle" font-size="8.3" fill="#475569">pH &bull; EC/TDS &bull; Suhu Air &amp; Ruang</text>
+            <text x="101" y="81" text-anchor="middle" font-size="8.3" fill="#475569">Float Bawah/Atas &bull; E-STOP (GPIO36)</text>
+            <text x="101" y="96" text-anchor="middle" font-size="8.3" fill="#475569">5 Pompa Relay HIGH &bull; LCD 20x4</text>
+            <rect x="18" y="103" width="166" height="15" rx="4" fill="#174e31"/>
+            <text x="101" y="113.5" text-anchor="middle" font-size="7.8" font-weight="700" fill="#fff">Kirim data tiap 5 dtk · HB 30 dtk</text>
+
+            <path d="M202 69 L254 69" stroke="#174e31" stroke-width="2.2" marker-end="url(#arr)"/>
+            <text x="228" y="58" text-anchor="middle" font-size="7.6" font-weight="700" fill="#174e31">MQTT :1883</text>
+            <text x="228" y="82" text-anchor="middle" font-size="7.2" fill="#475569">HTTP :80</text>
+
+            <rect x="260" y="14" width="212" height="110" rx="8" fill="#eff6ff" stroke="#1d4ed8" stroke-width="1.5"/>
+            <text x="366" y="34" text-anchor="middle" font-size="10.2" font-weight="800" fill="#1e3a8a">2. SERVER RASPBERRY PI</text>
+            <text x="366" y="51" text-anchor="middle" font-size="8.8" fill="#334155">Nginx (:80) + Backend API (:8000)</text>
+            <text x="366" y="66" text-anchor="middle" font-size="8.3" fill="#475569">PostgreSQL Database &amp; Audit Logs</text>
+            <text x="366" y="81" text-anchor="middle" font-size="8.3" fill="#475569">Mosquitto Broker + Pagar Dosis</text>
+            <text x="366" y="96" text-anchor="middle" font-size="8.3" fill="#475569">Ollama AI Lokal (garap-ai 1.5b)</text>
+            <rect x="272" y="103" width="188" height="15" rx="4" fill="#1d4ed8"/>
+            <text x="366" y="113.5" text-anchor="middle" font-size="7.6" font-weight="700" fill="#fff">vertonik.local / garap.local / 10.42.0.1</text>
+
+            <path d="M476 69 L526 69" stroke="#1d4ed8" stroke-width="2.2" marker-end="url(#arr-blue)"/>
+            <text x="501" y="58" text-anchor="middle" font-size="7.6" font-weight="700" fill="#1d4ed8">REST API</text>
+            <text x="501" y="82" text-anchor="middle" font-size="7.2" fill="#475569">JWT Role</text>
+
+            <rect x="532" y="14" width="194" height="110" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+            <text x="629" y="34" text-anchor="middle" font-size="10.2" font-weight="800" fill="#92400e">3. WEBSITE &amp; HP OPERATOR</text>
+            <text x="629" y="51" text-anchor="middle" font-size="8.8" fill="#334155">React Web App &amp; Flutter Mobile</text>
+            <text x="629" y="66" text-anchor="middle" font-size="8.3" fill="#475569">Pantau: Dashboard, Sensor, CCTV, AI</text>
+            <text x="629" y="81" text-anchor="middle" font-size="8.3" fill="#475569">Kendali: Kebun, Saklar, Target Nutrisi</text>
+            <text x="629" y="96" text-anchor="middle" font-size="8.3" fill="#475569">Teknis: Kalibrasi, Pengaturan, Audit</text>
+            <rect x="551" y="103" width="156" height="15" rx="4" fill="#b45309"/>
+            <text x="629" y="113.5" text-anchor="middle" font-size="7.8" font-weight="700" fill="#fff">Peran: Admin · Petani · Demo</text>
+          </svg>
+        </div>
+
+        <div class="cover-meta-grid">
+          <div class="meta-box">
+            <div class="lbl">Identitas Lokasi &amp; Mitra</div>
+            <div class="val">Greenhouse Pokjar Permata &bull; Vertonik Smart Farm (GARAP)</div>
+          </div>
+          <div class="meta-box">
+            <div class="lbl">Firmware &amp; Hardware Acuan</div>
+            <div class="val">ESP32 Dev Module (<code>gabungan-0.6</code>, ID: <code>aktuator-01</code>)</div>
+          </div>
+          <div class="meta-box">
+            <div class="lbl">Target Pengguna Modul</div>
+            <div class="val">Operator/Petani Lapangan, Admin Kebun, &amp; Teknisi Pemeliharaan</div>
+          </div>
+          <div class="meta-box">
+            <div class="lbl">Versi &amp; Status Dokumen</div>
+            <div class="val">Versi 1.0 &bull; Acuan Operasional Resmi Lapangan</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cover-footer">
+      <span><strong>Vertonik Smart Farm (GARAP)</strong> &times; Pokjar Permata</span>
+      <span>Simpan salinan cetak di dekat panel kendali greenhouse</span>
+    </div>
+  </section>
+
+  <!-- DAFTAR ISI & BAGIAN A -->
+  <div class="kop-bar">
+    <strong>Vertonik Smart Farm (GARAP) &bull; Pokjar Permata</strong>
+    <span>Modul Juknas &amp; Juknis Sistem Website &amp; Alat IoT</span>
+  </div>
+
+  <div class="toc">
+    <h3>Daftar Isi Modul</h3>
+    <div class="toc-grid">
+      <div class="toc-item"><strong>BAGIAN A — JUKNAS (Pelaksanaan &amp; Tata Kelola)</strong></div>
+      <div class="toc-item"><strong>BAGIAN B — JUKNIS WEBSITE &amp; APLIKASI</strong></div>
+      <div class="toc-item">BAB I. Pendahuluan &amp; Prinsip Keselamatan K3</div>
+      <div class="toc-item">BAB IV. Panduan Lengkap Menu &amp; Fungsi Halaman Web</div>
+      <div class="toc-item">BAB II. Arsitektur &amp; Hak Akses Peran (Admin/Petani/Demo)</div>
+      <div class="toc-item"><strong>BAGIAN C — JUKNIS ALAT IoT, KALIBRASI &amp; JARINGAN</strong></div>
+      <div class="toc-item">BAB III. SOP Operasional Harian Operator (Pagi &amp; Sore)</div>
+      <div class="toc-item">BAB V. Peta Pin ESP32, Lampu Pilot, LCD &amp; Batas Pengaman</div>
+      <div class="toc-item">BAB VI. SOP Kalibrasi 2-Titik EC/pH, Pompa &amp; Uji 8 Tahap</div>
+      <div class="toc-item">BAB VII. Manajemen Jaringan Wi-Fi, Modem 4G &amp; Tunnel</div>
+      <div class="toc-item">BAB VIII. Matriks Troubleshooting Cepat Lapangan</div>
+      <div class="toc-item">LAMPIRAN. Lembar Checklist Commissioning &amp; Serah Terima</div>
+    </div>
+  </div>
+
+  <div class="part-banner">
+    <div class="part-kicker">Bagian A &mdash; Petunjuk Pelaksanaan (Juknas)</div>
+    <h2>Tata Kelola, Keselamatan Kerja (K3) &amp; SOP Harian</h2>
+  </div>
+
+  <h3>BAB I. Pendahuluan &amp; Aturan Keselamatan Utama (K3)</h3>
+  <p>
+    Modul ini menjadi pedoman standar pengoperasian harian website <strong>GARAP / Vertonik Smart Farm</strong> dan perangkat kontrol hidroponik berbasis <strong>ESP32 + Raspberry Pi</strong> di greenhouse <strong>Pokjar Permata</strong>. Seluruh personel wajib mematuhi empat prinsip keselamatan berikut sebelum mengoperasikan pompa atau kelistrikan panel:
+  </p>
+
+  <div class="callout danger">
+    <div class="callout-title">4 Aturan Wajib Keselamatan Panel &amp; Pompa (K3)</div>
+    <ol style="margin-bottom:0;">
+      <li><strong>Wajib Uji Dengan Air Bersih Dahulu:</strong> Setiap uji pompa, kalibrasi laju mL/detik, uji pelampung, dan simulasi E-STOP harus memakai air bersih ke gelas ukur/ember terpisah — bukan pupuk pekat atau langsung ke tandon tanaman.</li>
+      <li><strong>Daya Pompa 12V Terpisah:</strong> Pompa peristaltik dan pompa isi air wajib melalui modul relay/MOSFET + dioda flyback dengan catu 12V tersendiri. Dilarang mengambil arus pompa dari pin ESP32.</li>
+      <li><strong>E-STOP Fisik Pembatas Tertinggi:</strong> Jika terjadi kebocoran pipa, selang terlepas, suara pompa abnormal, atau bau komponen terbakar, segera tekan tombol <strong>E-STOP fisik (merah)</strong> pada panel tanpa menunggu respon website.</li>
+      <li><strong>Pembaca E-STOP Lapangan Wajib Aktif:</strong> Pada pemasangan panel nyata, pembagi tegangan <code>33k/10k</code> di <code>GPIO 36</code> harus terpasang dan <code>AKTIFKAN_BACA_ESTOP</code> dibiarkan bernilai <code>1</code> agar pin tidak mengambang.</li>
+    </ol>
+  </div>
+
+  <h3>BAB II. Pembagian Peran &amp; Hak Akses Pengguna</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:14%;">Peran</th>
+        <th style="width:45%;">Menu &amp; Rute yang Dapat Diakses</th>
+        <th style="width:41%;">Wewenang &amp; Batasan Keamanan</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Admin</strong></td>
+        <td>Seluruh menu: <strong>Pantau</strong>, <strong>Kendali</strong> (<code>/tanam</code>, <code>/saklar</code>, <code>/dosing</code>), <strong>Data</strong> (<code>/kalibrasi</code>, <code>/data</code>, <code>/audit</code>, <code>/laporan</code>), <strong>Sistem</strong> (<code>/pengaturan-alat</code>, <code>/pemulihan-papan</code>, <code>/mqtt-diagnostik</code>, <code>/user</code>, <code>/profil</code>), <strong>Siklus Tanam</strong>, &amp; <strong>Master Data</strong>.</td>
+        <td>Penanggung jawab teknis &amp; budidaya. Semua perubahan konfigurasi, saklar, kalibrasi, dan selesai tahap tercatat permanen di <strong>Catatan Aktivitas</strong> (<code>audit_logs</code>).</td>
+      </tr>
+      <tr>
+        <td><strong>Petani</strong></td>
+        <td><code>/dashboard</code>, <code>/sensor-realtime</code>, <code>/peringatan</code>, <code>/cctv</code>, <code>/asisten-ai</code>, <code>/tanam</code> (Kebun Saya), dan <code>/profil</code> (Akun Saya).</td>
+        <td>Operator harian lapangan. Dapat memantau kondisi real-time, CCTV, progres tanaman, &amp; berkonsultasi ke Asisten AI; tidak dapat mengubah saklar, kalibrasi, atau data master.</td>
+      </tr>
+      <tr>
+        <td><strong>Demo</strong></td>
+        <td>Dapat membuka tampilan halaman pemantauan maupun halaman Admin untuk keperluan pelatihan/peninjauan.</td>
+        <td><strong>Baca-saja (Read-Only):</strong> seluruh permintaan tulis ke sistem otomatis diblokir oleh <code>demoGuard</code> sehingga aman untuk simulasi.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>BAB III. SOP Pemeriksaan Harian Operator (Pagi &amp; Sore)</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h5>1. Inspeksi Fisik Panel &amp; Tandon (2 Menit)</h5>
+      <ul>
+        <li>Cek lampu pilot panel menyala <strong>Hijau</strong> (normal).</li>
+        <li>Cek baris ke-4 LCD 20&times;4 bertuliskan <code>PENAMPUNG CUKUP</code>.</li>
+        <li>Periksa selang hisap/keluaran pompa A, B, pH Up, pH Down, dan pastikan botol nutrisi pekat masih terisi.</li>
+        <li>Pastikan probe pH/EC terendam sempurna dan tidak tertutup lumut/kotoran.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h5>2. Inspeksi Website &amp; Aplikasi (3–5 Menit)</h5>
+      <ul>
+        <li>Buka website (<code>http://vertonik.local</code> / IP Pi / URL tunnel) dan login.</li>
+        <li>Di <strong>Dashboard</strong>, pastikan status <strong>perangkat online</strong> dan 7 kartu sensor berada dalam rentang <em>batas aman</em>.</li>
+        <li>Buka <strong>Peringatan</strong> bila ada badge aktif; periksa tandon nyata sebelum menekan <em>tandai selesai</em>.</li>
+        <li>Pantau pertumbuhan di <strong>Kebun Saya</strong> / <strong>CCTV</strong>, atau tanyakan keluhan tanaman ke <strong>Asisten AI</strong>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- BAGIAN B -->
+  <div class="page-break"></div>
+  <div class="kop-bar">
+    <strong>Vertonik Smart Farm (GARAP) &bull; Pokjar Permata</strong>
+    <span>Bagian B &mdash; Petunjuk Teknis (Juknis) Website</span>
+  </div>
+
+  <div class="part-banner">
+    <div class="part-kicker">Bagian B &mdash; Petunjuk Teknis (Juknis) Website</div>
+    <h2>Panduan Lengkap Akses, Navigasi Menu &amp; Fitur Aplikasi</h2>
+  </div>
+
+  <h3>BAB IV. Akses Website &amp; Kamus Menu per Kelompok</h3>
+
+  <div class="callout info">
+    <div class="callout-title">Cara Membuka Website dari HP atau Laptop</div>
+    <ul style="margin-bottom:0;">
+      <li><strong>Di Wi-Fi Greenhouse / Kantor (mis. <code>Pokjar Permata</code> / Modem):</strong> Hubungkan HP/laptop ke Wi-Fi yang sama dengan Raspberry Pi, lalu ketik <code>http://vertonik.local</code>, <code>http://garap.local</code>, atau <code>http://&lt;IP-Pi&gt;</code> di browser.</li>
+      <li><strong>Saat Router Mati / Mode Hotspot Pi:</strong> Sambungkan Wi-Fi HP ke SSID <code>Vertoniksmartfarm</code>, lalu buka <code>http://10.42.0.1</code>.</li>
+      <li><strong>Dari Luar Kebun:</strong> Gunakan alamat domain <strong>Cloudflare Tunnel</strong> (<code>https://...</code>) atau IP <strong>Tailscale VPN</strong> bila tunnel sudah diaktifkan di Raspberry Pi.</li>
+    </ul>
+  </div>
+
+  <h4>4.1. Kelompok PANTAU &amp; KENDALI</h4>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:20%;">Menu &amp; Rute</th>
+        <th style="width:14%;">Akses</th>
+        <th style="width:66%;">Fungsi &amp; Cara Penggunaan Praktis</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Dashboard</strong><br/><code>/dashboard</code></td>
+        <td>Semua Role</td>
+        <td>Menampilkan status koneksi IoT (<em>online/offline</em> &amp; detik terakhir data masuk), 7 kartu KPI (<code>pH</code>, <code>Suhu Air</code>, <code>TDS ppm</code>, <code>Suhu Udara</code>, <code>Kelembapan</code>, <code>EC mS/cm</code>, <code>Level Tandon</code>) lengkap dengan <em>batas aman</em>, ringkasan 4 tahap tanam, tren batang mini, &amp; kartu prediksi panen.</td>
+      </tr>
+      <tr>
+        <td><strong>Sensor</strong><br/><code>/sensor-realtime</code></td>
+        <td>Semua Role</td>
+        <td>Grafik tren &amp; tabel riwayat pembacaan dengan filter <strong>6 Jam</strong>, <strong>24 Jam</strong>, <strong>7 Hari</strong>, atau <strong>Kustom</strong>, garis ambang batas, serta ekspor laporan tabel (CSV).</td>
+      </tr>
+      <tr>
+        <td><strong>Peringatan</strong><br/><code>/peringatan</code></td>
+        <td>Semua Role (Aksi: Admin)</td>
+        <td>Menampilkan peringatan kritis (merah, mis. <code>AIR_DIGANTI</code>) dan waspada (kuning, mis. <code>MODE_PEMELIHARAAN</code>, <code>TARGET_TIDUR</code>). Setelah inspeksi tandon, Admin dapat menekan <strong>tandai selesai</strong> atau <strong>Catat permintaan RESET</strong>.</td>
+      </tr>
+      <tr>
+        <td><strong>CCTV</strong><br/><code>/cctv</code></td>
+        <td>Semua Role (Kelola: Admin)</td>
+        <td>Menampilkan grid video/frame kamera (<code>MJPEG</code>, <code>Snapshot</code>, &amp; <code>RTSP</code> via proxy server aman). Klik gambar untuk perbesar layar.</td>
+      </tr>
+      <tr>
+        <td><strong>Asisten AI</strong><br/><code>/asisten-ai</code></td>
+        <td>Semua Role</td>
+        <td>Menyediakan strip konteks kebun terkini, tombol analisis cepat <strong>Langkah Selanjutnya</strong>, serta kolom chat interaktif (menjawab instan <code>&lt; 5 ms</code> untuk pertanyaan panduan aplikasi, panen, &amp; gejala hama/nutrisi, atau diproses model lokal <code>garap-ai</code> ~30–40 detik untuk pertanyaan bebas).</td>
+      </tr>
+      <tr>
+        <td><strong>Kebun Saya</strong><br/><code>/tanam</code></td>
+        <td>Semua Role (Tambah: Pengelola)</td>
+        <td>Melihat kartu seluruh batch tanam, filter berdasarkan tahap, melihat prediksi tanggal panen, dan membuka form <strong>Mulai Tanam / Semai Baru</strong>.</td>
+      </tr>
+      <tr>
+        <td><strong>Saklar</strong><br/><code>/saklar</code></td>
+        <td>Admin &amp; Demo (Baca)</td>
+        <td>Mengatur 5 saklar izin otomasi: <strong>Nutrisi A + B</strong>, <strong>pH up</strong>, <strong>pH down</strong>, <strong>Pengenceran</strong>, dan <strong>Isi air otomatis</strong>. Jika Pengenceran ON tetapi Isi air otomatis OFF, sistem memberi peringatan bahwa EC tinggi hanya menjadi notifikasi. Tekan <strong>Simpan pengaturan</strong>.</td>
+      </tr>
+      <tr>
+        <td><strong>Target Nutrisi</strong><br/><code>/dosing</code></td>
+        <td>Admin &amp; Demo (Baca)</td>
+        <td>Memiliki 4 tab: <strong>Target Nutrisi</strong> (kurva kenaikan ppm harian &amp; target per penampung), <strong>Parameter</strong> (konfigurasi dosis &amp; timing), <strong>Keamanan</strong> (aturan fail-safe), dan <strong>Perawatan</strong> (jadwal perawatan berkala).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>4.2. Kelompok DATA, SISTEM, SIKLUS TANAM &amp; MASTER DATA</h4>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:22%;">Menu &amp; Rute</th>
+        <th style="width:78%;">Fungsi Teknis untuk Admin &amp; Teknisi</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Kalibrasi</strong> (<code>/kalibrasi</code>)</td>
+        <td>Memuat tombol darurat <strong>STOP pompa</strong>, saklar <strong>Mode pemeliharaan</strong>, panel <strong>Kalibrasi EC (1.413 &amp; 12.880 &micro;S/cm)</strong>, <strong>Kalibrasi pH (4,0 &amp; 7,0)</strong>, <strong>Kalibrasi laju pompa (30/60/120 detik)</strong>, <strong>Pemulihan papan ESP32</strong>, arsip riwayat, dan kartu jadwal kalibrasi komponen.</td>
+      </tr>
+      <tr>
+        <td><strong>Data</strong> (<code>/data</code>)</td>
+        <td>Kalkulator <strong>Takaran Tanaman</strong> dan <strong>Takaran Buah</strong> hasil uji lab nyata untuk menghitung kenaikan ppm/mL dan kebutuhan mL per koreksi pH.</td>
+      </tr>
+      <tr>
+        <td><strong>Catatan Aktivitas</strong> (<code>/audit</code>)</td>
+        <td>Jejak audit permanen (<em>append-only</em>) setiap aksi login, ubah saklar, pengaturan, kalibrasi, dan siklus tanam.</td>
+      </tr>
+      <tr>
+        <td><strong>Laporan</strong> (<code>/laporan</code>)</td>
+        <td>Ringkasan performa budidaya per periode beserta fitur unduh laporan <strong>Excel (.xlsx)</strong>.</td>
+      </tr>
+      <tr>
+        <td><strong>Pengaturan Alat</strong> (<code>/pengaturan-alat</code>)</td>
+        <td>Mengatur volume efektif tandon (L), jumlah &amp; debit talang (otomatis menghitung 1 putaran sirkulasi), waktu monitoring (10–120 mnt), jeda A&rarr;B (1–10 mnt), jeda antar tindakan, persen dosing (50–90%), maks ppm per dosing (50–300 ppm), batas aman EC/pH, batas mL koreksi pH, &amp; batas pemeliharaan.</td>
+      </tr>
+      <tr>
+        <td><strong>Pemulihan Papan</strong> (<code>/pemulihan-papan</code>)</td>
+        <td>Menyiapkan paket konfigurasi &amp; 6 riwayat kalibrasi terakhir ketika mengganti papan ESP32 baru (status <code>BARU</code>). Probe baru tetap wajib dikalibrasi ulang.</td>
+      </tr>
+      <tr>
+        <td><strong>Koneksi Alat</strong> (<code>/mqtt-diagnostik</code>)</td>
+        <td>Status broker MQTT, ID perangkat, kontrak topik (<code>telemetri</code>, <code>param</code>, <code>kalibrasi</code>, <code>log</code>, <code>alert</code>, <code>ack</code>, <code>status</code>, <code>cmd</code> / <code>garap/aktuator-01/...</code>), dan contoh JSON perintah.</td>
+      </tr>
+      <tr>
+        <td><strong>Siklus Tanam</strong> (<code>/semai</code>, <code>/peremajaan</code>, <code>/pendewasaan</code>, <code>/panen</code>)</td>
+        <td>Mencatat &amp; memajukan batch melalui 4 fase budidaya berurutan. Klik detail baris yang berjalan lalu tekan <strong>Tandai Selesai</strong> untuk meneruskan ke tahap berikutnya atau mencatat hasil panen.</td>
+      </tr>
+      <tr>
+        <td><strong>Master Data &amp; User</strong> (<code>/tanaman</code>, <code>/meja</code>, <code>/ambang</code>, <code>/user</code>, <code>/profil</code>)</td>
+        <td>Kelola daftar varietas tanaman, meja/penampung aktif, ambang batas aman sensor (<code>min–max</code>), akun operator/admin, serta ubah sandi pribadi (minimal 8 karakter).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- BAGIAN C -->
+  <div class="page-break"></div>
+  <div class="kop-bar">
+    <strong>Vertonik Smart Farm (GARAP) &bull; Pokjar Permata</strong>
+    <span>Bagian C &mdash; Petunjuk Teknis (Juknis) Alat IoT, Kalibrasi &amp; Jaringan</span>
+  </div>
+
+  <div class="part-banner">
+    <div class="part-kicker">Bagian C &mdash; Petunjuk Teknis (Juknis) Alat IoT &amp; Jaringan</div>
+    <h2>Wiring Pinout ESP32, Indikator Panel, Kalibrasi &amp; Jaringan</h2>
+  </div>
+
+  <h3>BAB V. Peta Pin ESP32 (<code>gabungan-0.6</code>) &amp; Indikator Panel</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:29%;">Perangkat / Komponen</th>
+        <th style="width:15%;">Pin GPIO ESP32</th>
+        <th style="width:56%;">Spesifikasi &amp; Catatan Pengkabelan</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Bus I2C (ADS1115, SHT31, LCD 20&times;4)</strong></td>
+        <td><code>GPIO 21</code> (SDA)<br/><code>GPIO 22</code> (SCL)</td>
+        <td>Alamat I2C: ADS1115 = <code>0x48</code> (A0 = pH, A1 = EC lewat pembagi resistor <code>10k/10k</code>), SHT31 = <code>0x44</code>, LCD PCF8574 = <code>0x27</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>Sensor Suhu Air (DS18B20)</strong></td>
+        <td><code>GPIO 4</code></td>
+        <td>Probe kedap air OneWire (gunakan resistor pull-up 4.7k ke 3,3V sesuai modul).</td>
+      </tr>
+      <tr>
+        <td><strong>5 Kanal Pompa Relay</strong></td>
+        <td><code>25</code> (A), <code>26</code> (B), <code>27</code> (pH Up), <code>18</code> (pH Down), <code>16</code> (Isi Air)</td>
+        <td>Relay <strong>HIGH-trigger</strong> (jumper <code>COM+HIGH</code>; <code>HIGH</code> = pompa menyala). Daya pompa 12V wajib terpisah + dioda flyback.</td>
+      </tr>
+      <tr>
+        <td><strong>Sensor Pelampung (Float Switch)</strong></td>
+        <td><code>GPIO 32</code> (Bawah)<br/><code>GPIO 33</code> (Atas)</td>
+        <td><code>INPUT_PULLUP</code>. <code>HIGH</code> = terangkat (cukup/penuh), <code>LOW</code> = turun. Kabel pelampung atas putus terbaca penuh (fail-safe anti-luap).</td>
+      </tr>
+      <tr>
+        <td><strong>3 Lampu Pilot (via ULN2003)</strong></td>
+        <td><code>13</code> (Merah), <code>17</code> (Hijau), <code>23</code> (Biru)</td>
+        <td><code>HIGH</code> = menyala. Merah+Hijau bersamaan menghasilkan kondisi Peringatan. Biru menyala saat salah satu pompa aktif.</td>
+      </tr>
+      <tr>
+        <td><strong>Tombol RESET Lokal</strong></td>
+        <td><code>GPIO 19</code></td>
+        <td><code>INPUT_PULLUP</code> ke GND. Tekan singkat: tampilkan info Wi-Fi, IP ESP, IP Server &amp; mode (4 detik di LCD) dan lepas latch E-STOP lokal bila sudah aman.</td>
+      </tr>
+      <tr>
+        <td><strong>Deteksi E-STOP Fisik</strong></td>
+        <td><code>GPIO 36</code></td>
+        <td>Input-only membaca bus +12V aktuator lewat pembagi tegangan <strong><code>33k / 10k</code></strong>. Saat E-STOP ditekan (<code>LOW</code>), seluruh pompa langsung berhenti &amp; terkunci.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="grid-2">
+    <div class="card">
+      <h5>Arti 3 Lampu Pilot Panel</h5>
+      <ul style="margin-bottom:0;">
+        <li><span class="dot dot-green"></span><strong>Hijau saja:</strong> Normal (Wi-Fi, MQTT/server &amp; air tandon aman).</li>
+        <li><span class="dot dot-red"></span><span class="dot dot-green"></span><strong>Merah + Hijau:</strong> Peringatan (air tandon kurang, atau MQTT/detak server belum masuk).</li>
+        <li><span class="dot dot-red"></span><strong>Merah saja:</strong> <strong>DARURAT / E-STOP AKTIF!</strong> Semua pompa terkunci.</li>
+        <li><span class="dot dot-blue"></span><strong>Biru menyala:</strong> Ada pompa sedang bekerja (<code>DOSING</code> / <code>ISI_AIR</code> / <code>UJI</code>).</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h5>Batas Pengaman Tetap Firmware (<code>gabungan-0.6</code>)</h5>
+      <ul style="margin-bottom:0;">
+        <li><strong>Nutrisi A+B:</strong> maks <code>214 mL</code>/suntik &bull; <code>450 mL</code>/jam &bull; relay maks <code>70 dtk</code>.</li>
+        <li><strong>pH Up / Down:</strong> maks <code>10 mL</code>/suntik &bull; <code>30 mL</code>/jam &bull; relay maks <code>12 dtk</code>.</li>
+        <li><strong>Isi Air:</strong> maks <code>600 dtk</code> (stop otomatis saat float atas terangkat).</li>
+        <li><strong>Fail-Safe Jaringan:</strong> pompa berhenti &le; <code>30 detik</code> bila detak server (<code>garap/server/status</code>) terputus.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>BAB VI. SOP Kalibrasi Langsung &amp; Ringkasan Uji Hardware 8 Tahap</h3>
+  <h4>6.1. Langkah Kalibrasi Probe EC, pH, &amp; Laju Pompa (Dari Web <code>/kalibrasi</code>)</h4>
+  <ol>
+    <li>Login sebagai <strong>Admin</strong> &rarr; buka <strong>Kalibrasi (<code>/kalibrasi</code>)</strong> &rarr; klik <strong>Aktifkan pemeliharaan</strong> (wajib aktif agar tombol kalibrasi terbuka dan otomasi dijeda).</li>
+    <li><strong>Kalibrasi EC (2 Titik):</strong> Bilas probe &rarr; celupkan ke standar <code>1.413 &micro;S/cm</code> &rarr; tunggu indikator <em>stabil</em> &rarr; klik <strong>Ambil titik 1.413</strong>. Bilas &rarr; celupkan ke <code>12.880 &micro;S/cm</code> &rarr; klik <strong>Ambil titik 12.880</strong>.</li>
+    <li><strong>Kalibrasi pH (2 Titik):</strong> Bilas probe &rarr; celupkan ke <code>buffer pH 4,0</code> &rarr; tunggu stabil &rarr; klik <strong>Ambil titik pH 4,0</strong>. Bilas &rarr; celupkan ke <code>buffer pH 7,0</code> &rarr; klik <strong>Ambil titik pH 7,0</strong>.</li>
+    <li><strong>Kalibrasi Pompa:</strong> Isi selang hingga penuh (<em>priming</em>), arahkan ujung selang ke <strong>gelas ukur bersih</strong>, pilih pompa (A, B, pH Up, atau pH Down) &amp; durasi (disarankan <code>30</code> atau <code>60 detik</code>), tekan <strong>Jalankan pompa</strong>, baca hasil mL pada gelas ukur, lalu tekan <strong>Simpan laju</strong>. Ulangi 3&times; (selisih &le; 5%), lalu <strong>Matikan pemeliharaan</strong>.</li>
+  </ol>
+
+  <h4>6.2. Urutan Ringkas Uji Alat Sebelum Dipasang ke Tanaman</h4>
+  <p>
+    <strong>Tahap 0:</strong> Cek pin &amp; pembagi <code>33k/10k</code> tanpa daya, lepas sekring pompa &rarr;
+    <strong>Tahap 1:</strong> Uji USB (Serial 115200: <code>ADS1115 ada, SHT31 ada, LCD ada</code>) &rarr;
+    <strong>Tahap 2:</strong> Sambung ke Pi &ge; 5 menit &rarr;
+    <strong>Tahap 3:</strong> Cek selisih sensor (suhu &le; 0,5 &deg;C, pH &le; 0,1, EC &le; 5%) &rarr;
+    <strong>Tahap 4:</strong> Uji float bawah/atas &amp; E-STOP &rarr;
+    <strong>Tahap 5:</strong> Pasang daya 12V &amp; uji tiap pompa dengan air bersih &rarr;
+    <strong>Tahap 6:</strong> Simpan laju pompa ke NVS &rarr;
+    <strong>Tahap 7:</strong> Uji fail-safe (E-STOP seketika, matikan server/Wi-Fi stop &le; 30 dtk, cabut daya ESP32 relay harus lepas) &rarr;
+    <strong>Tahap 8:</strong> Uji tahan 24 jam tanpa restart.
+  </p>
+
+  <h3>BAB VII. Pengaturan Wi-Fi, Modem 4G, Serial Monitor &amp; Tunnel Jarak Jauh</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h5>Perintah Serial Monitor ESP32 (<code>115200 baud</code>)</h5>
+      <ul style="margin-bottom:0;font-size:8.5pt;">
+        <li><code>status</code> : Cetak Wi-Fi, IP ESP, IP Server, status MQTT/HTTP, E-STOP, float &amp; NVS kalibrasi.</li>
+        <li><code>scan</code> : Pindai jaringan Wi-Fi 2,4 GHz di sekitar panel.</li>
+        <li><code>cari</code> : Paksa cari ulang alamat IP server Raspberry Pi.</li>
+        <li><code>baca</code> : Baca semua sensor &amp; kirim segera.</li>
+        <li><code>wifi SSID|SANDI</code> : Simpan Wi-Fi baru permanen di NVS (<code>wifi hapus</code> untuk reset).</li>
+        <li><code>server 192.168.8.50</code> : Kunci IP Pi manual di NVS (<code>server hapus</code> untuk otomatis).</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h5>Pemindahan ke Modem 4G &amp; Akses Luar Kebun</h5>
+      <ul style="margin-bottom:0;font-size:8.5pt;">
+        <li><strong>SSID Wi-Fi Modem (2,4 GHz):</strong> Disarankan atur ke <code>VertonikModem</code> agar ESP32 langsung tersambung, atau gunakan perintah Serial <code>wifi SSID|SANDI</code>.</li>
+        <li><strong>Router Modem:</strong> Wajib matikan fitur <strong>AP / Client Isolation</strong>; ikat DHCP IP Pi ke akhiran <code>.50</code> jika memungkinkan.</li>
+        <li><strong>Script Pi:</strong> Jalankan <code>sudo bash /opt/vertonik/deploy-pi/siapkan-modem.sh</code>.</li>
+        <li><strong>Akses Jarak Jauh (CGNAT):</strong> Jalankan <code>sudo bash /opt/vertonik/deploy-pi/siapkan-tunnel.sh tailscale</code> atau <code>cloudflare &lt;TOKEN&gt;</code>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- TROUBLESHOOTING & LAMPIRAN -->
+  <div class="page-break"></div>
+  <div class="kop-bar">
+    <strong>Vertonik Smart Farm (GARAP) &bull; Pokjar Permata</strong>
+    <span>BAB VIII &amp; Lampiran &mdash; Troubleshooting &amp; Checklist Lapangan</span>
+  </div>
+
+  <h3>BAB VIII. Matriks Penanganan Gangguan Cepat (Troubleshooting)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:24%;">Gejala di Lapangan</th>
+        <th style="width:32%;">Kemungkinan Penyebab</th>
+        <th style="width:44%;">Langkah Perbaikan Standar</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Website tidak bisa dibuka di HP/Laptop</strong></td>
+        <td>Perangkat berbeda Wi-Fi dengan Pi, alamat mDNS tertahan router, atau service backend berhenti.</td>
+        <td>Pastikan tersambung ke Wi-Fi yang sama dengan Pi (atau hotspot <code>Vertoniksmartfarm</code> &rarr; <code>http://10.42.0.1</code>). Tekan singkat tombol <strong>RESET (GPIO 19)</strong> di panel untuk melihat <code>SRV:...</code> di LCD selama 4 detik.</td>
+      </tr>
+      <tr>
+        <td><strong>LCD <code>WIFI MATI</code> atau tidak konek modem baru</strong></td>
+        <td>Modem memancarkan 5 GHz saja (ESP32 hanya mendukung <strong>2,4 GHz</strong>), SSID/sandi belum disimpan, atau sinyal lemah.</td>
+        <td>Aktifkan band 2,4 GHz di modem. Colok USB ESP32 ke laptop, buka Serial Monitor <code>115200 baud</code>, jalankan <code>scan</code> lalu ketik <code>wifi NAMA_WIFI|SANDI</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>LCD <code>HTTP SENSOR ONLY</code> (pompa terkunci)</strong></td>
+        <td>Port MQTT <code>1883</code> terblokir firewall Pi/router atau fitur <em>Client Isolation</em> modem aktif.</td>
+        <td>Matikan <em>AP/Client Isolation</em> pada pengaturan router/modem. Di Raspberry Pi, jalankan <code>sudo bash /opt/vertonik/deploy-pi/siapkan-modem.sh</code> agar firewall UFW mengizinkan subnet privat.</td>
+      </tr>
+      <tr>
+        <td><strong>Lampu merah menyala &amp; LCD <code>E-STOP AKTIF!</code></strong></td>
+        <td>Tombol jamur fisik ditekan, kabel pembagi <code>33k/10k</code> ke pin 36 putus, atau E-STOP dari server aktif.</td>
+        <td>Atasi dulu bahaya fisik (selang/listrik). Putar tombol jamur merah hingga terangkat, reset E-STOP dari Admin bila perlu, lalu tekan singkat <strong>RESET (GPIO 19)</strong>.</td>
+      </tr>
+      <tr>
+        <td><strong>Perintah dosis ditolak (<code>belum_dikalibrasi</code>)</strong></td>
+        <td>Laju salah satu pompa di NVS ESP32 masih <code>0,00 mL/detik</code>.</td>
+        <td>Buka menu <strong>Kalibrasi</strong> (<code>/kalibrasi</code>) &rarr; aktifkan mode pemeliharaan &rarr; jalankan kalibrasi pompa ke gelas ukur dan simpan laju (mL &divide; detik).</td>
+      </tr>
+      <tr>
+        <td><strong>Asisten AI terasa lambat / suhu Pi tinggi</strong></td>
+        <td>Pertanyaan bebas diproses LLM lokal di CPU Pi (normal ~30–40 dtk) atau heatsink Pi kekurangan aliran udara.</td>
+        <td>Untuk panduan aplikasi/panen/gejala daun gunakan kalimat langsung agar dijawab instan (<code>&lt; 5 ms</code>). Pastikan kipas/pendingin Pi bekerja dan suhu Pi dijaga &lt; 70 &deg;C.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>LAMPIRAN. Lembar Checklist Commissioning &amp; Serah Terima Lapangan</h3>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:6%;">No</th>
+        <th style="width:37%;">Poin Pemeriksaan Lapangan</th>
+        <th style="width:33%;">Kriteria Lulus</th>
+        <th style="width:14%;">Status</th>
+        <th style="width:10%;">Paraf</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>Pemeriksaan fisik wiring, sekring &amp; pembagi E-STOP 33k/10k (GPIO 36)</td>
+        <td>Tidak ada short 12V/3,3V ke GND; E-STOP terbaca normal</td>
+        <td>&#9744; Lulus &nbsp; &#9744; Gagal</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Boot USB awal &amp; deteksi I2C (<code>gabungan-0.6</code>)</td>
+        <td><code>ADS1115 ada, SHT31 ada, LCD ada</code> tampil di Serial</td>
+        <td>&#9744; Lulus &nbsp; &#9744; Gagal</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Koneksi jaringan Wi-Fi/Modem &amp; MQTT broker Pi</td>
+        <td>Lampu Hijau; status online web stabil &ge; 5 menit</td>
+        <td>&#9744; Lulus &nbsp; &#9744; Gagal</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Kalibrasi 2-titik sensor EC (1.413 / 12.880) &amp; pH (4,0 / 7,0)</td>
+        <td>Selisih ukur EC &le; 5% dan pH &le; 0,1 terhadap standar</td>
+        <td>&#9744; Lulus &nbsp; &#9744; Gagal</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Kalibrasi laju pompa A, B, pH Up, pH Down (air bersih)</td>
+        <td>3&times; takar selisih &le; 5%; tersimpan di NVS ESP32</td>
+        <td>&#9744; Lulus &nbsp; &#9744; Gagal</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>Uji pengaman saat pompa berjalan (E-STOP, float bawah/atas, server putus)</td>
+        <td>E-STOP stop seketika; hilang server stop &le; 30 dtk</td>
+        <td>&#9744; Lulus &nbsp; &#9744; Gagal</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td>Uji akses Website &amp; HP Operator (<code>Dashboard</code>, <code>Peringatan</code>, <code>AI</code>)</td>
+        <td>Login berhasil, data sensor &amp; respon AI tampil benar</td>
+        <td>&#9744; Lulus &nbsp; &#9744; Gagal</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="sign-grid">
+    <div class="sign-box">
+      <div>Disusun / Teknisi IoT,</div>
+      <div class="sign-space"></div>
+      <div><strong>(__________________________)</strong></div>
+      <div style="color:#475569;margin-top:2px;">Tim Vertonik Smart Farm</div>
+    </div>
+    <div class="sign-box">
+      <div>Diperiksa / Admin Kebun,</div>
+      <div class="sign-space"></div>
+      <div><strong>(__________________________)</strong></div>
+      <div style="color:#475569;margin-top:2px;">Pokjar Permata</div>
+    </div>
+    <div class="sign-box">
+      <div>Diterima / Operator Lapangan,</div>
+      <div class="sign-space"></div>
+      <div><strong>(__________________________)</strong></div>
+      <div style="color:#475569;margin-top:2px;">Tanggal: ____ / ____ / 20____</div>
+    </div>
+  </div>
+
+</body>
+</html>
+

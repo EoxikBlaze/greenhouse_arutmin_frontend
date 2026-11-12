@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Poster 1 — Pengoperasian Alat IoT, Panel & K3 (GARAP · Pokjar Permata)</title>
+  <style>
+    @page {
+      size: A3 portrait;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 297mm;
+      height: 420mm;
+      background: #f4f8f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #0f172a;
+    }
+
+    .poster {
+      width: 297mm;
+      height: 419mm;
+      padding: 8.5mm 10.5mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 4.5mm;
+      background: linear-gradient(180deg, #f3faf5 0%, #ffffff 35%, #f8fafc 100%);
+    }
+
+    /* Header Banner */
+    .header {
+      background: linear-gradient(125deg, #0d331f 0%, #174e31 55%, #236c44 100%);
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      box-shadow: 0 6px 18px rgba(13, 51, 31, 0.16);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .kop-kicker {
+      font-size: 11.5pt;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #a7f3d0;
+    }
+
+    .header h1 {
+      margin: 3px 0 4px 0;
+      font-size: 24pt;
+      line-height: 1.08;
+      letter-spacing: -0.01em;
+    }
+
+    .header p {
+      margin: 0;
+      font-size: 11pt;
+      color: #dcfce7;
+    }
+
+    .badge-tag {
+      background: rgba(255, 255, 255, 0.14);
+      border: 1.5px solid rgba(167, 243, 208, 0.55);
+      border-radius: 10px;
+      padding: 10px 14px;
+      text-align: right;
+      min-width: 195px;
+    }
+    .badge-tag .big {
+      font-size: 13pt;
+      font-weight: 800;
+      color: #ffffff;
+    }
+    .badge-tag .small {
+      font-size: 9.2pt;
+      color: #bbf7d0;
+      margin-top: 2px;
+    }
+
+    /* Section Card */
+    .sec {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 10px 14px;
+    }
+
+    .sec-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 5px;
+    }
+
+    .num-pill {
+      background: #174e31;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 11.5pt;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .sec-title {
+      font-size: 14pt;
+      font-weight: 800;
+      color: #0e3520;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    /* 4 Step Startup Row */
+    .steps-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 11px;
+    }
+
+    .step-card {
+      background: #f4faf6;
+      border: 1.5px solid #b8dcc5;
+      border-radius: 10px;
+      padding: 11px 12px;
+    }
+
+    .step-no {
+      display: inline-block;
+      background: #174e31;
+      color: #ffffff;
+      font-size: 9pt;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+    }
+
+    .step-card h3 {
+      margin: 0 0 4px 0;
+      font-size: 11.5pt;
+      color: #0f172a;
+    }
+
+    .step-card p {
+      margin: 0;
+      font-size: 9.6pt;
+      line-height: 1.4;
+      color: #334155;
+    }
+
+    /* 2 Columns middle */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 6mm;
+    }
+
+    /* Lamp swatches */
+    .lamp-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 9px;
+      margin-bottom: 10px;
+    }
+
+    .lamp-box {
+      border-radius: 9px;
+      padding: 9px 11px;
+      border: 1.5px solid #cbd5e1;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .lamp-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 2px solid rgba(15, 23, 42, 0.25);
+      margin-top: 2px;
+    }
+    .l-green { background: #16a34a; }
+    .l-warn { background: linear-gradient(135deg, #dc2626 50%, #16a34a 50%); }
+    .l-red { background: #dc2626; }
+    .l-blue { background: #2563eb; }
+
+    .lamp-box strong {
+      display: block;
+      font-size: 10.5pt;
+      margin-bottom: 2px;
+    }
+    .lamp-box span {
+      font-size: 9.2pt;
+      line-height: 1.35;
+      color: #334155;
+    }
+
+    /* LCD mockup */
+    .lcd-mock {
+      background: #0f3b26;
+      color: #bbf7d0;
+      border: 3px solid #1e293b;
+      border-radius: 8px;
+      padding: 9px 13px;
+      font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 10pt;
+      line-height: 1.45;
+      margin-bottom: 8px;
+    }
+
+    .lcd-codes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px 10px;
+      font-size: 9.2pt;
+      color: #1e293b;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      background: #eef2f6;
+      border: 1px solid #cbd5e1;
+      color: #0f172a;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-size: 8.8pt;
+    }
+    .header code, .badge-tag code {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.35);
+      color: #ffffff;
+    }
+    .k3-banner code {
+      background: rgba(0, 0, 0, 0.28);
+      border-color: rgba(255, 255, 255, 0.35);
+      color: #fef08a;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9pt;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 4.5px 6.5px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #eaf5ee;
+      color: #0e3520;
+      font-weight: 800;
+    }
+
+    /* Calibration 4 steps */
+    .kal-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 9px;
+    }
+    .kal-box {
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-top: 4px solid #2e7d4b;
+      border-radius: 9px;
+      padding: 8px 10px;
+    }
+    .kal-box > strong {
+      display: block;
+      font-size: 10.2pt;
+      color: #0e3520;
+      margin-bottom: 4px;
+    }
+    .kal-box p {
+      margin: 0;
+      font-size: 9.1pt;
+      line-height: 1.36;
+      color: #334155;
+    }
+
+    /* Emergency K3 Banner */
+    .k3-banner {
+      background: linear-gradient(120deg, #991b1b 0%, #b91c1c 60%, #dc2626 100%);
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 13px 18px;
+      display: grid;
+      grid-template-columns: 1.12fr 0.88fr;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .k3-banner h2 {
+      margin: 0 0 5px 0;
+      font-size: 15pt;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .k3-banner ul {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 9.4pt;
+      line-height: 1.38;
+    }
+    .k3-banner li { margin-bottom: 2.5px; }
+
+    .k3-limits {
+      background: rgba(0, 0, 0, 0.24);
+      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      border-radius: 10px;
+      padding: 9px 13px;
+      font-size: 9.1pt;
+      line-height: 1.42;
+    }
+    .k3-limits .lim-title {
+      display: block;
+      font-weight: 800;
+      font-size: 10pt;
+      color: #fef08a;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9.2pt;
+      color: #475569;
+      border-top: 1.5px solid #cbd5e1;
+      padding-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="poster">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="brand">
+        <svg width="58" height="58" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <rect width="64" height="64" rx="16" fill="#ffffff" fill-opacity="0.14"/>
+          <path d="M18 42C18 26 30 16 46 16C46 32 36 44 20 44" stroke="#a7f3d0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M18 46L37 27" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="46" cy="46" r="5" fill="#4ade80"/>
+        </svg>
+        <div>
+          <div class="kop-kicker">Vertonik Smart Farm (GARAP) &bull; Pokjar Permata</div>
+          <h1>PENGOPERASIAN ALAT IoT, PANEL &amp; K3</h1>
+          <p>Panduan Dinding Panel Kendali Hidroponik &mdash; ESP32 (<code>gabungan-0.6</code>) &amp; Server Raspberry Pi</p>
+        </div>
+      </div>
+      <div class="badge-tag">
+        <div class="big">POSTER 1 / 2</div>
+        <div class="small">Tempel di dekat Box Panel Pompa</div>
+        <div class="small">ID Alat: <code>aktuator-01</code></div>
+      </div>
+    </header>
+
+    <!-- 1. URUTAN MENYALAKAN PANEL -->
+    <section class="sec">
+      <div class="sec-head">
+        <div class="num-pill">1</div>
+        <div class="sec-title">Urutan Menyalakan Panel &amp; Cek Awal Sebelum Operasi</div>
+      </div>
+      <div class="steps-4">
+        <div class="step-card">
+          <span class="step-no">LANGKAH 1</span>
+          <h3>Cek Fisik &amp; Cairan</h3>
+          <p>Pastikan tandon terisi air, probe pH/EC terendam, tidak ada kabel terkelupas, dan selang pompa A, B, pH Up, pH Down tidak bocor/tertekuk.</p>
+        </div>
+        <div class="step-card">
+          <span class="step-no">LANGKAH 2</span>
+          <h3>Bebaskan E-STOP</h3>
+          <p>Pastikan tombol jamur merah <strong>E-STOP</strong> dalam kondisi <strong>tertarik/lepas</strong> (tidak tertekan). Cek pembagi 33k/10k &amp; sekring daya 12V pompa.</p>
+        </div>
+        <div class="step-card">
+          <span class="step-no">LANGKAH 3</span>
+          <h3>Nyalakan Raspberry Pi</h3>
+          <p>Hidupkan daya Raspberry Pi dan router Wi-Fi / Modem terlebih dahulu. Tunggu <strong>&plusmn;1 menit</strong> sampai server API &amp; MQTT siap menerima data.</p>
+        </div>
+        <div class="step-card">
+          <span class="step-no">LANGKAH 4</span>
+          <h3>Nyalakan ESP32 Panel</h3>
+          <p>Hidupkan panel kontrol ESP32. Tunggu layar LCD beralih menjadi <code>PENAMPUNG CUKUP</code> dan lampu pilot menyala <strong>HIJAU</strong>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 & 3. LAMPU PILOT / LCD + PETA PIN & TOMBOL RESET -->
+    <div class="grid-2">
+      <section class="sec">
+        <div class="sec-head">
+          <div class="num-pill">2</div>
+          <div class="sec-title">Arti Lampu Pilot &amp; Layar LCD 20&times;4</div>
+        </div>
+        <div class="lamp-row">
+          <div class="lamp-box" style="background:#f0fdf4;border-color:#86efac;">
+            <div class="lamp-dot l-green"></div>
+            <div>
+              <strong>HIJAU SAJA (Normal)</strong>
+              <span>Wi-Fi, MQTT &amp; server Pi terhubung normal; air penampung cukup.</span>
+            </div>
+          </div>
+          <div class="lamp-box" style="background:#fffbeb;border-color:#fcd34d;">
+            <div class="lamp-dot l-warn"></div>
+            <div>
+              <strong>MERAH + HIJAU (Waspada)</strong>
+              <span>Air penampung kurang (float bawah turun) atau sinyal MQTT/server Pi putus.</span>
+            </div>
+          </div>
+          <div class="lamp-box" style="background:#fef2f2;border-color:#fca5a5;">
+            <div class="lamp-dot l-red"></div>
+            <div>
+              <strong>MERAH SAJA (E-STOP!)</strong>
+              <span>Darurat aktif (tombol fisik / server). Semua pompa dimatikan &amp; dikunci.</span>
+            </div>
+          </div>
+          <div class="lamp-box" style="background:#eff6ff;border-color:#93c5fd;">
+            <div class="lamp-dot l-blue"></div>
+            <div>
+              <strong>BIRU MENYALA (Aktif)</strong>
+              <span>Salah satu pompa (Dosing A/B, pH, Isi Air, atau Uji) sedang menyala.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="lcd-mock">
+          <div>EC 1.80mS &nbsp; 900ppm</div>
+          <div>pH 6.15 &nbsp;&nbsp;&nbsp;Air 25.4C</div>
+          <div>Ruang 29C &nbsp;RH 74%</div>
+          <div style="color:#fde047;font-weight:700;">PENAMPUNG CUKUP &nbsp;&nbsp;&nbsp;&lt;-- Baris 4 Status</div>
+        </div>
+
+        <div class="lcd-codes">
+          <div>&bull; <code>PENAMPUNG CUKUP/PENUH</code> : Air aman</div>
+          <div>&bull; <code>PENAMPUNG KURANG</code> : Dosing ditahan</div>
+          <div>&bull; <code>E-STOP AKTIF!</code> : Tombol darurat terkunci</div>
+          <div>&bull; <code>WIFI MATI</code> : Cek Wi-Fi 2,4 GHz</div>
+          <div>&bull; <code>TUNGGU SERVER...</code> : Cek Pi / MQTT</div>
+          <div>&bull; <code>HTTP SENSOR ONLY</code> : Port 1883 terblokir</div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="sec-head">
+          <div class="num-pill">3</div>
+          <div class="sec-title">Peta Pin, Tombol Reset &amp; Jaringan</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:46%;">Perangkat Panel</th>
+              <th style="width:54%;">Pin ESP32 &amp; Catatan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>I2C (ADS1115, SHT31, LCD)</strong></td><td><code>SDA 21 / SCL 22</code> (0x48, 0x44, 0x27)</td></tr>
+            <tr><td><strong>Suhu Air (DS18B20)</strong></td><td><code>GPIO 4</code> (OneWire waterproof)</td></tr>
+            <tr><td><strong>5 Pompa (Relay HIGH)</strong></td><td>A <code>25</code> &bull; B <code>26</code> &bull; pH+ <code>27</code> &bull; pH- <code>18</code> &bull; Isi <code>16</code></td></tr>
+            <tr><td><strong>Pelampung Bawah / Atas</strong></td><td><code>GPIO 32</code> / <code>GPIO 33</code> (putus = penuh)</td></tr>
+            <tr><td><strong>Lampu Merah / Hijau / Biru</strong></td><td><code>GPIO 13</code> / <code>17</code> / <code>23</code> (via ULN2003)</td></tr>
+            <tr><td><strong>Tombol RESET &amp; E-STOP</strong></td><td>Reset <code>GPIO 19</code> &bull; E-STOP <code>GPIO 36</code> (33k/10k)</td></tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top:8px;background:#f4faf6;border:1px solid #b8dcc5;border-radius:8px;padding:8px 10px;font-size:9.3pt;line-height:1.4;">
+          <strong style="color:#0e3520;">Fungsi Tombol RESET (GPIO 19):</strong><br/>
+          &bull; <strong>Tekan singkat:</strong> LCD menampilkan SSID Wi-Fi, IP ESP, IP Server Pi (<code>SRV</code>), &amp; mode koneksi (MQTT/HTTP) selama <strong>4 detik</strong>.<br/>
+          &bull; <strong>Setelah darurat selesai:</strong> Lepas latch E-STOP lokal bila E-STOP fisik &amp; server sudah normal.<br/>
+          &bull; <strong>Ganti Wi-Fi/Modem via USB (115200 baud):</strong> ketik <code>wifi NAMA|SANDI</code>, <code>server IP</code>, <code>scan</code>, atau <code>status</code> (tanpa flash ulang).
+        </div>
+      </section>
+    </div>
+
+    <!-- 4. SOP KALIBRASI -->
+    <section class="sec">
+      <div class="sec-head">
+        <div class="num-pill">4</div>
+        <div class="sec-title">4 Langkah Kalibrasi Probe &amp; Pompa di Lapangan (Menu Website <code>/kalibrasi</code>)</div>
+      </div>
+      <div class="kal-grid">
+        <div class="kal-box">
+          <strong>1. Mode Pemeliharaan ON</strong>
+          <p>Login sebagai <strong>Admin</strong> &rarr; buka <strong>Kalibrasi</strong> &rarr; klik <strong>Aktifkan pemeliharaan</strong> agar semua pompa otomatis dijeda aman.</p>
+        </div>
+        <div class="kal-box">
+          <strong>2. Kalibrasi EC (2 Titik)</strong>
+          <p>Bilas probe &rarr; celup larutan <code>1.413 &micro;S/cm</code> &rarr; tunggu stabil &rarr; <strong>Ambil titik 1.413</strong>. Bilas &rarr; celup <code>12.880 &micro;S/cm</code> &rarr; <strong>Ambil titik 12.880</strong>.</p>
+        </div>
+        <div class="kal-box">
+          <strong>3. Kalibrasi pH (2 Titik)</strong>
+          <p>Bilas probe &rarr; celup <code>buffer pH 4,0</code> &rarr; tunggu stabil &rarr; <strong>Ambil titik pH 4,0</strong>. Bilas &rarr; celup <code>buffer pH 7,0</code> &rarr; <strong>Ambil titik pH 7,0</strong>.</p>
+        </div>
+        <div class="kal-box">
+          <strong>4. Kalibrasi Laju Pompa</strong>
+          <p>Arahkan selang ke <strong>gelas ukur bersih</strong> &rarr; jalankan pompa <code>30/60 dtk</code> &rarr; catat mL hasil ukur &rarr; klik <strong>Simpan laju</strong>. Matikan pemeliharaan setelah selesai.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. BANNER K3 & E-STOP -->
+    <section class="k3-banner">
+      <div>
+        <h2>&#9888; PROTOKOL DARURAT &amp; KESELAMATAN (K3 / E-STOP)</h2>
+        <ul>
+          <li><strong>TEKAN TOMBOL MERAH E-STOP SEGERA</strong> jika terjadi kebocoran tandon/selang, pompa terus menyala tidak wajar, bau komponen panas, atau korsleting listrik.</li>
+          <li><strong>JANGAN MELEPAS E-STOP SEBELUM AMAN:</strong> Periksa sumber masalah, keringkan cipratan air di sekitar panel, baru putar/tarik tombol E-STOP, reset dari Admin (jika dipicu server), lalu tekan tombol <strong>RESET (GPIO 19)</strong>.</li>
+          <li><strong>UJI AWAL SELALU PAKAI AIR BERSIH:</strong> Jangan pernah menyuntik pupuk pekat langsung ke tandon saat uji pompa atau ganti selang baru.</li>
+          <li><strong>DAYA POMPA 12V TERPISAH:</strong> Jika pompa tetap berputar saat daya ESP32 dicabut, <strong>HENTIKAN PENGGUNAAN</strong> dan perbaiki wiring relay segera.</li>
+        </ul>
+      </div>
+      <div class="k3-limits">
+        <div class="lim-title">Batas Pengaman Tetap Firmware (<code>gabungan-0.6</code>)</div>
+        <div>&bull; <strong>Nutrisi AB:</strong> Maks <code>214 mL</code>/suntik &bull; Maks <code>450 mL</code>/jam &bull; Relay maks <code>70 dtk</code></div>
+        <div>&bull; <strong>pH Up/Down:</strong> Maks <code>10 mL</code>/suntik &bull; Maks <code>30 mL</code>/jam &bull; Relay maks <code>12 dtk</code></div>
+        <div>&bull; <strong>Isi Air:</strong> Maks <code>600 dtk</code> &bull; Stop otomatis saat pelampung atas penuh</div>
+        <div>&bull; <strong>Fail-Safe Sinyal:</strong> Wi-Fi / Pi putus &rarr; seluruh pompa mati &le; <code>30 detik</code></div>
+        <div>&bull; <strong>Anti Belum Kalibrasi:</strong> Laju <code>0 mL/dtk</code> otomatis ditolak</div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span><strong>Vertonik Smart Farm (GARAP) &bull; Pokjar Permata</strong></span>
+      <span>Acuan Lengkap: <em>Modul Juknas &amp; Juknis Operasional Website &amp; Alat IoT</em></span>
+    </footer>
+
+  </div>
+</body>
+</html>
+
