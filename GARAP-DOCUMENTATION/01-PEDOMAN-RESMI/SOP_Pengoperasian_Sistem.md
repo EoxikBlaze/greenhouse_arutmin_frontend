@@ -190,10 +190,10 @@
 stateDiagram-v2
   [*] --> DRAFT: buat siklus<br/>(tanaman, meja, preset/manual,<br/>pH & TDS awal, jumlah benih)
   DRAFT --> TANK_PREPARATION: operator mulai persiapan
-  TANK_PREPARATION --> WAITING_TANK_CONFIRMATION: sistem: tandon stabil<br/>dalam pita target
+  TANK_PREPARATION --> WAITING_TANK_CONFIRMATION: sistem — tandon stabil<br/>dalam pita target
   WAITING_TANK_CONFIRMATION --> SEEDING: operator jawab SIAP<br/>(semai dimulai, jadwal H+4)
   WAITING_TANK_CONFIRMATION --> TANK_PREPARATION: jawab BELUM SIAP<br/>atau kedaluwarsa
-  SEEDING --> WAITING_REJUVENATION_CONFIRMATION: sistem: 96 jam (H+4)<br/>sejak semai
+  SEEDING --> WAITING_REJUVENATION_CONFIRMATION: sistem — 96 jam (H+4)<br/>sejak semai
   WAITING_REJUVENATION_CONFIRMATION --> WAITING_SEED_COUNT_CONFIRMATION: operator jawab SIAP
   WAITING_REJUVENATION_CONFIRMATION --> SEEDING: jawab BELUM SIAP<br/>atau tidak dijawab 24 jam
   WAITING_SEED_COUNT_CONFIRMATION --> GROWTH: isi berhasil/gagal<br/>(berhasil > 0, pilih meja tujuan)

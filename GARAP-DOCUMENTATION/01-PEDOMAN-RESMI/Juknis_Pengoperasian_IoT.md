@@ -6,7 +6,7 @@
 | Versi | 1.0 |
 | Tanggal | 12 November 2026 |
 | Berlaku untuk | Papan ESP32 gabungan, firmware `gabungan-0.6` (`deploy-pi/firmware/gabungan/gabungan.ino`), Raspberry Pi (`deploy-pi/`) |
-| Status perangkat | **BELUM TERVERIFIKASI di lapangan.** Firmware v0.6 belum di-commit dan belum diuji dalam audit ini. Raspberry Pi tidak terjangkau saat audit 11 November 2026. |
+| Status perangkat | **BELUM TERVERIFIKASI di lapangan.** Firmware v0.6 sudah di-commit (12 Nov 2026) tetapi belum di-flash dan diuji dalam audit ini. Raspberry Pi tidak terjangkau saat audit 11 November 2026. |
 
 **Penanda di dokumen ini**
 
@@ -226,7 +226,7 @@ Tanda `pH --.--` atau `EC ----` = probe tidak terbaca (lepas/rusak). Website jug
 
 **10.2 Uji pompa satu per satu (air bersih)**
 
-Fitur uji pompa dari aplikasi **SEDANG DIKEMBANGKAN**: server hanya menerimanya bila admin server mengaktifkan `UJI_POMPA_DIIZINKAN=1` dan **mode pemeliharaan** aktif. Bila belum, uji ditunda.
+Uji pompa dari aplikasi (halaman Kalibrasi) **dikunci bawaan**: server hanya menerimanya dari **admin** bila admin server mengaktifkan `UJI_POMPA_DIIZINKAN=1` dan **mode pemeliharaan** aktif. Bila belum, uji ditunda.
 
 1. Aktifkan mode pemeliharaan (halaman Kalibrasi).
 2. Jalankan uji pompa A selama 5 detik.

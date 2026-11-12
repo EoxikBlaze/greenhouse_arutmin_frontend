@@ -270,7 +270,7 @@ Alur siklus bertahap dengan konfirmasi H+4 dan persetujuan dosing dijelaskan di 
 
 - Antarmuka siklus budidaya bertahap (konfirmasi tandon, peremajaan H+4, jumlah benih).
 - Antarmuka persetujuan dosing.
-- Pengiriman kalibrasi pH/EC dan paket pemulihan papan ke ESP32.
+- Pengiriman kalibrasi EC dan paket pemulihan papan ke ESP32 (kalibrasi pH dan laju pompa sudah dikirim, belum diuji di perangkat).
 - Pengaktifan kontrol air setelah validasi.
 
 ## BAB 14. Lampiran

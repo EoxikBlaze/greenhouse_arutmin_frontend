@@ -91,7 +91,7 @@
 | Penanggung jawab | 🔧 Teknisi; admin mencatat di web |
 | Peralatan | Buffer pH 4,0 dan 7,0; larutan EC 1.413 µS/cm dan 12.880 µS/cm; air suling; gelas ukur; air bersih |
 
-> ⚠️ **Status fitur.** Menurut kode server saat audit, kalibrasi pH/EC dari halaman Kalibrasi **disimpan di server tetapi belum dikirim ke ESP32**. Uji/kalibrasi pompa dari aplikasi **sedang dikembangkan** dan dikunci (`UJI_POMPA_DIIZINKAN`, mode pemeliharaan). Setelah kalibrasi, **selalu** bandingkan dengan alat ukur pembanding. Bila belum sesuai, kalibrasi tidak dianggap berhasil.
+> ⚠️ **Status fitur.** Menurut kode server (commit `0383c55`, 12 Nov 2026): kalibrasi **pH** dikirim ke ESP32 sebagai tegangan probe bila alat melaporkan `ph_volt` (firmware v0.6 perlu di-flash); kalibrasi **EC belum dikirim** ke ESP32 (hanya tersimpan di server). Uji/kalibrasi pompa dari aplikasi dikunci bawaan (`UJI_POMPA_DIIZINKAN`), hanya admin, wajib mode pemeliharaan. Semua jalur ini **belum diuji di perangkat**. Setelah kalibrasi, **selalu** bandingkan dengan alat ukur pembanding. Bila belum sesuai, kalibrasi tidak dianggap berhasil.
 
 ### 3.1 Kalibrasi pH (dua titik)
 

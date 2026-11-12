@@ -81,7 +81,7 @@ Tipe perintah yang diterima firmware gabungan: `DOSIS`, `ISI_AIR`, `UJI_POMPA`, 
 | 1 | Tombol E-STOP fisik | Memutus bus 12 V aktuator |
 | 2 | Firmware | Fail-safe 30 dtk, batas mL/suntikan & per jam, batas durasi, satu pekerjaan, watchdog, output OFF saat boot, pelampung |
 | 3 | Broker | Tanpa anonim, ACL per perangkat |
-| 4 | Backend | Batas fisik & kewajaran sensor, saklar izin, gerbang dosis (`EKSEKUSI_DIIZINKAN = false`), parameter wajib SIAP, kunci penampung, audit |
+| 4 | Backend | Batas fisik & kewajaran sensor, saklar izin, gerbang dosis (`EKSEKUSI_DIIZINKAN = false`), daftar-izin pengiriman perintah yang **tidak memuat `DOSIS`** (`aktuator.js` `TIPE_DIKIRIM`), parameter wajib SIAP, kunci penampung, audit |
 | 5 | Antarmuka | Peran admin/petani/demo, konfirmasi aksi, demo baca-saja |
 | 6 | AI | Hanya teks; tidak punya jalur ke aktuator; penyaring pesan & keluaran |
 

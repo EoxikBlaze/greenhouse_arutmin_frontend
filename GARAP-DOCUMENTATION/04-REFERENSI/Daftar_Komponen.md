@@ -53,7 +53,7 @@ Kolom **Verifikasi**: ✅ ada di konfigurasi/kode aktif · ❓ [PERLU VERIFIKASI
 
 | Komponen | Versi / catatan |
 |---|---|
-| Firmware ESP32 | `gabungan-0.6` (belum di-commit); pustaka ArduinoJson 7.x, PubSubClient 2.8, OneWire, DallasTemperature, Adafruit SHT31 |
+| Firmware ESP32 | `gabungan-0.6` (commit `ec04293`, belum di-flash/diuji dalam audit); pustaka ArduinoJson 7.x, PubSubClient 2.8, OneWire, DallasTemperature, Adafruit SHT31 |
 | Backend | Node.js (systemd `vertonik-api`), Express, PostgreSQL |
 | Broker | Mosquitto (port 1883, ACL) |
 | Web server | nginx |

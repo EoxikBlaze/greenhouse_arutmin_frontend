@@ -22,7 +22,7 @@ Isi kolom **Hasil** dan **Diverifikasi oleh** saat pemeriksaan di lapangan.
 | 7 | Pembagi 33k/10k di GPIO 36 terpasang | Wajib | firmware | | |
 | 8 | Dioda flyback tiap pompa | Wajib | firmware | | |
 | 9 | Jenis relay HIGH-trigger | `RELAY_AKTIF_LOW = false` | firmware | | |
-| 10 | Firmware yang ter-flash di papan | `gabungan-0.6` (belum di-commit) | Serial `status` | | |
+| 10 | Firmware yang ter-flash di papan | `gabungan-0.6` (commit `ec04293`) | Serial `status` | | |
 | 11 | Model Raspberry Pi | Pi 4/5 | panduan lama | | |
 | 12 | APAR dan UPS/genset tersedia | — | — | | |
 
@@ -53,8 +53,8 @@ Isi kolom **Hasil** dan **Diverifikasi oleh** saat pemeriksaan di lapangan.
 
 | No | Hal | Status di dokumen | Hasil | Diverifikasi oleh |
 |---|---|---|---|---|
-| 1 | Kalibrasi pH/EC sampai ke ESP32 | Kode server: belum dikirim; teks layar: "langsung mengirim" | | |
-| 2 | Uji & kalibrasi pompa dari aplikasi | Sedang dikembangkan, dikunci | | |
+| 1 | Kalibrasi pH/EC sampai ke ESP32 | pH: dikirim bila alat melaporkan `ph_volt`; EC: belum dikirim; teks layar: "langsung mengirim" | | |
+| 2 | Uji & kalibrasi pompa dari aplikasi | Perintah dikirim ke alat; dikunci `UJI_POMPA_DIIZINKAN` + mode pemeliharaan; belum diuji | | |
 | 3 | Pemulihan papan | Paket disiapkan, belum dikirim | | |
 | 4 | Antarmuka siklus budidaya & persetujuan dosing | Belum ada | | |
 | 5 | `EKSEKUSI_DIIZINKAN` | `false` | | |

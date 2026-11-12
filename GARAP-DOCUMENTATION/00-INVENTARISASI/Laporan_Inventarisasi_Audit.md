@@ -18,8 +18,8 @@
 |---|---|---|---|
 | Website | `react-web-app/` | React 19, Vite, TypeScript, Tailwind v3 | 26 halaman, rute di `src/router.tsx`, menu di `src/layouts/AppShell.tsx` |
 | Aplikasi mobile | `flutter_mobile_app/` | Flutter (Android, iOS) | 16 halaman di `lib/pages/`, panggilan API di `lib/services/api_service.dart` |
-| Backend (repo terpisah) | `backend-nodejs/` (salinan lokal `greenhouse_arutmin_backend`) | Node.js, Express, PostgreSQL, MQTT | 32 berkas rute; ada perubahan belum di-commit di `aktuator.js`, `config.js`, `routes/iotV41.js` |
-| Firmware ESP32 | `deploy-pi/firmware/` | Arduino C++ | `gabungan/gabungan.ino` (aktif, v0.6, perubahan belum di-commit); `sensor/` dan `aktuator/` (v0.2, rancangan dua papan) |
+| Backend (repo terpisah) | `backend-nodejs/` (salinan lokal `greenhouse_arutmin_backend`) | Node.js, Express, PostgreSQL, MQTT | 32 berkas rute; commit terbaru `0383c55` (12 Nov 2026, 21:27): kirim uji pompa, laju pompa, dan kalibrasi pH ke alat |
+| Firmware ESP32 | `deploy-pi/firmware/` | Arduino C++ | `gabungan/gabungan.ino` (aktif, v0.6, di-commit `ec04293` pada 12 Nov 2026); `sensor/` dan `aktuator/` (v0.2, rancangan dua papan) |
 | Konfigurasi Raspberry Pi | `deploy-pi/` | Mosquitto, systemd, nginx, Ollama, skrip bash | `mosquitto/garap.conf`, `mosquitto/garap.acl`, `systemd/vertonik-api.service`, `nginx/vertonik.conf` |
 | Dokumentasi lama | `docs/` | Markdown | ±90 berkas; sebagian sudah tidak sesuai kode (lihat bagian 6) |
 | Dokumentasi Juknas/Juknis lama | `docs/juknas-juknis/` | Markdown, HTML, PDF, PNG | Modul dan 2 poster; dipakai sebagai bahan banding, tidak ditimpa |
@@ -49,7 +49,7 @@
 
 ## 3. Pemetaan status fitur
 
-Kategori: **SUDAH BERFUNGSI** (ada di kode dan tes, tampil di aplikasi), **SEDANG DIKEMBANGKAN** (perubahan belum di-commit atau belum lengkap), **BELUM DIIMPLEMENTASIKAN** (tidak ada di antarmuka), **TIDAK AKTIF** (ada di kode tetapi sengaja dimatikan), **BELUM TERVERIFIKASI** (ada di kode, belum diuji di perangkat nyata).
+Kategori: **SUDAH BERFUNGSI** (ada di kode dan tes, tampil di aplikasi), **SEDANG DIKEMBANGKAN** (baru masuk kode, terkunci bawaan, atau belum lengkap), **BELUM DIIMPLEMENTASIKAN** (tidak ada di antarmuka), **TIDAK AKTIF** (ada di kode tetapi sengaja dimatikan), **BELUM TERVERIFIKASI** (ada di kode, belum diuji di perangkat nyata).
 
 ### 3.1 Website
 
@@ -65,7 +65,7 @@ Kategori: **SUDAH BERFUNGSI** (ada di kode dan tes, tampil di aplikasi), **SEDAN
 | Target Nutrisi: target naik harian, target penampung, parameter, keamanan, perawatan | `/dosing` | SUDAH BERFUNGSI (pengaturan saja; tidak menjalankan pompa) |
 | Saran nutrisi dari tren | `/dosing` | SUDAH BERFUNGSI (teks saran saja) |
 | Saklar izin aktuator dan mode isi air | `/saklar` | SUDAH BERFUNGSI (izin saja) |
-| Kalibrasi sensor (catat dan riwayat) | `/kalibrasi` | SUDAH BERFUNGSI di server; **nilai belum dikirim ke ESP32** |
+| Kalibrasi sensor (catat dan riwayat) | `/kalibrasi` | SUDAH BERFUNGSI di server; pH dikirim ke ESP32 sebagai tegangan probe (`ph_v7`/`ph_v4`) bila alat melaporkan `ph_volt` (firmware v0.6, perlu flash ulang); **EC belum dikirim** (hanya tersimpan di server) |
 | Data uji lab | `/data` | SUDAH BERFUNGSI |
 | Master data: jenis tanaman, meja, ambang sensor | `/tanaman`, `/meja`, `/ambang` | SUDAH BERFUNGSI |
 | Laporan | `/laporan` | SUDAH BERFUNGSI |
@@ -78,7 +78,7 @@ Kategori: **SUDAH BERFUNGSI** (ada di kode dan tes, tampil di aplikasi), **SEDAN
 | Pemulihan Papan | `/pemulihan-papan` | SEDANG DIKEMBANGKAN (paket disiapkan, **belum dikirim ke papan**) |
 | Koneksi Alat (diagnostik MQTT) | `/mqtt-diagnostik` | SUDAH BERFUNGSI |
 | Tombol STOP pompa | komponen `TombolStopPompa` | SUDAH BERFUNGSI (mengantre perintah STOP; tetap gunakan E-STOP fisik) |
-| Uji pompa dan kalibrasi laju pompa dari aplikasi | `/iot-v41/uji-pompa`, `/iot-v41/kalibrasi-pompa` | SEDANG DIKEMBANGKAN (backend belum di-commit; dikunci `UJI_POMPA_DIIZINKAN`, wajib mode pemeliharaan) |
+| Uji pompa dan kalibrasi laju pompa dari aplikasi | `/iot-v41/uji-pompa`, `/iot-v41/kalibrasi-pompa` | SEDANG DIKEMBANGKAN (backend `0383c55` mengirim `UJI_POMPA`/`KALIBRASI` ke alat; dikunci bawaan `UJI_POMPA_DIIZINKAN`, hanya admin, wajib mode pemeliharaan; belum diuji di perangkat) |
 | Kontrol air (isi, stop, ganti mode) | `/watercontrol` | TIDAK AKTIF (backend menjawab `503 kontrol_air_nonaktif`) |
 | Siklus budidaya bertahap: konfirmasi tandon, konfirmasi peremajaan H+4, batas jawab 24 jam, konfirmasi jumlah benih | API `/api/siklus`, `/api/konfirmasi` | BELUM DIIMPLEMENTASIKAN di antarmuka (hanya API backend); penjadwal TIDAK AKTIF secara bawaan (`SIKLUS_PENJADWAL`) |
 | Persetujuan dosing (ajukan, setujui, tolak, cabut) | API `/api/dosing/siklus` | BELUM DIIMPLEMENTASIKAN di antarmuka (hanya API backend) |
@@ -104,7 +104,7 @@ Kategori: **SUDAH BERFUNGSI** (ada di kode dan tes, tampil di aplikasi), **SEDAN
 
 | Hal | Status |
 |---|---|
-| Firmware `gabungan-0.6` | BELUM TERVERIFIKASI (belum dikompilasi/di-flash dalam audit ini; perubahan belum di-commit) |
+| Firmware `gabungan-0.6` | BELUM TERVERIFIKASI (sudah di-commit, belum dikompilasi/di-flash/diuji dalam audit ini) |
 | Broker Mosquitto port 1883, tanpa anonim, ACL per perangkat | Ada di konfigurasi; BELUM TERVERIFIKASI di Pi nyata |
 | Fail-safe 30 detik tanpa detak server | Ada di firmware; BELUM TERVERIFIKASI di perangkat |
 | E-STOP fisik dan dari server | Ada di firmware; BELUM TERVERIFIKASI di perangkat |

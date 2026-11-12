@@ -84,7 +84,7 @@ Variabel backend (`.env`, nilai tidak dicantumkan): `MQTT_URL`, `MQTT_USER`, `MQ
 | Variabel / konstanta | Nilai bawaan | Arti | Boleh diubah teknisi? |
 |---|---|---|---|
 | `EKSEKUSI_DIIZINKAN` (kode, `gerbangDosis.js`) | `false` | Gerbang eksekusi dosis | ⛔ **Tidak.** Hanya lewat perubahan kode + review + keputusan pemilik |
-| `UJI_POMPA_DIIZINKAN` (`.env`) | tidak diisi = mati | Izin uji/kalibrasi pompa dari aplikasi (fitur sedang dikembangkan) | Hanya admin server, untuk sesi uji air bersih, lalu dimatikan lagi |
+| `UJI_POMPA_DIIZINKAN` (`.env`) | tidak diisi = mati | Izin uji/kalibrasi pompa dari aplikasi (perintah `UJI_POMPA` dan laju pompa dikirim ke alat; hanya admin, wajib mode pemeliharaan) | Hanya admin server, untuk sesi uji air bersih, lalu dimatikan lagi |
 | `SIKLUS_PENJADWAL` (`.env`) | tidak diisi = mati | Penjadwal konfirmasi siklus budidaya | Belum ada antarmukanya; biarkan mati |
 | Variabel `OTOMASI*` | dihapus | Pengendali dosis lama | Tidak dibaca lagi |
 

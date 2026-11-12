@@ -57,7 +57,7 @@ Akun demo menampilkan pita **"Mode Demo (Hanya Terima Data)"** di bagian atas la
 
 ## 2. Login dan Logout
 
-![Halaman login](../03-VISUAL-PREVIEW/assets/screenshots/web-00-login.png)
+![Halaman login](../03-VISUAL-PREVIEW/assets/screenshots/web-00-login.jpg)
 
 | Butir | Uraian |
 |---|---|
@@ -98,13 +98,13 @@ Akun demo menampilkan pita **"Mode Demo (Hanya Terima Data)"** di bagian atas la
 - **Menu bawah (pil):** submenu dari kelompok yang sedang dibuka.
 - Di ponsel, menu kiri berubah menjadi tombol menu.
 
-![Dashboard tampilan ponsel](../03-VISUAL-PREVIEW/assets/screenshots/web-99-dashboard-ponsel.png)
+![Dashboard tampilan ponsel](../03-VISUAL-PREVIEW/assets/screenshots/web-99-dashboard-ponsel.jpg)
 
 ---
 
 ## 4. Dashboard
 
-![Dashboard](../03-VISUAL-PREVIEW/assets/screenshots/web-01-dashboard.png)
+![Dashboard](../03-VISUAL-PREVIEW/assets/screenshots/web-01-dashboard.jpg)
 
 | Butir | Uraian |
 |---|---|
@@ -140,7 +140,7 @@ Akun demo menampilkan pita **"Mode Demo (Hanya Terima Data)"** di bagian atas la
 
 ## 5. Sensor (Monitoring)
 
-![Sensor](../03-VISUAL-PREVIEW/assets/screenshots/web-02-sensor.png)
+![Sensor](../03-VISUAL-PREVIEW/assets/screenshots/web-02-sensor.jpg)
 
 | Butir | Uraian |
 |---|---|
@@ -165,7 +165,7 @@ Halaman diperbarui otomatis tiap **15 detik**.
 
 ## 6. Peringatan (Notifikasi)
 
-![Peringatan](../03-VISUAL-PREVIEW/assets/screenshots/web-03-peringatan.png)
+![Peringatan](../03-VISUAL-PREVIEW/assets/screenshots/web-03-peringatan.jpg)
 
 | Butir | Uraian |
 |---|---|
@@ -187,7 +187,7 @@ Notifikasi di **aplikasi mobile** memeriksa peringatan baru tiap 60 detik dan me
 
 ## 7. Kebun Saya (Pengelolaan Tanaman)
 
-![Kebun Saya](../03-VISUAL-PREVIEW/assets/screenshots/web-04-kebun-saya.png)
+![Kebun Saya](../03-VISUAL-PREVIEW/assets/screenshots/web-04-kebun-saya.jpg)
 
 | Butir | Uraian |
 |---|---|
@@ -218,7 +218,7 @@ Notifikasi di **aplikasi mobile** memeriksa peringatan baru tiap 60 detik dan me
 
 ## 8. Siklus Tanam dan Konfirmasi Tahap Pertumbuhan
 
-![Semai](../03-VISUAL-PREVIEW/assets/screenshots/web-18-semai.png)
+![Semai](../03-VISUAL-PREVIEW/assets/screenshots/web-18-semai.jpg)
 
 Menu **SIKLUS TANAM**: Semai (1) → Peremajaan (2) → Pendewasaan (3) → Panen (4).
 
@@ -242,7 +242,7 @@ Menu **SIKLUS TANAM**: Semai (1) → Peremajaan (2) → Pendewasaan (3) → Pane
 
 ## 9. Target Nutrisi (Preset, Target, Parameter)
 
-![Target Nutrisi](../03-VISUAL-PREVIEW/assets/screenshots/web-06-target-nutrisi.png)
+![Target Nutrisi](../03-VISUAL-PREVIEW/assets/screenshots/web-06-target-nutrisi.jpg)
 
 | Butir | Uraian |
 |---|---|
@@ -261,7 +261,7 @@ Menu **SIKLUS TANAM**: Semai (1) → Peremajaan (2) → Pendewasaan (3) → Pane
 
 **Contoh pengaturan target awal:** Melon Golden Emerald 600 → 1.600 ppm dalam 45 hari = +22,2 ppm per hari.
 
-![Parameter](../03-VISUAL-PREVIEW/assets/screenshots/web-07-target-nutrisi-parameter.png)
+![Parameter](../03-VISUAL-PREVIEW/assets/screenshots/web-07-target-nutrisi-parameter.jpg)
 
 > [!IMPORTANT]
 > Parameter keselamatan yang tidak berstatus **SIAP** (nilai sah dan tervalidasi) membuat fitur yang memakainya ditolak. **Jangan mengisi angka tebakan** untuk menghilangkan tanda "belum diatur".
@@ -274,7 +274,7 @@ Menu **SIKLUS TANAM**: Semai (1) → Peremajaan (2) → Pendewasaan (3) → Pane
 
 ## 10. Saklar
 
-![Saklar](../03-VISUAL-PREVIEW/assets/screenshots/web-05-saklar.png)
+![Saklar](../03-VISUAL-PREVIEW/assets/screenshots/web-05-saklar.jpg)
 
 | Butir | Uraian |
 |---|---|
@@ -291,7 +291,7 @@ Panel **Kondisi saat ini** menampilkan mode isi air, volume, status pelampung ba
 
 ## 11. Kalibrasi
 
-![Kalibrasi](../03-VISUAL-PREVIEW/assets/screenshots/web-09-kalibrasi.png)
+![Kalibrasi](../03-VISUAL-PREVIEW/assets/screenshots/web-09-kalibrasi.jpg)
 
 | Butir | Uraian |
 |---|---|
@@ -307,9 +307,9 @@ Panel **Kondisi saat ini** menampilkan mode isi air, volume, status pelampung ba
 4. Catat hasil, kembalikan ke mode normal.
 
 > [!CAUTION]
-> Menurut kode server saat audit, hasil kalibrasi pH/EC dua titik **disimpan di server tetapi belum dikirim ke ESP32** ("jalur perintah ke alat belum tersedia"), walau teks di layar menyebut alat langsung mengirim. Status: **BELUM TERVERIFIKASI**. Bandingkan bacaan dengan alat ukur pembanding setelah kalibrasi.
+> Menurut kode server (commit `0383c55`): kalibrasi **pH** dua titik dikirim ke ESP32 sebagai tegangan probe (`ph_v7`/`ph_v4`) bila alat melaporkan `ph_volt`; bila belum, server menjawab "BELUM dikirim ke alat". Kalibrasi **EC** dua titik **hanya tersimpan di server**, belum dikirim ke ESP32, walau teks di layar menyebut alat langsung mengirim. Status: **BELUM TERVERIFIKASI** di perangkat. Bandingkan bacaan dengan alat ukur pembanding setelah kalibrasi.
 
-**Kalibrasi pompa:** jalankan pompa N detik ke gelas ukur, isi mL hasilnya, laju dihitung otomatis. Fitur ini **SEDANG DIKEMBANGKAN**: server menolak bila `UJI_POMPA_DIIZINKAN` belum diaktifkan admin server atau mode pemeliharaan tidak aktif. Uji selalu dengan **air bersih**.
+**Kalibrasi pompa:** jalankan pompa N detik ke gelas ukur, isi mL hasilnya, laju dihitung otomatis. Perintah dikirim ke alat (commit `0383c55`), tetapi **dikunci bawaan**: server menolak bila `UJI_POMPA_DIIZINKAN` belum diaktifkan admin server atau mode pemeliharaan tidak aktif. Uji selalu dengan **air bersih**.
 
 ---
 
@@ -322,8 +322,8 @@ Panel **Kondisi saat ini** menampilkan mode isi air, volume, status pelampung ba
 | Ekspor CSV (di Laporan) | Data sensor, Peringatan, Panen | Pilih jenis, tanggal Dari/Sampai → ekspor |
 | **Catatan Aktivitas** (`/audit`) | Jejak setiap tambah, ubah, hapus, dan masuk | Klik baris untuk detail sebelum/sesudah |
 
-![Laporan](../03-VISUAL-PREVIEW/assets/screenshots/web-12-laporan.png)
-![Catatan Aktivitas](../03-VISUAL-PREVIEW/assets/screenshots/web-11-audit.png)
+![Laporan](../03-VISUAL-PREVIEW/assets/screenshots/web-12-laporan.jpg)
+![Catatan Aktivitas](../03-VISUAL-PREVIEW/assets/screenshots/web-11-audit.jpg)
 
 ---
 
@@ -335,7 +335,7 @@ Panel **Kondisi saat ini** menampilkan mode isi air, volume, status pelampung ba
 | Meja Tanaman | Meja hidroponik, jumlah lubang, spesifikasi instalasi | Pengelolaan **tandon/penampung** dilakukan lewat data meja (ID meja dipakai firmware `ID_MEJA`) |
 | Ambang Sensor | Batas aman tiap sensor; di luar rentang = tidak normal | Nilai saat audit (data pengembangan): pH 5–7, suhu air 5–40 °C, TDS 50–2.600 ppm, suhu udara 20–40 °C, kelembapan **100–100 %** (perlu diperbaiki admin) |
 
-![Ambang Sensor](../03-VISUAL-PREVIEW/assets/screenshots/web-24-ambang.png)
+![Ambang Sensor](../03-VISUAL-PREVIEW/assets/screenshots/web-24-ambang.jpg)
 
 > [!NOTE]
 > Ambang sensor (batas peringatan) berbeda dengan **batas kewajaran** di server (pH 3–9, TDS 50–2.500 ppm, suhu air 5–45 °C) dan **batas fisik** (bacaan di luar pH 0–14, TDS 0–5.000 ppm ditolak dan tidak disimpan).
@@ -353,8 +353,8 @@ Panel **Kondisi saat ini** menampilkan mode isi air, volume, status pelampung ba
 > [!NOTE]
 > Halaman Koneksi Alat menampilkan contoh topik `hidro/…` dan perintah `{"cmd":"dosing",…}` dari rancangan v4.1. Firmware gabungan yang aktif memakai topik **`garap/aktuator-01/…`** dan **tidak menerima** perintah dosing tanpa gerbang server. Contoh itu **bukan instruksi** untuk dijalankan.
 
-![Pengaturan Alat](../03-VISUAL-PREVIEW/assets/screenshots/web-13-pengaturan-alat.png)
-![Koneksi Alat](../03-VISUAL-PREVIEW/assets/screenshots/web-15-koneksi-alat.png)
+![Pengaturan Alat](../03-VISUAL-PREVIEW/assets/screenshots/web-13-pengaturan-alat.jpg)
+![Koneksi Alat](../03-VISUAL-PREVIEW/assets/screenshots/web-15-koneksi-alat.jpg)
 
 ---
 
@@ -362,7 +362,7 @@ Panel **Kondisi saat ini** menampilkan mode isi air, volume, status pelampung ba
 
 **Manajemen User (admin):** cari username/email, filter level (Admin, User, Petani), **Tambah User**, **Ubah**, **Hapus**.
 
-![Manajemen User](../03-VISUAL-PREVIEW/assets/screenshots/web-16-user.png)
+![Manajemen User](../03-VISUAL-PREVIEW/assets/screenshots/web-16-user.jpg)
 
 **Akun Saya (semua):** lihat profil dan hak akses, **Ubah profil**, **Ganti password**, **Keluar**, pilihan **Tampilan kaca** (Jernih, Standar, Pekat — pilih Pekat bila teks sulit dibaca).
 

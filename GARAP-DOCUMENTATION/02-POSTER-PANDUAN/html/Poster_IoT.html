@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poster Perangkat IoT GARAP</title>
+<meta name="description" content="Cara mengoperasikan perangkat IoT GARAP. Contoh desain poster GARAP – Smart Hidroponik untuk referensi Canva.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@600;700&display=swap">
+<style>
+@page { size: A3 portrait; margin: 0; }
+/* ── GARAP poster system · token warna mengikuti identitas web GARAP (tailwind.config.js) ── */
+:root {
+  --forest: #2D452F; --olive: #4C6A4B; --moss: #42662B; --moss2: #6B9D4A;
+  --mint: #CFE2CE; --mint2: #EEF5EC; --navy: #0A1F38; --navy2: #071527; --navy3: #123253;
+  --emas: #E9CD53; --emas2: #FBF3CF; --merah: #C0392B; --merah2: #FBE7E4; --kuning: #E0A42B; --kuning2: #FDF2DC;
+  --biru: #2F6FB0; --tinta: #13241A; --abu: #4F5E54; --garis: #D5E2D2; --kertas: #FBFCF8;
+  --u: 1;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #E3E9E2; }
+body { font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif; color: var(--tinta);
+  -webkit-print-color-adjust: exact; print-color-adjust: exact; line-height: 1.35; }
+h1, h2, h3, .angka, .merek b { font-family: "Space Grotesk", Inter, system-ui, sans-serif; }
+svg.ik { width: 1em; height: 1em; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* toolbar layar (tidak ikut cetak) */
+.alat { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between;
+  padding: 10px 16px; background: var(--navy); color: #fff; font-size: 14px; }
+.alat b { font-family: "Space Grotesk", Inter, sans-serif; }
+.alat span { opacity: .75; }
+.alat button { font: inherit; font-weight: 600; border: 0; border-radius: 999px; padding: 8px 16px; background: var(--emas); color: var(--navy); cursor: pointer; }
+.alat button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.panggung { padding: 24px 16px 40px; display: flex; justify-content: center; }
+.bingkai { position: relative; }
+.poster { position: absolute; top: 0; left: 0; transform-origin: top left; background: var(--kertas);
+  display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 18px 50px rgba(7,21,39,.22); }
+.poster.a3p { width: 297mm; height: 420mm; --u: 1; }
+.poster.a3l { width: 420mm; height: 297mm; --u: .92; }
+.poster.a4p { width: 210mm; height: 297mm; --u: .74; }
+.poster.a4p h1 { font-size: calc(46pt * var(--u)); }
+.poster.a4p .sub { font-size: calc(16pt * var(--u)); }
+.poster.a4p .kepala { padding-top: calc(10mm * var(--u)); padding-bottom: calc(9mm * var(--u)); }
+
+/* kepala */
+.kepala { position: relative; background: linear-gradient(140deg, var(--navy) 0%, var(--navy2) 55%, var(--navy3) 100%); color: #fff;
+  padding: calc(13mm * var(--u)) calc(16mm * var(--u)) calc(11mm * var(--u)); display: flex; gap: calc(10mm * var(--u)); align-items: flex-end; }
+.kepala::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: calc(2.6mm * var(--u));
+  background: linear-gradient(90deg, var(--emas) 0 34%, var(--moss2) 34% 67%, var(--mint) 67%); }
+.kepala .teks { flex: 1; min-width: 0; }
+.merek { display: inline-flex; align-items: center; gap: calc(3mm * var(--u)); font-size: calc(13pt * var(--u)); letter-spacing: .14em; text-transform: uppercase; color: var(--mint); }
+.merek .logo { width: calc(11mm * var(--u)); height: calc(11mm * var(--u)); border-radius: 30%; background: var(--moss); display: grid; place-items: center; color: var(--emas); font-size: calc(20pt * var(--u)); }
+.merek b { color: #fff; letter-spacing: .1em; }
+h1 { font-size: calc(54pt * var(--u)); line-height: 1.02; letter-spacing: -.01em; margin-top: calc(5mm * var(--u)); }
+h1 em { font-style: normal; color: var(--emas); }
+.sub { font-size: calc(19pt * var(--u)); color: #DCE7F3; margin-top: calc(3.5mm * var(--u)); max-width: 92%; }
+.lencana { flex: none; text-align: center; border: 2px solid rgba(255,255,255,.35); border-radius: calc(5mm * var(--u)); padding: calc(4mm * var(--u)) calc(5mm * var(--u));
+  font-size: calc(12pt * var(--u)); color: #DCE7F3; }
+.lencana .besar { display: block; font-family: "Space Grotesk", Inter, sans-serif; font-weight: 700; font-size: calc(30pt * var(--u)); color: var(--emas); line-height: 1; margin-bottom: 1mm; }
+.lencana.bahaya { background: var(--merah); border-color: #fff; color: #fff; }
+.lencana.bahaya .besar { color: #fff; }
+
+/* isi */
+.isi { flex: 1; min-height: 0; padding: calc(8mm * var(--u)) calc(16mm * var(--u)) calc(7mm * var(--u)); display: flex; flex-direction: column; gap: calc(5.5mm * var(--u)); }
+h2 { font-size: calc(23pt * var(--u)); color: var(--forest); display: flex; align-items: center; gap: calc(3mm * var(--u)); }
+h2 .ik { color: var(--moss2); }
+h3 { font-size: calc(21pt * var(--u)); line-height: 1.12; color: var(--navy); }
+p, li, td, th { font-size: calc(15pt * var(--u)); }
+.kecil { font-size: calc(12pt * var(--u)); color: var(--abu); }
+code, .lcd-teks { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+code { background: var(--mint2); border-radius: 1.2mm; padding: 0 1.2mm; font-size: .92em; }
+
+/* langkah bernomor */
+.langkah-grid { display: grid; grid-template-columns: 1fr 1fr; gap: calc(6mm * var(--u)); }
+.langkah { position: relative; background: #fff; border: 1.5px solid var(--garis); border-radius: calc(5mm * var(--u));
+  padding: calc(4.5mm * var(--u)) calc(5mm * var(--u)) calc(4.5mm * var(--u)) calc(24mm * var(--u)); min-height: calc(32mm * var(--u)); }
+.langkah .no { position: absolute; left: calc(5mm * var(--u)); top: calc(4.5mm * var(--u)); width: calc(14mm * var(--u)); height: calc(14mm * var(--u));
+  border-radius: 50%; background: var(--navy); color: var(--emas); display: grid; place-items: center; font-family: "Space Grotesk", Inter, sans-serif;
+  font-weight: 700; font-size: calc(24pt * var(--u)); }
+.langkah .ikon { position: absolute; left: calc(7.5mm * var(--u)); top: calc(21mm * var(--u)); color: var(--moss2); font-size: calc(22pt * var(--u)); }
+.langkah h3 { margin-bottom: calc(2mm * var(--u)); }
+.langkah p { color: var(--abu); }
+.langkah p b { color: var(--tinta); }
+
+/* kotak penting */
+.kotak { display: flex; gap: calc(4mm * var(--u)); align-items: flex-start; border-radius: calc(4mm * var(--u)); padding: calc(5mm * var(--u)) calc(6mm * var(--u)); }
+.kotak > .ik { font-size: calc(24pt * var(--u)); margin-top: .5mm; }
+.kotak h3 { font-size: calc(17pt * var(--u)); margin-bottom: 1mm; }
+.kotak.info { background: var(--mint2); border: 1.5px solid var(--mint); }
+.kotak.info > .ik, .kotak.info h3 { color: var(--forest); }
+.kotak.awas { background: var(--kuning2); border: 1.5px solid var(--kuning); }
+.kotak.awas > .ik, .kotak.awas h3 { color: #8A5A00; }
+.kotak.bahaya { background: var(--merah2); border: 2px solid var(--merah); }
+.kotak.bahaya > .ik, .kotak.bahaya h3 { color: var(--merah); }
+.kotak ul { padding-left: 1.1em; }
+.kotak li + li { margin-top: 1mm; }
+
+/* pita K3 */
+.pita-k3 { display: flex; align-items: center; gap: calc(4mm * var(--u)); background: var(--emas); color: var(--navy); font-weight: 700;
+  padding: calc(4mm * var(--u)) calc(16mm * var(--u)); font-size: calc(15pt * var(--u)); position: relative; }
+.pita-k3::before, .pita-k3::after { content: ""; position: absolute; left: 0; right: 0; height: calc(2mm * var(--u));
+  background: repeating-linear-gradient(-45deg, var(--navy) 0 3mm, var(--emas) 3mm 6mm); }
+.pita-k3::before { top: 0; } .pita-k3::after { bottom: 0; }
+.pita-k3 .ik { font-size: calc(22pt * var(--u)); }
+.pita-k3 span { padding: calc(1.5mm * var(--u)) 0; }
+
+/* kaki */
+.kaki { background: var(--forest); color: var(--mint); display: flex; justify-content: space-between; align-items: center; gap: 6mm;
+  padding: calc(5mm * var(--u)) calc(16mm * var(--u)); font-size: calc(11.5pt * var(--u)); }
+.kaki b { color: #fff; font-family: "Space Grotesk", Inter, sans-serif; font-size: calc(14pt * var(--u)); }
+.kaki .kanan { text-align: right; }
+.status-dosing { display: inline-block; background: var(--merah); color: #fff; border-radius: 99px; padding: .4mm 3mm; font-weight: 700; }
+
+/* tabel & daftar */
+table.t { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1.5px solid var(--garis); border-radius: calc(4mm * var(--u)); overflow: hidden; }
+table.t th { background: var(--forest); color: #fff; text-align: left; font-weight: 600; }
+table.t th, table.t td { padding: calc(2.6mm * var(--u)) calc(4mm * var(--u)); vertical-align: top; }
+table.t tr + tr td { border-top: 1px solid var(--garis); }
+.titik { display: inline-block; width: 1em; height: 1em; border-radius: 50%; vertical-align: -.15em; margin-right: 1.5mm; border: 1.5px solid rgba(0,0,0,.15); }
+.titik.h { background: #3BAA4B; } .titik.m { background: var(--merah); } .titik.b { background: var(--biru); } .titik.k { background: var(--kuning); }
+.chip { display: inline-flex; align-items: center; gap: 1.5mm; border-radius: 99px; padding: .6mm 3mm; font-weight: 600; font-size: .85em; }
+.chip.ok { background: var(--mint); color: var(--forest); } .chip.no { background: var(--merah2); color: var(--merah); } .chip.wait { background: var(--kuning2); color: #8A5A00; }
+
+/* kolom */
+.kolom { display: grid; gap: calc(6mm * var(--u)); }
+.k2 { grid-template-columns: 1fr 1fr; } .k3 { grid-template-columns: 1fr 1fr 1fr; } .k-12 { grid-template-columns: 1fr 2fr; } .k-21 { grid-template-columns: 2fr 1fr; }
+.kartu { background: #fff; border: 1.5px solid var(--garis); border-radius: calc(5mm * var(--u)); padding: calc(5.5mm * var(--u)) calc(6mm * var(--u)); }
+.kartu.gelap { background: var(--navy); color: #fff; border-color: var(--navy); }
+.kartu.gelap h3 { color: var(--emas); }
+.kartu.mint { background: var(--mint2); border-color: var(--mint); }
+.dorong { margin-top: auto; }
+
+/* alur */
+.alur { display: flex; align-items: stretch; gap: calc(3mm * var(--u)); }
+.alur .simpul { flex: 1; background: #fff; border: 1.5px solid var(--garis); border-radius: calc(5mm * var(--u)); padding: calc(5mm * var(--u)) calc(4mm * var(--u));
+  text-align: center; display: flex; flex-direction: column; align-items: center; gap: calc(2mm * var(--u)); }
+.alur .simpul .bulat { width: calc(19mm * var(--u)); height: calc(19mm * var(--u)); border-radius: 50%; background: var(--mint2); color: var(--forest);
+  display: grid; place-items: center; font-size: calc(26pt * var(--u)); border: 2px solid var(--mint); }
+.alur .simpul h3 { font-size: calc(17pt * var(--u)); }
+.alur .simpul p { font-size: calc(12.5pt * var(--u)); color: var(--abu); }
+.alur .panah { align-self: center; color: var(--moss2); font-size: calc(22pt * var(--u)); }
+.simpul.aktif { border-color: var(--moss2); box-shadow: 0 0 0 3px var(--mint) inset; }
+.simpul.blokir { border: 2px dashed var(--merah); background: var(--merah2); }
+.simpul.blokir .bulat { background: #fff; color: var(--merah); border-color: var(--merah); }
+
+/* centang */
+.cek { list-style: none; display: grid; gap: calc(3.2mm * var(--u)); }
+.cek li { display: flex; gap: calc(4mm * var(--u)); align-items: flex-start; background: #fff; border: 1.5px solid var(--garis); border-radius: calc(3.5mm * var(--u)); padding: calc(3.4mm * var(--u)) calc(4.5mm * var(--u)); }
+.cek .kecil { display: block; }
+.cek .kotak-cek { flex: none; width: calc(9mm * var(--u)); height: calc(9mm * var(--u)); border: 2.5px solid var(--forest); border-radius: 1.6mm; background: #fff; }
+.cek .no { font-family: "Space Grotesk", Inter, sans-serif; font-weight: 700; color: var(--moss2); min-width: 1.4em; }
+.cek .ikc { color: var(--forest); font-size: calc(18pt * var(--u)); }
+.cek b { display: block; }
+
+/* layar cetak */
+@media print {
+  html, body { background: #fff; }
+  .alat { display: none; }
+  .panggung { padding: 0; display: block; }
+  .bingkai { width: auto !important; height: auto !important; }
+  .poster { position: relative; transform: none !important; box-shadow: none; }
+}
+@media (prefers-reduced-motion: no-preference) { .poster { transition: transform .15s ease; } }
+
+</style>
+</head>
+<body>
+<div class="alat"><div><b>Poster Perangkat IoT GARAP</b> <span>· A3 portrait · 297 × 420 mm · referensi desain Canva</span></div><button type="button" onclick="window.print()">Cetak / simpan PDF</button></div>
+<main class="panggung">
+<div class="bingkai">
+<article class="poster a3p" aria-label="Poster Perangkat IoT GARAP">
+<style>
+.panel { background: #2B3A33; border-radius: 6mm; padding: 7mm; color: #fff; box-shadow: inset 0 0 0 2px #435549; display: grid; gap: 5mm; }
+.panel .judul-panel { font-size: 11pt; letter-spacing: .14em; text-transform: uppercase; color: var(--mint); }
+.lcd { background: #9DBB58; color: #14250E; border-radius: 2.5mm; padding: 4mm 5mm; box-shadow: inset 0 0 0 3px #6E8B35; font-size: 15pt; line-height: 1.35; white-space: pre; }
+.lampu-baris { display: flex; gap: 6mm; align-items: center; }
+.lampu { width: 13mm; height: 13mm; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); }
+.lampu.m { background: radial-gradient(circle at 35% 35%, #ff9a8c, #C0392B 60%); }
+.lampu.h { background: radial-gradient(circle at 35% 35%, #b6f5b9, #2E9E41 60%); }
+.lampu.b { background: radial-gradient(circle at 35% 35%, #a9d4ff, #2F6FB0 60%); opacity: .45; }
+.estop { width: 26mm; height: 26mm; border-radius: 50%; background: #F3D23A; display: grid; place-items: center; margin-left: auto; }
+.estop span { width: 18mm; height: 18mm; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ff7b6b, #A3241A 70%); box-shadow: 0 2mm 0 #6d150f; }
+.label-panel { font-size: 10.5pt; color: #C9D6CD; }
+</style>
+<header class="kepala">
+  <div class="teks">
+    <div class="merek"><span class="logo"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21c0-9 6-15 15-16-1 9-7 15-15 16z"/><path d="M5 21l8-8"/></svg></span><b>GARAP</b> · Smart Hidroponik</div>
+    <h1>Mengoperasikan<br><em>Perangkat IoT</em></h1>
+    <p class="sub">Menyalakan, membaca, dan mematikan panel kontrol dengan aman.</p>
+  </div>
+  <div class="lencana"><span class="besar"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg></span>aktuator-01<br>gabungan-0.6</div>
+</header>
+
+<section class="isi">
+  <div class="kolom k-21">
+    <div class="langkah-grid" style="grid-template-columns:1fr">
+      <div class="langkah"><span class="no">1</span><span class="ikon"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg></span>
+        <h3>Periksa sekitar panel</h3>
+        <p>Lantai &amp; tangan <b>kering</b>. Tidak ada kabel terkelupas. Tombol <b>E-STOP</b> tidak tertekan.</p></div>
+      <div class="langkah"><span class="no">2</span><span class="ikon"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="8" rx="2"/><rect x="3" y="13" width="18" height="8" rx="2"/><path d="M7 7h.01M7 17h.01"/></svg></span>
+        <h3>Nyalakan Raspberry Pi dulu</h3>
+        <p>Tunggu <b>± 2 menit</b> sampai server siap.</p></div>
+      <div class="langkah"><span class="no">3</span><span class="ikon"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg></span>
+        <h3>Nyalakan panel</h3>
+        <p>Saat menyala, semua pompa <b>mati</b> lebih dulu. Itu normal.</p></div>
+      <div class="langkah"><span class="no">4</span><span class="ikon"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <h3>Baca LCD baris 4</h3>
+        <p><code>WIFI MATI</code> → <code>TUNGGU SERVER...</code> → <b><code>PENAMPUNG CUKUP</code></b> = siap.</p></div>
+    </div>
+    <div class="panel" role="img" aria-label="Ilustrasi panel: LCD, tiga lampu pilot, tombol E-STOP">
+      <div class="judul-panel">Panel kontrol</div>
+      <div class="lcd lcd-teks">EC 1.20mS  600ppm
+pH 6.10   Air 26.5C
+Ruang 30C  RH 75%
+PENAMPUNG CUKUP</div>
+      <div class="lampu-baris"><span class="lampu m"></span><span class="lampu h"></span><span class="lampu b"></span>
+        <div class="estop" title="E-STOP"><span></span></div></div>
+      <div class="label-panel">Merah · Hijau · Biru &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; E-STOP</div>
+      <div class="label-panel">Contoh tampilan. Angka nyata mengikuti alat.</div>
+    </div>
+  </div>
+
+  <div class="kolom k3">
+    <div class="kartu">
+      <h2><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg> Arti lampu</h2>
+      <table class="t" style="margin-top:3mm">
+        <tr><td><span class="titik h"></span><b>Hijau</b></td><td>Normal</td></tr>
+        <tr><td><span class="titik m"></span><span class="titik h"></span></td><td>Peringatan: server belum tersambung / air kurang</td></tr>
+        <tr><td><span class="titik m"></span><b>Merah</b></td><td>E-STOP aktif</td></tr>
+        <tr><td><span class="titik b"></span><b>Biru</b></td><td>Pompa bekerja</td></tr>
+      </table>
+    </div>
+    <div class="kartu">
+      <h2><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/></svg> Tombol RESET</h2>
+      <p style="margin-top:2mm">Tekan sekali → LCD 4 detik:</p>
+      <div class="lcd lcd-teks" style="margin-top:2mm;font-size:12pt">WIFI:&lt;nama Wi-Fi&gt;
+ESP :&lt;IP ESP32&gt;
+SRV :&lt;IP server&gt;
+MODE: MQTT AKTIF</div>
+      <p class="kecil" style="margin-top:2mm">Bukan <code>MQTT AKTIF</code>? Lapor teknisi.</p>
+    </div>
+    <div class="kartu mint">
+      <h2><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg> Mematikan</h2>
+      <ol style="padding-left:1.2em;margin-top:2mm">
+        <li>Lampu <b>biru padam</b>.</li>
+        <li>Matikan <b>daya panel</b>.</li>
+        <li>Pi dimatikan teknisi (<code>shutdown</code>). <b>Jangan cabut langsung.</b></li>
+        <li>Catat di log.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="kotak bahaya"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg><div><h3>Peringatan keselamatan</h3>
+    <ul style="columns:2;column-gap:8mm"><li>Panel hanya dibuka <b>teknisi</b>, daya mati.</li>
+    <li>Jangan semprot air ke panel / Pi.</li>
+    <li>Operator <b>tidak</b> menjalankan pompa nutrisi/pH — dosing <b>BELUM DIIZINKAN</b>.</li>
+    <li>Pompa jalan sendiri? <b>Tekan E-STOP.</b></li></ul></div></div>
+</section>
+
+<div class="pita-k3"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg><span>Listrik + air = bahaya. Tangan kering. Kenali letak E-STOP sebelum bekerja.</span></div>
+<footer class="kaki"><div><b>GARAP – Smart Hidroponik</b><br>Vertonik Smart Farm · Greenhouse hidroponik</div><div class="kanan">GARAP-PST-02 · Versi 1.0 · 12 November 2026<br>Status dosing: <span class="status-dosing">BELUM DIIZINKAN</span></div></footer>
+
+</article>
+</div>
+</main>
+<script>
+(function () {
+  var p = document.querySelector('.poster'), b = document.querySelector('.bingkai');
+  function pas() {
+    var lebar = b.parentElement.clientWidth - 32, s = Math.min(1, lebar / p.offsetWidth);
+    p.style.transform = 'scale(' + s + ')';
+    b.style.width = p.offsetWidth * s + 'px';
+    b.style.height = p.offsetHeight * s + 'px';
+  }
+  // Rapatkan skala huruf (--u) bila isi melebihi tinggi kertas; batas bawah 80 % dari ukuran rancangan.
+  function muat() {
+    var isi = p.querySelector('.isi'), u0 = parseFloat(getComputedStyle(p).getPropertyValue('--u')), u = u0;
+    while (isi.scrollHeight > isi.clientHeight + 1 && u > u0 * 0.8) { u -= 0.005; p.style.setProperty('--u', u.toFixed(3)); }
+    if (isi.scrollHeight > isi.clientHeight + 1) console.warn('Isi poster melebihi kertas');
+    p.dataset.skalaHuruf = (u / u0).toFixed(2);
+  }
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(function () { muat(); pas(); });
+  window.addEventListener('resize', pas);
+  window.addEventListener('load', pas);
+  window.addEventListener('beforeprint', function () { p.style.transform = 'none'; });
+  window.addEventListener('afterprint', pas);
+  pas();
+})();
+</script>
+</body>
+</html>

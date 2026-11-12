@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poster Alur Dosing</title>
+<meta name="description" content="Alur konfirmasi dan persetujuan dosing GARAP, status belum diizinkan. Contoh desain poster GARAP – Smart Hidroponik untuk referensi Canva.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Grotesk:wght@600;700&display=swap">
+<style>
+@page { size: A3 landscape; margin: 0; }
+/* ── GARAP poster system · token warna mengikuti identitas web GARAP (tailwind.config.js) ── */
+:root {
+  --forest: #2D452F; --olive: #4C6A4B; --moss: #42662B; --moss2: #6B9D4A;
+  --mint: #CFE2CE; --mint2: #EEF5EC; --navy: #0A1F38; --navy2: #071527; --navy3: #123253;
+  --emas: #E9CD53; --emas2: #FBF3CF; --merah: #C0392B; --merah2: #FBE7E4; --kuning: #E0A42B; --kuning2: #FDF2DC;
+  --biru: #2F6FB0; --tinta: #13241A; --abu: #4F5E54; --garis: #D5E2D2; --kertas: #FBFCF8;
+  --u: 1;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #E3E9E2; }
+body { font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif; color: var(--tinta);
+  -webkit-print-color-adjust: exact; print-color-adjust: exact; line-height: 1.35; }
+h1, h2, h3, .angka, .merek b { font-family: "Space Grotesk", Inter, system-ui, sans-serif; }
+svg.ik { width: 1em; height: 1em; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* toolbar layar (tidak ikut cetak) */
+.alat { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between;
+  padding: 10px 16px; background: var(--navy); color: #fff; font-size: 14px; }
+.alat b { font-family: "Space Grotesk", Inter, sans-serif; }
+.alat span { opacity: .75; }
+.alat button { font: inherit; font-weight: 600; border: 0; border-radius: 999px; padding: 8px 16px; background: var(--emas); color: var(--navy); cursor: pointer; }
+.alat button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.panggung { padding: 24px 16px 40px; display: flex; justify-content: center; }
+.bingkai { position: relative; }
+.poster { position: absolute; top: 0; left: 0; transform-origin: top left; background: var(--kertas);
+  display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 18px 50px rgba(7,21,39,.22); }
+.poster.a3p { width: 297mm; height: 420mm; --u: 1; }
+.poster.a3l { width: 420mm; height: 297mm; --u: .92; }
+.poster.a4p { width: 210mm; height: 297mm; --u: .74; }
+.poster.a4p h1 { font-size: calc(46pt * var(--u)); }
+.poster.a4p .sub { font-size: calc(16pt * var(--u)); }
+.poster.a4p .kepala { padding-top: calc(10mm * var(--u)); padding-bottom: calc(9mm * var(--u)); }
+
+/* kepala */
+.kepala { position: relative; background: linear-gradient(140deg, var(--navy) 0%, var(--navy2) 55%, var(--navy3) 100%); color: #fff;
+  padding: calc(13mm * var(--u)) calc(16mm * var(--u)) calc(11mm * var(--u)); display: flex; gap: calc(10mm * var(--u)); align-items: flex-end; }
+.kepala::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: calc(2.6mm * var(--u));
+  background: linear-gradient(90deg, var(--emas) 0 34%, var(--moss2) 34% 67%, var(--mint) 67%); }
+.kepala .teks { flex: 1; min-width: 0; }
+.merek { display: inline-flex; align-items: center; gap: calc(3mm * var(--u)); font-size: calc(13pt * var(--u)); letter-spacing: .14em; text-transform: uppercase; color: var(--mint); }
+.merek .logo { width: calc(11mm * var(--u)); height: calc(11mm * var(--u)); border-radius: 30%; background: var(--moss); display: grid; place-items: center; color: var(--emas); font-size: calc(20pt * var(--u)); }
+.merek b { color: #fff; letter-spacing: .1em; }
+h1 { font-size: calc(54pt * var(--u)); line-height: 1.02; letter-spacing: -.01em; margin-top: calc(5mm * var(--u)); }
+h1 em { font-style: normal; color: var(--emas); }
+.sub { font-size: calc(19pt * var(--u)); color: #DCE7F3; margin-top: calc(3.5mm * var(--u)); max-width: 92%; }
+.lencana { flex: none; text-align: center; border: 2px solid rgba(255,255,255,.35); border-radius: calc(5mm * var(--u)); padding: calc(4mm * var(--u)) calc(5mm * var(--u));
+  font-size: calc(12pt * var(--u)); color: #DCE7F3; }
+.lencana .besar { display: block; font-family: "Space Grotesk", Inter, sans-serif; font-weight: 700; font-size: calc(30pt * var(--u)); color: var(--emas); line-height: 1; margin-bottom: 1mm; }
+.lencana.bahaya { background: var(--merah); border-color: #fff; color: #fff; }
+.lencana.bahaya .besar { color: #fff; }
+
+/* isi */
+.isi { flex: 1; min-height: 0; padding: calc(8mm * var(--u)) calc(16mm * var(--u)) calc(7mm * var(--u)); display: flex; flex-direction: column; gap: calc(5.5mm * var(--u)); }
+h2 { font-size: calc(23pt * var(--u)); color: var(--forest); display: flex; align-items: center; gap: calc(3mm * var(--u)); }
+h2 .ik { color: var(--moss2); }
+h3 { font-size: calc(21pt * var(--u)); line-height: 1.12; color: var(--navy); }
+p, li, td, th { font-size: calc(15pt * var(--u)); }
+.kecil { font-size: calc(12pt * var(--u)); color: var(--abu); }
+code, .lcd-teks { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+code { background: var(--mint2); border-radius: 1.2mm; padding: 0 1.2mm; font-size: .92em; }
+
+/* langkah bernomor */
+.langkah-grid { display: grid; grid-template-columns: 1fr 1fr; gap: calc(6mm * var(--u)); }
+.langkah { position: relative; background: #fff; border: 1.5px solid var(--garis); border-radius: calc(5mm * var(--u));
+  padding: calc(4.5mm * var(--u)) calc(5mm * var(--u)) calc(4.5mm * var(--u)) calc(24mm * var(--u)); min-height: calc(32mm * var(--u)); }
+.langkah .no { position: absolute; left: calc(5mm * var(--u)); top: calc(4.5mm * var(--u)); width: calc(14mm * var(--u)); height: calc(14mm * var(--u));
+  border-radius: 50%; background: var(--navy); color: var(--emas); display: grid; place-items: center; font-family: "Space Grotesk", Inter, sans-serif;
+  font-weight: 700; font-size: calc(24pt * var(--u)); }
+.langkah .ikon { position: absolute; left: calc(7.5mm * var(--u)); top: calc(21mm * var(--u)); color: var(--moss2); font-size: calc(22pt * var(--u)); }
+.langkah h3 { margin-bottom: calc(2mm * var(--u)); }
+.langkah p { color: var(--abu); }
+.langkah p b { color: var(--tinta); }
+
+/* kotak penting */
+.kotak { display: flex; gap: calc(4mm * var(--u)); align-items: flex-start; border-radius: calc(4mm * var(--u)); padding: calc(5mm * var(--u)) calc(6mm * var(--u)); }
+.kotak > .ik { font-size: calc(24pt * var(--u)); margin-top: .5mm; }
+.kotak h3 { font-size: calc(17pt * var(--u)); margin-bottom: 1mm; }
+.kotak.info { background: var(--mint2); border: 1.5px solid var(--mint); }
+.kotak.info > .ik, .kotak.info h3 { color: var(--forest); }
+.kotak.awas { background: var(--kuning2); border: 1.5px solid var(--kuning); }
+.kotak.awas > .ik, .kotak.awas h3 { color: #8A5A00; }
+.kotak.bahaya { background: var(--merah2); border: 2px solid var(--merah); }
+.kotak.bahaya > .ik, .kotak.bahaya h3 { color: var(--merah); }
+.kotak ul { padding-left: 1.1em; }
+.kotak li + li { margin-top: 1mm; }
+
+/* pita K3 */
+.pita-k3 { display: flex; align-items: center; gap: calc(4mm * var(--u)); background: var(--emas); color: var(--navy); font-weight: 700;
+  padding: calc(4mm * var(--u)) calc(16mm * var(--u)); font-size: calc(15pt * var(--u)); position: relative; }
+.pita-k3::before, .pita-k3::after { content: ""; position: absolute; left: 0; right: 0; height: calc(2mm * var(--u));
+  background: repeating-linear-gradient(-45deg, var(--navy) 0 3mm, var(--emas) 3mm 6mm); }
+.pita-k3::before { top: 0; } .pita-k3::after { bottom: 0; }
+.pita-k3 .ik { font-size: calc(22pt * var(--u)); }
+.pita-k3 span { padding: calc(1.5mm * var(--u)) 0; }
+
+/* kaki */
+.kaki { background: var(--forest); color: var(--mint); display: flex; justify-content: space-between; align-items: center; gap: 6mm;
+  padding: calc(5mm * var(--u)) calc(16mm * var(--u)); font-size: calc(11.5pt * var(--u)); }
+.kaki b { color: #fff; font-family: "Space Grotesk", Inter, sans-serif; font-size: calc(14pt * var(--u)); }
+.kaki .kanan { text-align: right; }
+.status-dosing { display: inline-block; background: var(--merah); color: #fff; border-radius: 99px; padding: .4mm 3mm; font-weight: 700; }
+
+/* tabel & daftar */
+table.t { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1.5px solid var(--garis); border-radius: calc(4mm * var(--u)); overflow: hidden; }
+table.t th { background: var(--forest); color: #fff; text-align: left; font-weight: 600; }
+table.t th, table.t td { padding: calc(2.6mm * var(--u)) calc(4mm * var(--u)); vertical-align: top; }
+table.t tr + tr td { border-top: 1px solid var(--garis); }
+.titik { display: inline-block; width: 1em; height: 1em; border-radius: 50%; vertical-align: -.15em; margin-right: 1.5mm; border: 1.5px solid rgba(0,0,0,.15); }
+.titik.h { background: #3BAA4B; } .titik.m { background: var(--merah); } .titik.b { background: var(--biru); } .titik.k { background: var(--kuning); }
+.chip { display: inline-flex; align-items: center; gap: 1.5mm; border-radius: 99px; padding: .6mm 3mm; font-weight: 600; font-size: .85em; }
+.chip.ok { background: var(--mint); color: var(--forest); } .chip.no { background: var(--merah2); color: var(--merah); } .chip.wait { background: var(--kuning2); color: #8A5A00; }
+
+/* kolom */
+.kolom { display: grid; gap: calc(6mm * var(--u)); }
+.k2 { grid-template-columns: 1fr 1fr; } .k3 { grid-template-columns: 1fr 1fr 1fr; } .k-12 { grid-template-columns: 1fr 2fr; } .k-21 { grid-template-columns: 2fr 1fr; }
+.kartu { background: #fff; border: 1.5px solid var(--garis); border-radius: calc(5mm * var(--u)); padding: calc(5.5mm * var(--u)) calc(6mm * var(--u)); }
+.kartu.gelap { background: var(--navy); color: #fff; border-color: var(--navy); }
+.kartu.gelap h3 { color: var(--emas); }
+.kartu.mint { background: var(--mint2); border-color: var(--mint); }
+.dorong { margin-top: auto; }
+
+/* alur */
+.alur { display: flex; align-items: stretch; gap: calc(3mm * var(--u)); }
+.alur .simpul { flex: 1; background: #fff; border: 1.5px solid var(--garis); border-radius: calc(5mm * var(--u)); padding: calc(5mm * var(--u)) calc(4mm * var(--u));
+  text-align: center; display: flex; flex-direction: column; align-items: center; gap: calc(2mm * var(--u)); }
+.alur .simpul .bulat { width: calc(19mm * var(--u)); height: calc(19mm * var(--u)); border-radius: 50%; background: var(--mint2); color: var(--forest);
+  display: grid; place-items: center; font-size: calc(26pt * var(--u)); border: 2px solid var(--mint); }
+.alur .simpul h3 { font-size: calc(17pt * var(--u)); }
+.alur .simpul p { font-size: calc(12.5pt * var(--u)); color: var(--abu); }
+.alur .panah { align-self: center; color: var(--moss2); font-size: calc(22pt * var(--u)); }
+.simpul.aktif { border-color: var(--moss2); box-shadow: 0 0 0 3px var(--mint) inset; }
+.simpul.blokir { border: 2px dashed var(--merah); background: var(--merah2); }
+.simpul.blokir .bulat { background: #fff; color: var(--merah); border-color: var(--merah); }
+
+/* centang */
+.cek { list-style: none; display: grid; gap: calc(3.2mm * var(--u)); }
+.cek li { display: flex; gap: calc(4mm * var(--u)); align-items: flex-start; background: #fff; border: 1.5px solid var(--garis); border-radius: calc(3.5mm * var(--u)); padding: calc(3.4mm * var(--u)) calc(4.5mm * var(--u)); }
+.cek .kecil { display: block; }
+.cek .kotak-cek { flex: none; width: calc(9mm * var(--u)); height: calc(9mm * var(--u)); border: 2.5px solid var(--forest); border-radius: 1.6mm; background: #fff; }
+.cek .no { font-family: "Space Grotesk", Inter, sans-serif; font-weight: 700; color: var(--moss2); min-width: 1.4em; }
+.cek .ikc { color: var(--forest); font-size: calc(18pt * var(--u)); }
+.cek b { display: block; }
+
+/* layar cetak */
+@media print {
+  html, body { background: #fff; }
+  .alat { display: none; }
+  .panggung { padding: 0; display: block; }
+  .bingkai { width: auto !important; height: auto !important; }
+  .poster { position: relative; transform: none !important; box-shadow: none; }
+}
+@media (prefers-reduced-motion: no-preference) { .poster { transition: transform .15s ease; } }
+
+</style>
+</head>
+<body>
+<div class="alat"><div><b>Poster Alur Dosing</b> <span>· A3 landscape · 420 × 297 mm · referensi desain Canva</span></div><button type="button" onclick="window.print()">Cetak / simpan PDF</button></div>
+<main class="panggung">
+<div class="bingkai">
+<article class="poster a3l" aria-label="Poster Alur Dosing">
+<style>
+.alur-v { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3mm; align-items: stretch; }
+.alur-v .simpul { position: relative; }
+.cabang { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+.tanda-blokir { display: inline-flex; align-items: center; gap: 2mm; background: var(--merah); color: #fff; font-weight: 700; border-radius: 99px; padding: 1mm 4mm; font-size: 12pt; }
+.banding td:first-child { font-weight: 600; width: 26%; }
+</style>
+<header class="kepala">
+  <div class="teks">
+    <div class="merek"><span class="logo"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21c0-9 6-15 15-16-1 9-7 15-15 16z"/><path d="M5 21l8-8"/></svg></span><b>GARAP</b> · Smart Hidroponik</div>
+    <h1>Alur Konfirmasi &amp; <em>Persetujuan Dosing</em></h1>
+    <p class="sub">Rancangan di server — belum ada tombolnya di aplikasi, dan pompa dosing <b>tidak boleh dijalankan</b>.</p>
+  </div>
+  <div class="lencana bahaya"><span class="besar"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span><b>BELUM</b><br><b>DIIZINKAN</b></div>
+</header>
+
+<section class="isi">
+  <div class="kolom k-12">
+    <div class="kartu">
+      <h2><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg> Persetujuan ≠ Eksekusi</h2>
+      <table class="t banding" style="margin-top:3mm">
+        <tr><th></th><th>Persetujuan</th><th>Eksekusi</th></tr>
+        <tr><td>Arti</td><td>Operator mengizinkan cakupan dosis</td><td>Pompa menyuntik larutan</td></tr>
+        <tr><td>Status</td><td><span class="chip wait">API saja, belum ada tombol</span></td><td><span class="chip no">Diblokir server</span></td></tr>
+      </table>
+      <p class="kecil" style="margin-top:3mm">Gerbang <code>EKSEKUSI_DIIZINKAN = false</code>. Server menjawab <b>423</b> untuk setiap permintaan dosis.</p>
+    </div>
+    <div>
+      <h2><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-9"/><path d="M12 12C12 8 9 5 4 5c0 4 3 7 8 7z"/><path d="M12 10c0-3 2.5-6 8-6 0 4-3 6-8 6z"/></svg> Alur konfirmasi bibit (siklus baru)</h2>
+      <div class="alur" style="margin-top:3mm">
+        <div class="simpul"><span class="bulat"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-9"/><path d="M12 12C12 8 9 5 4 5c0 4 3 7 8 7z"/><path d="M12 10c0-3 2.5-6 8-6 0 4-3 6-8 6z"/></svg></span><h3>Semai</h3><p>Preset/target awal &amp; jumlah benih dicatat</p></div>
+        <span class="panah"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        <div class="simpul"><span class="bulat"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span><h3>Data nutrisi</h3><p>Sensor mencatat tiap 5 detik</p></div>
+        <span class="panah"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        <div class="simpul aktif"><span class="bulat"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><h3>H+4</h3><p>96 jam: sistem minta konfirmasi + notifikasi</p></div>
+        <span class="panah"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        <div class="simpul aktif"><span class="bulat"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><h3>Jawab ≤ 24 jam</h3><p>Bibit SIAP / BELUM SIAP</p></div>
+      </div>
+      <div class="cabang" style="margin-top:4mm">
+        <div class="kotak info"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><div><h3>SIAP</h3><p>Isi <b>berhasil + gagal = jumlah semai</b>, pilih meja tujuan → tahap pertumbuhan. Berhasil 0 → siklus selesai (gagal semai).</p></div></div>
+        <div class="kotak awas"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/></svg><div><h3>BELUM SIAP / tidak dijawab</h3><p>Kembali ke semai. Bibit <b>tidak pernah</b> dianggap siap tanpa jawaban. Muncul notifikasi "Konfirmasi terlewat".</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <h2><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6L4.5 19a1.5 1.5 0 0 0 1.3 2h12.4a1.5 1.5 0 0 0 1.3-2L14 9V3"/><path d="M7 15h10"/></svg> Alur persetujuan dosing (rancangan)</h2>
+    <div class="alur" style="margin-top:3mm">
+      <div class="simpul"><span class="bulat"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="18" rx="2"/><path d="M9 4V3h6v1M9 11h6M9 15h4"/></svg></span><h3>Diajukan</h3><p>Menunggu persetujuan</p></div>
+      <span class="panah"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      <div class="simpul"><span class="bulat"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><h3>Disetujui</h3><p>atau ditolak / kedaluwarsa / dicabut</p></div>
+      <span class="panah"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      <div class="simpul blokir"><span class="bulat"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span><h3>Jalankan</h3><p><span class="tanda-blokir"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg> DIBLOKIR</span></p></div>
+      <span class="panah"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      <div class="simpul blokir"><span class="bulat"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/></svg></span><h3>Campur &amp; verifikasi</h3><p>Tidak terjadi selama diblokir</p></div>
+      <span class="panah"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      <div class="simpul blokir"><span class="bulat"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span><h3>Selesai</h3><p>4× gagal / kelebihan → kunci penampung</p></div>
+    </div>
+  </div>
+
+  <div class="kolom k3 dorong">
+    <div class="kartu mint">
+      <h3><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg> Yang dilakukan operator sekarang</h3>
+      <ul style="padding-left:1.1em;margin-top:2mm;display:grid;gap:1.4mm">
+        <li>Catat tahap di <b>Kebun Saya</b>: isi jumlah berhasil.</li>
+        <li>Beri nutrisi &amp; koreksi pH <b>manual</b> (SOP-01 SOP 5), ukur dengan alat pembanding.</li>
+        <li>Catat di log nutrisi manual.</li>
+      </ul>
+    </div>
+    <div class="kartu">
+      <h3><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg> Angka naik/turun tidak wajar</h3>
+      <ul style="padding-left:1.1em;margin-top:2mm;display:grid;gap:1.4mm">
+        <li>Angka mustahil → ditolak server.</li>
+        <li>3× mustahil berturut → sensor dianggap rusak, penampung dikunci.</li>
+        <li>Ukur ulang dengan alat pembanding, lapor admin.</li>
+      </ul>
+    </div>
+    <div class="kotak bahaya"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6-2.4l-3.6-3.6a2 2 0 0 1 2.8-2.8L7 15"/></svg><div><h3>Dilarang</h3><ul><li>Mencoba menjalankan pompa dosing dari web, HP, atau Serial.</li><li>Mengubah pengaturan keamanan tanpa keputusan pemilik.</li></ul></div></div>
+  </div>
+</section>
+
+<div class="pita-k3"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Dosing otomatis baru boleh setelah kalibrasi, uji pengaman, uji 24 jam, validasi parameter &amp; keputusan tertulis pemilik.</span></div>
+<footer class="kaki"><div><b>GARAP – Smart Hidroponik</b><br>Vertonik Smart Farm · Greenhouse hidroponik</div><div class="kanan">GARAP-PST-04 · Versi 1.0 · 12 November 2026<br>Status dosing: <span class="status-dosing">BELUM DIIZINKAN</span></div></footer>
+
+</article>
+</div>
+</main>
+<script>
+(function () {
+  var p = document.querySelector('.poster'), b = document.querySelector('.bingkai');
+  function pas() {
+    var lebar = b.parentElement.clientWidth - 32, s = Math.min(1, lebar / p.offsetWidth);
+    p.style.transform = 'scale(' + s + ')';
+    b.style.width = p.offsetWidth * s + 'px';
+    b.style.height = p.offsetHeight * s + 'px';
+  }
+  // Rapatkan skala huruf (--u) bila isi melebihi tinggi kertas; batas bawah 80 % dari ukuran rancangan.
+  function muat() {
+    var isi = p.querySelector('.isi'), u0 = parseFloat(getComputedStyle(p).getPropertyValue('--u')), u = u0;
+    while (isi.scrollHeight > isi.clientHeight + 1 && u > u0 * 0.8) { u -= 0.005; p.style.setProperty('--u', u.toFixed(3)); }
+    if (isi.scrollHeight > isi.clientHeight + 1) console.warn('Isi poster melebihi kertas');
+    p.dataset.skalaHuruf = (u / u0).toFixed(2);
+  }
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(function () { muat(); pas(); });
+  window.addEventListener('resize', pas);
+  window.addEventListener('load', pas);
+  window.addEventListener('beforeprint', function () { p.style.transform = 'none'; });
+  window.addEventListener('afterprint', pas);
+  pas();
+})();
+</script>
+</body>
+</html>
