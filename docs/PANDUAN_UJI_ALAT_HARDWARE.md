@@ -9,7 +9,8 @@ Kerjakan berurutan. Jangan lanjut ke tahap berikut bila tahap sekarang gagal.
 |---|---|
 | Uji pompa dari web (`UJI_POMPA`) | Ya, bila `UJI_POMPA_DIIZINKAN=1` di `.env` backend dan mode pemeliharaan aktif. Bawaan: dikunci |
 | Laju pompa (`KALIBRASI` laju A/B/pH Up/pH Down) | Ya, dikirim saat "Simpan laju" |
-| Kalibrasi pH dan EC dua titik | **Belum.** Tercatat di server saja; ESP32 memakai nilai lamanya |
+| Kalibrasi pH dua titik | Ya, bila firmware mengirim `ph_volt` (ditambahkan 12 Nov, perlu flash ulang). Yang dikirim adalah tegangan probe di buffer 7,0 dan 4,0 |
+| Kalibrasi EC dua titik | **Belum.** Tercatat di server saja; ESP32 memakai faktor lamanya |
 | Laju pompa isi air | Belum ada di halaman web |
 
 Jalur ini lolos tes otomatis di server, tetapi belum pernah dicoba dengan alat sungguhan. Tahap 5 adalah uji pertamanya.
