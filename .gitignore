@@ -98,3 +98,6 @@ docs/patch-lokal-9-berkas-sebelum-merge-punyaeka.patch
 
 # Build artefak mobile
 flutter_mobile_app/*.apk
+
+# Laporan audit lokal: memuat celah yang belum ditutup, jangan masuk repo publik
+docs/LAPORAN_AUDIT_2026-11-11.md
