@@ -4,11 +4,11 @@ import { Monogram } from './Monogram'
 /**
  * Footer seragam: bilah liquid glass di dasar halaman (ikut ter-scroll, tidak menutup konten) — dipakai di dalam
  * aplikasi (AppShell, `pekat`: tint navy lebih tebal di atas latar terang) dan di landing page publik.
- * Sengaja minimal: identitas, satu tautan (Tentang kami), dan hak cipta.
+ * Sengaja minimal: identitas, Akun Saya (hanya di dalam aplikasi, `akun`), Tentang kami, dan hak cipta.
  */
 const TAHUN = new Date().getFullYear()
 
-export function SiteFooter({ className = '', pekat = false }: { className?: string; pekat?: boolean }) {
+export function SiteFooter({ className = '', pekat = false, akun = false }: { className?: string; pekat?: boolean; akun?: boolean }) {
   return (
     <footer className={`mt-auto w-full pb-3 sm:pb-4 ${pekat ? 'px-4 sm:px-6' : 'px-3 sm:px-5'} ${className}`}>
       <div className={`${pekat ? 'glass-chrome' : 'vsf-bilah'} mx-auto flex w-full max-w-[1180px] flex-nowrap items-center justify-between gap-3 py-1.5 pl-3 pr-1.5 sm:gap-6 sm:py-2 sm:pl-4 sm:pr-2`}>
@@ -20,9 +20,16 @@ export function SiteFooter({ className = '', pekat = false }: { className?: stri
             <span className="sr-only">, ke beranda</span>
           </span>
         </Link>
-        <Link to="/" className={`vsf-bilah-tombol ${pekat ? 'vsf-bilah-tombol-terang' : 'vsf-bilah-tombol-kaca'} shrink-0 whitespace-nowrap !min-h-[44px] sm:!min-h-[40px] !px-4 !text-[13px]`}>
-          Tentang kami
-        </Link>
+        <span className="flex shrink-0 items-center gap-1.5">
+          {akun && (
+            <Link to="/profil" className={`vsf-bilah-tombol ${pekat ? 'vsf-bilah-tombol-terang' : 'vsf-bilah-tombol-kaca'} whitespace-nowrap !min-h-[44px] sm:!min-h-[40px] !px-4 !text-[13px]`}>
+              Akun Saya
+            </Link>
+          )}
+          <Link to="/" className={`vsf-bilah-tombol ${pekat ? 'vsf-bilah-tombol-terang' : 'vsf-bilah-tombol-kaca'} whitespace-nowrap !min-h-[44px] sm:!min-h-[40px] !px-4 !text-[13px]`}>
+            Tentang kami
+          </Link>
+        </span>
       </div>
     </footer>
   )

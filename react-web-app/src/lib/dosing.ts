@@ -128,6 +128,9 @@ const PARAM: Record<string, [string, string]> = {
 export const PARAM_DISEMBUNYIKAN = new Set([
   'maks_ml_bilas_per_perintah', 'mixing_menit', 'jeda_a_ke_bilas_detik', 'jeda_pasca_bilas_detik', 'volume_bilas_ml',
   'isi_botol_normal_detik', 'isi_botol_timeout_detik',
+  // Batas aman lama dari Pengaturan Alat: tidak dipakai logika peringatan/gerbang mana pun → disembunyikan agar
+  // satu-satunya batas peringatan adalah Ambang Sensor (sensor_thresholds).
+  'batas_ec_bawah_ppm', 'batas_ec_atas_ppm', 'batas_ph_bawah', 'batas_ph_atas',
 ])
 
 export const judulParam = (kode: string) => PARAM[kode]?.[0] ?? kode

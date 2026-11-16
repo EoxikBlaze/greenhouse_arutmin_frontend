@@ -4,13 +4,10 @@ import { api } from '../../lib/api'
 import { useAuth } from '../../lib/authContext'
 import { useApiError } from '../../lib/crudApi'
 import { kalimatHasil, useHasilPerintah } from '../../lib/useHasilPerintah'
-import { tglPendek } from '../../lib/format'
 import {
   hitungLajuPompa,
-  simpanCacheLokal,
   type IotV41State,
 } from '../../lib/iotV41'
-import { Ikon } from '../Ikon'
 import { Pesan, Rangka } from '../kaca/DialogKaca'
 import { StatusBadge } from '../StatusBadge'
 
@@ -29,8 +26,8 @@ const DAFTAR_POMPA: readonly { kode: PompaKey; label: string; paramLaju: 'laju_a
 ]
 
 /**
- * Panel Kalibrasi Langsung 2-Titik & Laju Pompa + Pemulihan Papan ESP32
- * (adaptasi kalibrasi.php & pulihkan.php Perancangan Sistem IoT Hidroponik 1 Penampung v4.1).
+ * Panel Kalibrasi Langsung 2-Titik & Laju Pompa (adaptasi kalibrasi.php Perancangan Sistem IoT Hidroponik v4.1).
+ * Riwayat/pencatatan kalibrasi dan pemulihan papan sengaja tidak ditampilkan di sini.
  */
 export function PanelKalibrasiLangsungV41({
   iot,
@@ -87,8 +84,9 @@ export function PanelKalibrasiLangsungV41({
   }
 
   const pemeliharaanAktif = Boolean(p?.pemeliharaan)
-  const ecUs = k?.ec_us ?? Math.round((k?.ec_ppm ?? 0) * 2)
-  const phNow = k?.ph ?? 0
+  // null = tidak ada bacaan segar (backend mengosongkan data basi) → tampil "—", bukan 0.
+  const ecUs = k?.ec_us ?? null
+  const phNow = k?.ph ?? null
   const ecStab = stab?.ec ?? { stabil: false, n: 0, sebaran: null, batas: 20, sebaran_us: null }
   const phStab = stab?.ph ?? { stabil: false, n: 0, sebaran: null, batas: 0.06 }
 
@@ -99,7 +97,6 @@ export function PanelKalibrasiLangsungV41({
     setPesan(null)
     try {
       await api.post('/iot-v41/pemeliharaan', { aksi: 'pemeliharaan', aktif })
-      simpanCacheLokal({ pemeliharaan: aktif })
       setPesan(
         aktif
           ? 'Mode pemeliharaan aktif (tindakan otomatis dijeda). Aplikasi tidak mematikan pompa: matikan dengan tombol fisik bila perlu.'
@@ -122,7 +119,12 @@ export function PanelKalibrasiLangsungV41({
       setGalat('Aktifkan mode pemeliharaan terlebih dahulu sebelum mengambil titik kalibrasi.')
       return
     }
-    const bacaanUs = ecUs > 0 ? ecUs : titik === '1413' ? 1413 : 12880
+    // Tanpa bacaan segar JANGAN pakai nilai larutan referensi sebagai bacaan (dulu begitu → kalibrasi karangan).
+    if (ecUs == null || !(ecUs > 0) || k?.basi) {
+      setGalat('Alat belum mengirim bacaan EC yang segar (alat offline, probe lepas, atau data basi). Titik tidak direkam.')
+      return
+    }
+    const bacaanUs = ecUs
     const next1413 = titik === '1413' ? bacaanUs : ec1413
     const next12880 = titik === '12880' ? bacaanUs : ec12880
     if (titik === '1413') setEc1413(bacaanUs)
@@ -163,7 +165,7 @@ export function PanelKalibrasiLangsungV41({
       return
     }
     const voltNow = k?.ph_volt ?? null
-    if (voltNow === null || !(phNow > 0)) {
+    if (voltNow === null || phNow == null || !(phNow > 0)) {
       setGalat('Alat belum mengirim bacaan dan tegangan probe pH (alat offline, probe lepas, atau firmware lama). Titik tidak direkam.')
       return
     }
@@ -280,28 +282,10 @@ export function PanelKalibrasiLangsungV41({
         detik: sesiPompa.detik,
         ml: mlNum,
       })
-      if (infoPompa) simpanCacheLokal({ [infoPompa.paramLaju]: laju })
       setPerintahAlat(r.data?.id_perintah ? { id: r.data.id_perintah, label: `Laju ${infoPompa?.label ?? sesiPompa.pompa} ke alat` } : null)
       setPesan(String(r.data?.message ?? `Laju ${infoPompa?.label ?? sesiPompa.pompa} = ${fmt(laju, 2)} mL/detik disimpan.`))
       setSesiPompa(null)
       setMlTakar('')
-      onReload()
-    } catch (err) {
-      const f = handleApiError(err)
-      setGalat(f.message)
-    } finally {
-      setSibuk(null)
-    }
-  }
-
-  async function pulihkanPapan() {
-    if (!bolehUbah || sibuk) return
-    setSibuk('pulihkan')
-    setGalat(null)
-    setPesan(null)
-    try {
-      await api.post('/iot-v41/pulihkan')
-      setPesan('Paket parameter, saklar, target, dan laju pompa sudah disiapkan, tetapi BELUM dikirim ke alat.')
       onReload()
     } catch (err) {
       const f = handleApiError(err)
@@ -628,76 +612,6 @@ export function PanelKalibrasiLangsungV41({
         </section>
       </div>
 
-      {/* Pemulihan Papan ESP32 (adaptasi pulihkan.php) + Arsip Riwayat Kalibrasi v4.1 */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-        <section className="vsf-card w-full min-w-0 p-4 sm:p-5 lg:col-span-5" aria-label="Pemulihan papan ESP32">
-          <div className="flex items-center justify-between gap-2">
-            <div className="vsf-judul-bagian">Pemulihan papan ESP32</div>
-            <span className="vsf-chip-nilai is-normal">{papan?.kode ?? 'HIDRO-01'} · {papan?.versi ?? 'v4.1'}</span>
-          </div>
-          <p className="mt-0.5 text-[12.5px] leading-relaxed text-abu">
-            Saat papan pengendali diganti atau diprogram ulang, kirim kembali seluruh parameter, target, saklar, dan laju pompa yang tersimpan ke alat dalam satu paket.
-          </p>
-
-          <dl className="mt-3 grid grid-cols-2 gap-2 text-[12.5px]">
-            <div className="vsf-stat">
-              <dt className="vsf-label">Target EC / pH</dt>
-              <dd className="mt-0.5 font-bold tabular-nums text-tinta">
-                {fmt(p?.ec_setpoint, 0)} ppm / {fmt(p?.ph_setpoint, 1)}
-              </dd>
-            </div>
-            <div className="vsf-stat">
-              <dt className="vsf-label">Volume &amp; ppm/mL</dt>
-              <dd className="mt-0.5 font-bold tabular-nums text-tinta">
-                {fmt(p?.volume_l, 0)} L · {fmt(p?.ppm_per_ml, 1)}
-              </dd>
-            </div>
-          </dl>
-
-          {bolehUbah && (
-            <div className="mt-3">
-              <button
-                type="button"
-                className="vsf-btn-secondary w-full sm:w-auto"
-                disabled={sibuk !== null}
-                onClick={() => void pulihkanPapan()}
-              >
-                {sibuk === 'pulihkan' ? <span className="vsf-spinner vsf-spinner-dark" aria-hidden /> : <Ikon nama="siklus" />}
-                {sibuk === 'pulihkan' ? 'Menyiapkan paket…' : 'Siapkan paket pemulihan (belum dikirim)'}
-              </button>
-            </div>
-          )}
-        </section>
-
-        <section className="vsf-card w-full min-w-0 p-4 sm:p-5 lg:col-span-7" aria-label="Riwayat kalibrasi langsung">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="vsf-judul-bagian">Riwayat kalibrasi</div>
-            <span className="text-[12px] text-abu">Arsip web; alat menyimpan salinan kerjanya di flash</span>
-          </div>
-
-          {(iot?.arsip_kalibrasi?.length ?? 0) === 0 ? (
-            <div className="vsf-blok mt-3 px-4 py-6 text-center text-[13px] text-abu">
-              Belum ada kalibrasi.
-            </div>
-          ) : (
-            <div className="vsf-daftar mt-3">
-              {iot?.arsip_kalibrasi.slice(0, 6).map((r) => (
-                <div
-                  key={String(r.id)}
-                  className="vsf-param"
-                  style={{ ['--kolom' as string]: '100px 85px minmax(0,1fr)' }}
-                >
-                  <div className="vsf-param-sel font-mono text-[12px]">{tglPendek(r.dilakukan_pada)}</div>
-                  <div className="vsf-param-sel">
-                    <span className="vsf-chip-nilai is-normal">{r.sensor}</span>
-                  </div>
-                  <div className="vsf-param-sel text-[12.5px] text-tinta">{r.catatan ?? 'Kalibrasi tercatat'}</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
     </div>
   )
 }

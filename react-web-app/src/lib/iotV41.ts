@@ -2,9 +2,7 @@
  * Tipe data, kalkulator murni, dan hook state untuk fitur IoT Hidroponik 1 Penampung v4.1
  * (Perancangan_Sistem_v4.1.md, Wiring_Sistem_v2.0.md, Kontrak_MQTT_Hidro_Control.docx).
  *
- * Mendukung endpoint `/iot-v41/*` dengan fallback otomatis ke `/konfigurasi-dosis`,
- * `/timing-operasi`, `/penampung-states`, dan `/api/latest-sensor` bila server lama
- * belum memuat rute `/iot-v41`.
+ * Sumber satu-satunya: endpoint `/iot-v41/*`. Tidak ada nilai cadangan/contoh di sisi web.
  */
 import { useCallback, useEffect, useState } from 'react'
 import { api } from './api'
@@ -50,14 +48,18 @@ export type IotV41Params = {
   tahan_alasan: string | null
 }
 
+/** null = tidak ada bacaan segar / belum dilaporkan alat — JANGAN dibaca sebagai 0. */
 export type IotV41Kondisi = {
   status: string
-  float_bawah: number
-  float_atas: number
-  ec_ppm: number
-  ec_ms: number
-  ec_us: number
-  ph: number
+  float_bawah: number | null
+  float_atas: number | null
+  level_diperbarui_pada?: string | null
+  ec_ppm: number | null
+  ec_ms: number | null
+  ec_us: number | null
+  ph: number | null
+  umur_detik?: number | null
+  basi?: boolean
   /** Tegangan mentah probe pH dari alat (V); null/undefined bila alat belum mengirimnya atau datanya basi. */
   ph_volt?: number | null
   suhu_air: number | null
@@ -109,7 +111,20 @@ export type ArsipKalibrasiRow = {
   oleh_label?: string | null
 }
 
+/** Perintah JADWAL terakhir (bukti jadwal tersimpan di NVS ESP32 = status 'selesai' dari laporan alat). */
+export type JadwalAlat = {
+  id: number | string
+  status: string
+  parameter: Record<string, number> | null
+  hasil: { alasan?: string } | null
+  dibuat_pada: string
+  selesai_pada: string | null
+}
+
 export type IotV41State = {
+  /** Kunci params yang TIDAK ada di database (nilai bawaan kode, bukan pengaturan tersimpan). */
+  params_belum_diatur?: string[]
+  jadwal_alat?: JadwalAlat | null
   params: IotV41Params
   kondisi: IotV41Kondisi
   stabilitas: IotV41Stabilitas
@@ -233,212 +248,15 @@ export function hitungPratinjauDosis(p: {
   }
 }
 
-const KUNCI_LOKAL = 'vsf_iot_v41_cache_v1'
 let cacheMemoriState: IotV41State | null = null
 
-function bacaCacheLokal(): Partial<IotV41Params> {
-  try {
-    const raw = window.localStorage.getItem(KUNCI_LOKAL)
-    return raw ? (JSON.parse(raw) as Partial<IotV41Params>) : {}
-  } catch {
-    return {}
-  }
-}
-
-/** Rakit state v4.1 instan dari nilai bawaan + localStorage agar halaman tidak berkedip (CLS = 0). */
-function rakitStateInstanLokal(): IotV41State {
-  const lokal = bacaCacheLokal()
-  const volume_l = lokal.volume_l ?? BAWAAN_PARAMS_V41.volume_l
-  const talang_jumlah = lokal.talang_jumlah ?? BAWAAN_PARAMS_V41.talang_jumlah
-  const talang_debit = lokal.talang_debit ?? BAWAAN_PARAMS_V41.talang_debit
-  const sirkulasi = hitungSirkulasi(volume_l, talang_jumlah, talang_debit)
-  const ph_maks_ml = lokal.ph_maks_ml ?? BAWAAN_PARAMS_V41.ph_maks_ml
-  const params: IotV41Params = {
-    ...BAWAAN_PARAMS_V41,
-    ...lokal,
-    volume_l,
-    talang_jumlah,
-    talang_debit,
-    putaran_menit: sirkulasi.putaran_menit,
-    saran_monitoring_menit: sirkulasi.saran_monitoring_menit,
-    saran_jeda_ab_menit: sirkulasi.saran_jeda_ab_menit,
-    ph_maks_ml,
-    batas_ml_ph_efektif: hitungBatasMlPh(ph_maks_ml, volume_l),
-  }
-  return {
-    params,
-    kondisi: {
-      status: params.pemeliharaan ? 'PEMELIHARAAN' : params.ec_setpoint === 0 ? 'TIDUR' : 'NORMAL',
-      float_bawah: 1,
-      float_atas: 0,
-      ec_ppm: 0,
-      ec_ms: 0,
-      ec_us: 0,
-      ph: 0,
-      suhu_air: null,
-      suhu_ruang: null,
-      rh: null,
-      hit_ec: 0,
-      hit_encer: 0,
-      hit_ph: 0,
-      hit_isi: 0,
-      updated_at: null,
-    },
-    stabilitas: {
-      ec: { stabil: false, n: 0, sebaran: null, batas: 20, sebaran_us: null },
-      ph: { stabil: false, n: 0, sebaran: null, batas: 0.06 },
-    },
-    pratinjau_dosis: hitungPratinjauDosis({
-      ec_sekarang: 0,
-      ec_setpoint: params.ec_setpoint,
-      persen_dosing: params.persen_dosing,
-      max_ppm_dosing: params.max_ppm_dosing,
-      volume_l: params.volume_l,
-      ppm_per_ml: params.ppm_per_ml,
-      laju_a: params.laju_a,
-      laju_b: params.laju_b,
-    }),
-    papan: {
-      kode: 'HIDRO-01',
-      nama: 'Kontroler Utama 1-Penampung',
-      versi: 'v4.1',
-      terakhir_terlihat: null,
-      status: 'offline',
-    },
-    arsip_kalibrasi: [],
-    arsip_ujilab: [],
-  }
-}
-
-export function simpanCacheLokal(patch: Partial<IotV41Params>) {
-  try {
-    const lama = bacaCacheLokal()
-    window.localStorage.setItem(KUNCI_LOKAL, JSON.stringify({ ...lama, ...patch }))
-    if (cacheMemoriState) {
-      cacheMemoriState = {
-        ...cacheMemoriState,
-        params: { ...cacheMemoriState.params, ...patch },
-      }
-    }
-  } catch {
-    // abaikan bila storage penuh
-  }
-}
-
-/** Rakit state v4.1 cadangan dari endpoint lama bila `/iot-v41/state` belum aktif di proses server. */
-async function muatCadanganState(): Promise<IotV41State> {
-  const [dosisRes, timingRes, stateRes, sensorRes] = await Promise.all([
-    api.get('/konfigurasi-dosis').catch(() => ({ data: [] })),
-    api.get('/timing-operasi').catch(() => ({ data: [] })),
-    api.get('/penampung-states').catch(() => ({ data: [] })),
-    api.get('/api/latest-sensor').catch(() => ({ data: null })),
-  ])
-
-  const peta: Record<string, number> = {}
-  for (const r of (Array.isArray(dosisRes.data) ? dosisRes.data : []) as Array<{ param: string; nilai: unknown }>) {
-    const n = Number(r.nilai)
-    if (Number.isFinite(n)) peta[r.param] = n
-  }
-  for (const r of (Array.isArray(timingRes.data) ? timingRes.data : []) as Array<{ param: string; nilai: unknown }>) {
-    const n = Number(r.nilai)
-    if (Number.isFinite(n)) peta[r.param] = n
-  }
-
-  const lokal = bacaCacheLokal()
-  const states = (Array.isArray(stateRes.data) ? stateRes.data : []) as Array<Record<string, unknown>>
-  const st0 = states[0] ?? {}
-  const sensor = (sensorRes.data as { is_online?: boolean; sensor?: Record<string, unknown> } | null)?.sensor ?? null
-  const online = Boolean((sensorRes.data as { is_online?: boolean } | null)?.is_online)
-
-  const volume_l = lokal.volume_l ?? peta.volume_efektif_l ?? BAWAAN_PARAMS_V41.volume_l
-  const talang_jumlah = lokal.talang_jumlah ?? peta.jumlah_talang ?? BAWAAN_PARAMS_V41.talang_jumlah
-  const talang_debit = lokal.talang_debit ?? peta.debit_per_talang_lpm ?? BAWAAN_PARAMS_V41.talang_debit
-  const sirkulasi = hitungSirkulasi(volume_l, talang_jumlah, talang_debit)
-  const ph_maks_ml = lokal.ph_maks_ml ?? peta.ph_maks_ml ?? BAWAAN_PARAMS_V41.ph_maks_ml
-
-  const ecSetpoint = Number(st0.target_ec_ppm) || lokal.ec_setpoint || 0
-  const phSetpoint = Number(st0.target_ph) || lokal.ph_setpoint || 6.0
-  const pemeliharaan = lokal.pemeliharaan ?? states.some((s) => s.mode_pemeliharaan === true)
-  const terkunci = states.some((s) => s.status_lock === true)
-
-  const params: IotV41Params = {
-    ...BAWAAN_PARAMS_V41,
-    ...lokal,
-    volume_l,
-    talang_jumlah,
-    talang_debit,
-    putaran_menit: sirkulasi.putaran_menit,
-    saran_monitoring_menit: sirkulasi.saran_monitoring_menit,
-    saran_jeda_ab_menit: sirkulasi.saran_jeda_ab_menit,
-    monitoring_menit: lokal.monitoring_menit ?? peta.monitoring_menit ?? BAWAAN_PARAMS_V41.monitoring_menit,
-    jeda_ab_menit: lokal.jeda_ab_menit ?? peta.jeda_ab_menit ?? BAWAAN_PARAMS_V41.jeda_ab_menit,
-    jeda_ec_menit: lokal.jeda_ec_menit ?? peta.jeda_ec_menit ?? BAWAAN_PARAMS_V41.jeda_ec_menit,
-    persen_dosing: lokal.persen_dosing ?? peta.persen_ronde_dosis ?? BAWAAN_PARAMS_V41.persen_dosing,
-    max_ppm_dosing: lokal.max_ppm_dosing ?? peta.maks_ppm_per_suntikan ?? BAWAAN_PARAMS_V41.max_ppm_dosing,
-    ph_maks_ml,
-    batas_ml_ph_efektif: hitungBatasMlPh(ph_maks_ml, volume_l),
-    ec_setpoint: ecSetpoint,
-    ph_setpoint: phSetpoint,
-    pemeliharaan,
-    tahan_dosing: terkunci,
-    tahan_alasan: (states.find((s) => s.lock_alasan)?.lock_alasan as string | undefined) ?? null,
-  }
-
-  const ecPpm = sensor?.tds != null ? Math.round(Number(sensor.tds)) : 0
-  const ecMs = sensor?.ec_ms_cm != null ? Number(sensor.ec_ms_cm) : bulat(ecPpm / 500, 2)
-  const ecUs = Math.round(ecMs * 1000)
-  const phNow = sensor?.ph != null ? Number(sensor.ph) : 0
-  const hitEc = states.reduce((a, s) => a + (Number(s.kejadian_dosis_hari) || 0), 0)
-
-  return {
-    params,
-    kondisi: {
-      status: pemeliharaan ? 'PEMELIHARAAN' : terkunci ? 'PERINGATAN' : ecSetpoint === 0 ? 'TIDUR' : 'NORMAL',
-      float_bawah: 1,
-      float_atas: 0,
-      ec_ppm: ecPpm,
-      ec_ms: ecMs,
-      ec_us: ecUs,
-      ph: phNow,
-      suhu_air: sensor?.waterTemp != null ? Number(sensor.waterTemp) : null,
-      suhu_ruang: sensor?.airTemp != null ? Number(sensor.airTemp) : null,
-      rh: sensor?.humidity != null ? Number(sensor.humidity) : null,
-      hit_ec: hitEc,
-      hit_encer: 0,
-      hit_ph: 0,
-      hit_isi: 0,
-      updated_at: null,
-    },
-    stabilitas: {
-      ec: { stabil: online && ecPpm > 0, n: online ? 5 : 0, sebaran: online ? 4 : null, batas: 20, sebaran_us: online ? 8 : null },
-      ph: { stabil: online && phNow > 0, n: online ? 5 : 0, sebaran: online ? 0.02 : null, batas: 0.06 },
-    },
-    pratinjau_dosis: hitungPratinjauDosis({
-      ec_sekarang: ecPpm,
-      ec_setpoint: ecSetpoint,
-      persen_dosing: params.persen_dosing,
-      max_ppm_dosing: params.max_ppm_dosing,
-      volume_l: params.volume_l,
-      ppm_per_ml: params.ppm_per_ml,
-      laju_a: params.laju_a,
-      laju_b: params.laju_b,
-    }),
-    papan: {
-      kode: 'HIDRO-01',
-      nama: 'Kontroler Utama 1-Penampung',
-      versi: 'v4.1',
-      terakhir_terlihat: null,
-      status: online ? 'online' : 'offline',
-    },
-    arsip_kalibrasi: [],
-    arsip_ujilab: [],
-  }
-}
+// Dulu: localStorage + nilai bawaan dirakit jadi "state" sebelum server menjawab (angka contoh tampil seolah nyata) → dihapus.
 
 /** Hook untuk membaca dan memuat ulang state IoT 1-Penampung v4.1. */
 export function useIotV41State(pollMs = 8_000) {
-  const [data, setData] = useState<IotV41State | null>(() => cacheMemoriState ?? rakitStateInstanLokal())
-  const [loading, setLoading] = useState(false)
+  // Hanya data server yang pernah diterima sesi ini; belum ada → null (panel menampilkan kerangka, bukan angka bawaan).
+  const [data, setData] = useState<IotV41State | null>(() => cacheMemoriState)
+  const [loading, setLoading] = useState(() => cacheMemoriState === null)
   const [error, setError] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
@@ -451,23 +269,10 @@ export function useIotV41State(pollMs = 8_000) {
       cacheMemoriState = baru
       setData(baru)
       setError(null)
-    } catch (err) {
-      const status = (err as { response?: { status?: number } } | null)?.response?.status
-      // Hanya panggil 4 endpoint cadangan jika server memang belum punya rute /iot-v41/state (404),
-      // bukan saat backend sedang restart/offline (502/503/network error) agar tidak memicu badai request.
-      if (status === 404) {
-        try {
-          const cadangan = await muatCadanganState()
-          cacheMemoriState = cadangan
-          setData(cadangan)
-          setError(null)
-          return
-        } catch {
-          // lanjut ke fallback lokal di bawah
-        }
-      }
-      setData((lama) => lama ?? cacheMemoriState ?? rakitStateInstanLokal())
-      setError('Koneksi terputus: angka yang tampil mungkin bukan nilai terbaru.')
+    } catch {
+      // Data lama (bila ada) tetap tampil dengan peringatan; tidak ada pengganti dari nilai bawaan.
+      setData((lama) => lama ?? cacheMemoriState)
+      setError(cacheMemoriState ? 'Koneksi terputus: angka yang tampil bukan nilai terbaru.' : 'Data alat belum bisa dimuat dari server.')
     } finally {
       setLoading(false)
     }

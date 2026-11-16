@@ -6,7 +6,6 @@ import { tglPendek } from '../../lib/format'
 import {
   hitungUjiLabEc,
   hitungUjiLabPh,
-  simpanCacheLokal,
   type IotV41State,
 } from '../../lib/iotV41'
 import { Pesan, Rangka } from '../kaca/DialogKaca'
@@ -39,19 +38,20 @@ export function PanelUjiLab({
   const handleApiError = useApiError()
   const buah = kategori === 'buah'
   const p = buah ? { ...iot?.params, ...iot?.takaran_buah } : iot?.params
+  const belum = new Set(iot?.params_belum_diatur ?? [])
 
-  // Form Uji Lab EC
-  const [awal, setAwal] = useState('100')
-  const [akhir, setAkhir] = useState('1000')
-  const [volEc, setVolEc] = useState('1')
-  const [mlA, setMlA] = useState('5')
-  const [mlB, setMlB] = useState('5')
+  // Form Uji Lab EC — kosong sampai diisi hasil takar nyata (dulu terisi angka contoh yang bisa tersimpan sebagai kalibrasi)
+  const [awal, setAwal] = useState('')
+  const [akhir, setAkhir] = useState('')
+  const [volEc, setVolEc] = useState('')
+  const [mlA, setMlA] = useState('')
+  const [mlB, setMlB] = useState('')
 
   // Form Uji Lab pH
   const [arah, setArah] = useState<'up' | 'down'>('up')
-  const [volPh, setVolPh] = useState('1')
-  const [deltaPh, setDeltaPh] = useState('0.5')
-  const [mlPh, setMlPh] = useState('0.5')
+  const [volPh, setVolPh] = useState('')
+  const [deltaPh, setDeltaPh] = useState('')
+  const [mlPh, setMlPh] = useState('')
 
   const [sibuk, setSibuk] = useState<null | 'ec' | 'ph'>(null)
   const [pesan, setPesan] = useState<string | null>(null)
@@ -97,8 +97,7 @@ export function PanelUjiLab({
         ml_a: Number(mlA.replace(',', '.')),
         ml_b: Number(mlB.replace(',', '.')),
       })
-      simpanCacheLokal({ ppm_per_ml: pratinjauEc })
-      setPesan(`ppm per mL = ${fmt(pratinjauEc, 2)} tersimpan di alat dan arsip web.`)
+      setPesan(`ppm per mL = ${fmt(pratinjauEc, 2)} tersimpan di server dan arsip web.`)
       onReload()
     } catch (err) {
       const f = handleApiError(err)
@@ -127,7 +126,6 @@ export function PanelUjiLab({
         delta_ph: Number(deltaPh.replace(',', '.')),
         ml: Number(mlPh.replace(',', '.')),
       })
-      simpanCacheLokal(arah === 'up' ? { ph_up_ml: pratinjauPh } : { ph_down_ml: pratinjauPh })
       setPesan(`pH ${arah} = ${fmt(pratinjauPh, 3)} mL per 1 pH per 1 L tersimpan.`)
       onReload()
     } catch (err) {
@@ -332,34 +330,35 @@ export function PanelUjiLab({
       </section>
 
       {/* Kartu 3: Angka yang Sedang Dipakai Alat */}
-      <section className="vsf-card w-full min-w-0 p-4 sm:p-5 lg:col-span-6" aria-label="Angka yang sedang dipakai alat">
-        <div className="vsf-judul-bagian">Angka yang sedang dipakai alat</div>
+      <section className="vsf-card w-full min-w-0 p-4 sm:p-5 lg:col-span-6" aria-label="Angka tersimpan di server">
+        <div className="vsf-judul-bagian">Angka tersimpan di server</div>
+        <p className="mt-0.5 text-[12.5px] text-abu">Dipakai untuk menghitung rekomendasi takaran; ESP32 tidak memakainya langsung.</p>
         <dl className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
           <div className="vsf-stat">
             <dt className="vsf-label">ppm per mL</dt>
-            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{fmt(p?.ppm_per_ml, 2)}</dd>
+            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{!buah && belum.has('ppm_per_ml') ? 'Belum diatur' : fmt(p?.ppm_per_ml, 2)}</dd>
           </div>
           <div className="vsf-stat">
             <dt className="vsf-label">Volume penampung</dt>
-            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{p?.volume_l ?? 0} L</dd>
+            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{belum.has('volume_l') ? 'Belum diatur' : `${p?.volume_l ?? '—'} L`}</dd>
           </div>
           <div className="vsf-stat">
             <dt className="vsf-label">pH up (mL/pH/L)</dt>
-            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{fmt(p?.ph_up_ml, 3)}</dd>
+            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{!buah && belum.has('ph_up_ml') ? 'Belum diatur' : fmt(p?.ph_up_ml, 3)}</dd>
           </div>
           <div className="vsf-stat">
             <dt className="vsf-label">pH down (mL/pH/L)</dt>
-            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{fmt(p?.ph_down_ml, 3)}</dd>
+            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{!buah && belum.has('ph_down_ml') ? 'Belum diatur' : fmt(p?.ph_down_ml, 3)}</dd>
           </div>
           <div className="vsf-stat sm:col-span-2">
             <dt className="vsf-label">Laju pompa A / B</dt>
             <dd className="mt-0.5 text-[16px] font-bold tabular-nums text-tinta">
-              {fmt(p?.laju_a, 2)} / {fmt(p?.laju_b, 2)} mL/detik
+              {belum.has('laju_a') ? 'belum dikalibrasi' : `${fmt(p?.laju_a, 2)} mL/detik`} / {belum.has('laju_b') ? 'belum dikalibrasi' : `${fmt(p?.laju_b, 2)} mL/detik`}
             </dd>
           </div>
         </dl>
         <p className="mt-3 text-[12px] leading-relaxed text-abu">
-          Sebelum uji lab pH selesai, matikan saklar pH up/down atau kecilkan batas mL per koreksi. Angka bawaan bukan hasil pengukuran.
+          "Belum diatur" = belum ada di database; hanya hasil uji lab nyata yang mengisinya.
         </p>
       </section>
 

@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { SiteFooter } from '../components/SiteFooter'
+import { BannerKeselamatan } from '../components/BannerKeselamatan'
 import { MemuatHalaman } from '../components/MemuatHalaman'
 import { Monogram } from '../components/Monogram'
 import { DemoBanner } from '../components/DemoBanner'
@@ -26,13 +27,11 @@ const TITLES: Record<string, string> = {
   '/peringatan': 'Peringatan',
   '/tanam': 'Kebun Saya',
   '/saklar': 'Saklar',
-  '/dosing': 'Target Nutrisi',
+  '/parameter': 'Parameter & Keamanan',
   '/kalibrasi': 'Kalibrasi',
   '/data': 'Data',
   '/audit': 'Catatan Aktivitas & Audit',
   '/pengaturan-alat': 'Pengaturan Alat',
-  '/pemulihan-papan': 'Pemulihan Papan',
-  '/mqtt-diagnostik': 'Koneksi Alat',
   '/semai': 'Semai',
   '/peremajaan': 'Peremajaan',
   '/pendewasaan': 'Pendewasaan',
@@ -80,7 +79,7 @@ const NAV: NavGroup[] = [
     items: [
       { to: '/tanam', label: 'Kebun Saya', ikon: 'tanam' },
       { to: '/saklar', label: 'Saklar', ikon: 'ambang', allow: ADMIN_DEMO },
-      { to: '/dosing', label: 'Target Nutrisi', ikon: 'tetes', allow: ADMIN_DEMO },
+      { to: '/parameter', label: 'Parameter & Keamanan', ikon: 'kunci', allow: ADMIN_DEMO },
     ],
   },
   {
@@ -89,19 +88,9 @@ const NAV: NavGroup[] = [
     items: [
       { to: '/kalibrasi', label: 'Kalibrasi', ikon: 'kalibrasi', allow: ADMIN_DEMO },
       { to: '/data', label: 'Data', ikon: 'laporan', allow: ADMIN_DEMO },
+      { to: '/pengaturan-alat', label: 'Pengaturan Alat', ikon: 'ambang', allow: ADMIN_DEMO },
       { to: '/audit', label: 'Catatan Aktivitas', ikon: 'audit', allow: ADMIN_DEMO },
       { to: '/laporan', label: 'Laporan', ikon: 'laporan', allow: ADMIN_DEMO },
-    ],
-  },
-  {
-    label: 'SISTEM',
-    ikon: 'ambang',
-    items: [
-      { to: '/pengaturan-alat', label: 'Pengaturan Alat', ikon: 'ambang', allow: ADMIN_DEMO },
-      { to: '/pemulihan-papan', label: 'Pemulihan Papan', ikon: 'siklus', allow: ADMIN_DEMO },
-      { to: '/mqtt-diagnostik', label: 'Koneksi Alat', ikon: 'online', allow: ADMIN_DEMO },
-      { to: '/user', label: 'Manajemen User', ikon: 'user', allow: ADMIN_DEMO },
-      { to: '/profil', label: 'Akun Saya', ikon: 'profil' },
     ],
   },
   {
@@ -121,6 +110,7 @@ const NAV: NavGroup[] = [
       { to: '/tanaman', label: 'Jenis Tanaman', ikon: 'daun', allow: ADMIN_DEMO },
       { to: '/meja', label: 'Meja Tanaman', ikon: 'meja', allow: ADMIN_DEMO },
       { to: '/ambang', label: 'Ambang Sensor', ikon: 'ambang', allow: ADMIN_DEMO },
+      { to: '/user', label: 'Manajemen User', ikon: 'user', allow: ADMIN_DEMO },
     ],
   },
 ]
@@ -329,6 +319,7 @@ export function AppShell() {
             <RailItem key={gr.label} to={gr.items[0].to} label={gr.label} ikon={gr.ikon} aktif={gr === grupAktif} />
           ))}
         </nav>
+        <RailItem to="/profil" label="Akun Saya" ikon="profil" aktif={location.pathname === '/profil'} />
         <RailItem to="/" label="Tentang Kami" ikon="info" aktif={false} />
         <button
           type="button"
@@ -381,6 +372,7 @@ export function AppShell() {
           </div>
         </nav>
         <div className="px-4 pb-2">
+          <DrawerItem item={{ to: '/profil', label: 'Akun Saya', ikon: 'profil' }} />
           <DrawerItem item={{ to: '/', label: 'Tentang Kami', ikon: 'info' }} />
         </div>
         <div className="border-t border-white/60 p-3">
@@ -506,13 +498,14 @@ export function AppShell() {
               </button>
             </div>
           )}
+          <BannerKeselamatan />
           <div className="vsf-page min-w-0">
             <Suspense fallback={<MemuatHalaman />}>
               <Outlet />
             </Suspense>
           </div>
         </div>
-        <SiteFooter pekat />
+        <SiteFooter pekat akun />
       </main>
 
       {/* Submenu grup aktif di footer: ikon dengan nama halaman di bawahnya. Sembunyikan di /asisten-ai agar tidak menutupi komposer chat. */}

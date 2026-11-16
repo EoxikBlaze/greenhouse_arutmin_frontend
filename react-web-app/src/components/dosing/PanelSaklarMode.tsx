@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/authContext'
 import { useApiError } from '../../lib/crudApi'
-import { simpanCacheLokal, type IotV41State } from '../../lib/iotV41'
+import type { IotV41State } from '../../lib/iotV41'
 import { Ikon } from '../Ikon'
 import { Pesan, Rangka } from '../kaca/DialogKaca'
 import { StatusBadge } from '../StatusBadge'
@@ -116,7 +116,6 @@ export function PanelSaklarMode({
     }
     try {
       await api.put('/iot-v41/saklar', payload)
-      simpanCacheLokal(payload)
       setDraf({})
       setPesan('Saklar dan mode isi air tersimpan di sistem, tetapi alat belum diberi tahu.')
       onReload()

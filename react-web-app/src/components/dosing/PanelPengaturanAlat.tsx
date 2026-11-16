@@ -2,79 +2,53 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/authContext'
-import { useApiError } from '../../lib/crudApi'
-import {
-  hitungBatasMlPh,
-  hitungSirkulasi,
-  simpanCacheLokal,
-  type IotV41State,
-} from '../../lib/iotV41'
+import { useApiError, useApiList } from '../../lib/crudApi'
+import { tglJam } from '../../lib/format'
+import type { ParameterRow } from '../../lib/dosing'
+import { hitungSirkulasi, type IotV41Params, type IotV41State } from '../../lib/iotV41'
 import { Ikon } from '../Ikon'
 import { Pesan, Rangka } from '../kaca/DialogKaca'
 
-const fmt = (v: number | null | undefined, d = 2): string => {
-  if (v === null || v === undefined || !Number.isFinite(v)) return '—'
-  return v.toFixed(d).replace('.', ',')
-}
+type Kunci = 'volume_l' | 'talang_jumlah' | 'talang_debit' | 'monitoring_menit' | 'jeda_ab_menit' | 'jeda_ec_menit' | 'pemeliharaan_maks_menit'
+
+/** Field form → baris database (sumber kebenaran: konfigurasi_dosis / timing_operasi lewat PUT /iot-v41/pengaturan). */
+const FIELD: ReadonlyArray<{ kunci: Kunci; label: string; param: string; min: number; max: number; step: number; bulat: boolean; info?: string }> = [
+  { kunci: 'volume_l', label: 'Volume efektif penampung (L)', param: 'volume_efektif_l', min: 0, max: 50000, step: 5, bulat: true, info: 'Tanpa volume (> 0 L) alat menolak dosing.' },
+  { kunci: 'talang_jumlah', label: 'Jumlah talang', param: 'jumlah_talang', min: 0, max: 500, step: 1, bulat: true },
+  { kunci: 'talang_debit', label: 'Debit per talang (L/menit)', param: 'debit_per_talang_lpm', min: 0, max: 100, step: 0.1, bulat: false },
+  { kunci: 'monitoring_menit', label: 'Monitoring (menit)', param: 'monitoring_menit', min: 10, max: 120, step: 1, bulat: true, info: 'Waktu larutan berputar merata sebelum dibaca ulang.' },
+  { kunci: 'jeda_ab_menit', label: 'Jeda A→B (menit)', param: 'jeda_ab_menit', min: 1, max: 10, step: 1, bulat: true },
+  { kunci: 'jeda_ec_menit', label: 'Jeda antar tindakan (menit)', param: 'jeda_ec_menit', min: 1, max: 240, step: 1, bulat: true },
+  { kunci: 'pemeliharaan_maks_menit', label: 'Batas mode pemeliharaan (menit)', param: 'pemeliharaan_maks_menit', min: 5, max: 360, step: 5, bulat: true },
+]
+
+const LAJU: ReadonlyArray<[keyof IotV41Params, string, string]> = [
+  ['laju_a', 'Pompa A', 'laju_pompa_a_mls'],
+  ['laju_b', 'Pompa B', 'laju_pompa_b_mls'],
+  ['laju_ph_up', 'Pompa pH up', 'laju_pompa_ph_up_mls'],
+  ['laju_ph_down', 'Pompa pH down', 'laju_pompa_ph_down_mls'],
+]
+
+const angkaId = (v: number, d: number) => v.toFixed(d).replace('.', ',')
 
 /**
- * Panel Pengaturan Alat (adaptasi pengaturan.php Perancangan Sistem IoT Hidroponik 1 Penampung v4.1):
- *  - Penampung dan meja: Volume efektif (L), Jumlah talang, Debit per talang (L/menit), Satu putaran larutan (otomatis)
- *  - Waktu kerja: Monitoring (menit) + saran otomatis (2 × T_putar), Jeda A→B (menit), Jeda antar tindakan (menit)
- *  - Dosis dan batas aman: Persen dosing (%), Maksimum per dosing (ppm), Batas aman EC bawah/atas, Batas pH bawah/atas,
- *    Batas mL per koreksi pH (0 = otomatis 0,2 × volume), Batas pemeliharaan (menit)
- *  - Laju pompa (hasil kalibrasi, baca saja + tautan ke Kalibrasi)
+ * Pengaturan Alat (bagian Data): penampung, waktu kerja, dan laju pompa yang TERSIMPAN di server.
+ * Nilai yang tidak ada di database ditandai "belum diatur" (input kosong) — tidak diisi angka bawaan.
+ * Batas peringatan & pengaturan dosis tidak di sini: lihat Parameter & Keamanan (satu sumber batas: Ambang Sensor).
  */
-export function PanelPengaturanAlat({
-  iot,
-  loading,
-  onReload,
-}: {
-  iot: IotV41State | null
-  loading: boolean
-  onReload: () => void
-}) {
+export function PanelPengaturanAlat({ iot, loading, onReload }: { iot: IotV41State | null; loading: boolean; onReload: () => void }) {
   const { role } = useAuth()
   const bolehUbah = role === 'admin'
   const handleApiError = useApiError()
+  const dosis = useApiList<ParameterRow>('/konfigurasi-dosis')
+  const timing = useApiList<ParameterRow>('/timing-operasi')
   const p = iot?.params
+  const belum = new Set(iot?.params_belum_diatur ?? [])
 
-  const [draf, setDraf] = useState<Partial<{
-    volume_l: string
-    talang_jumlah: string
-    talang_debit: string
-    monitoring_menit: string
-    jeda_ab_menit: string
-    jeda_ec_menit: string
-    persen_dosing: string
-    max_ppm_dosing: string
-    batas_ec_bawah: string
-    batas_ec_atas: string
-    batas_ph_bawah: string
-    batas_ph_atas: string
-    ph_maks_ml: string
-    pemeliharaan_maks_menit: string
-  }>>({})
+  const [draf, setDraf] = useState<Partial<Record<Kunci, string>>>({})
   const [sibuk, setSibuk] = useState(false)
   const [pesan, setPesan] = useState<string | null>(null)
   const [galat, setGalat] = useState<string | null>(null)
-
-  const f = {
-    volume_l: draf.volume_l ?? String(p?.volume_l ?? 200),
-    talang_jumlah: draf.talang_jumlah ?? String(p?.talang_jumlah ?? 5),
-    talang_debit: draf.talang_debit ?? Number(p?.talang_debit ?? 1).toFixed(2),
-    monitoring_menit: draf.monitoring_menit ?? String(p?.monitoring_menit ?? 45),
-    jeda_ab_menit: draf.jeda_ab_menit ?? String(p?.jeda_ab_menit ?? 5),
-    jeda_ec_menit: draf.jeda_ec_menit ?? String(p?.jeda_ec_menit ?? 20),
-    persen_dosing: draf.persen_dosing ?? String(p?.persen_dosing ?? 65),
-    max_ppm_dosing: draf.max_ppm_dosing ?? String(p?.max_ppm_dosing ?? 300),
-    batas_ec_bawah: draf.batas_ec_bawah ?? String(p?.batas_ec_bawah ?? 900),
-    batas_ec_atas: draf.batas_ec_atas ?? String(p?.batas_ec_atas ?? 1500),
-    batas_ph_bawah: draf.batas_ph_bawah ?? Number(p?.batas_ph_bawah ?? 5.0).toFixed(1),
-    batas_ph_atas: draf.batas_ph_atas ?? Number(p?.batas_ph_atas ?? 7.0).toFixed(1),
-    ph_maks_ml: draf.ph_maks_ml ?? String(p?.ph_maks_ml ?? 0),
-    pemeliharaan_maks_menit: draf.pemeliharaan_maks_menit ?? String(p?.pemeliharaan_maks_menit ?? 120),
-  }
 
   useEffect(() => {
     if (!pesan) return
@@ -82,63 +56,47 @@ export function PanelPengaturanAlat({
     return () => window.clearTimeout(id)
   }, [pesan])
 
-  const ubah = (k: keyof typeof f) => (v: string) => setDraf((s) => ({ ...s, [k]: v }))
-
-  const volNum = Math.max(0, Number(f.volume_l.replace(',', '.')) || 0)
-  const talangNum = Math.max(0, Number(f.talang_jumlah.replace(',', '.')) || 0)
-  const debitNum = Math.max(0, Number(f.talang_debit.replace(',', '.')) || 0)
-  const sirkulasi = hitungSirkulasi(volNum, talangNum, debitNum)
-  const monNum = Math.round(Number(f.monitoring_menit.replace(',', '.')) || 0)
-  const phMaksNum = Math.max(0, Math.round(Number(f.ph_maks_ml.replace(',', '.')) || 0))
-  const batasOtomatisPh = hitungBatasMlPh(0, volNum)
-
-  function resetForm() {
-    setDraf({})
-    setGalat(null)
-  }
+  const baris = (param: string) => [...dosis.rows, ...timing.rows].find((r) => r.param === param)
+  const nilaiForm = (k: Kunci) => draf[k] ?? (p && !belum.has(k) ? String(p[k]) : '')
+  const num = (k: Kunci) => Number(nilaiForm(k).replace(',', '.'))
+  const sirkulasi = hitungSirkulasi(num('volume_l') || 0, num('talang_jumlah') || 0, num('talang_debit') || 0)
 
   async function simpan(e: React.FormEvent) {
     e.preventDefault()
     if (!bolehUbah || sibuk) return
+    // Hanya field yang diubah pengguna yang dikirim: nilai yang belum diatur tidak ikut tersimpan sebagai bawaan.
+    const payload: Partial<Record<Kunci, number>> = {}
+    for (const f of FIELD) {
+      if (draf[f.kunci] === undefined) continue
+      const v = Number(String(draf[f.kunci]).replace(',', '.'))
+      if (!Number.isFinite(v) || draf[f.kunci]?.trim() === '' || v < f.min || v > f.max || (f.bulat && !Number.isInteger(v))) {
+        setGalat(`${f.label}: isi angka ${f.bulat ? 'bulat ' : ''}${f.min}–${f.max}.`)
+        return
+      }
+      payload[f.kunci] = v
+    }
+    if (!Object.keys(payload).length) return setGalat('Belum ada nilai yang diubah.')
     setSibuk(true)
     setGalat(null)
     setPesan(null)
-
-    const payload = {
-      volume_l: Math.round(volNum),
-      talang_jumlah: Math.round(talangNum),
-      talang_debit: debitNum,
-      monitoring_menit: Math.max(10, Math.min(120, monNum || 45)),
-      jeda_ab_menit: Math.max(1, Math.min(10, Math.round(Number(f.jeda_ab_menit) || 5))),
-      jeda_ec_menit: Math.max(1, Math.min(240, Math.round(Number(f.jeda_ec_menit) || 20))),
-      persen_dosing: Math.max(50, Math.min(90, Math.round(Number(f.persen_dosing) || 65))),
-      max_ppm_dosing: Math.max(50, Math.min(300, Math.round(Number(f.max_ppm_dosing) || 300))),
-      batas_ec_bawah: Math.max(0, Math.round(Number(f.batas_ec_bawah) || 0)),
-      batas_ec_atas: Math.max(0, Math.round(Number(f.batas_ec_atas) || 0)),
-      batas_ph_bawah: Number(f.batas_ph_bawah.replace(',', '.')) || 5.0,
-      batas_ph_atas: Number(f.batas_ph_atas.replace(',', '.')) || 7.0,
-      ph_maks_ml: Math.max(0, Math.min(200, phMaksNum)),
-      pemeliharaan_maks_menit: Math.max(5, Math.min(360, Math.round(Number(f.pemeliharaan_maks_menit) || 120))),
-    }
-
     try {
       await api.put('/iot-v41/pengaturan', payload)
-      simpanCacheLokal(payload)
       setDraf({})
-      setPesan('Pengaturan tersimpan di sistem, tetapi belum dikirim ke alat.')
+      setPesan('Pengaturan tersimpan di server.')
       onReload()
+      dosis.reload()
+      timing.reload()
     } catch (err) {
-      const g = handleApiError(err)
-      setGalat(g.message)
+      setGalat(handleApiError(err).message)
     } finally {
       setSibuk(false)
     }
   }
 
-  if (loading && !iot) {
+  if (!iot) {
     return (
       <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Pengaturan Alat">
-        <Rangka />
+        {loading ? <Rangka /> : <Pesan jenis="galat">Pengaturan alat belum bisa dimuat dari server.</Pesan>}
       </section>
     )
   }
@@ -152,287 +110,66 @@ export function PanelPengaturanAlat({
         </div>
       )}
 
-      {/* Kolom Kiri: Penampung dan Meja + Waktu Kerja */}
-      <section className="vsf-card w-full min-w-0 p-4 sm:p-5 lg:col-span-6" aria-label="Penampung, meja, dan waktu kerja">
-        <div className="vsf-judul-bagian">Penampung dan meja</div>
-        <p className="mt-0.5 text-[13px] text-abu">Tanpa volume efektif (&gt; 0 L), alat menolak dosing.</p>
-
+      <section className="vsf-card w-full min-w-0 p-4 sm:p-5 lg:col-span-7" aria-label="Penampung dan waktu kerja">
+        <div className="vsf-judul-bagian">Penampung dan waktu kerja</div>
+        <p className="mt-0.5 text-[13px] text-abu">Sumber: tabel konfigurasi_dosis &amp; timing_operasi di server.</p>
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <label className="block">
-            <span className="vsf-label vsf-label-tinta">Volume efektif penampung (L)</span>
-            <input
-              type="number"
-              min={0}
-              step={5}
-              disabled={!bolehUbah}
-              className="vsf-input mt-1 w-full"
-              value={f.volume_l}
-              onChange={(e) => ubah('volume_l')(e.target.value)}
-            />
-          </label>
-          <label className="block">
-            <span className="vsf-label vsf-label-tinta">Jumlah talang</span>
-            <input
-              type="number"
-              min={0}
-              disabled={!bolehUbah}
-              className="vsf-input mt-1 w-full"
-              value={f.talang_jumlah}
-              onChange={(e) => ubah('talang_jumlah')(e.target.value)}
-            />
-          </label>
-          <label className="block">
-            <span className="vsf-label vsf-label-tinta">Debit per talang (L/menit)</span>
-            <input
-              type="number"
-              min={0}
-              step={0.1}
-              disabled={!bolehUbah}
-              className="vsf-input mt-1 w-full"
-              value={f.talang_debit}
-              onChange={(e) => ubah('talang_debit')(e.target.value)}
-            />
-          </label>
-          <div className="block">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="vsf-label vsf-label-tinta">Satu putaran larutan</span>
-              <span className="vsf-chip-nilai is-normal">otomatis · tidak bisa diedit</span>
-            </div>
-            <input
-              type="text"
-              disabled
-              className="vsf-input mt-1 w-full opacity-80"
-              value={sirkulasi.putaran_menit > 0 ? `${fmt(sirkulasi.putaran_menit, 1)} menit` : '—'}
-              aria-label="Satu putaran larutan"
-            />
-            <div className="mt-1 text-[11.5px] leading-relaxed text-abu">
-              Dihitung dari volume ÷ (talang × debit). Ini patokan, bukan angka yang dikirim ke alat.
-            </div>
-          </div>
-        </div>
-
-        <hr className="my-4 border-garis" />
-
-        <div className="vsf-judul-bagian">Waktu kerja</div>
-        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="block sm:col-span-1">
-            <div className="flex flex-wrap items-center gap-1">
-              <label htmlFor="vsf-monitoring-menit" className="vsf-label vsf-label-tinta">
-                Monitoring (menit)
+          {FIELD.map((f) => {
+            const r = baris(f.param)
+            return (
+              <label key={f.kunci} className="block">
+                <span className="flex flex-wrap items-center gap-1.5">
+                  <span className="vsf-label vsf-label-tinta">{f.label}</span>
+                  {belum.has(f.kunci) && <span className="vsf-chip-nilai is-kosong">belum diatur</span>}
+                </span>
+                <input
+                  type="number"
+                  min={f.min}
+                  max={f.max}
+                  step={f.step}
+                  disabled={!bolehUbah}
+                  placeholder={belum.has(f.kunci) ? 'belum diatur' : undefined}
+                  className="vsf-input mt-1 w-full"
+                  value={nilaiForm(f.kunci)}
+                  onChange={(e) => setDraf((s) => ({ ...s, [f.kunci]: e.target.value }))}
+                />
+                <span className="mt-1 block text-[11.5px] text-abu">
+                  {f.info ? `${f.info} ` : ''}
+                  {r?.diubah_pada ? `Diubah ${tglJam(r.diubah_pada)}${r.sumber ? ` · ${r.sumber}` : ''}.` : 'Belum pernah diubah dari web.'}
+                </span>
               </label>
-              <span className="vsf-chip-nilai is-kosong">saran otomatis</span>
-            </div>
-            <input
-              id="vsf-monitoring-menit"
-              type="number"
-              min={10}
-              max={120}
-              disabled={!bolehUbah}
-              className="vsf-input mt-1 w-full"
-              value={f.monitoring_menit}
-              onChange={(e) => ubah('monitoring_menit')(e.target.value)}
-            />
-            <div className="mt-1.5 text-[11.5px] leading-relaxed text-abu">
-              {sirkulasi.saran_monitoring_menit > 0 ? (
-                <>
-                  Saran dari putaran (2 × {fmt(sirkulasi.putaran_menit, 1)} mnt):{' '}
-                  <b className="text-tinta">{sirkulasi.saran_monitoring_menit} menit</b>
-                  {bolehUbah && (
-                    <>
-                      {' — '}
-                      <button
-                        type="button"
-                        className="font-semibold text-arutmin-forest underline"
-                        onClick={() => ubah('monitoring_menit')(String(sirkulasi.saran_monitoring_menit))}
-                      >
-                        pakai
-                      </button>
-                    </>
-                  )}{' '}
-                  <span className="vsf-chip-nilai is-normal">
-                    {monNum === sirkulasi.saran_monitoring_menit ? 'mengikuti saran' : 'diubah manual'}
-                  </span>
-                </>
-              ) : (
-                'Isi volume, talang, dan debit dulu supaya saran muncul otomatis.'
-              )}
-            </div>
+            )
+          })}
+          <div className="block">
+            <span className="vsf-label vsf-label-tinta">Satu putaran larutan (dihitung)</span>
+            <input type="text" disabled className="vsf-input mt-1 w-full opacity-80" aria-label="Satu putaran larutan"
+              value={sirkulasi.putaran_menit > 0 ? `${angkaId(sirkulasi.putaran_menit, 1)} menit` : '—'} />
+            <span className="mt-1 block text-[11.5px] text-abu">
+              Volume ÷ (talang × debit). {sirkulasi.saran_monitoring_menit > 0 && <>Saran monitoring: <b className="text-tinta">{sirkulasi.saran_monitoring_menit} menit</b>{bolehUbah && <> — <button type="button" className="font-semibold text-arutmin-forest underline" onClick={() => setDraf((s) => ({ ...s, monitoring_menit: String(sirkulasi.saran_monitoring_menit) }))}>pakai</button></>}</>}
+            </span>
           </div>
-
-          <label className="block">
-            <span className="vsf-label vsf-label-tinta">Jeda A→B (menit)</span>
-            <input
-              type="number"
-              min={1}
-              max={10}
-              disabled={!bolehUbah}
-              className="vsf-input mt-1 w-full"
-              value={f.jeda_ab_menit}
-              onChange={(e) => ubah('jeda_ab_menit')(e.target.value)}
-            />
-            <span className="mt-1 block text-[11.5px] text-abu">Rentang 1–10 menit (bawaan 5 menit).</span>
-          </label>
-
-          <label className="block">
-            <span className="vsf-label vsf-label-tinta">Jeda antar tindakan (menit)</span>
-            <input
-              type="number"
-              min={1}
-              max={240}
-              disabled={!bolehUbah}
-              className="vsf-input mt-1 w-full"
-              value={f.jeda_ec_menit}
-              onChange={(e) => ubah('jeda_ec_menit')(e.target.value)}
-            />
-            <span className="mt-1 block text-[11.5px] text-abu">Masa tenang setelah koreksi (bawaan 20 menit).</span>
-          </label>
         </div>
       </section>
 
-      {/* Kolom Kanan: Dosis dan Batas Aman + Laju Pompa */}
-      <section className="vsf-card w-full min-w-0 p-4 sm:p-5 lg:col-span-6" aria-label="Dosis, batas aman, dan laju pompa">
-        <div className="vsf-judul-bagian">Dosis dan batas aman</div>
-        <p className="mt-0.5 text-[13px] text-abu">Batas aman menyesuaikan tanaman yang sedang ditanam.</p>
-
-        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <label className="block">
-            <span className="vsf-label vsf-label-tinta">Persen dosing (%)</span>
-            <input
-              type="number"
-              min={50}
-              max={90}
-              disabled={!bolehUbah}
-              className="vsf-input mt-1 w-full"
-              value={f.persen_dosing}
-              onChange={(e) => ubah('persen_dosing')(e.target.value)}
-            />
-            <span className="mt-1 block text-[11.5px] text-abu">65% selama uji 3 hari; naikkan bila selisih nyata &lt; 5%.</span>
-          </label>
-
-          <label className="block">
-            <span className="vsf-label vsf-label-tinta">Maksimum per dosing (ppm)</span>
-            <input
-              type="number"
-              min={50}
-              max={300}
-              disabled={!bolehUbah}
-              className="vsf-input mt-1 w-full"
-              value={f.max_ppm_dosing}
-              onChange={(e) => ubah('max_ppm_dosing')(e.target.value)}
-            />
-            <span className="mt-1 block text-[11.5px] text-abu">Batas keras per suntikan (50–300 ppm).</span>
-          </label>
-
-          <label className="block">
-            <span className="vsf-label vsf-label-tinta">Batas aman EC bawah (ppm)</span>
-            <input
-              type="number"
-              min={0}
-              step={10}
-              disabled={!bolehUbah}
-              className="vsf-input mt-1 w-full"
-              value={f.batas_ec_bawah}
-              onChange={(e) => ubah('batas_ec_bawah')(e.target.value)}
-            />
-            <span className="mt-1 block text-[11.5px] text-abu">Kosongkan 0 saat tidur (air bersih tidak memicu alarm).</span>
-          </label>
-
-          <label className="block">
-            <span className="vsf-label vsf-label-tinta">Batas aman EC atas (ppm)</span>
-            <input
-              type="number"
-              min={0}
-              step={10}
-              disabled={!bolehUbah}
-              className="vsf-input mt-1 w-full"
-              value={f.batas_ec_atas}
-              onChange={(e) => ubah('batas_ec_atas')(e.target.value)}
-            />
-          </label>
-
-          <label className="block">
-            <span className="vsf-label vsf-label-tinta">Batas pH bawah</span>
-            <input
-              type="number"
-              min={3}
-              max={9}
-              step={0.1}
-              disabled={!bolehUbah}
-              className="vsf-input mt-1 w-full"
-              value={f.batas_ph_bawah}
-              onChange={(e) => ubah('batas_ph_bawah')(e.target.value)}
-            />
-          </label>
-
-          <label className="block">
-            <span className="vsf-label vsf-label-tinta">Batas pH atas</span>
-            <input
-              type="number"
-              min={3}
-              max={9}
-              step={0.1}
-              disabled={!bolehUbah}
-              className="vsf-input mt-1 w-full"
-              value={f.batas_ph_atas}
-              onChange={(e) => ubah('batas_ph_atas')(e.target.value)}
-            />
-          </label>
-
-          <label className="block">
-            <span className="vsf-label vsf-label-tinta">Batas mL per koreksi pH</span>
-            <input
-              type="number"
-              min={0}
-              max={200}
-              disabled={!bolehUbah}
-              className="vsf-input mt-1 w-full"
-              value={f.ph_maks_ml}
-              onChange={(e) => ubah('ph_maks_ml')(e.target.value)}
-            />
-            <span className="mt-1 block text-[11.5px] leading-relaxed text-abu">
-              Isi 0 = otomatis dari volume (0,2 × volume = <b className="text-tinta">{batasOtomatisPh} mL</b>). Batas 10 mL terlalu kecil untuk tandon besar.
-            </span>
-          </label>
-
-          <label className="block">
-            <span className="vsf-label vsf-label-tinta">Batas pemeliharaan (menit)</span>
-            <input
-              type="number"
-              min={5}
-              max={360}
-              disabled={!bolehUbah}
-              className="vsf-input mt-1 w-full"
-              value={f.pemeliharaan_maks_menit}
-              onChange={(e) => ubah('pemeliharaan_maks_menit')(e.target.value)}
-            />
-            <span className="mt-1 block text-[11.5px] leading-relaxed text-abu">
-              Setelah lewat batas ini alat kembali bekerja sendiri. Maksimal 360 menit untuk ganti air.
-            </span>
-          </label>
-        </div>
-
-        <hr className="my-4 border-garis" />
-
+      <section className="vsf-card w-full min-w-0 p-4 sm:p-5 lg:col-span-5" aria-label="Laju pompa">
         <div className="vsf-judul-bagian">Laju pompa (hasil kalibrasi)</div>
-        <dl className="mt-2.5 grid grid-cols-2 gap-2 text-[13px] sm:grid-cols-4">
-          {[
-            ['Pompa A', p?.laju_a],
-            ['Pompa B', p?.laju_b],
-            ['Pompa pH up', p?.laju_ph_up],
-            ['Pompa pH down', p?.laju_ph_down],
-          ].map(([nama, laju]) => (
-            <div key={String(nama)} className="vsf-stat">
-              <dt className="vsf-label">{nama}</dt>
-              <dd className="mt-0.5 font-bold tabular-nums text-tinta">{fmt(laju as number, 2)} mL/detik</dd>
-            </div>
-          ))}
+        <dl className="mt-2.5 grid grid-cols-2 gap-2 text-[13px]">
+          {LAJU.map(([k, nama, param]) => {
+            const r = baris(param)
+            return (
+              <div key={k} className="vsf-stat">
+                <dt className="vsf-label">{nama}</dt>
+                <dd className="mt-0.5 font-bold tabular-nums text-tinta">
+                  {belum.has(k) ? 'Belum dikalibrasi' : `${angkaId(Number(p?.[k] ?? 0), 2)} mL/detik`}
+                </dd>
+                {r?.diubah_pada && <dd className="text-[11.5px] text-abu">{tglJam(r.diubah_pada)}</dd>}
+              </div>
+            )
+          })}
         </dl>
         <p className="mt-2 text-[12px] text-abu">
-          Angka ini hanya bisa diubah lewat{' '}
-          <Link to="/kalibrasi" className="font-semibold text-arutmin-forest underline">
-            halaman Kalibrasi
-          </Link>
-          , supaya tidak ada dua tempat yang saling menimpa.
+          Diubah hanya lewat <Link to="/kalibrasi" className="font-semibold text-arutmin-forest underline">Kalibrasi</Link>. Batas peringatan &amp; dosis ada di{' '}
+          <Link to="/parameter" className="font-semibold text-arutmin-forest underline">Parameter &amp; Keamanan</Link>.
         </p>
       </section>
 
@@ -443,13 +180,13 @@ export function PanelPengaturanAlat({
               {sibuk && <span className="vsf-spinner" aria-hidden />}
               {sibuk ? 'Menyimpan…' : 'Simpan pengaturan'}
             </button>
-            <button type="button" className="vsf-btn-secondary" disabled={sibuk} onClick={resetForm}>
+            <button type="button" className="vsf-btn-secondary" disabled={sibuk} onClick={() => { setDraf({}); setGalat(null) }}>
               Batalkan
             </button>
           </div>
           <div className="flex items-center gap-1.5 text-[12px] text-abu">
             <Ikon nama="info" className="h-4 w-4" />
-            <span>Perubahan langsung memperbarui parameter operasi sistem.</span>
+            <span>Hanya nilai yang diubah yang dikirim. Tersimpan di server; ESP32 memakai jadwalnya sendiri (lihat Parameter &amp; Keamanan).</span>
           </div>
         </section>
       )}

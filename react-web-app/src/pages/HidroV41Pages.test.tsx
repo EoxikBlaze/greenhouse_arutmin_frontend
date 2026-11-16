@@ -12,11 +12,7 @@ import { PanelPengaturanAlat } from '../components/dosing/PanelPengaturanAlat'
 import { PanelSaklarMode } from '../components/dosing/PanelSaklarMode'
 import { PanelUjiLab } from '../components/dosing/PanelUjiLab'
 import { PanelKalibrasiLangsungV41 } from '../components/kalibrasi/PanelKalibrasiLangsungV41'
-import {
-  MqttDiagnostikPage,
-  PemulihanPapanPage,
-  PeringatanPage,
-} from './HidroV41Pages'
+import { PeringatanPage } from './HidroV41Pages'
 
 const BAWAAN_V41: IotV41State = {
   params: BAWAAN_PARAMS_V41,
@@ -83,6 +79,7 @@ vi.mock('../lib/authContext', () => ({
 }))
 
 vi.mock('../lib/crudApi', () => ({
+  useApiList: () => ({ rows: [], loading: false, error: null, reload: () => {}, total: null }),
   useApiError: () => (err: unknown) => ({
     status: 500,
     message: err instanceof Error ? err.message : 'Galat',
@@ -159,6 +156,9 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
       btnSimpan.click()
     })
     expect(mockApiPut).toHaveBeenCalledWith('/iot-v41/pengaturan', expect.objectContaining({ volume_l: 200 }))
+    // batas aman & dosis tidak lagi diatur dari Pengaturan Alat (pindah ke Parameter & Keamanan)
+    const payload = mockApiPut.mock.calls[0][1] as Record<string, unknown>
+    expect(Object.keys(payload).some((k) => k.startsWith('batas_') || k === 'persen_dosing' || k === 'max_ppm_dosing')).toBe(false)
 
     const btnBatal = cariTombol('Batalkan')
     await act(async () => {
@@ -240,6 +240,16 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
       root.render(<PanelUjiLab iot={BAWAAN_V41} loading={false} onReload={onReload} />)
     })
 
+    // Form kosong sampai diisi hasil takar nyata → isi dulu (urutan input: EC awal, akhir, volume, mL A, mL B, lalu pH volume, ΔpH, mL)
+    const isian = Array.from(container.querySelectorAll('input[type="number"]')) as HTMLInputElement[]
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set
+    await act(async () => {
+      ;['100', '1000', '1', '5', '5', '1', '0.5', '0.5'].forEach((v, i) => {
+        setter?.call(isian[i], v)
+        isian[i].dispatchEvent(new Event('input', { bubbles: true }))
+      })
+    })
+
     const tombolHitung = Array.from(container.querySelectorAll('button')).filter((b) =>
       (b.textContent ?? '').includes('Hitung & simpan'),
     )
@@ -286,36 +296,7 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
     )
   })
 
-  it('Langkah 8 — Halaman Pemulihan Papan, MQTT Diagnostik, dan Peringatan: semua tombol aksi bisa diklik', async () => {
-    // 8a. PemulihanPapanPage
-    await act(async () => {
-      root.render(
-        <MemoryRouter>
-          <PemulihanPapanPage />
-        </MemoryRouter>,
-      )
-    })
-    await act(async () => {
-      cariTombol('Siapkan paket pemulihan (belum dikirim)').click()
-    })
-    expect(mockApiPost).toHaveBeenCalledWith('/iot-v41/pulihkan')
-
-    // 8b. MqttDiagnostikPage
-    await act(async () => {
-      root.render(
-        <MemoryRouter>
-          <MqttDiagnostikPage />
-        </MemoryRouter>,
-      )
-    })
-    await act(async () => {
-      cariTombol('Catat uji (tidak diterbitkan)').click()
-    })
-    expect(mockApiPost).toHaveBeenCalledWith(
-      '/iot-v41/mqtt-uji',
-      expect.objectContaining({ topic: 'hidro/HIDRO-01/cmd' }),
-    )
-
+  it('Langkah 8 — Halaman Peringatan: semua tombol aksi bisa diklik', async () => {
     // 8c. PeringatanPage
     await act(async () => {
       root.render(

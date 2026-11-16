@@ -8,12 +8,10 @@ import {
   KebunSayaPage,
   CctvPage,
   AsistenAiPage,
-  DosingPage,
+  ParameterKeamananPage,
   KalibrasiPage,
   DataPage,
   AuditPage,
-  MqttDiagnostikPage,
-  PemulihanPapanPage,
   PengaturanAlatPage,
   PeringatanPage,
   SaklarModePage,
@@ -61,13 +59,15 @@ export const router = createBrowserRouter([
           { path: '/cctv', element: <RequireAuth allow={ALL} element={<CctvPage />} /> },
           { path: '/asisten-ai', element: <RequireAuth allow={ALL} element={<AsistenAiPage />} /> },
           { path: '/profil', element: <RequireAuth allow={ALL} element={<ProfilePage />} /> },
-          { path: '/dosing', element: <RequireAuth allow={ADMIN_DEMO} element={<DosingPage />} /> },
+          { path: '/parameter', element: <RequireAuth allow={ADMIN_DEMO} element={<ParameterKeamananPage />} /> },
+          // Target Nutrisi dihapus (revisi Nov 2026): tautan lama diarahkan ke Parameter & Keamanan
+          { path: '/dosing', element: <Navigate to="/parameter" replace /> },
           { path: '/kalibrasi', element: <RequireAuth allow={ADMIN_DEMO} element={<KalibrasiPage />} /> },
 
           // Halaman mandiri IoT Hidroponik 1 Penampung v4.1 (sesuai menu sidebar Hidro Control)
           { path: '/saklar', element: <RequireAuth allow={ADMIN_DEMO} element={<SaklarModePage />} /> },
-          { path: '/dosing-manual', element: <Navigate to="/dosing" replace /> },
-          { path: '/pompa', element: <Navigate to="/dosing" replace /> },
+          { path: '/dosing-manual', element: <Navigate to="/parameter" replace /> },
+          { path: '/pompa', element: <Navigate to="/parameter" replace /> },
           { path: '/kuras-air', element: <Navigate to="/dashboard" replace /> },
           { path: '/air', element: <Navigate to="/dashboard" replace /> },
           { path: '/watercontrol', element: <Navigate to="/dashboard" replace /> },
@@ -75,10 +75,11 @@ export const router = createBrowserRouter([
           { path: '/ujilab', element: <Navigate to="/data" replace /> },
           { path: '/pengaturan-alat', element: <RequireAuth allow={ADMIN_DEMO} element={<PengaturanAlatPage />} /> },
           { path: '/pengaturan', element: <Navigate to="/pengaturan-alat" replace /> },
-          { path: '/pemulihan-papan', element: <RequireAuth allow={ADMIN_DEMO} element={<PemulihanPapanPage />} /> },
-          { path: '/pulihkan', element: <Navigate to="/pemulihan-papan" replace /> },
-          { path: '/mqtt-diagnostik', element: <RequireAuth allow={ADMIN_DEMO} element={<MqttDiagnostikPage />} /> },
-          { path: '/mqtt', element: <Navigate to="/mqtt-diagnostik" replace /> },
+          // Pemulihan Papan & Koneksi Alat dihapus dari antarmuka (revisi Nov 2026)
+          { path: '/pemulihan-papan', element: <Navigate to="/kalibrasi" replace /> },
+          { path: '/pulihkan', element: <Navigate to="/kalibrasi" replace /> },
+          { path: '/mqtt-diagnostik', element: <Navigate to="/dashboard" replace /> },
+          { path: '/mqtt', element: <Navigate to="/dashboard" replace /> },
           { path: '/log', element: <Navigate to="/audit" replace /> },
 
           // 02 · Kebun & Sensor — admin (demo read-only)
@@ -88,7 +89,7 @@ export const router = createBrowserRouter([
           { path: '/peremajaan', element: <RequireAuth allow={ADMIN_DEMO} element={<PeremajaanPage />} /> },
           { path: '/pendewasaan', element: <RequireAuth allow={ADMIN_DEMO} element={<PendewasaanPage />} /> },
           { path: '/panen', element: <RequireAuth allow={ADMIN_DEMO} element={<PanenPage />} /> },
-          { path: '/siklus', element: <Navigate to="/dosing" replace /> },
+          { path: '/siklus', element: <Navigate to="/parameter" replace /> },
 
           // 04 · Master Data — admin (demo read-only)
           { path: '/tanaman', element: <RequireAuth allow={ADMIN_DEMO} element={<JenisTanamanPage />} /> },
