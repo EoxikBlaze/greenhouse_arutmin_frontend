@@ -372,9 +372,13 @@ export function ChatAsisten({ saran }: { saran: string[] }) {
       {/* penanda akhir thread: tujuan gulir otomatis, jarak bawah menyisakan ruang untuk composer yang menempel */}
       <div ref={akhirRef} aria-hidden className="scroll-mb-40" />
 
-      {/* composer menempel di bawah layar */}
-      <div className="sticky bottom-3 z-10 grid gap-2">
-        <div className="flex gap-1.5 overflow-x-auto overscroll-x-contain pb-0.5 [scrollbar-width:none]" aria-label="Pintasan">
+      {/* composer menempel di bawah layar — panel kaca sendiri supaya konten di belakangnya tidak mengintip di sela pintasan */}
+      <div className="glass-chrome sticky bottom-3 z-10 grid gap-2 !rounded-[30px] p-2">
+        {/* tepi kanan memudar = tanda pintasan bisa digeser */}
+        <div
+          className="flex gap-1.5 overflow-x-auto overscroll-x-contain pb-0.5 pr-6 [mask-image:linear-gradient(to_right,#000_calc(100%-2rem),transparent)] [scrollbar-width:none]"
+          aria-label="Pintasan"
+        >
           {PINTASAN.map((x) => (
             <button
               key={x.label}
@@ -382,7 +386,7 @@ export function ChatAsisten({ saran }: { saran: string[] }) {
               disabled={memuat}
               onClick={() => void kirim(x.pesan)}
               className={clsx(
-                'inline-flex min-h-[40px] shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[12px] font-semibold transition-colors disabled:opacity-50',
+                'inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[12px] font-semibold transition-colors disabled:opacity-50',
                 x.utama
                   ? 'border-transparent bg-activePill text-white shadow-[var(--lg-rim-kecil)]'
                   : 'border-white bg-white/75 text-tinta hover:bg-white',

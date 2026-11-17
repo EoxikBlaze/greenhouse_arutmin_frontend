@@ -384,6 +384,7 @@ export function AppShell() {
               <div className="truncate text-[13.5px] font-semibold text-tinta">{namaUser || role}</div>
               <div className="truncate text-[12px] capitalize text-abu">{role}</div>
             </div>
+            <SaklarTema />
             <button
               type="button"
               onClick={() => setConfirmKeluar(true)}
@@ -409,7 +410,7 @@ export function AppShell() {
       <main id="vsf-main" tabIndex={-1} className="flex min-h-dvh min-w-0 flex-col pb-[88px] outline-none lg:pl-[92px]">
         {/* Bilah atas: merek, nav pill submenu grup aktif, status. */}
         <header ref={topbar} className="vsf-topbar sticky top-0 z-20 px-4 pt-3 sm:px-6">
-          <div className="glass-chrome flex flex-wrap items-center gap-x-3 gap-y-2 py-2 pl-2 pr-2 sm:pl-3 xl:flex-nowrap">
+          <div className="glass-chrome flex flex-wrap items-center gap-x-2 gap-y-2 py-2 pl-2 pr-2 sm:gap-x-3 sm:pl-3 xl:flex-nowrap">
             <button
               type="button"
               className="vsf-chrome-tautan !min-h-[44px] !min-w-[44px] justify-center !px-0 lg:!hidden"
@@ -443,8 +444,9 @@ export function AppShell() {
                 </>
               ) : (
                 <>
-                  {grupAktif && <div className="vsf-eyebrow vsf-eyebrow-chrome truncate">{grupAktif.label}</div>}
-                  <h1 className="truncate font-display text-[18px] font-bold leading-tight text-tinta sm:text-[20px]">{title}</h1>
+                  {/* HP: eyebrow grup disembunyikan — nav bawah sudah menunjukkan grup, ruang dipakai judul. */}
+                  {grupAktif && <div className="vsf-eyebrow vsf-eyebrow-chrome hidden truncate sm:block">{grupAktif.label}</div>}
+                  <h1 className="line-clamp-2 break-words font-display text-[1.0625rem] font-bold leading-tight text-tinta sm:text-[1.25rem]">{title}</h1>
                 </>
               )}
             </div>
@@ -459,9 +461,12 @@ export function AppShell() {
                 </span>
               )}
               <JamTopbar />
-              <SaklarTema />
+              {/* HP (<sm): saklar tema & avatar pindah ke laci agar judul halaman tidak terpotong. */}
+              <span className="hidden sm:contents">
+                <SaklarTema />
+              </span>
               {/* Avatar inisial user (bukan emoji) + nama & role. */}
-              <div className="vsf-chip-terang !gap-2 !py-1 !pl-1">
+              <div className="vsf-chip-terang !hidden !gap-2 !py-1 !pl-1 sm:!inline-flex">
                 <span
                   className="grid h-8 w-8 place-items-center rounded-full bg-emas text-[12px] font-bold uppercase leading-none text-navy [text-shadow:none]"
                   aria-hidden

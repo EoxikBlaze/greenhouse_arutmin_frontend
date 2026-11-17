@@ -1201,6 +1201,13 @@ html[data-kaca='pekat'] { --k: 1.3; }
   text-align: center;
 }
 .vsf-pillnav-bawah .vsf-pillnav-item span { white-space: normal; max-width: 76px; }
+/* HP: item berbagi lebar layar sama rata (5 × 68px tidak muat di 320–360px dan item ujung terpotong tanpa tanda). */
+@media (max-width: 639px) {
+  .vsf-pillnav-bawah { width: 100%; }
+  .vsf-pillnav-bawah .vsf-pillnav-track { width: 100%; overflow-x: visible; }
+  .vsf-pillnav-bawah .vsf-pillnav-item { flex: 1 1 0; min-width: 0; padding: 6px 2px; }
+  .vsf-pillnav-bawah .vsf-pillnav-item span { max-width: 100%; overflow-wrap: break-word; }
+}
 
 /* ── modal: kaca pekat satu lapis (di atas backdrop yang sudah diburamkan) ── */
 .vsf-modal-card {
@@ -1379,6 +1386,11 @@ html[data-kaca='pekat'] { --k: 1.3; }
   color: #fff;
   background: linear-gradient(135deg, #4e7733, #42662b);
   box-shadow: var(--lg-rim-kecil), 0 6px 14px -8px rgb(45 69 47 / 0.8);
+}
+/* HP: pilihan dibungkus ke baris baru (bukan digeser tanpa tanda → "Pengaturan dosis & j…") + target sentuh 44px. */
+@media (max-width: 639px) {
+  .vsf-segmen { flex-wrap: wrap; overflow-x: visible; border-radius: 22px; }
+  .vsf-segmen button { min-height: 44px; padding: 0 12px; }
 }
 
 .vsf-nilai {
@@ -1911,6 +1923,12 @@ html.vsf-splash-aktif { overflow: hidden; }
 }
 .vsf-btn-kecil { min-height: 40px; padding: 6px 14px; font-size: 13px; }
 .vsf-ikon-btn { min-height: 40px; min-width: 40px; justify-content: center; }
+/* HP: target sentuh minimal 44px; grid pilihan tanaman tidak punya scroll sendiri di dalam dialog yang juga ter-scroll. */
+@media (max-width: 639px) {
+  .vsf-btn-kecil { min-height: 44px; }
+  .vsf-ikon-btn { min-height: 44px; min-width: 44px; }
+  .vsf-pilih-grid { max-height: none; overflow-y: visible; }
+}
 .vsf-label-tinta { color: var(--tinta); }
 .vsf-btn-secondary.vsf-teks-bahaya { color: #b4291c; }
 
@@ -2133,6 +2151,7 @@ html.vsf-splash-aktif { overflow: hidden; }
 .vsf-ringkas { display: block; max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--abu); }
 @media (max-width: 639px) { .vsf-ringkas { max-width: 60vw; } }
 .vsf-pilih-pendek { width: auto; min-width: 120px; min-height: 40px; border-radius: 999px; }
+@media (max-width: 639px) { .vsf-pilih-pendek { min-height: 44px; } }
 .vsf-beda { display: grid; gap: 6px; margin-top: 6px; font-size: 13px; }
 .vsf-beda-baris { display: grid; grid-template-columns: minmax(90px, 0.8fr) 1fr 1fr; gap: 8px; align-items: start; padding: 6px 8px; border-radius: 12px; background: rgb(255 255 255 / 0.5); }
 .vsf-beda-baris.is-satu { grid-template-columns: minmax(90px, 0.8fr) 2fr; }
@@ -2153,6 +2172,7 @@ html.vsf-splash-aktif { overflow: hidden; }
 .vsf-paginasi { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; font-size: 13px; color: var(--abu); }
 .vsf-paginasi-nomor { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .vsf-chip-nomor { min-width: 36px; justify-content: center; padding-inline: 8px; }
+@media (max-width: 639px) { .vsf-chip-nomor { min-width: 44px; } }
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
   .vsf-beda-baris { background: #fff; }
 }

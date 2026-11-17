@@ -71,7 +71,13 @@ export function KartuNilai({
                 <Ikon nama={IKON[p.kunci]} className="h-4 w-4" />
                 {p.label}
               </span>
-              {aktif && <Ikon nama="centang" className="h-4 w-4 text-arutmin-forest" />}
+              {/* Penanda "dipilih untuk grafik" — bukan centang, agar tidak terbaca sebagai status aman. */}
+              {aktif && (
+                <span className="inline-flex shrink-0 items-center gap-1 text-[0.6875rem] font-semibold text-arutmin-forest">
+                  <Ikon nama="sensor" className="h-3.5 w-3.5" />
+                  di grafik
+                </span>
+              )}
             </span>
             <span className="mt-2 flex items-baseline gap-1">
               <span className="font-heading text-[28px] font-bold leading-none tabular-nums text-tinta">

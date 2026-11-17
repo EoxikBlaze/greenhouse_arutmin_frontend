@@ -46,6 +46,7 @@ export function PanelKalibrasiLangsungV41({
   const k = iot?.kondisi
   const stab = iot?.stabilitas
   const papan = iot?.papan
+  const alatOnline = papan?.status === 'online'
 
   // State titik ukur sementara (di memori sesi browser seperti $_SESSION['kal'] di kalibrasi.php)
   const [ec1413, setEc1413] = useState<number | null>(null)
@@ -329,6 +330,11 @@ export function PanelKalibrasiLangsungV41({
             <p className="mt-0.5 text-[13px] text-abu">
               Semua tindakan OFF dan hitungan dibekukan. Kalibrasi hanya bisa saat mode ini aktif.
             </p>
+            {!bolehUbah && (
+              <p className="mt-1 text-[13px] font-semibold text-tinta">
+                Hanya admin yang dapat menjalankan kalibrasi — tombol yang disebut di langkah-langkah di bawah tidak tampil untuk akun ini.
+              </p>
+            )}
           </div>
           {bolehUbah && (
             <div className="flex flex-wrap items-center gap-2">
@@ -375,7 +381,7 @@ export function PanelKalibrasiLangsungV41({
               </div>
               <div className="mt-1.5 flex justify-center">
                 <span className={clsx('vsf-chip-nilai', ecStab.stabil ? 'is-normal' : 'is-kosong')}>
-                  {ecStab.stabil ? 'stabil — siap diambil' : 'menunggu stabil…'}
+                  {!alatOnline ? 'alat offline — tidak bisa kalibrasi' : ecStab.stabil ? 'stabil — siap diambil' : 'menunggu stabil…'}
                 </span>
               </div>
               <div className="mt-1 text-[11.5px] text-abu">
@@ -451,7 +457,7 @@ export function PanelKalibrasiLangsungV41({
               </div>
               <div className="mt-1.5 flex justify-center">
                 <span className={clsx('vsf-chip-nilai', phStab.stabil ? 'is-normal' : 'is-kosong')}>
-                  {phStab.stabil ? 'stabil — siap diambil' : 'menunggu stabil…'}
+                  {!alatOnline ? 'alat offline — tidak bisa kalibrasi' : phStab.stabil ? 'stabil — siap diambil' : 'menunggu stabil…'}
                 </span>
               </div>
               <div className="mt-1 text-[11.5px] text-abu">
@@ -534,7 +540,7 @@ export function PanelKalibrasiLangsungV41({
                 >
                   {DAFTAR_POMPA.map((d) => (
                     <option key={d.kode} value={d.kode}>
-                      {d.label} — laju sekarang {fmt(p?.[d.paramLaju], 2)} mL/detik
+                      {d.label} · {fmt(p?.[d.paramLaju], 2)} mL/dtk
                     </option>
                   ))}
                 </select>

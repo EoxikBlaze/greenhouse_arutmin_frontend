@@ -48,11 +48,13 @@ export function PanelFailSafe({ data }: { data: Daftar<FailSafeRow> }) {
         <Kosong>{cari ? `Tidak ada aturan yang cocok dengan “${cari}”.` : 'Aturan pengaman belum tersedia.'}</Kosong>
       ) : (
         <div className="mt-4">
-          {grup.map(([nama, rows]) => (
-            <div key={nama}>
-              <div className="vsf-grup">
+          {/* Tiap kelompok bisa diciutkan (±20 kartu membuat halaman ±7.500px di HP); terbuka semua saat mencari. */}
+          {grup.map(([nama, rows], i) => (
+            <details key={`${nama}${cari ? '-cari' : ''}`} open={Boolean(cari) || i === 0} className="group">
+              <summary className="vsf-grup min-h-[44px] cursor-pointer list-none !items-center [&::-webkit-details-marker]:hidden">
+                <Ikon nama="bawah" className="h-4 w-4 shrink-0 -rotate-90 transition-transform group-open:rotate-0" />
                 {nama} <span>{rows.length}</span>
-              </div>
+              </summary>
               <div className="vsf-daftar">
                 {rows.map((r) => (
                   <div
@@ -86,7 +88,7 @@ export function PanelFailSafe({ data }: { data: Daftar<FailSafeRow> }) {
                   </div>
                 ))}
               </div>
-            </div>
+            </details>
           ))}
         </div>
       )}

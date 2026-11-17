@@ -93,13 +93,16 @@ export default function DashboardPage() {
   const sensorFlash = useFlashOnChange(JSON.stringify(data?.latest_sensor ?? null))
 
   const kelola = role !== 'petani' // menu pengelola (semai/water control) tidak ditawarkan ke petani
+  // GET /dashboard sengaja mengosongkan data operasional untuk akun demo (semua 0/null):
+  // tampilkan "—" + keterangan, bukan "0"/"Alat terputus" yang terbaca sebagai kondisi kebun.
+  const demo = role === 'demo'
   const s = data?.latest_sensor ?? null
   const wc = data?.water_control ?? null
   const iot = data?.iotStatus ?? null
   const online = !!iot?.online
-  const statusKata = online ? 'perangkat online' : 'perangkat offline'
+  const statusKata = demo ? 'disembunyikan (demo)' : online ? 'perangkat online' : 'perangkat offline'
   // Alat tidak mengirim data: angka sensor yang tampil adalah bacaan TERAKHIR, bukan kondisi kebun sekarang.
-  const usang = !loading && !error && !!data && !online
+  const usang = !demo && !loading && !error && !!data && !online
   const umurTeks = iot?.seconds_ago != null ? relatif(iot.seconds_ago * 1000) : null
 
   // batas aman dari halaman Ambang Sensor (server) — dulu angka target ditulis tetap di kode
@@ -169,6 +172,15 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {demo && !loading && (
+        <div role="status" className="vsf-banner vsf-tone-warn flex items-start gap-2 rounded-input px-4 py-3 text-[13px]">
+          <Ikon nama="info" className="mt-[1px] h-4 w-4 shrink-0" />
+          <span>
+            <b>Data operasional disembunyikan di mode demo.</b> Tanda “—” bukan kondisi kebun; isi lengkap hanya untuk akun admin/petani.
+          </span>
+        </div>
+      )}
+
       {usang && (
         <div role="alert" className="vsf-banner vsf-tone-warn flex flex-wrap items-center gap-x-4 gap-y-2 rounded-input px-4 py-3 text-[13px]">
           <span className="flex min-w-0 flex-1 items-start gap-2">
@@ -179,10 +191,11 @@ export default function DashboardPage() {
                   ? `Alat tidak mengirim data sejak ${waktuBasi((iot.seconds_ago ?? 0) * 1000, iot.last_seen)}.`
                   : 'Belum ada data dari alat sensor.'}
               </b>{' '}
-              Angka di bawah adalah <b>bacaan terakhir</b>, bukan kondisi kebun sekarang. Cek apakah alat menyala dan tersambung ke Wi-Fi.
+              Angka di bawah <b>bukan kondisi kebun sekarang</b>.
+              <span className="hidden sm:inline"> Cek apakah alat menyala dan tersambung ke Wi-Fi.</span>
             </span>
           </span>
-          <Link to="/sensor-realtime" className="font-semibold underline underline-offset-2">
+          <Link to="/sensor-realtime" className="inline-flex min-h-[44px] items-center font-semibold underline underline-offset-2">
             Lihat riwayat
           </Link>
         </div>
@@ -204,18 +217,20 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between gap-3">
             <div className="text-[12px] font-bold uppercase tracking-[.14em] text-arutmin-forest/75">Status greenhouse</div>
             <span className="vsf-chip-terang" role="status">
-              <span className={`h-2 w-2 rounded-full ${online ? 'bg-moss' : 'bg-arutmin-error'}`} aria-hidden />
-              {online ? 'Alat terhubung' : 'Alat terputus'}
+              <span className={`h-2 w-2 rounded-full ${demo ? 'bg-slate-400' : online ? 'bg-moss' : 'bg-arutmin-error'}`} aria-hidden />
+              {demo ? 'Mode demo' : online ? 'Alat terhubung' : 'Alat terputus'}
             </span>
           </div>
           <div className="mt-5">
             <div className="text-[13px] text-abu">Batch tanam berjalan</div>
             <div className="font-display text-[48px] font-bold leading-none tabular-nums text-tinta sm:text-[56px]">
-              {loading && !data ? <span className="vsf-skeleton inline-block h-[52px] w-[120px] align-middle" /> : <AngkaHidup nilai={batchAktif} />}
+              {loading && !data ? <span className="vsf-skeleton inline-block h-[52px] w-[120px] align-middle" /> : demo ? '—' : <AngkaHidup nilai={batchAktif} />}
             </div>
             <div className="mt-2 text-[12px] text-abu">
               {loading && !data ? (
                 <span className="vsf-skeleton inline-block h-[16px] w-[200px]" />
+              ) : demo ? (
+                'Disembunyikan di mode demo.'
               ) : iot?.last_seen ? (
                 <>Bacaan terakhir: {iot.seconds_ago != null ? waktuBasi(iot.seconds_ago * 1000, iot.last_seen) : tglJam(iot.last_seen)}</>
               ) : (
@@ -227,13 +242,13 @@ export default function DashboardPage() {
             <div className="rounded-card border border-white/80 bg-white/55 p-3 shadow-[inset_0_1px_0_#fff]">
               <div className="text-[12px] text-abu">Tanaman dipanen</div>
               <div className="font-display text-[24px] font-bold leading-tight tabular-nums text-arutmin-forest">
-                {loading && !data ? '—' : <AngkaHidup nilai={Number(data?.total_panen_qty ?? 0)} />}
+                {(loading && !data) || demo ? '—' : <AngkaHidup nilai={Number(data?.total_panen_qty ?? 0)} />}
               </div>
             </div>
             <div className="rounded-card border border-white/80 bg-white/55 p-3 shadow-[inset_0_1px_0_#fff]">
               <div className="text-[12px] text-abu">Total batch tercatat</div>
               <div className="font-display text-[24px] font-bold leading-tight tabular-nums text-arutmin-forest">
-                {loading && !data ? '—' : <AngkaHidup nilai={Number(data?.total_semai ?? 0) + Number(data?.total_peremajaan ?? 0) + Number(data?.total_pendewasaan ?? 0)} />}
+                {(loading && !data) || demo ? '—' : <AngkaHidup nilai={Number(data?.total_semai ?? 0) + Number(data?.total_peremajaan ?? 0) + Number(data?.total_pendewasaan ?? 0)} />}
               </div>
             </div>
           </div>
@@ -272,7 +287,9 @@ export default function DashboardPage() {
             {loading && !data
               ? Array.from({ length: 8 }, (_, i) => <div key={i} className="vsf-skeleton min-h-[132px]" />)
               : metrik.map((m) => {
-                  const sorot = m.k === 'ph' ? 'vsf-kpi-hijau' : m.k === 'tds' ? 'vsf-kpi-emas' : 'vsf-kpi-kaca'
+                  // Sorot hijau/emas hanya untuk bacaan segar: kartu kosong/basi berwarna bisa dibaca "kondisi baik".
+                  const segar = adaAngka(m.num) && !usang
+                  const sorot = !segar ? 'vsf-kpi-kaca' : m.k === 'ph' ? 'vsf-kpi-hijau' : m.k === 'tds' ? 'vsf-kpi-emas' : 'vsf-kpi-kaca'
                   return (
                     <Link
                       key={m.k}
@@ -342,12 +359,12 @@ export default function DashboardPage() {
                         <div className="min-w-0 flex-1">
                           <div className="truncate text-[14px] font-semibold text-tinta">{p.label}</div>
                           <div className="text-[12px] text-abu">
-                            {angka(p.jalan)} {p.ket}
+                            {demo ? '—' : angka(p.jalan)} {p.ket}
                           </div>
                         </div>
                         <div className="text-right">
                           <div className="font-display text-[20px] font-bold leading-none tabular-nums text-arutmin-forest">
-                            <AngkaHidup nilai={total} />
+                            {demo ? '—' : <AngkaHidup nilai={total} />}
                           </div>
                           {kelola && (
                             <Link

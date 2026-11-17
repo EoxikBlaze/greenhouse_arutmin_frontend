@@ -119,10 +119,12 @@ export function AuditPage() {
         </span>
       ),
     },
-    { key: 'aksi', header: 'Aksi', render: (r) => <LencanaAksi aksi={r.aksi} /> },
+    // HP: Aksi & Data ditampilkan ringkas di sel Ringkasan (kartu lebih pendek).
+    { key: 'aksi', header: 'Aksi', hpSembunyi: true, render: (r) => <LencanaAksi aksi={r.aksi} /> },
     {
       key: 'tabel',
       header: 'Data',
+      hpSembunyi: true,
       render: (r) => (
         <span>
           <b className="block text-tinta">{namaTabel(r.tabel)}</b>
@@ -130,7 +132,23 @@ export function AuditPage() {
         </span>
       ),
     },
-    { key: 'ringkasan', header: 'Ringkasan', render: (r) => <span className="vsf-ringkas">{ringkasSingkat(r)}</span> },
+    {
+      key: 'ringkasan',
+      header: 'Ringkasan',
+      render: (r) => (
+        <span className="vsf-ringkas">
+          {/* HP: aksi + data digabung di sini karena kolomnya disembunyikan */}
+          <span className="mb-1 flex flex-wrap items-center gap-1.5 sm:hidden">
+            <LencanaAksi aksi={r.aksi} />
+            <b className="text-tinta">
+              {namaTabel(r.tabel)}
+              {r.row_id ? ` #${r.row_id}` : ''}
+            </b>
+          </span>
+          {ringkasSingkat(r)}
+        </span>
+      ),
+    },
   ]
 
   return (

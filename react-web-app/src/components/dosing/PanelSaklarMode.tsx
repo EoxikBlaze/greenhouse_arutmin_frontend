@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/authContext'
 import { useApiError } from '../../lib/crudApi'
+import { tglJam } from '../../lib/format'
+import { useKeselamatan } from '../../lib/keselamatan'
 import type { IotV41State } from '../../lib/iotV41'
 import { Ikon } from '../Ikon'
 import { Pesan, Rangka } from '../kaca/DialogKaca'
@@ -23,7 +25,7 @@ const DAFTAR_SAKLAR: readonly SaklarItem[] = [
   {
     kunci: 'saklar_ab',
     judul: 'Nutrisi A + B',
-    ket: 'Kalau OFF: otomasi tidak menyuntik nutrisi; EC kurang hanya jadi peringatan.',
+    ket: 'Izin otomasi nutrisi. OFF: EC kurang hanya jadi peringatan.',
   },
   {
     kunci: 'saklar_ph_up',
@@ -71,6 +73,12 @@ export function PanelSaklarMode({
   const p = iot?.params
   const k = iot?.kondisi
   const pr = iot?.pratinjau_dosis
+  // Gerbang dosis di server (EKSEKUSI_DIIZINKAN): anggap terkunci kecuali server tegas mengizinkan.
+  const dosingDiizinkan = useKeselamatan().data?.eksekusi_dosing_diizinkan === true
+  // Tanpa kondisi atau kondisi basi: jangan tampilkan float/status seolah bacaan terkini.
+  const basi = !k || k.basi === true
+  const teksFloat = (v: number | null | undefined, nol: string, satu: string) =>
+    basi || v === null || v === undefined ? 'tidak diketahui' : v === 0 ? nol : satu
 
   const [draf, setDraf] = useState<Partial<{
     saklar_ab: boolean
@@ -147,6 +155,16 @@ export function PanelSaklarMode({
           {!bolehUbah && ' Hanya admin yang dapat mengubah saklar.'}
         </p>
 
+        {!dosingDiizinkan && (
+          <div role="status" className="vsf-tone-warn mt-3 flex items-start gap-2 rounded-input px-3 py-2.5 text-[0.8125rem] leading-relaxed">
+            <Ikon nama="kunci" className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>
+              <b>Eksekusi pompa otomatis terkunci</b> di server. Saklar di bawah hanya izin rancangan —
+              tidak ada pompa nutrisi atau pH yang dijalankan otomatis dari web.
+            </span>
+          </div>
+        )}
+
         {pesan && <Pesan jenis="ok">{pesan}</Pesan>}
         {galat && <Pesan jenis="galat" onTutup={() => setGalat(null)}>{galat}</Pesan>}
 
@@ -159,7 +177,13 @@ export function PanelSaklarMode({
                 className="vsf-blok flex items-center justify-between gap-4 px-4 py-3"
               >
                 <div className="min-w-0 flex-1">
-                  <div className="text-[14px] font-bold text-tinta">{item.judul}</div>
+                  <div className="text-[14px] font-bold text-tinta">
+                    {item.judul}
+                    {/* status izin sebagai teks — tidak bergantung pada warna/posisi saklar */}
+                    <span className={`ml-1.5 whitespace-nowrap text-[0.75rem] font-semibold ${nyala ? 'text-arutmin-forest' : 'text-abu'}`} aria-hidden>
+                      · {nyala ? 'Diizinkan' : 'Tidak diizinkan'}
+                    </span>
+                  </div>
                   <div className="mt-0.5 text-[12.5px] leading-relaxed text-abu">{item.ket}</div>
                 </div>
                 <SwitchKaca
@@ -215,11 +239,17 @@ export function PanelSaklarMode({
         <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Kondisi saat ini">
           <div className="flex items-center justify-between gap-2">
             <div className="vsf-judul-bagian">Kondisi saat ini</div>
-            <StatusBadge
-              tone={k?.status === 'PERINGATAN' ? 'offline' : 'online'}
-              label={k?.status ?? 'NORMAL'}
-            />
+            {basi ? (
+              <StatusBadge tone="warning" label="Data basi" />
+            ) : (
+              <StatusBadge tone={k?.status === 'PERINGATAN' ? 'offline' : 'online'} label={k?.status || '—'} />
+            )}
           </div>
+          {basi && (
+            <p className="mt-1 text-[0.75rem] text-abu">
+              Alat tidak mengirim kondisi segar{k?.updated_at ? ` sejak ${tglJam(k.updated_at)}` : ''}. Angka di bawah bukan kondisi sekarang.
+            </p>
+          )}
 
           <dl className="mt-3 grid grid-cols-1 gap-2 text-[13px] sm:grid-cols-2">
             <div className="vsf-stat">
@@ -237,13 +267,13 @@ export function PanelSaklarMode({
             <div className="vsf-stat">
               <dt className="vsf-label">Float bawah</dt>
               <dd className="mt-0.5 font-semibold text-tinta">
-                {k?.float_bawah === 0 ? 'turun (air kurang)' : 'mengambang (cukup)'}
+                {teksFloat(k?.float_bawah, 'turun (air kurang)', 'mengambang (cukup)')}
               </dd>
             </div>
             <div className="vsf-stat">
               <dt className="vsf-label">Float atas</dt>
               <dd className="mt-0.5 font-semibold text-tinta">
-                {k?.float_atas === 1 ? 'mengambang (penuh)' : 'turun (belum penuh)'}
+                {teksFloat(k?.float_atas, 'turun (belum penuh)', 'mengambang (penuh)')}
               </dd>
             </div>
             <div className="vsf-stat">
@@ -266,9 +296,9 @@ export function PanelSaklarMode({
             </div>
           </dl>
 
-          {pr && (
+          {pr && !basi && k?.ec_ppm != null && (
             <div className="vsf-blok mt-3 p-3">
-              <div className="text-[12.5px] font-bold text-tinta">Pratinjau dosis (bila kurang dari target)</div>
+              <div className="text-[12.5px] font-bold text-tinta">Simulasi dosis (tidak dijalankan)</div>
               <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[12.5px]">
                 <dt className="text-abu">EC sekarang</dt>
                 <dd className="text-right font-semibold tabular-nums text-tinta">{fmt(pr.ec_sekarang)} ppm</dd>

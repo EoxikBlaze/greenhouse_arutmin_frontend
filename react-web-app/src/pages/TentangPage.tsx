@@ -440,7 +440,8 @@ export function TentangPage() {
                 <span className="absolute right-4 top-3 font-display text-[40px] font-bold leading-none text-arutmin-mint" aria-hidden>
                   {a.no}
                 </span>
-                <div className="relative">
+                {/* pr-12: judul panjang tidak membungkus ke bawah angka besar di pojok kanan */}
+                <div className="relative pr-12">
                   <div className="text-[16px] font-bold text-tinta">{a.judul}</div>
                   <p className="mt-2 text-[13.5px] leading-relaxed text-slate-600">{a.teks}</p>
                 </div>

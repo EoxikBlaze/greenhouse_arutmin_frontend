@@ -15,8 +15,11 @@ export function DemoBanner({ demo }: { demo: boolean }) {
         <Ikon nama="peringatan" className="h-3 w-3" />
         Demo
       </span>
-      <span>
-        <b>Mode Demo (Hanya Terima Data):</b> Akun ini hanya dapat melihat pantauan kebun dan tidak dapat mengirim atau mengubah data.
+      {/* Sesuai kebijakan server: demo boleh mencoba MENAMBAH data, tetapi tidak mengubah, menghapus, atau mengendalikan alat. */}
+      <span className="sm:hidden">Boleh mencoba menambah data; tidak bisa mengubah, menghapus, atau mengendalikan alat.</span>
+      <span className="hidden sm:inline">
+        <b>Mode Demo:</b> Akun ini boleh melihat pantauan kebun dan mencoba menambah data, tetapi tidak dapat mengubah, menghapus,
+        atau mengendalikan alat.
       </span>
     </div>
   )

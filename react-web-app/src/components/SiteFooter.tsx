@@ -22,7 +22,7 @@ export function SiteFooter({ className = '', pekat = false, akun = false }: { cl
         </Link>
         <span className="flex shrink-0 items-center gap-1.5">
           {akun && (
-            <Link to="/profil" className={`vsf-bilah-tombol ${pekat ? 'vsf-bilah-tombol-terang' : 'vsf-bilah-tombol-kaca'} whitespace-nowrap !min-h-[44px] sm:!min-h-[40px] !px-4 !text-[13px]`}>
+            <Link to="/profil" className={`vsf-bilah-tombol ${pekat ? 'vsf-bilah-tombol-terang' : 'vsf-bilah-tombol-kaca'} max-sm:!hidden whitespace-nowrap !min-h-[44px] sm:!min-h-[40px] !px-4 !text-[13px]`}>
               Akun Saya
             </Link>
           )}

@@ -191,3 +191,10 @@ html[data-tema='gelap'] .vsf-banner {
    → hampir tak terbaca di langit malam. Latar emas + teks navy (kontras ±10:1). */
 html[data-tema='gelap'] .vsf-bilah-tombol { color: #0a1f38; background: var(--emas); }
 html[data-tema='gelap'] .vsf-bilah-tombol:hover { background: #f1da74; }
+
+/* Rel saklar ON tetap hijau di mode gelap: aturan gelap umum .vsf-switch-kaca (hasil buat-tema-gelap)
+   lebih spesifik dari .vsf-switch-kaca[data-nyala] di index.css dan membuat ON/OFF sama abu-abu. */
+html[data-tema='gelap'] .vsf-switch-kaca[data-nyala='true'] {
+  background: rgb(78 119 51 / 0.9);
+  box-shadow: inset 0 0 0 1px rgb(134 186 98 / 0.6), 0 0 14px rgb(107 157 74 / 0.45);
+}

@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import type { ReactNode } from 'react'
 import { Ikon } from '../Ikon'
 import { DialogKaca, DialogKonfirmasi, Kosong, Pesan, Rangka } from '../kaca/DialogKaca'
@@ -52,6 +53,8 @@ export type KolomMaster<T> = {
   header: string
   /** Rata kanan untuk angka. */
   kanan?: boolean
+  /** Sembunyikan di kartu HP (<640px) bila isinya sudah terwakili kolom lain — kartu jadi lebih pendek. */
+  hpSembunyi?: boolean
   render: (r: T) => ReactNode
 }
 
@@ -128,7 +131,7 @@ export function TabelMaster<T>({
               }
             >
               {kolom.map((k) => (
-                <td key={k.key} data-label={k.header} className={k.kanan ? 'is-kanan' : undefined}>
+                <td key={k.key} data-label={k.header} className={clsx(k.kanan && 'is-kanan', k.hpSembunyi && 'max-sm:!hidden') || undefined}>
                   {k.render(r)}
                 </td>
               ))}

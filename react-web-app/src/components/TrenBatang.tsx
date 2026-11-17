@@ -52,7 +52,7 @@ export function TrenBatang() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="vsf-judul-bagian">Tren Sensor</div>
-          <div className="text-[12px] text-abu">{JUMLAH} bacaan terakhir</div>
+          <div className="text-[12px] text-abu">{batang.length > 0 ? `${batang.length} bacaan terakhir` : 'Belum ada bacaan'}</div>
         </div>
         <div role="tablist" aria-label="Parameter sensor" className="inline-flex rounded-full bg-white/55 p-1 shadow-[inset_0_0_0_1px_rgba(255,255,255,.85)]">
           {(Object.keys(PARAM) as Param[]).map((p) => (
@@ -62,7 +62,7 @@ export function TrenBatang() {
               aria-selected={p === param}
               type="button"
               onClick={() => setParam(p)}
-              className={`min-h-[44px] sm:min-h-[36px] rounded-full px-3 text-[13px] font-semibold transition-colors duration-[var(--dur-normal)] ${
+              className={`min-h-[44px] min-w-[44px] sm:min-h-[36px] rounded-full px-3 text-[13px] font-semibold transition-colors duration-[var(--dur-normal)] ${
                 p === param ? 'bg-activePill text-white shadow-[0_6px_14px_-8px_rgba(78,119,51,.9)]' : 'text-tinta/70 hover:bg-white/70'
               }`}
             >

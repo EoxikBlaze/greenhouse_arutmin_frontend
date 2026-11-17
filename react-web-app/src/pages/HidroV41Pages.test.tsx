@@ -296,6 +296,62 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
     )
   })
 
+  it('Saklar — selalu menyatakan eksekusi dosing terkunci bila server tidak mengizinkan', async () => {
+    await act(async () => {
+      root.render(<PanelSaklarMode iot={BAWAAN_V41} loading={false} onReload={() => {}} />)
+    })
+    expect(container.textContent).toContain('Eksekusi pompa otomatis terkunci')
+    expect(container.textContent).toContain('Simulasi dosis (tidak dijalankan)')
+    // Status izin terbaca sebagai teks, bukan hanya warna/posisi saklar.
+    expect(container.textContent).toContain('Diizinkan')
+    await act(async () => {
+      ;(container.querySelector('button[role="switch"]') as HTMLButtonElement).click()
+    })
+    expect(container.textContent).toContain('Tidak diizinkan')
+  })
+
+  it('Saklar — kondisi kosong/basi tidak tampil seperti bacaan aman terkini', async () => {
+    const kosong: IotV41State = {
+      ...BAWAAN_V41,
+      kondisi: {
+        ...BAWAAN_V41.kondisi!,
+        status: '',
+        float_bawah: null,
+        float_atas: null,
+        ec_ppm: null,
+        basi: true,
+        updated_at: null,
+      },
+    }
+    await act(async () => {
+      root.render(<PanelSaklarMode iot={kosong} loading={false} onReload={() => {}} />)
+    })
+    const teks = container.textContent ?? ''
+    expect(teks).not.toContain('mengambang (cukup)')
+    expect(teks).not.toContain('turun (belum penuh)')
+    expect(teks).not.toContain('NORMAL')
+    expect(teks).toContain('tidak diketahui')
+    expect(teks).toContain('Data basi')
+    expect(teks).not.toContain('Simulasi dosis (tidak dijalankan)')
+  })
+
+  it('Kalibrasi — alat offline tidak ditampilkan sebagai "menunggu stabil"', async () => {
+    const offline: IotV41State = {
+      ...BAWAAN_V41,
+      papan: { ...BAWAAN_V41.papan!, status: 'offline' },
+      stabilitas: {
+        ec: { stabil: false, n: 0, sebaran: null, batas: 20 },
+        ph: { stabil: false, n: 0, sebaran: null, batas: 0.06 },
+      },
+    }
+    await act(async () => {
+      root.render(<PanelKalibrasiLangsungV41 iot={offline} loading={false} onReload={() => {}} />)
+    })
+    const teks = container.textContent ?? ''
+    expect(teks).not.toContain('menunggu stabil')
+    expect(teks).toContain('alat offline — tidak bisa kalibrasi')
+  })
+
   it('Langkah 8 — Halaman Peringatan: semua tombol aksi bisa diklik', async () => {
     // 8c. PeringatanPage
     await act(async () => {

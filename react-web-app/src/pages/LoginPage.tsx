@@ -278,7 +278,7 @@ export default function LoginPage() {
             />
             <button
               type="button"
-              className="absolute inset-y-0 right-1 my-auto inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 hover:bg-arutmin-mint/40 hover:text-arutmin-forest disabled:cursor-not-allowed disabled:opacity-50"
+              className="absolute inset-y-0 right-1 my-auto inline-flex h-11 w-11 items-center justify-center rounded-full text-slate-500 hover:bg-arutmin-mint/40 hover:text-arutmin-forest disabled:cursor-not-allowed disabled:opacity-50"
               onClick={() => setShowPass((v) => !v)}
               disabled={submitting}
               aria-label={showPass ? 'Sembunyikan password' : 'Tampilkan password'}

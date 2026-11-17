@@ -91,7 +91,7 @@ export default function ParameterKeamananPage() {
             <div className="vsf-judul-bagian">Parameter penting</div>
             <p className="mt-0.5 text-[13px] text-abu">
               Bacaan dari ESP32. Batas peringatan diambil dari{' '}
-              <Link to="/ambang" className="font-semibold text-arutmin-forest underline">Master Data → Ambang Sensor</Link>
+              <Link to="/ambang" className="py-[14px] font-semibold text-arutmin-forest underline">Master Data → Ambang Sensor</Link>
               {' '}dan bukan bacaan sensor.
             </p>
           </div>
