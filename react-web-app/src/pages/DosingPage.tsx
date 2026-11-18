@@ -13,7 +13,6 @@ import { StatusBadge } from '../components/StatusBadge'
 import { PanelPerawatan } from '../components/dosing/PanelPerawatan'
 import { TargetPenampung, type TargetMeja } from '../components/dosing/PanelTarget'
 import { Segmen } from '../components/sensor/FilterBar'
-import { KartuSaranDosis } from '../components/analitik/KartuSaranDosis'
 
 const TAB = ['Target Nutrisi', 'Perawatan'] as const
 type Tab = (typeof TAB)[number]
@@ -177,7 +176,6 @@ function KontenAdminDemo({ tab }: { tab: Tab }) {
 
       {tab === 'Target Nutrisi' && (
         <>
-          <KartuSaranDosis />
           <PanelSinkronTargetAlat targetUtama={target.rows[0]} />
           <NaikHarian />
           <TargetPenampung data={target} onUbah={() => setVersiTarget((v) => v + 1)} />

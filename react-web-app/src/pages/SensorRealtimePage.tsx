@@ -51,7 +51,11 @@ export default function SensorRealtimePage() {
   const handleApiError = useApiError()
 
   // Batas aman per sensor — sumber yang sama dengan Dashboard (tabel sensor_thresholds).
-  const { data: dash } = useApiObject<{ ambang?: Ambang }>('/dashboard', { pollMs: 60_000 })
+  // Status alat (MQTT) & kesegaran data — sumber yang sama dengan Dashboard, supaya kedua halaman tidak berbeda.
+  const { data: dash } = useApiObject<{ ambang?: Ambang; iotStatus?: { online?: boolean; data_segar?: boolean } | null }>(
+    '/dashboard',
+    { pollMs: 15_000 },
+  )
   const ambang: Ambang = dash?.ambang ?? null
 
   const [rentang, setRentang] = useState<Rentang>('6 Jam')
@@ -205,6 +209,8 @@ export default function SensorRealtimePage() {
   return (
     <div className="vsf-halaman vsf-stagger">
       <StripStatus
+        alatOnline={dash?.iotStatus?.online ?? null}
+        dataSegar={dash?.iotStatus?.data_segar ?? null}
         waktuTerbaru={waktuTerbaru}
         kini={kini}
         memuat={loading}
@@ -212,7 +218,7 @@ export default function SensorRealtimePage() {
         kembar={liveBersih.dibuang}
       />
 
-      <KartuNilai terakhir={terakhir} ambang={ambang} terpilih={terpilih} onToggle={toggle} kini={kini} memuat={loading} />
+      <KartuNilai waktuTerbaru={waktuTerbaru} terakhir={terakhir} ambang={ambang} terpilih={terpilih} onToggle={toggle} kini={kini} memuat={loading} />
 
       <FilterBar
         rentang={rentang}

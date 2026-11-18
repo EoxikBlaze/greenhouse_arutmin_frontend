@@ -10,11 +10,16 @@ function statusLabel(status?: string | null): string {
 }
 
 /** Satu batch tanam: tahap, progres hari, dan penanda siap pindah. Kartu tint (tanpa blur sendiri: sudah di dalam kartu kaca). */
-export function KartuBatch({ r }: { r: TanamRow }) {
+export function KartuBatch({ r, onUbahKurva }: { r: TanamRow; onUbahKurva?: () => void }) {
   const p = progres(r)
   const siap = labelSiap(r)
   const selesai = perkiraanSelesai(r.mulai, r.durasi_hari)
   const jumlah = r.tipe === 'semai' ? r.jumlah_benih : r.jumlah_masuk
+  const nut = r.nutrisi
+  const kurvaTeks = nut?.kurva
+    ? `${nut.kurva.ppm_awal}→${nut.kurva.ppm_target} ppm / ${nut.kurva.hari_capai} hari${nut.kurva.diubah_hari ? ` (diubah hari ke-${nut.kurva.diubah_hari})` : ''}`
+    : 'belum diatur'
+  const targetTeks = nut?.target_hari_ini != null ? `${nut.target_hari_ini} ppm` : r.tipe === 'semai' ? 'preset semai' : '—'
 
   return (
     <article className={clsx('vsf-batch', siap && 'is-siap')}>
@@ -69,6 +74,8 @@ export function KartuBatch({ r }: { r: TanamRow }) {
           ['Mulai', tglPendek(r.mulai)],
           ['Selesai ±', selesai === null ? '—' : tglPendek(selesai)],
           [r.tipe === 'semai' ? 'Jumlah benih' : 'Jumlah masuk', typeof jumlah === 'number' ? jumlah : 'belum dicatat'],
+          ['Target hari ini', targetTeks],
+          ['Kurva nutrisi', kurvaTeks],
         ].map(([k, v]) => (
           <div key={k as string} className="flex items-center justify-between gap-2">
             <dt className="text-abu">{k}</dt>
@@ -76,6 +83,15 @@ export function KartuBatch({ r }: { r: TanamRow }) {
           </div>
         ))}
       </dl>
+      {onUbahKurva && r.id_semai != null && (
+        <button
+          type="button"
+          className="mt-2 inline-flex min-h-[44px] items-center text-[12px] font-semibold text-arutmin-forest underline"
+          onClick={onUbahKurva}
+        >
+          Ubah target nutrisi batch
+        </button>
+      )}
     </article>
   )
 }

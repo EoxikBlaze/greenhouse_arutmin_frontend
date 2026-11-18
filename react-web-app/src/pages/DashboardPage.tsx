@@ -19,20 +19,40 @@ type SensorTerkini = {
   tds?: number | null
   airTemp?: number | null
   humidity?: number | null
-  /** EC dalam mS/cm (kolom ec_ms_cm); TDS tetap dalam ppm. */
+  /** EC mS/cm dari field `ec` firmware v6 (kolom ec_ms_cm). Kolom `tds` = ppm = EC × 500. */
   ec_ms_cm?: number | null
-  /** Level tandon dari sensor level (teks, mis. "Sedang"). */
-  water_level?: string | null
   created_at?: string | null
+}
+
+/** Keadaan alat dari field tambahan Kontrak MQTT v2.0 §3.2 (disimpan server di aktuator_state v6_*). */
+type KeadaanAlat = {
+  level_air?: string | null
+  pompa_isi?: boolean | null
+  mode?: string | null
+  kegiatan?: string | null
+  kunci?: string | null
+  siap?: boolean | null
+  kurang?: string | null
+  estop?: boolean | null
+  pemeliharaan?: boolean | null
+  ppm_terlalu_rendah?: boolean | null
+  target_ppm?: number | null
+  ph_min?: number | null
+  ph_max?: number | null
+  hari_semai?: number | null
 }
 
 type SaklarAktuator = { kode: string; nama: string; aktif: boolean }
 
+/** online = alat terhubung (MQTT status/data); data_segar = bacaan sensor tersimpan ≤ 30 dtk. */
 type IotStatus = {
   online?: boolean
   seconds_ago?: number | null
   diff_text?: string | null
   last_seen?: string | null
+  data_segar?: boolean
+  data_seconds_ago?: number | null
+  data_last_seen?: string | null
 }
 
 type WaterControl = {
@@ -44,6 +64,7 @@ type WaterControl = {
 
 type DashboardData = {
   iotStatus?: IotStatus | null
+  keadaan_alat?: KeadaanAlat | null
   latest_sensor?: SensorTerkini | null
   water_control?: WaterControl | null
   /** Status saklar tiap aktuator (tabel saklar_aktuator) — tidak ikut cache server. */
@@ -80,6 +101,32 @@ const IKON_METRIK: Record<string, NamaIkon> = {
   humidity: 'tetes',
   level: 'air',
   ec: 'dosing',
+  alat: 'kunci',
+}
+
+const LEVEL_AIR: Record<string, string> = { RENDAH: 'Rendah', SEDANG: 'Sedang', PENUH: 'Penuh', ERROR: 'Error' }
+const angkaKoma = (v: number) => String(v).replace('.', ',')
+
+/**
+ * Status alat untuk kartu Dashboard. `mode` firmware v6 (SIAP/SEMAI/PANEN) hanyalah NAMA mode:
+ * mode "SIAP" + siap=false berarti konfigurasi belum lengkap — ditampilkan "Belum siap", bukan "SIAP".
+ */
+function statusAlat(a: KeadaanAlat | null): { nilai: string; target: string } {
+  if (!a?.mode) return { nilai: '—', target: 'Belum ada laporan alat' }
+  const jaga = [
+    a.kegiatan && a.kegiatan !== 'DIAM' ? a.kegiatan : null,
+    a.target_ppm != null ? `target ${a.target_ppm} ppm` : null,
+    a.ph_min != null && a.ph_max != null ? `pH ${angkaKoma(a.ph_min)}–${angkaKoma(a.ph_max)}` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+  if (a.estop) return { nilai: 'E-STOP', target: 'Semua pompa mati' }
+  if (a.kunci) return { nilai: 'Terkunci', target: a.kunci }
+  if (a.pemeliharaan) return { nilai: 'Pemeliharaan', target: 'Dosing berhenti sementara' }
+  if (a.mode === 'SEMAI') return { nilai: a.hari_semai != null ? `Semai · hari ${a.hari_semai}` : 'Semai', target: jaga || 'Menjaga nutrisi & pH' }
+  if (a.mode === 'PANEN') return { nilai: 'Panen', target: 'Dosing & isi otomatis berhenti' }
+  if (a.siap === false) return { nilai: 'Belum siap', target: `Kurang: ${a.kurang || 'konfigurasi'} (Pengaturan Alat)` }
+  return { nilai: 'Siap semai', target: 'Konfigurasi lengkap, tinggal mulai semai' }
 }
 
 function IkonMetrik({ kind }: { kind: string }) {
@@ -94,13 +141,20 @@ export default function DashboardPage() {
 
   const kelola = role !== 'petani' // menu pengelola (semai/water control) tidak ditawarkan ke petani
   const s = data?.latest_sensor ?? null
-  const wc = data?.water_control ?? null
   const iot = data?.iotStatus ?? null
+  const alat = data?.keadaan_alat ?? null
   const online = !!iot?.online
-  const statusKata = online ? 'perangkat online' : 'perangkat offline'
-  // Alat tidak mengirim data: angka sensor yang tampil adalah bacaan TERAKHIR, bukan kondisi kebun sekarang.
-  const usang = !loading && !error && !!data && !online
-  const umurTeks = iot?.seconds_ago != null ? relatif(iot.seconds_ago * 1000) : null
+  const segar = !!iot?.data_segar
+  const statusKata = segar ? 'data langsung' : 'bacaan lama'
+  // Data sensor tidak baru: angka yang tampil adalah bacaan TERAKHIR, bukan kondisi kebun sekarang.
+  const usang = !loading && !error && !!data && !segar
+  const umurTeks = iot?.data_seconds_ago != null ? relatif(iot.data_seconds_ago * 1000) : null
+  const bacaanTerakhir =
+    iot?.data_last_seen != null
+      ? iot.data_seconds_ago != null
+        ? waktuBasi(iot.data_seconds_ago * 1000, iot.data_last_seen)
+        : tglJam(iot.data_last_seen)
+      : null
 
   // batas aman dari halaman Ambang Sensor (server) — dulu angka target ditulis tetap di kode
   const batas = (k: string) => {
@@ -113,15 +167,41 @@ export default function DashboardPage() {
   const metrik = [
     { k: 'ph', label: 'pH (Asam-Basa)', nilai: angka(s?.ph, 2), num: s?.ph, digit: 2, akhiran: '', target: batas('ph') },
     { k: 'waterTemp', label: 'Suhu Air Tandon', nilai: `${angka(s?.waterTemp, 1)} °C`, num: s?.waterTemp, digit: 1, akhiran: ' °C', target: batas('waterTemp') },
-    { k: 'tds', label: 'Nutrisi (TDS)', nilai: `${angka(s?.tds)} ppm`, num: s?.tds, digit: 0, akhiran: ' ppm', target: batas('tds') },
+    {
+      k: 'tds',
+      label: 'Nutrisi (ppm)',
+      nilai: `${angka(s?.tds)} ppm`,
+      num: s?.tds,
+      digit: 0,
+      akhiran: ' ppm',
+      // sensor mengukur EC; ppm = EC × 500 (Penjelasan Firmware v6 §5.2)
+      target: alat?.ppm_terlalu_rendah ? 'ppm ~0: cek probe EC' : batas('tds'),
+    },
+    {
+      k: 'ec',
+      label: 'EC (mS/cm)',
+      nilai: `${angka(s?.ec_ms_cm, 2)} mS/cm`,
+      num: s?.ec_ms_cm,
+      digit: 2,
+      akhiran: ' mS/cm',
+      target: 'daya hantar listrik larutan',
+    },
     { k: 'airTemp', label: 'Suhu Udara', nilai: `${angka(s?.airTemp, 1)} °C`, num: s?.airTemp, digit: 1, akhiran: ' °C', target: batas('airTemp') },
     { k: 'humidity', label: 'Kelembapan', nilai: `${angka(s?.humidity)} %`, num: s?.humidity, digit: 0, akhiran: ' %', target: batas('humidity') },
-    { k: 'ec', label: 'EC (mS/cm)', nilai: `${angka(s?.ec_ms_cm, 2)} mS/cm`, num: s?.ec_ms_cm, digit: 2, akhiran: ' mS/cm', target: 'daya hantar larutan' },
     {
       k: 'level',
       label: 'Level Tandon',
-      nilai: s?.water_level ? String(s.water_level) : '—',
-      target: wc?.valve_state ? `Pompa isi ${wc.valve_state}` : 'Pompa isi —',
+      nilai: alat?.level_air ? (LEVEL_AIR[alat.level_air] ?? alat.level_air) : '—',
+      target:
+        alat?.level_air === 'ERROR'
+          ? 'Float macet / kabel putus'
+          : `Pompa isi ${alat?.pompa_isi == null ? '—' : alat.pompa_isi ? 'menyala' : 'mati'}`,
+    },
+    {
+      k: 'alat',
+      label: 'Status Alat',
+      to: '/dosing',
+      ...statusAlat(alat),
     },
   ]
 
@@ -175,11 +255,16 @@ export default function DashboardPage() {
             <Ikon nama="peringatan" className="mt-[1px] h-4 w-4 shrink-0" />
             <span>
               <b>
-                {iot?.last_seen
-                  ? `Alat tidak mengirim data sejak ${waktuBasi((iot.seconds_ago ?? 0) * 1000, iot.last_seen)}.`
-                  : 'Belum ada data dari alat sensor.'}
+                {!bacaanTerakhir
+                  ? 'Belum ada data dari alat sensor.'
+                  : online
+                    ? `Alat terhubung, tetapi bacaan sensor belum masuk sejak ${bacaanTerakhir}.`
+                    : `Alat tidak mengirim data sejak ${bacaanTerakhir}.`}
               </b>{' '}
-              Angka di bawah adalah <b>bacaan terakhir</b>, bukan kondisi kebun sekarang. Cek apakah alat menyala dan tersambung ke Wi-Fi.
+              Angka di bawah adalah <b>bacaan terakhir</b>, bukan kondisi kebun sekarang.{' '}
+              {online
+                ? 'Cek probe dan kabel sensor di box (sensor yang gagal dibaca tidak dikirim alat).'
+                : 'Cek apakah alat menyala dan tersambung ke Wi-Fi.'}
             </span>
           </span>
           <Link to="/sensor-realtime" className="font-semibold underline underline-offset-2">
@@ -216,8 +301,8 @@ export default function DashboardPage() {
             <div className="mt-2 text-[12px] text-abu">
               {loading && !data ? (
                 <span className="vsf-skeleton inline-block h-[16px] w-[200px]" />
-              ) : iot?.last_seen ? (
-                <>Bacaan terakhir: {iot.seconds_ago != null ? waktuBasi(iot.seconds_ago * 1000, iot.last_seen) : tglJam(iot.last_seen)}</>
+              ) : bacaanTerakhir ? (
+                <>Bacaan terakhir: {bacaanTerakhir}</>
               ) : (
                 'Belum ada bacaan sensor.'
               )}
@@ -266,7 +351,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* KPI: tujuh metrik + saklar; pH dan TDS disorot (hijau dan emas) */}
+        {/* KPI: tujuh kartu + saklar; pH dan nutrisi (ppm) disorot (hijau dan emas) */}
         <section className="xl:col-span-7" aria-label="Kondisi air dan tanaman">
           <div className="grid h-full grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
             {loading && !data
@@ -276,8 +361,8 @@ export default function DashboardPage() {
                   return (
                     <Link
                       key={m.k}
-                      to="/sensor-realtime"
-                      data-usang={usang && m.k !== 'level' ? 'true' : undefined}
+                      to={'to' in m && m.to ? m.to : '/sensor-realtime'}
+                      data-usang={usang && 'num' in m ? 'true' : undefined}
                       className={`vsf-kpi ${sorot} group flex min-h-[132px] flex-col justify-between p-4 sm:p-5`}
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -291,11 +376,12 @@ export default function DashboardPage() {
                           {adaAngka(m.num) ? <AngkaHidup nilai={Number(m.num)} digit={m.digit} akhiran={m.akhiran} /> : m.nilai}
                         </div>
                         <div className="mt-0.5 text-[12px] opacity-75">
-                          {usang && m.k !== 'level' && adaAngka(m.num) ? (
+                          {usang && 'num' in m && adaAngka(m.num) ? (
                             <>Bacaan lama{umurTeks ? ` · ${umurTeks}` : ''}</>
                           ) : (
                             <>
-                              {m.target} • {statusKata}
+                              {m.target}
+                              {'num' in m && ` • ${statusKata}`}
                             </>
                           )}
                         </div>

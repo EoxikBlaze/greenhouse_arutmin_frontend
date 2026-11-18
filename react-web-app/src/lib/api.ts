@@ -17,6 +17,10 @@ export const api = axios.create({
   headers: {
     'X-Requested-With': 'XMLHttpRequest',
     Accept: 'application/json',
+    // Halaman /dashboard dan API /dashboard ber-URL sama; nginx menyajikan HTML halaman tanpa Cache-Control,
+    // sehingga browser memakai ulang HTML itu untuk GET API pertama (status "Alat terputus" palsu).
+    // Header ini membuat browser melewati cache HTTP (Fetch spec: cache mode → no-store).
+    'Cache-Control': 'no-cache',
   },
 })
 

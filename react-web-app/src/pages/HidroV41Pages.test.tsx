@@ -78,13 +78,15 @@ vi.mock('../lib/authContext', () => ({
   }),
 }))
 
+// referensi stabil (seperti hook aslinya): fungsi baru tiap render membuat useApiObject memuat ulang tanpa henti
+const terjemahGalat = (err: unknown) => ({
+  status: 500,
+  message: err instanceof Error ? err.message : 'Galat',
+  errors: {},
+})
 vi.mock('../lib/crudApi', () => ({
   useApiList: () => ({ rows: [], loading: false, error: null, reload: () => {}, total: null }),
-  useApiError: () => (err: unknown) => ({
-    status: 500,
-    message: err instanceof Error ? err.message : 'Galat',
-    errors: {},
-  }),
+  useApiError: () => terjemahGalat,
 }))
 
 describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () => {
@@ -100,8 +102,15 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
     mockApiPut.mockReset()
     mockApiPost.mockReset()
     mockApiGet.mockImplementation(async (url: string) =>
-      url === '/alert-logs'
-        ? { data: { data: [{ id: 5, type: 'sensor', value: 'pH di luar batas', severity: 'warning', acknowledged: false, created_at: '2026-11-04T05:00:00' }] } }
+      url.startsWith('/alert-logs')
+        ? {
+            data: {
+              data: [
+                { id: 9, type: 'kunci_isi_timeout', value: 'Pompa isi terkunci', severity: 'critical', acknowledged: false, created_at: '2026-11-18T03:00:00', kunci_kejadian: 'kunci_isi_timeout', selesai_pada: null, sedang_terjadi: true },
+                { id: 5, type: 'sensor', value: 'pH di luar batas', severity: 'warning', acknowledged: false, created_at: '2026-11-04T05:00:00', kunci_kejadian: null, selesai_pada: null, sedang_terjadi: false },
+              ],
+            },
+          }
         : { data: BAWAAN_V41 },
     )
     mockApiPut.mockResolvedValue({ data: { status: true, message: 'Tersimpan' } })
@@ -307,10 +316,17 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
         </MemoryRouter>,
       )
     })
+    // kejadian aktif tampil di "Sedang terjadi"; kunci yang bisa dibuka → tombol admin + konfirmasi → BUKA_KUNCI
+    expect(container.textContent).toContain('Sedang terjadi (1)')
     await act(async () => {
-      cariTombol('Catat permintaan RESET').click()
+      cariTombol('Buka kunci alat').click()
     })
-    expect(mockApiPost).toHaveBeenCalledWith('/iot-v41/reset-peringatan')
+    const ya = Array.from(document.body.querySelectorAll('button')).find((b) => b.textContent?.includes('Ya, buka kunci'))
+    expect(ya).toBeTruthy()
+    await act(async () => {
+      ya!.click()
+    })
+    expect(mockApiPost).toHaveBeenCalledWith('/api/aktuator/buka-kunci', { alasan: 'Buka kunci alat dari menu Peringatan' })
 
     await act(async () => {
       cariTombol('tandai selesai').click()

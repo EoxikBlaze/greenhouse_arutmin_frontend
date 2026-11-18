@@ -13,7 +13,7 @@ type Titik = {
 const PARAM = {
   pH: { field: 'ph', unit: '', digit: 2 },
   'Suhu Air': { field: 'waterTemp', unit: ' °C', digit: 1 },
-  TDS: { field: 'tds', unit: ' ppm', digit: 0 },
+  Nutrisi: { field: 'tds', unit: ' ppm', digit: 0 },
 } as const
 type Param = keyof typeof PARAM
 

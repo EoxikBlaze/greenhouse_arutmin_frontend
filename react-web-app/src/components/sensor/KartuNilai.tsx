@@ -17,6 +17,7 @@ const IKON: Record<KunciSensor, NamaIkon> = {
   ph: 'ph',
   waterTemp: 'suhu',
   tds: 'kalibrasi',
+  ec_ms_cm: 'dosing',
   airTemp: 'matahari',
   humidity: 'tetes',
 }
@@ -27,6 +28,9 @@ const CHIP: Record<StatusNilai, { kelas: string; teks: string }> = {
   tinggi: { kelas: 'is-luar', teks: 'Terlalu tinggi' },
   kosong: { kelas: 'is-kosong', teks: 'Belum ada data' },
 }
+
+/** Nilai sensor ini lebih tua dari bacaan terbaru alat lebih dari ini → field tidak dikirim (sensor gagal dibaca). */
+const TERTINGGAL_MS = 30_000
 
 /**
  * Lima nilai terbaru. Tiap kartu juga tombol pilih: yang aktif punya grafiknya sendiri di bawah.
@@ -39,7 +43,10 @@ export function KartuNilai({
   onToggle,
   kini,
   memuat,
+  waktuTerbaru,
 }: {
+  /** Waktu bacaan terbaru alat (semua sensor). Firmware v6 tidak mengirim field sensor yang gagal dibaca. */
+  waktuTerbaru: number | null
   terakhir: Record<KunciSensor, TitikSeri | null>
   ambang: Ambang
   terpilih: KunciSensor[]
@@ -48,11 +55,14 @@ export function KartuNilai({
   memuat: boolean
 }) {
   return (
-    <div role="group" aria-label="Pilih sensor untuk grafik" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+    <div role="group" aria-label="Pilih sensor untuk grafik" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
       {PARAMS.map((p) => {
         // tinggi kerangka = tinggi kartu (156 px, diukur 320–768 px) supaya kartu tidak melompat saat data datang
-        if (memuat && !terakhir[p.kunci]) return <div key={p.kunci} className="vsf-skeleton h-[156px] rounded-card max-sm:last:col-span-2" />
-        const t = terakhir[p.kunci]
+        if (memuat && !terakhir[p.kunci]) return <div key={p.kunci} className="vsf-skeleton h-[156px] rounded-card" />
+        const lama = terakhir[p.kunci]
+        // bacaan terakhir yang berisi bisa berjam-jam lalu: jangan tampil sebagai nilai sekarang
+        const tertinggal = lama !== null && waktuTerbaru !== null && waktuTerbaru - lama.t > TERTINGGAL_MS
+        const t = tertinggal ? null : lama
         const batas = ambang?.[p.kunci]
         const s = statusNilai(t?.y ?? null, batas)
         const aktif = terpilih.includes(p.kunci)
@@ -64,7 +74,7 @@ export function KartuNilai({
             type="button"
             aria-pressed={aktif}
             onClick={() => onToggle(p.kunci)}
-            className={clsx('vsf-nilai vsf-kpi-kaca min-h-[156px] max-sm:last:col-span-2', aktif && 'is-aktif')}
+            className={clsx('vsf-nilai vsf-kpi-kaca min-h-[156px]', aktif && 'is-aktif')}
           >
             <span className="flex items-center justify-between gap-2">
               <span className="vsf-label flex items-center gap-1.5 vsf-label-tinta">
@@ -80,11 +90,15 @@ export function KartuNilai({
               {p.satuan && <span className="text-[13px] text-abu">{p.satuan}</span>}
             </span>
             <span className="mt-2 flex items-center">
-              <span className={clsx('vsf-chip-nilai', CHIP[s].kelas)}>{CHIP[s].teks}</span>
+              <span className={clsx('vsf-chip-nilai', CHIP[s].kelas)}>{tertinggal ? 'Tidak terbaca' : CHIP[s].teks}</span>
             </span>
             {/* baris waktu selalu disediakan: dulu muncul belakangan di samping chip → baris pecah, kartu meninggi (CLS) */}
             <span className="mt-1 block truncate text-[12px] text-abu">
-              {t && kini > 0 ? relatif(Math.max(0, kini - t.t)) : ' '}
+              {tertinggal && lama && kini > 0
+                ? `terakhir ${angkaId(lama.y, p.digit)}${p.satuan ? ` ${p.satuan}` : ''} · ${relatif(Math.max(0, kini - lama.t))}`
+                : t && kini > 0
+                  ? relatif(Math.max(0, kini - t.t))
+                  : ' '}
             </span>
             {!batasSah(batas) ? (
               <span className="mt-1 text-[12px] text-abu">Batas aman perlu dicek admin</span>

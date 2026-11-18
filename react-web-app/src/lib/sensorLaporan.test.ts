@@ -77,8 +77,8 @@ describe('hapusDuplikat', () => {
 describe('statusBaris', () => {
   it('menyebut parameter yang keluar ambang', () => {
     const s = statusBaris({ created_at: lokal(10), ph: 7, tds: 400, waterTemp: 25 }, AMBANG)
-    expect(s.luar).toEqual(['pH tinggi', 'TDS rendah'])
-    expect(s.teks).toBe('Perlu perhatian: pH tinggi, TDS rendah')
+    expect(s.luar).toEqual(['pH tinggi', 'Nutrisi rendah'])
+    expect(s.teks).toBe('Perlu perhatian: pH tinggi, Nutrisi rendah')
   })
   it('normal bila semua terisi dan dalam ambang', () => {
     const s = statusBaris({ created_at: lokal(10), ph: 6, tds: 800, waterTemp: 25, airTemp: 28, humidity: 70 }, AMBANG)
@@ -184,7 +184,7 @@ describe('bangunWorkbook', () => {
     const ws = (await muatUlang()).getWorksheet('Data')!
     const header = (ws.getRow(1).values as unknown[]).slice(1)
     expect(header).toEqual([
-      'No', 'Tanggal', 'Jam', 'pH', 'Suhu Air (°C)', 'TDS (ppm)', 'Suhu Udara (°C)', 'Kelembapan (%)', 'Status',
+      'No', 'Tanggal', 'Jam', 'pH', 'Suhu Air (°C)', 'Nutrisi (ppm)', 'EC (mS/cm)', 'Suhu Udara (°C)', 'Kelembapan (%)', 'Status',
     ])
     expect(ws.rowCount).toBe(3) // header + 2 baris unik
     expect(ws.getRow(2).getCell(1).value).toBe(1)
@@ -204,7 +204,7 @@ describe('bangunWorkbook', () => {
     const r2 = ws.getRow(2)
     expect(typeof r2.getCell(4).value).toBe('number')
     expect(r2.getCell(4).value).toBe(6.2)
-    expect(r2.getCell(6).value).toBeNull() // TDS tidak dikirim
+    expect(r2.getCell(6).value).toBeNull() // ppm tidak dikirim
     const fill = r2.getCell(6).fill as FillPattern
     expect(fill.type).toBe('pattern')
     expect(fill.fgColor?.argb).toBe('FFE5E7EB')
@@ -213,7 +213,7 @@ describe('bangunWorkbook', () => {
   it('status memuat parameter di luar ambang dan sel ditandai merah', async () => {
     const ws = (await muatUlang()).getWorksheet('Data')!
     const r3 = ws.getRow(3)
-    expect(r3.getCell(9).value).toBe('Perlu perhatian: pH tinggi, TDS rendah')
+    expect(r3.getCell(10).value).toBe('Perlu perhatian: pH tinggi, Nutrisi rendah')
     expect((r3.getCell(4).fill as FillPattern).fgColor?.argb).toBe('FFFDE2E2')
   })
 

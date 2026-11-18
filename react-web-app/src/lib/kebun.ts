@@ -13,6 +13,15 @@ export type TanamRow = {
   hari_ke?: number | null
   siap?: boolean
   tahap_berikut?: string | null
+  /** Akar batch (semais.id_semai) — kurva nutrisi disimpan per batch di sana. */
+  id_semai?: string | number | null
+  /** Kurva naik harian batch & target hari ini (null sebelum pindah netpot / kurva belum diatur). */
+  nutrisi?: {
+    kurva: { ppm_awal: number; ppm_target: number; hari_capai: number; diubah_hari: number | null } | null
+    hari_netpot: number | null
+    target_hari_ini: number | null
+    per_hari: number | null
+  } | null
 }
 
 export const TAHAP_LABEL: Record<string, string> = {

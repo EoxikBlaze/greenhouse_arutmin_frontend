@@ -16,6 +16,10 @@ type Pilihan = {
     nama: string
     id_meja: number | string | null
     semai: number | string | null
+    /** Kurva naik harian tanaman (disalin ke batch saat mulai; boleh diubah di sini). */
+    ppm_awal?: number | string | null
+    ppm_target?: number | string | null
+    hari_capai?: number | string | null
   }>
   meja: Array<{ id: number | string; nama: string }>
 }
@@ -23,8 +27,9 @@ type Pilihan = {
 const LANGKAH = 10
 
 /**
- * Form "Mulai Semai Baru" — body POST /tanam/mulai: id_tanaman · id_meja · jumlah_benih · tgl_awal_semai · keterangan.
- * Siklus Semai diisi otomatis server, jadi tidak ditanyakan lagi.
+ * Form "Mulai Semai Baru" — body POST /tanam/mulai: id_tanaman · id_meja · jumlah_benih · tgl_awal_semai · keterangan
+ * · ppm_awal · ppm_target · hari_capai (kurva nutrisi batch). Siklus Semai diisi otomatis server.
+ * Server menyalin kurva ke batch lalu mengirim SEMAI ke alat; jawaban `alat.ket` ditampilkan ke petani.
  */
 export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; onSukses: (pesan: string) => void }) {
   const handleApiError = useApiError()
@@ -38,6 +43,7 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
   const [jumlah, setJumlah] = useState('100')
   const [tgl, setTgl] = useState(() => tanggalIso(Date.now()))
   const [ket, setKet] = useState('')
+  const [kurva, setKurva] = useState({ ppm_awal: '', ppm_target: '', hari_capai: '' })
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -52,6 +58,8 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
     setIdTanaman(String(t.id))
     // Meja bawaan tanaman mengisi otomatis, kecuali pengguna sudah memilih meja sendiri.
     if (!mejaManual) setIdMeja(t.id_meja == null ? '' : String(t.id_meja))
+    const teks = (v: unknown) => (v == null ? '' : String(v))
+    setKurva({ ppm_awal: teks(t.ppm_awal), ppm_target: teks(t.ppm_target), hari_capai: teks(t.hari_capai) })
     setFieldErrors((e) => ({ ...e, id_tanaman: [] }))
   }
 
@@ -80,10 +88,12 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
       if (idMeja) payload.id_meja = Number(idMeja)
       if (tgl) payload.tgl_awal_semai = tgl
       if (ket.trim()) payload.keterangan = ket.trim()
+      for (const [k, v] of Object.entries(kurva)) if (v.trim()) payload[k] = Number(v.trim())
       const res = await api.post('/tanam/mulai', payload)
-      const body = res.data as { message?: string; data?: { id_semai?: string | number } } | null
+      const body = res.data as { message?: string; data?: { id_semai?: string | number }; alat?: { ket?: string } } | null
       const id = body?.data?.id_semai
-      onSukses(`${body?.message ?? 'Tanam baru dimulai.'}${id ? ` (semai #${id})` : ''}`)
+      const alat = body?.alat?.ket ? ` Alat: ${body.alat.ket}.` : ''
+      onSukses(`${body?.message ?? 'Tanam baru dimulai.'}${id ? ` (semai #${id})` : ''}${alat}`)
     } catch (err) {
       const f = handleApiError(err)
       setFieldErrors(f.fieldErrors)
@@ -182,6 +192,37 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
           </div>
           <FieldError message={fieldError(fieldErrors, 'jumlah_benih')} />
         </div>
+
+        {terpilih && (
+          <fieldset className="mt-4 min-w-0">
+            <legend className="vsf-label vsf-label-tinta">Target nutrisi batch ini</legend>
+            <p className="mt-1 text-[12px] text-abu">
+              Dari kurva {terpilih.nama}. ppm naik rata sejak pindah netpot sampai hari capai, lalu ditahan sampai panen. Boleh diubah untuk batch ini saja.
+            </p>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {(
+                [
+                  ['ppm_awal', 'ppm awal'],
+                  ['ppm_target', 'ppm target'],
+                  ['hari_capai', 'hari capai'],
+                ] as const
+              ).map(([k, label]) => (
+                <label key={k} className="block">
+                  <span className="text-[12px] text-abu">{label}</span>
+                  <input
+                    className="vsf-input mt-1 w-full"
+                    inputMode="numeric"
+                    value={kurva[k]}
+                    placeholder="—"
+                    onChange={(e) => setKurva((v) => ({ ...v, [k]: e.target.value }))}
+                  />
+                  <FieldError message={fieldError(fieldErrors, k)} />
+                </label>
+              ))}
+            </div>
+            <FieldError message={fieldError(fieldErrors, 'kurva')} />
+          </fieldset>
+        )}
 
         <label className="mt-4 block">
           <span className="vsf-label vsf-label-tinta">Keterangan (opsional)</span>

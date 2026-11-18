@@ -5,14 +5,21 @@ import { formatJam, formatTanggal } from '../../lib/sensorLaporan'
 
 const BASI_MS = 10 * 60_000
 
-/** Satu baris: apakah alat masih mengirim data, kapan bacaan terakhir, dan berapa titik tersimpan. */
+/**
+ * Satu baris: apakah alat terhubung & mengirim data, kapan bacaan terakhir, dan berapa titik tersimpan.
+ * alatOnline/dataSegar dari GET /dashboard (iotStatus) — sama dengan Dashboard; null = belum dimuat → pakai umur bacaan.
+ */
 export function StripStatus({
+  alatOnline,
+  dataSegar,
   waktuTerbaru,
   kini,
   memuat,
   jumlah,
   kembar,
 }: {
+  alatOnline: boolean | null
+  dataSegar: boolean | null
   waktuTerbaru: number | null
   kini: number
   memuat: boolean
@@ -24,14 +31,22 @@ export function StripStatus({
   }
 
   const ada = waktuTerbaru !== null
-  const basi = ada && kini > 0 && kini - waktuTerbaru > BASI_MS
+  const basi = ada && (dataSegar !== null ? !dataSegar : kini > 0 && kini - waktuTerbaru > BASI_MS)
+  const putus = alatOnline === false
+  const label = !ada
+    ? 'Belum ada data'
+    : !basi
+      ? 'Alat mengirim data'
+      : putus
+        ? 'Alat terputus'
+        : 'Alat terhubung, data sensor belum masuk'
 
   return (
     <section aria-label="Status alat" className="vsf-card px-4 py-3 sm:px-5">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2" role="status">
         <StatusBadge
-          tone={!ada ? 'offline' : basi ? 'warning' : 'online'}
-          label={!ada ? 'Belum ada data' : basi ? 'Alat tidak mengirim data' : 'Alat mengirim data'}
+          tone={!ada || putus ? 'offline' : basi ? 'warning' : 'online'}
+          label={label}
         />
         {ada && (
           <span className="text-[13px] text-tinta">

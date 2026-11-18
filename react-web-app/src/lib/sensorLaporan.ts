@@ -1,15 +1,16 @@
 import type { FillPattern, Workbook, Worksheet } from 'exceljs'
 import { tanggalIso } from './format'
 
-/** Lima sensor kebun — kunci kolom tabel `monitorings`. */
-export type KunciSensor = 'ph' | 'waterTemp' | 'tds' | 'airTemp' | 'humidity'
+/** Sensor kebun — kunci kolom tabel `monitorings`. `tds` = ppm (EC × 500), `ec_ms_cm` = field `ec` firmware v6. */
+export type KunciSensor = 'ph' | 'waterTemp' | 'tds' | 'ec_ms_cm' | 'airTemp' | 'humidity'
 
 export type DefParam = { kunci: KunciSensor; label: string; satuan: string; digit: number }
 
 export const PARAMS: DefParam[] = [
   { kunci: 'ph', label: 'pH', satuan: '', digit: 2 },
   { kunci: 'waterTemp', label: 'Suhu Air', satuan: '°C', digit: 1 },
-  { kunci: 'tds', label: 'TDS', satuan: 'ppm', digit: 0 },
+  { kunci: 'tds', label: 'Nutrisi', satuan: 'ppm', digit: 0 },
+  { kunci: 'ec_ms_cm', label: 'EC', satuan: 'mS/cm', digit: 2 },
   { kunci: 'airTemp', label: 'Suhu Udara', satuan: '°C', digit: 1 },
   { kunci: 'humidity', label: 'Kelembapan', satuan: '%', digit: 0 },
 ]
@@ -73,14 +74,16 @@ export type StatusBaris = { luar: string[]; kosong: number; teks: string }
 export function statusBaris(r: Titik, ambang: Ambang): StatusBaris {
   const luar: string[] = []
   let kosong = 0
-  for (const p of PARAMS) {
+  // EC = ppm ÷ 500 (nilai yang sama dengan Nutrisi): tidak dinilai dua kali; baris lama (sebelum firmware v6) tanpa EC tetap lengkap.
+  const dinilai = PARAMS.filter((p) => p.kunci !== 'ec_ms_cm')
+  for (const p of dinilai) {
     const s = statusNilai(nilaiAngka(r[p.kunci]), ambang?.[p.kunci])
     if (s === 'kosong') kosong += 1
     else if (s !== 'normal') luar.push(`${p.label} ${s}`)
   }
   let teks = 'Normal'
   if (luar.length) teks = `Perlu perhatian: ${luar.join(', ')}`
-  else if (kosong === PARAMS.length) teks = 'Tidak ada data sensor'
+  else if (kosong === dinilai.length) teks = 'Tidak ada data sensor'
   else if (kosong > 0) teks = 'Data tidak lengkap'
   return { luar, kosong, teks }
 }

@@ -2,7 +2,7 @@
 export const SENSOR_INFO: Record<string, { label: string; satuan: string }> = {
   humidity: { label: 'Kelembapan', satuan: '%' },
   airTemp: { label: 'Suhu udara', satuan: '°C' },
-  tds: { label: 'TDS', satuan: 'ppm' },
+  tds: { label: 'Nutrisi (ppm = EC × 500)', satuan: 'ppm' },
   ph: { label: 'pH', satuan: '' },
   waterTemp: { label: 'Suhu air', satuan: '°C' },
 }

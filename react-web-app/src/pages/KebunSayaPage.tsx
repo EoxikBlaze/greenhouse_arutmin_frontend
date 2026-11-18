@@ -3,7 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useApiList } from '../lib/crudApi'
 import { useAuth } from '../lib/authContext'
 import { Ikon } from '../components/Ikon'
-import { NaikHarian } from '../components/NaikHarian'
+import { StatusAlatKebun } from '../components/kebun/StatusAlatKebun'
+import { DialogKurvaBatch } from '../components/kebun/DialogKurvaBatch'
 import { RingkasanKebun } from '../components/kebun/RingkasanKebun'
 import { KartuBatch } from '../components/kebun/KartuBatch'
 import { DialogMulaiSemai } from '../components/kebun/DialogMulaiSemai'
@@ -40,6 +41,8 @@ export default function KebunSayaPage() {
   const stateAwal = (location.state ?? null) as { flash?: string; mulaiBaru?: boolean } | null
   const [flash, setFlash] = useState<string | null>(stateAwal?.flash ?? null)
   const [mulaiOpen, setMulaiOpen] = useState<boolean>(!!stateAwal?.mulaiBaru)
+  const [ubahKurva, setUbahKurva] = useState<TanamRow | null>(null)
+  const bolehKurva = role === 'admin' || role === 'petani' // demo hanya melihat
 
   // Bersihkan state navigasi SETELAH dibaca (refresh tidak membuka form lagi).
   useEffect(() => {
@@ -81,6 +84,8 @@ export default function KebunSayaPage() {
         onMulai={() => setMulaiOpen(true)}
         onMuat={reload}
       />
+
+      {rows.length > 0 && <StatusAlatKebun kelola={kelola} />}
 
       <KartuPrediksiPanen />
 
@@ -150,7 +155,7 @@ export default function KebunSayaPage() {
         ) : (
           <div className="vsf-stagger mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {terfilter.map((t) => (
-              <KartuBatch key={`${t.tipe}-${t.id}`} r={t} />
+              <KartuBatch key={`${t.tipe}-${t.id}`} r={t} onUbahKurva={bolehKurva ? () => setUbahKurva(t) : undefined} />
             ))}
           </div>
         )}
@@ -168,8 +173,17 @@ export default function KebunSayaPage() {
         />
       )}
 
-      {/* target ppm naik harian per tanaman — petani cukup isi target akhir */}
-      <NaikHarian />
+      {ubahKurva && (
+        <DialogKurvaBatch
+          r={ubahKurva}
+          onClose={() => setUbahKurva(null)}
+          onSukses={(pesan) => {
+            setFlash(pesan)
+            setUbahKurva(null)
+            reload()
+          }}
+        />
+      )}
     </div>
   )
 }
