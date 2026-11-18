@@ -426,11 +426,15 @@ class StatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final latar = terang
-        ? Tok.isiKaca(0.68)
-        : warna.withValues(alpha: Tok.gelap ? 0.22 : 0.12);
+        ? Tok.isiKaca(0.84, 0.78)
+        : warna.withValues(alpha: Tok.gelap ? 0.24 : 0.16);
     final teksWarna = terang
-        ? (Color.lerp(warna, Tok.tinta, Tok.gelap ? 0.30 : 0.55) ?? warna)
-        : (Tok.gelap ? (Color.lerp(warna, Colors.white, 0.22) ?? warna) : warna);
+        ? (Tok.gelap
+              ? (Color.lerp(warna, Colors.white, 0.58) ?? warna)
+              : (Color.lerp(warna, Tok.tinta, 0.65) ?? warna))
+        : (Tok.gelap
+              ? (Color.lerp(warna, Colors.white, 0.62) ?? warna)
+              : (Color.lerp(warna, Tok.tinta, 0.52) ?? warna));
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(

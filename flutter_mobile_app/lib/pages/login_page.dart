@@ -133,6 +133,13 @@ class _LoginPageState extends State<LoginPage>
               children: [
                 ActionChip(
                   label: const Text(
+                    'GARAP Cloud (garap.net)',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  onPressed: () => ctrl.text = 'https://garap.net',
+                ),
+                ActionChip(
+                  label: const Text(
                     'Lokal (127.0.0.1:8000)',
                     style: TextStyle(fontSize: 11),
                   ),
@@ -307,23 +314,6 @@ class _LoginPageState extends State<LoginPage>
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 10),
-            // Hanya akun demo (hanya-baca) yang boleh diisi otomatis: sandi admin/petani
-            // tidak boleh ada di kode sumber atau APK.
-            Center(
-              child: _TombolPeranCepat(
-                label: 'Demo (Hanya Lihat)',
-                sub: 'Data disembunyikan · Uji coba',
-                aktif: _usernameCtrl.text == 'demo',
-                onTap: _busy
-                    ? null
-                    : () => setState(() {
-                        _usernameCtrl.text = 'demo';
-                        _passwordCtrl.text = 'demo123';
-                        _error = null;
-                      }),
-              ),
             ),
             const SizedBox(height: 12),
             Center(

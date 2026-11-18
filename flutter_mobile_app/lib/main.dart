@@ -7,14 +7,16 @@ import 'pages/asisten_page.dart';
 import 'pages/beranda_petani.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/login_page.dart';
+import 'pages/pantau_semai_page.dart';
+import 'pages/pengaturan_page.dart';
 import 'pages/peringatan_page.dart';
 import 'pages/profil_page.dart';
 import 'pages/sensor_page.dart';
-import 'pages/tanam_page.dart';
-import 'pages/watercontrol_page.dart';
+import 'pages/setup_wizard_page.dart';
 import 'services/api_service.dart';
 import 'services/notifikasi_service.dart';
 import 'services/sesi_store.dart';
+import 'services/setup_service.dart';
 import 'theme/tema.dart';
 import 'theme/tokens.dart';
 import 'util/performa.dart';
@@ -158,17 +160,39 @@ class _GarapRoot extends StatefulWidget {
 class _GarapRootState extends State<_GarapRoot> {
   /// Alasan kembali ke halaman masuk (null = belum pernah sesi berakhir).
   String? _pesanSesi;
+  final _setupSvc = SetupService();
+  SetupProgress? _setupProgres;
+  bool _sedangCekSetup = false;
 
   @override
   void initState() {
     super.initState();
     apiService.onUnauthorized = _sesiBerakhir;
+    if (apiService.isLoggedIn) {
+      _periksaSetup();
+    }
+  }
+
+  Future<void> _periksaSetup() async {
+    if (!apiService.isLoggedIn || apiService.role != 'admin') {
+      if (mounted) setState(() => _sedangCekSetup = false);
+      return;
+    }
+    setState(() => _sedangCekSetup = true);
+    final p = await _setupSvc.muatStatusSetup(apiService);
+    if (!mounted) return;
+    setState(() {
+      _setupProgres = p;
+      _sedangCekSetup = false;
+    });
   }
 
   /// 401 dari server: token dicabut di [ApiService], cukup umumkan pesan
   /// lalu biarkan build() menampilkan halaman masuk lagi.
   void _sesiBerakhir() {
     _pesanSesi = 'Sesi Anda berakhir. Silakan masuk kembali.';
+    _setupProgres = null;
+    _sedangCekSetup = false;
     if (!mounted) return;
     setState(() {});
   }
@@ -176,6 +200,8 @@ class _GarapRootState extends State<_GarapRoot> {
   void _keluar() {
     apiService.clearSession();
     _pesanSesi = null;
+    _setupProgres = null;
+    _sedangCekSetup = false;
     if (mounted) setState(() {});
   }
 
@@ -195,7 +221,29 @@ class _GarapRootState extends State<_GarapRoot> {
         pesanSesi: _pesanSesi,
         onLoggedIn: () {
           _pesanSesi = null;
-          if (mounted) setState(() {});
+          _periksaSetup();
+        },
+      );
+    } else if (_sedangCekSetup) {
+      isi = const Scaffold(
+        key: ValueKey('cek-setup'),
+        body: Stack(
+          children: [
+            Positioned.fill(child: LatarCair()),
+            Center(child: CircularProgressIndicator()),
+          ],
+        ),
+      );
+    } else if (apiService.role == 'admin' &&
+        _setupProgres != null &&
+        !_setupProgres!.setupSelesai) {
+      isi = SetupWizardPage(
+        key: const ValueKey('wizard'),
+        api: apiService,
+        progresAwal: _setupProgres,
+        onKeluar: _keluar,
+        onSelesai: (baru) {
+          if (mounted) setState(() => _setupProgres = baru);
         },
       );
     } else {
@@ -217,7 +265,7 @@ class _Tab {
   final Widget Function(bool aktif) bangun;
 }
 
-/// Shell utama: dock mengambang bergaya navy dengan tab menurut peran.
+/// Shell utama: dock mengambang bergaya navy dengan 4 tab ringkas.
 class _MainShell extends StatefulWidget {
   const _MainShell({super.key, required this.onLogout});
 
@@ -242,25 +290,18 @@ class _MainShellState extends State<_MainShell> {
   void initState() {
     super.initState();
     final role = apiService.role;
-    final kontrol = role == 'admin' || role == 'demo';
     _tab = [
       _Tab(
-        'Beranda',
+        'Dashboard',
         Ikon.beranda,
         (a) => role == 'petani'
             ? BerandaPetani(api: apiService, aktif: a, onBukaTab: _bukaTab)
             : DashboardPage(api: apiService, aktif: a, onBukaTab: _bukaTab),
       ),
-      _Tab('Sensor', Ikon.sensor, (a) => SensorPage(api: apiService, aktif: a)),
-      if (kontrol)
-        _Tab(
-          'Kontrol',
-          Ikon.air,
-          (a) => WaterControlPage(api: apiService, aktif: a),
-        ),
-      _Tab('Tanam', Ikon.tanam, (a) => TanamPage(api: apiService, aktif: a)),
+      _Tab('Pantau Semai', Ikon.tanam, (a) => PantauSemaiPage(api: apiService, aktif: a)),
+      _Tab('Pengaturan', Ikon.ambang, (a) => PengaturanPage(api: apiService, aktif: a)),
       _Tab(
-        'Akun',
+        'Profil',
         Ikon.profil,
         (a) => ProfilPage(api: apiService, aktif: a, onLogout: widget.onLogout),
       ),
@@ -318,9 +359,20 @@ class _MainShellState extends State<_MainShell> {
     });
   }
 
-  /// Dipakai Beranda (menu dan tombol aksi) untuk pindah ke tab lain berdasarkan labelnya.
+  /// Dipakai Beranda (menu dan tombol aksi) untuk pindah ke tab lain atau subpage.
   void _bukaTab(String label) {
-    final i = _tab.indexWhere((t) => t.label == label);
+    if (label == 'Sensor') {
+      _bukaHalaman(SensorPage(api: apiService), 'Sensor Realtime');
+      return;
+    }
+    final peta = {
+      'Beranda': 'Dashboard',
+      'Tanam': 'Pantau Semai',
+      'Kontrol': 'Pengaturan',
+      'Akun': 'Profil',
+    };
+    final tujuan = peta[label] ?? label;
+    final i = _tab.indexWhere((t) => t.label == tujuan);
     if (i >= 0) _pilih(i);
   }
 
@@ -337,11 +389,10 @@ class _MainShellState extends State<_MainShell> {
   String _subjudulTab(int i) {
     if (i < 0 || i >= _tab.length) return 'Dashboard';
     final l = _tab[i].label;
-    if (l == 'Beranda') return 'Dashboard';
-    if (l == 'Sensor') return 'Sensor';
-    if (l == 'Kontrol') return 'Kontrol Air';
-    if (l == 'Tanam') return 'Jadwal Tanam';
-    if (l == 'Akun') return 'Profil Akun';
+    if (l == 'Dashboard') return 'Dashboard';
+    if (l == 'Pantau Semai') return 'Pantau Semai';
+    if (l == 'Pengaturan') return 'Pengaturan';
+    if (l == 'Profil') return 'Profil Akun';
     return l;
   }
 

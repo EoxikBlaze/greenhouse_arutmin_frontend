@@ -193,19 +193,21 @@ class _KacaCairState extends State<KacaCair> {
       );
     } else {
       // Tint kaca diselaraskan dengan Liquid Glass v7 di website (index.css + tema-gelap.css).
-      // Pada mode ringan (CPU lambat / 20x slower CPU), alpha dinaikkan sedikit agar
-      // tetap kontras dan jernih walau tanpa BackdropFilter blur.
+      // Pada mode ringan (hemat daya / tanpa BackdropFilter blur), alpha dinaikkan mendekati solid
+      // (0.94–0.98) agar teks di mode hemat siang maupun mode hemat malam selalu tajam dan mudah dibaca.
       final List<Color> dasar =
           widget.warna ??
           (gelap
               ? [
-                  Tok.navy.withValues(alpha: ringanMode ? 0.86 : 0.72),
-                  Tok.navy2.withValues(alpha: ringanMode ? 0.76 : 0.54),
+                  Tok.navy.withValues(alpha: ringanMode ? 0.96 : 0.82),
+                  Tok.navy2.withValues(alpha: ringanMode ? 0.94 : 0.72),
                 ]
               : chrome
               ? Tok.tintChrome
               : Tok.tintKartu);
-      final pengaliRingan = ringanMode ? 1.18 : 1.0;
+      final pengaliRingan = ringanMode ? 1.25 : 1.0;
+      final minAlpha = ringanMode ? 0.94 : 0.0;
+      final maxAlpha = ringanMode ? 0.98 : 0.96;
       final permukaan = Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -214,7 +216,7 @@ class _KacaCairState extends State<KacaCair> {
             colors: [
               for (final c in dasar)
                 c.withValues(
-                  alpha: (c.a * k * pengaliRingan).clamp(0.0, 0.96),
+                  alpha: (c.a * k * pengaliRingan).clamp(minAlpha, maxAlpha),
                 ),
             ],
           ),
@@ -432,6 +434,9 @@ class LatarCair extends StatelessWidget {
                 cacheWidth: lebarCache,
                 gaplessPlayback: true,
                 excludeFromSemantics: true,
+              ),
+              CustomPaint(
+                painter: _KabutAuroraPainter(gelap: Tok.gelap, ringan: true),
               ),
             ],
           ),

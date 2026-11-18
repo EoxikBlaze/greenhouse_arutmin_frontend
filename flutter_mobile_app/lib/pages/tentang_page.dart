@@ -397,8 +397,8 @@ class _KartuAnggota extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   a.jabatan,
-                  style: const TextStyle(
-                    color: Tok.mossGelap,
+                  style: TextStyle(
+                    color: Tok.hijauTeks,
                     fontWeight: FontWeight.w700,
                     fontSize: 12.5,
                   ),

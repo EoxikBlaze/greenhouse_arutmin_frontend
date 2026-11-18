@@ -41,40 +41,46 @@ class Tok {
   /// Tint atas & bawah untuk kartu kaca konten (`.glass-card` / `.vsf-kaca` di web).
   static List<Color> get tintKartu => gelap
       ? [
-          const Color(0xFF223754).withValues(alpha: 0.68),
-          const Color(0xFF132238).withValues(alpha: 0.54),
+          const Color(0xFF1A2A40).withValues(alpha: 0.84),
+          const Color(0xFF121F32).withValues(alpha: 0.78),
         ]
       : [
-          Colors.white.withValues(alpha: 0.72),
-          Colors.white.withValues(alpha: 0.50),
+          Colors.white.withValues(alpha: 0.84),
+          Colors.white.withValues(alpha: 0.74),
         ];
 
   /// Tint atas & bawah untuk kaca navigasi/chrome (`.glass-chrome` di web).
   static List<Color> get tintChrome => gelap
       ? [
-          const Color(0xFF1E324C).withValues(alpha: 0.80),
-          const Color(0xFF101D30).withValues(alpha: 0.66),
+          const Color(0xFF16253A).withValues(alpha: 0.88),
+          const Color(0xFF0F1B2C).withValues(alpha: 0.82),
         ]
       : [
+          Colors.white.withValues(alpha: 0.88),
           Colors.white.withValues(alpha: 0.78),
-          Colors.white.withValues(alpha: 0.56),
         ];
 
   /// Tint untuk kartu Hero (`HeroKartu` & `HeroHeader` — padanan `.glass-hero` di web).
   static List<Color> get tintHero => gelap
       ? [
-          const Color(0xFF1F384E).withValues(alpha: 0.74),
-          const Color(0xFF1A3A32).withValues(alpha: 0.62),
-          const Color(0xFF352F18).withValues(alpha: 0.56),
+          const Color(0xFF1A2E42).withValues(alpha: 0.86),
+          const Color(0xFF16322B).withValues(alpha: 0.80),
+          const Color(0xFF2B2614).withValues(alpha: 0.78),
         ]
       : [
-          Colors.white.withValues(alpha: 0.68),
-          const Color(0xFFCFE2CE).withValues(alpha: 0.44),
-          const Color(0xFFF6EDBE).withValues(alpha: 0.42),
+          Colors.white.withValues(alpha: 0.88),
+          const Color(0xFFCFE2CE).withValues(alpha: 0.78),
+          const Color(0xFFF6EDBE).withValues(alpha: 0.76),
         ];
 
   /// Hijau tua untuk teks/ikon di atas kaca; pada tema gelap diganti hijau muda.
   static Color get hijauTeks => gelap ? const Color(0xFF9CCB7A) : forest;
+
+  /// Merah & kuning-oranye & biru-navy untuk teks/ikon di atas kartu agar kontras di mode siang & malam.
+  static Color get errorTeks => gelap ? const Color(0xFFFCA5A5) : error;
+  static Color get warningTeks =>
+      gelap ? const Color(0xFFFDE68A) : const Color(0xFF92400E);
+  static Color get navyTeks => gelap ? const Color(0xFF60A5FA) : navy3;
 
   // ── Warna ────────────────────────────────────────────────────────────
   static const Color navy = Color(0xFF0A1F38);

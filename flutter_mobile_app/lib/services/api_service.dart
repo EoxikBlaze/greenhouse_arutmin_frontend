@@ -118,6 +118,11 @@ class ApiService {
     }
   }
 
+  static const _pesanDemo =
+      'Mode demo hanya dapat menerima dan melihat data (tidak dapat mengirim atau mengubah data).';
+  static const _pesanTakTerjangkau =
+      'Sistem tidak terjangkau. Pastikan perangkat terhubung ke jaringan kebun.';
+
   Future<Map<String, String>> _headers({bool withContentType = false}) async {
     return {
       'Accept': 'application/json',
@@ -137,10 +142,7 @@ class ApiService {
         role == 'demo' &&
         path != '/login' &&
         path != '/logout') {
-      throw const ApiException(
-        403,
-        'Mode demo hanya dapat menerima dan melihat data (tidak dapat mengirim atau mengubah data).',
-      );
+      throw const ApiException(403, _pesanDemo);
     }
     try {
       final http.Response res;
@@ -162,10 +164,7 @@ class ApiService {
     } catch (_) {
       // Timeout / koneksi ditolak / DNS gagal — semuanya dibawa ke pesan
       // yang menyebut alamat backend agar pengguna tahu harus menyalakan apa.
-      throw const ApiException(
-        null,
-        'Sistem tidak terjangkau. Pastikan perangkat terhubung ke jaringan kebun.',
-      );
+      throw const ApiException(null, _pesanTakTerjangkau);
     }
   }
 
@@ -292,6 +291,65 @@ class ApiService {
     Map<String, dynamic>? body,
     Duration? batas,
   ]) => _request(path, body: body ?? const <String, dynamic>{}, batas: batas);
+
+  /// POST dengan jawaban mengalir (NDJSON, mis. /api/ai/chat): [onKalimat] dipanggil
+  /// setiap ada kalimat baru (daftar kalimat sejauh ini) sebagai pratinjau; nilai
+  /// kembalian adalah baris `selesai` — jawaban akhir yang sudah lolos guard server.
+  /// [batas] berlaku untuk jeda antar-potongan, bukan total waktu menulis.
+  Future<Map<String, dynamic>> postAliran(
+    String path,
+    Map<String, dynamic> body, {
+    required void Function(List<String> kalimat) onKalimat,
+    Duration? batas,
+  }) async {
+    if (role == 'demo') throw const ApiException(403, _pesanDemo);
+    final req = http.Request('POST', Uri.parse('$baseUrl$path'))
+      ..headers.addAll({
+        ...await _headers(withContentType: true),
+        'Accept': 'application/x-ndjson',
+      })
+      ..body = jsonEncode(body);
+    try {
+      final res = await _client.send(req).timeout(batas ?? timeout);
+      final jenis = res.headers['content-type'] ?? '';
+      if (res.statusCode != 200 || !jenis.contains('ndjson')) {
+        // galat (4xx/429) dan backend lama: JSON biasa lewat jalur yang sama dengan postJson
+        final d = _handle(await http.Response.fromStream(res));
+        if (d is Map<String, dynamic>) return d;
+        throw const ApiException(200, 'Jawaban asisten tidak dapat dibaca. Coba lagi.');
+      }
+      final kalimat = <String>[];
+      Map<String, dynamic>? selesai;
+      final baris = res.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .timeout(batas ?? timeout);
+      await for (final b in baris) {
+        if (b.trim().isEmpty) continue;
+        final Object? o;
+        try {
+          o = jsonDecode(b);
+        } on FormatException {
+          continue;
+        }
+        if (o is! Map<String, dynamic>) continue;
+        if (o['tipe'] == 'kalimat' && o['teks'] is String) {
+          kalimat.add(o['teks'] as String);
+          onKalimat(List.unmodifiable(kalimat));
+        } else if (o['tipe'] == 'selesai') {
+          selesai = o;
+        }
+      }
+      if (selesai == null) {
+        throw const ApiException(200, 'Jawaban asisten terputus. Coba lagi.');
+      }
+      return selesai;
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException(null, _pesanTakTerjangkau);
+    }
+  }
 
   /// PUT JSON (ubah data), mis. target nutrisi naik harian.
   Future<dynamic> putJson(String path, Map<String, dynamic> body) =>

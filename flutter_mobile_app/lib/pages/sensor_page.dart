@@ -360,7 +360,7 @@ class _SensorPageState extends State<SensorPage> {
                 LineChart(
                   key: ValueKey('${def.kunci}-${tampil.length}'),
                   nilai: tampil,
-                  warna: def.warna,
+                  warna: def.kunci == 'waterTemp' ? Tok.navyTeks : def.warna,
                   tinggi: 170,
                   deskripsi: tampil.isEmpty
                       ? null

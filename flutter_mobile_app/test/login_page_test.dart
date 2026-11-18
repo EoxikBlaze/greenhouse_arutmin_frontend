@@ -113,7 +113,7 @@ void main() {
     expect(find.textContaining('minimal 3 karakter'), findsWidgets);
   });
 
-  testWidgets('Tombol peran cepat mengisi akun Superadmin, Petani, dan Demo', (
+  testWidgets('Layar login tidak menampilkan tombol demo dan memiliki field input', (
     tester,
   ) async {
     final api = ApiService(client: MockClient((_) async => _json({}, 200)));
@@ -124,16 +124,9 @@ void main() {
       ),
     );
 
-    final chipDemo = find.text('Demo (Hanya Lihat)');
-    await tester.ensureVisible(chipDemo);
-    await tester.tap(chipDemo);
-    await tester.pump();
-
-    final fieldUser = tester.widget<TextFormField>(
-      find.byType(TextFormField).at(0),
-    );
-    expect(fieldUser.controller?.text, 'demo');
+    expect(find.text('Demo (Hanya Lihat)'), findsNothing);
     expect(find.text('Ingatkan saya (tetap masuk)'), findsOneWidget);
+    expect(find.byType(TextFormField), findsNWidgets(2));
   });
 
   testWidgets('PageTop menampilkan tombol Kembali saat berada di tab dalam', (
