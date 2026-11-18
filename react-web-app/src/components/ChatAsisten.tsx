@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import clsx from 'clsx'
 import { api } from '../lib/api'
 import { useApiError } from '../lib/crudApi'
 import { Ikon } from './Ikon'
 import { Link } from 'react-router-dom'
 import { muatChat, riwayatUntukServer, simpanChat, tautanAman, type Pesan, type Tabel } from '../lib/riwayatChat'
+import { bacaAliran, teksDiterima } from '../lib/aliranChat'
 import { useAuth } from '../lib/authContext'
+import { AnalisisHarian, type Laporan } from './asisten/AnalisisHarian'
 
 /**
  * Chat bebas dengan asisten AI — POST /api/ai/chat
@@ -37,6 +39,9 @@ const SUMBER: Record<string, string> = {
   data: 'Diambil langsung dari catatan kebun',
   ollama: 'Dijawab AI lokal — cek ulang sebelum bertindak',
   tolak: 'Saran topik Asisten GARAP',
+  'matriks-pengetahuan-cerdas': 'Analisis cepat agronomi GARAP',
+  'kolaborasi-3-ai': 'Kolaborasi AI GARAP',
+  fallback: 'Saran alternatif sistem kebun',
 }
 
 function warnaSel(v: string): string {
@@ -93,7 +98,7 @@ function jam(ms: number): string {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
-export function ChatAsisten({ saran }: { saran: string[] }) {
+function Percakapan({ saran }: { saran: string[] }) {
   const handleApiError = useApiError()
   const { username } = useAuth()
   // riwayat dipulihkan dari tab ini, jadi klik tautan lalu kembali tidak menghapus percakapan
@@ -134,8 +139,24 @@ export function ChatAsisten({ saran }: { saran: string[] }) {
     setIsi('')
     setMemuat(true)
     try {
-      const res = await api.post('/api/ai/chat', { pesan: t, riwayat })
-      const d = res.data as {
+      // Kalimat dialirkan selama model menulis; jawaban akhir (sudah lolos guard penuh) menggantikannya.
+      const idAi = ++idRef.current
+      const pasang = (p: Pesan) =>
+        setPesan((l) => (l.some((x) => x.id === idAi) ? l.map((x) => (x.id === idAi ? p : x)) : [...l, p]))
+      const res = await api.post<string>(
+        '/api/ai/chat',
+        { pesan: t, riwayat },
+        {
+          headers: { Accept: 'application/x-ndjson' },
+          responseType: 'text',
+          onDownloadProgress: (e) => {
+            if (sesi !== sesiRef.current) return
+            const { kalimat } = bacaAliran(teksDiterima(e))
+            if (kalimat.length) pasang({ id: idAi, peran: 'ai', teks: kalimat.join(' '), waktu: sekarang() })
+          },
+        },
+      )
+      const d = bacaAliran<{
         jawaban: string
         sumber: string
         status?: 'OK' | 'PERHATIAN' | 'KRITIS'
@@ -143,29 +164,27 @@ export function ChatAsisten({ saran }: { saran: string[] }) {
         tautan?: unknown
         gambar?: { url: string; judul: string; kenapa?: string }[]
         saran_pertanyaan?: string[]
-      }
+      }>(String(res.data)).selesai
       if (sesi !== sesiRef.current) return
-      const waktu = sekarang()
-      setPesan((l) => [
-        ...l,
-        {
-          id: ++idRef.current,
-          peran: 'ai',
-          teks: d.jawaban,
-          waktu,
-          sumber: d.sumber,
-          status: d.status,
-          tabel: d.tabel ?? [],
-          tautan: tautanAman(d.tautan),
-          gambar: Array.isArray(d.gambar) ? d.gambar : [],
-          saran_pertanyaan: Array.isArray(d.saran_pertanyaan) ? d.saran_pertanyaan : [],
-        },
-      ])
+      if (!d || typeof d.jawaban !== 'string') throw new Error('Jawaban asisten tidak lengkap. Coba lagi.')
+      pasang({
+        id: idAi,
+        peran: 'ai',
+        teks: d.jawaban,
+        waktu: sekarang(),
+        sumber: d.sumber,
+        status: d.status,
+        tabel: d.tabel ?? [],
+        tautan: tautanAman(d.tautan),
+        gambar: Array.isArray(d.gambar) ? d.gambar : [],
+        saran_pertanyaan: Array.isArray(d.saran_pertanyaan) ? d.saran_pertanyaan : [],
+      })
     } catch (err) {
       if (sesi !== sesiRef.current) return
       const waktu = sekarang()
+      // pratinjau aliran yang terputus dibuang: hanya jawaban akhir yang boleh tersisa
       setPesan((l) => [
-        ...l,
+        ...l.filter((x) => !(x.peran === 'ai' && x.id > user.id && !x.sumber && !x.galat)),
         { id: ++idRef.current, peran: 'ai', teks: handleApiError(err).message, waktu, galat: true, ulang: t },
       ])
     } finally {
@@ -353,7 +372,7 @@ export function ChatAsisten({ saran }: { saran: string[] }) {
                 </div>
               </li>
             ))}
-            {memuat && (
+            {memuat && pesan.at(-1)?.peran !== 'ai' && (
               <li className="flex justify-start gap-2.5" role="status" aria-label="Asisten sedang menulis">
                 <span aria-hidden className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-activePill text-white">
                   <Ikon nama="ai" className="h-4 w-4" />
@@ -426,5 +445,59 @@ export function ChatAsisten({ saran }: { saran: string[] }) {
         </form>
       </div>
     </section>
+  )
+}
+
+const kunciDilihat = (u: string) => `vsf_analisis_dilihat_${u}`
+function bacaDilihat(u: string): number {
+  try { return Number(localStorage.getItem(kunciDilihat(u))) || 0 } catch { return 0 }
+}
+
+/** Asisten: tab Percakapan + Analisis Harian (laporan 07.00 WIB). Titik merah = laporan baru yang belum dibuka. */
+export function ChatAsisten({ saran }: { saran: string[] }) {
+  const { username, role } = useAuth()
+  const [tab, setTab] = useState<'chat' | 'analisis'>(() =>
+    typeof location !== 'undefined' && new URLSearchParams(location.search).get('tab') === 'analisis-harian' ? 'analisis' : 'chat')
+  const [baru, setBaru] = useState(false)
+
+  useEffect(() => {
+    let batal = false
+    api.get<{ data: Laporan | null }>('/api/ai/analisis-harian/terbaru')
+      .then((r) => { if (!batal && r.data.data && r.data.data.id !== bacaDilihat(username)) setBaru(true) })
+      .catch(() => { /* badge opsional */ })
+    return () => { batal = true }
+  }, [username])
+
+  const onDilihat = useCallback((id: number) => {
+    try { localStorage.setItem(kunciDilihat(username), String(id)) } catch { /* penyimpanan opsional */ }
+    setBaru(false)
+  }, [username])
+
+  const tombol = (id: 'chat' | 'analisis', label: string) => (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={tab === id}
+      onClick={() => setTab(id)}
+      className={clsx('relative min-h-[40px] rounded-full px-4 text-[14px] font-semibold',
+        tab === id ? 'bg-activePill text-white' : 'text-tinta')}
+    >
+      {label}
+      {id === 'analisis' && baru && tab !== 'analisis' && (
+        <span aria-label="Laporan baru" className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-arutmin-error" />
+      )}
+    </button>
+  )
+
+  return (
+    <div className="flex min-w-0 flex-col gap-3">
+      <div role="tablist" aria-label="Asisten" className="vsf-card flex w-fit gap-1 p-1">
+        {tombol('chat', 'Percakapan')}
+        {tombol('analisis', 'Analisis Harian')}
+      </div>
+      {tab === 'chat'
+        ? <Percakapan saran={saran} />
+        : <AnalisisHarian admin={role === 'admin'} onDilihat={onDilihat} />}
+    </div>
   )
 }

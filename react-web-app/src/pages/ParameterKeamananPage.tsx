@@ -14,6 +14,9 @@ import { StatusBadge } from '../components/StatusBadge'
 import { PanelFailSafe } from '../components/dosing/PanelFailSafe'
 import { PanelParameter } from '../components/dosing/PanelParameter'
 import { PanelJadwalAlat } from '../components/dosing/PanelJadwalAlat'
+import { PanelFirmwareV6 } from '../components/dosing/PanelFirmwareV6'
+import { TombolStopPompa } from '../components/TombolStopPompa'
+import { useAuth } from '../lib/authContext'
 
 const TAB = ['Aturan pengaman', 'Pengaturan dosis & jadwal'] as const
 type Tab = (typeof TAB)[number]
@@ -63,6 +66,7 @@ function YaTidak({ v, ya, tidak, kosong = 'Belum dilaporkan alat' }: { v: boolea
  * aturan fail-safe, serta pengaturan dosis/jadwal. Pengaturan dosis hanya rekomendasi: gerbang eksekusi tetap terkunci.
  */
 export default function ParameterKeamananPage() {
+  const { role } = useAuth()
   const [params, setParams] = useSearchParams()
   const tab = TAB.find((t) => KUNCI[t] === params.get('tab')) ?? TAB[0]
 
@@ -136,6 +140,10 @@ export default function ParameterKeamananPage() {
       <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Bagian">
         <Segmen label="Bagian parameter & keamanan" pilihan={TAB} nilai={tab} onPilih={(t: Tab) => setParams({ tab: KUNCI[t] }, { replace: true })} />
       </section>
+
+      {role === 'admin' && <TombolStopPompa />}
+
+      <PanelFirmwareV6 />
 
       {tab === 'Aturan pengaman' && <PanelFailSafe data={failSafe} />}
       {tab === 'Pengaturan dosis & jadwal' && (

@@ -242,7 +242,7 @@ export function PanelUjiLab({
           </div>
 
           <p className="text-[12px] leading-relaxed text-abu">
-            Yang disimpan adalah <b className="text-tinta">kenaikan per mL</b>: (akhir − awal) ÷ (A + B). Contoh di atas: (1000 − 100) ÷ 10 = 90 ppm/mL.
+            Yang disimpan adalah <b className="text-tinta">kenaikan per mL</b>: (akhir − awal) ÷ (A + B). Rumus: (1000 − 100) ÷ 10 = 90 ppm/mL.
           </p>
         </form>
       </section>
@@ -332,11 +332,13 @@ export function PanelUjiLab({
       {/* Kartu 3: Angka yang Sedang Dipakai Alat */}
       <section className="vsf-card w-full min-w-0 p-4 sm:p-5 lg:col-span-6" aria-label="Angka tersimpan di server">
         <div className="vsf-judul-bagian">Angka tersimpan di server</div>
-        <p className="mt-0.5 text-[12.5px] text-abu">Dipakai untuk menghitung rekomendasi takaran; ESP32 tidak memakainya langsung.</p>
+        <p className="mt-0.5 text-[12.5px] text-abu">
+          Sumber: tabel {buah ? 'takaran_nutrisi_buah' : 'konfigurasi_dosis'} &amp; kalibrasi_sensor di server. Dipakai untuk menghitung rekomendasi takaran; ESP32 tidak memakainya langsung.
+        </p>
         <dl className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
           <div className="vsf-stat">
             <dt className="vsf-label">ppm per mL</dt>
-            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{!buah && belum.has('ppm_per_ml') ? 'Belum diatur' : fmt(p?.ppm_per_ml, 2)}</dd>
+            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{(buah ? p?.ppm_per_ml == null : belum.has('ppm_per_ml')) ? 'Belum diatur' : fmt(p?.ppm_per_ml, 2)}</dd>
           </div>
           <div className="vsf-stat">
             <dt className="vsf-label">Volume penampung</dt>
@@ -344,11 +346,11 @@ export function PanelUjiLab({
           </div>
           <div className="vsf-stat">
             <dt className="vsf-label">pH up (mL/pH/L)</dt>
-            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{!buah && belum.has('ph_up_ml') ? 'Belum diatur' : fmt(p?.ph_up_ml, 3)}</dd>
+            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{(buah ? p?.ph_up_ml == null : belum.has('ph_up_ml')) ? 'Belum diatur' : fmt(p?.ph_up_ml, 3)}</dd>
           </div>
           <div className="vsf-stat">
             <dt className="vsf-label">pH down (mL/pH/L)</dt>
-            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{!buah && belum.has('ph_down_ml') ? 'Belum diatur' : fmt(p?.ph_down_ml, 3)}</dd>
+            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{(buah ? p?.ph_down_ml == null : belum.has('ph_down_ml')) ? 'Belum diatur' : fmt(p?.ph_down_ml, 3)}</dd>
           </div>
           <div className="vsf-stat sm:col-span-2">
             <dt className="vsf-label">Laju pompa A / B</dt>
@@ -358,7 +360,7 @@ export function PanelUjiLab({
           </div>
         </dl>
         <p className="mt-3 text-[12px] leading-relaxed text-abu">
-          "Belum diatur" = belum ada di database; hanya hasil uji lab nyata yang mengisinya.
+          Pembaruan uji lab terakhir: {arsip[0]?.dilakukan_pada ? tglPendek(arsip[0].dilakukan_pada) : 'belum ada'}. &ldquo;Belum diatur&rdquo; = belum ada di database; hanya hasil uji lab nyata yang mengisinya.
         </p>
       </section>
 

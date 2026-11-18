@@ -4,6 +4,7 @@ import { useAuth } from '../lib/authContext'
 import { EVENT_SESI_HABIS, KUNCI_PESAN_SESI } from '../lib/api'
 import { Monogram } from '../layouts/AppShell'
 import { Ikon } from '../components/Ikon'
+import { SaklarTema } from '../components/SaklarTema'
 
 /** Ikon SVG inline (R3 — tanpa emoji agar konsisten & terbaca screen reader). */
 function IconAlert({ className = 'h-4 w-4' }: { className?: string }) {
@@ -116,13 +117,14 @@ export default function LoginPage() {
       <header className="mx-auto flex w-full max-w-[1180px] items-center gap-3 px-4 pt-4 sm:px-6 sm:pt-6">
         <Link to="/" className="flex min-w-0 items-center gap-3">
           <Monogram className="h-10 w-14 shrink-0" />
-          <span className="min-w-0">
+          <span className="min-w-0 [text-shadow:0_2px_10px_rgba(7,21,39,.75)]">
             <span className="block truncate font-display text-[17px] font-bold leading-tight text-white">Vertonik</span>
             <span className="block truncate text-[12px] font-semibold text-[var(--emas)]">Smart Farm</span>
             <span className="sr-only">, ke beranda</span>
           </span>
         </Link>
         <span className="flex-1" />
+        <SaklarTema />
         <Link to="/" className="vsf-bilah-tombol-kaca inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-4 sm:min-h-[40px] text-[13px] font-semibold text-white">
           <span aria-hidden>←</span> Beranda
         </Link>
@@ -152,11 +154,11 @@ export default function LoginPage() {
           <ul className="mt-6 hidden gap-3 lg:grid lg:max-w-[560px] lg:grid-cols-3">
             {KEUNGGULAN.map((k) => (
               <li key={k.label} className="vsf-kaca vsf-kaca-gelap rounded-[18px] p-4">
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[var(--emas)] text-navy">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emas text-navy">
                   <IconCheck className="h-3.5 w-3.5" />
                 </span>
                 <span className="mt-3 block text-[14px] font-bold leading-snug text-white">{k.label}</span>
-                <span className="mt-1 block text-[12.5px] leading-snug text-white/75">{k.detail}</span>
+                <span className="mt-1 block text-[12.5px] leading-snug text-white/90">{k.detail}</span>
               </li>
             ))}
           </ul>
@@ -207,29 +209,6 @@ export default function LoginPage() {
               <span>{serverError}</span>
             </div>
           )}
-
-          <div className="mt-5">
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={() => {
-                setUsername('demo')
-                setPassword('demo123')
-                setErrors({})
-                setServerError('')
-                setPesanSesi('')
-              }}
-              className="flex w-full items-center justify-between rounded-[14px] border border-slate-200/80 bg-white/70 px-4 py-2.5 text-left transition hover:border-arutmin-forest hover:bg-arutmin-mint/20"
-            >
-              <div>
-                <span className="block text-[13px] font-bold text-navy">Coba Akun Demo</span>
-                <span className="block text-[11.5px] text-slate-500">Pratinjau antarmuka (data operasional disembunyikan)</span>
-              </div>
-              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
-                demo
-              </span>
-            </button>
-          </div>
 
           <label className="mt-5 block text-[13px] font-semibold text-tinta" htmlFor="login-username">
             Nama pengguna

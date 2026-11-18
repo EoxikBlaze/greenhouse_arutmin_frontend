@@ -184,6 +184,7 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
     })
 
     // Klik Ambil titik 1.413 lalu Ambil titik 12.880
+    mockApiPost.mockResolvedValueOnce({ data: { status: true, id_perintah: 77, message: 'Kalibrasi EC disimpan; dikirim ke alat' } })
     await act(async () => {
       cariTombol('Ambil titik 1.413').click()
     })
@@ -192,8 +193,9 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
     })
     expect(mockApiPost).toHaveBeenCalledWith(
       '/iot-v41/kalibrasi-dua-titik',
-      expect.objectContaining({ sensor: 'ec' }),
+      expect.objectContaining({ sensor: 'ec', aksi: 'simpan', titik_1: 1413, titik_2: 1413 }),
     )
+    expect(container.textContent).toContain('Kalibrasi EC ke alat:')
 
     // Klik Balik kalibrasi EC
     await act(async () => {

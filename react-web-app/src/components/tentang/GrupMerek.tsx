@@ -56,7 +56,7 @@ export function GrupMerek({
 }) {
   const item = animasi ? 'vsf-sp-item' : ''
   const pil = interaktif
-    ? info('Vertonik Smart Farm (GARAP)', 'Sistem IoT hidroponik hasil KKN Industri Arutmin Asik 2026 di PT Arutmin Indonesia. GARAP adalah nama aplikasinya.')
+    ? info('Vertonik Smart Farm (GARAP)', 'Sistem pendukung pemantauan greenhouse hidroponik hasil KKN Industri Politeknik Negeri Tanah Laut di PT Arutmin Indonesia.')
     : {}
   return (
     <div ref={ref} className={`${animasi ? '' : 'vsf-statis'} flex w-full max-w-[780px] flex-col items-center text-center ${className}`}>
