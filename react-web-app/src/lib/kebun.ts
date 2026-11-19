@@ -138,3 +138,13 @@ export function kurvaNaikHarian(
   const tengah = Array.from({ length: sisa }, (_, i) => nilai(Math.round(((i + 1) * hari) / (sisa + 1))))
   return [...awalan, ...tengah.filter((t) => t.hari > 3 && t.hari < hari), nilai(hari)]
 }
+
+/** Di menu mana kekurangan alat (kata firmware `kurang`) dilengkapi. */
+export function petunjukKurang(kurang: string | null | undefined): string {
+  const k = (kurang || '').toLowerCase()
+  if (k.startsWith('kal') || k.startsWith('laju')) return 'menu Kalibrasi'
+  if (k.startsWith('uji lab')) return 'menu Uji Lab'
+  if (k.startsWith('volume') || k.startsWith('monitoring') || k.startsWith('jeda')) return 'Master Data → Meja Tanaman'
+  if (k.startsWith('ads')) return 'cek sensor ADS1115 di alat'
+  return 'menu Kalibrasi, Uji Lab, atau Meja Tanaman'
+}

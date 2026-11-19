@@ -8,6 +8,7 @@ import { AngkaHidup } from '../components/AngkaHidup'
 import { TrenBatang } from '../components/TrenBatang'
 import { KartuPrediksiPanen } from '../components/analitik/KartuPrediksiPanen'
 import { tglJam } from '../lib/format'
+import { petunjukKurang } from '../lib/kebun'
 
 /**
  * Dashboard live — GET /dashboard (semua role).
@@ -125,7 +126,7 @@ function statusAlat(a: KeadaanAlat | null): { nilai: string; target: string } {
   if (a.pemeliharaan) return { nilai: 'Pemeliharaan', target: 'Dosing berhenti sementara' }
   if (a.mode === 'SEMAI') return { nilai: a.hari_semai != null ? `Semai · hari ${a.hari_semai}` : 'Semai', target: jaga || 'Menjaga nutrisi & pH' }
   if (a.mode === 'PANEN') return { nilai: 'Panen', target: 'Dosing & isi otomatis berhenti' }
-  if (a.siap === false) return { nilai: 'Belum siap', target: `Kurang: ${a.kurang || 'konfigurasi'} (Pengaturan Alat)` }
+  if (a.siap === false) return { nilai: 'Belum siap', target: `Kurang: ${a.kurang || 'konfigurasi'} (${petunjukKurang(a.kurang)})` }
   return { nilai: 'Siap semai', target: 'Konfigurasi lengkap, tinggal mulai semai' }
 }
 

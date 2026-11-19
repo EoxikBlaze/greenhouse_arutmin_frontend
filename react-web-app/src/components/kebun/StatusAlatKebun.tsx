@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { api } from '../../lib/api'
 import { useApiError } from '../../lib/crudApi'
+import { petunjukKurang } from '../../lib/kebun'
 import { useApiObject } from '../../lib/useApiObject'
 import { Ikon } from '../Ikon'
 
@@ -22,7 +23,7 @@ const koma = (v: number) => String(v).replace('.', ',')
 function alasan(online: boolean, a: Keadaan | null): string {
   if (!online) return 'alat tidak terhubung ke server'
   if (a?.estop) return 'E-STOP aktif'
-  if (a?.siap === false) return `alat belum siap, kurang ${a.kurang || 'konfigurasi'} (isi di Pengaturan Alat)`
+  if (a?.siap === false) return `alat belum siap, kurang ${a.kurang || 'konfigurasi'} (lengkapi di ${petunjukKurang(a.kurang)})`
   if (a?.mode === 'PANEN') return 'alat dalam mode PANEN'
   return 'alat belum menerima perintah SEMAI'
 }

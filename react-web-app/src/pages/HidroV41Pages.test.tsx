@@ -8,7 +8,6 @@ import {
   hitungPratinjauDosis,
   type IotV41State,
 } from '../lib/iotV41'
-import { PanelPengaturanAlat } from '../components/dosing/PanelPengaturanAlat'
 import { PanelSaklarMode } from '../components/dosing/PanelSaklarMode'
 import { PanelUjiLab } from '../components/dosing/PanelUjiLab'
 import { PanelKalibrasiLangsungV41 } from '../components/kalibrasi/PanelKalibrasiLangsungV41'
@@ -134,46 +133,6 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
     }
     return ketemu
   }
-
-  it('Langkah 1 — PanelPengaturanAlat: tombol [pakai] saran otomatis, [Simpan pengaturan], dan [Batalkan] bisa diklik', async () => {
-    const onReload = vi.fn()
-    await act(async () => {
-      root.render(
-        <MemoryRouter>
-          <PanelPengaturanAlat iot={BAWAAN_V41} loading={false} onReload={onReload} />
-        </MemoryRouter>,
-      )
-    })
-
-    // Ubah volume ke 200 L supaya tombol [pakai] saran otomatis muncul
-    const inputVolume = container.querySelector('input[type="number"]') as HTMLInputElement
-    expect(inputVolume).toBeTruthy()
-    await act(async () => {
-      const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set
-      setter?.call(inputVolume, '200')
-      inputVolume.dispatchEvent(new Event('input', { bubbles: true }))
-      inputVolume.dispatchEvent(new Event('change', { bubbles: true }))
-    })
-
-    const btnPakai = cariTombol('pakai')
-    await act(async () => {
-      btnPakai.click()
-    })
-
-    const btnSimpan = cariTombol('Simpan pengaturan')
-    await act(async () => {
-      btnSimpan.click()
-    })
-    expect(mockApiPut).toHaveBeenCalledWith('/iot-v41/pengaturan', expect.objectContaining({ volume_l: 200 }))
-    // batas aman & dosis tidak lagi diatur dari Pengaturan Alat (pindah ke Parameter & Keamanan)
-    const payload = mockApiPut.mock.calls[0][1] as Record<string, unknown>
-    expect(Object.keys(payload).some((k) => k.startsWith('batas_') || k === 'persen_dosing' || k === 'max_ppm_dosing')).toBe(false)
-
-    const btnBatal = cariTombol('Batalkan')
-    await act(async () => {
-      btnBatal.click()
-    })
-  })
 
   it('Langkah 2 — PanelKalibrasiLangsungV41: tombol pemeliharaan, ukur/simpan titik EC (KAL_SENSOR), balik kalibrasi, dan kalibrasi pompa bisa diklik', async () => {
     const onReload = vi.fn()
