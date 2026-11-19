@@ -53,9 +53,12 @@ export function targetPada(titik: TitikPpm[], t: number): number | null {
   return hasil
 }
 
-/** Penanda sumbu waktu: tiap 6 jam untuk rentang ≤ 36 jam, selainnya tiap tengah malam lokal. */
+/** Rentang (ms) sampai batas ini memakai label jam; lebih panjang memakai tanggal. */
+export const BATAS_LABEL_JAM = 48 * 3_600_000
+
+/** Penanda sumbu waktu: tiap 6 jam untuk rentang ≤ 48 jam, selainnya tiap tengah malam lokal. */
 export function tickWaktu(dari: number, sampai: number): number[] {
-  const langkah = sampai - dari <= 36 * 3_600_000 ? 6 : 24
+  const langkah = sampai - dari <= BATAS_LABEL_JAM ? 6 : 24
   const d = new Date(dari)
   d.setMinutes(0, 0, 0)
   d.setHours(langkah === 24 ? 0 : Math.floor(d.getHours() / 6) * 6)

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type PointerEvent as PointerReact } from 
 import { useApiObject } from '../../lib/useApiObject'
 import { angkaId } from '../../lib/format'
 import { formatJam, formatTanggal } from '../../lib/sensorLaporan'
-import { NAMA_DOSING, langkahTarget, targetPada, tickWaktu, type DataNutrisi, type JenisDosing } from '../../lib/nutrisiGrafik'
+import { BATAS_LABEL_JAM, NAMA_DOSING, langkahTarget, targetPada, tickWaktu, type DataNutrisi, type JenisDosing } from '../../lib/nutrisiGrafik'
 import { Segmen } from './FilterBar'
 
 const PILIHAN = ['24 Jam', '3 Hari', '7 Hari'] as const
@@ -226,7 +226,7 @@ export function PanelNutrisi() {
 
               {tickWaktu(data.dari, data.sampai).map((t, i) => (
                 <text key={i} x={geo.x(t)} y={H - 8} fontSize={12} fill="#27384c" textAnchor="middle">
-                  {data.sampai - data.dari <= 36 * 3_600_000 ? hhmm(t) : ddmm(t)}
+                  {data.sampai - data.dari <= BATAS_LABEL_JAM && new Date(t).getHours() !== 0 ? hhmm(t) : ddmm(t)}
                 </text>
               ))}
 
