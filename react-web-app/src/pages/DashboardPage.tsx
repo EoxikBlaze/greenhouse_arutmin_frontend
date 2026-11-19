@@ -390,10 +390,10 @@ export default function DashboardPage() {
                   )
                 })}
             {!(loading && !data) && (
-              <Link to="/saklar" className="vsf-kpi vsf-kpi-kaca flex min-h-[132px] flex-col justify-between p-4 sm:p-5" aria-label="Status saklar aktuator">
-                <div className="text-[13px] font-semibold opacity-80">Saklar Aktuator</div>
+              <Link to="/saklar" className="vsf-kpi vsf-kpi-kaca flex min-h-[132px] flex-col justify-between p-4 sm:p-5" aria-label="Status otomasi alat">
+                <div className="text-[13px] font-semibold opacity-80">Otomasi Alat</div>
                 <ul className="mt-2 grid gap-1 text-[12px]">
-                  {(data?.saklar ?? []).length === 0 && <li className="opacity-75">Belum ada data saklar.</li>}
+                  {(data?.saklar ?? []).length === 0 && <li className="opacity-75">Belum ada data otomasi.</li>}
                   {(data?.saklar ?? []).map((k) => (
                     <li key={k.kode} className="flex items-center justify-between gap-2">
                       <span className="truncate">{k.nama}</span>
