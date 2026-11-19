@@ -4,7 +4,6 @@ import { createRoot, type Root } from 'react-dom/client'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TombolStopPompa } from '../components/TombolStopPompa'
-import DosingPage from './DosingPage'
 import { WaterControlPage } from './HidroV41Pages'
 
 const mockGet = vi.fn()
@@ -92,24 +91,6 @@ describe('Pemulihan fitur website GARAP', () => {
 
     expect(mockPost).toHaveBeenCalledWith('/iot-v41/stop', {})
     expect(container.textContent).toContain('#77')
-  })
-
-  it('DosingPage untuk petani menampilkan Target nutrisi harian tanpa memanggil /api/aktuator/status', async () => {
-    mockRole = 'petani'
-    mockGet.mockResolvedValueOnce({ data: { data: [], ambang_tds: null, batas: [50, 2500] } })
-
-    await act(async () => {
-      root.render(
-        <MemoryRouter>
-          <DosingPage />
-        </MemoryRouter>,
-      )
-    })
-
-    expect(container.textContent).toContain('Target nutrisi harian')
-    const calledUrls = mockGet.mock.calls.map((c) => c[0])
-    expect(calledUrls).toContain('/dosing/naik-harian')
-    expect(calledUrls).not.toContain('/api/aktuator/status')
   })
 
   it('WaterControlPage menjelaskan status nonaktif 503', async () => {

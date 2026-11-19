@@ -200,7 +200,7 @@ export default function DashboardPage() {
     {
       k: 'alat',
       label: 'Status Alat',
-      to: '/dosing',
+      to: '/tanam',
       ...statusAlat(alat),
     },
   ]

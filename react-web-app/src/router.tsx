@@ -8,7 +8,6 @@ import {
   KebunSayaPage,
   CctvPage,
   AsistenAiPage,
-  DosingPage,
   ParameterKeamananPage,
   KalibrasiPage,
   DataPage,
@@ -62,7 +61,8 @@ export const router = createBrowserRouter([
           { path: '/asisten-ai', element: <RequireAuth allow={ALL} element={<AsistenAiPage />} /> },
           { path: '/profil', element: <RequireAuth allow={ALL} element={<ProfilePage />} /> },
           { path: '/parameter', element: <RequireAuth allow={ADMIN_DEMO} element={<ParameterKeamananPage />} /> },
-          { path: '/dosing', element: <RequireAuth allow={ALL} element={<DosingPage />} /> },
+          // menu Target Nutrisi dihapus: resep di Master Data, ubah batch & status target di Kebun Saya
+          { path: '/dosing', element: <Navigate to="/tanam" replace /> },
           { path: '/kalibrasi', element: <RequireAuth allow={ADMIN_DEMO} element={<KalibrasiPage />} /> },
 
           // Halaman mandiri IoT Hidroponik 1 Penampung v4.1 (sesuai menu sidebar Hidro Control)

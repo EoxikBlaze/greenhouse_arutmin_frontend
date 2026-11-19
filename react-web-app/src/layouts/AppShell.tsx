@@ -26,7 +26,6 @@ const TITLES: Record<string, string> = {
   '/sensor-realtime': 'Sensor Langsung',
   '/peringatan': 'Peringatan',
   '/tanam': 'Kebun Saya',
-  '/dosing': 'Target Nutrisi',
   '/saklar': 'Saklar',
   '/watercontrol': 'Status Kontrol Air',
   '/parameter': 'Parameter & Keamanan',
@@ -80,7 +79,6 @@ const NAV: NavGroup[] = [
     ikon: 'dosing',
     items: [
       { to: '/tanam', label: 'Kebun Saya', ikon: 'tanam' },
-      { to: '/dosing', label: 'Target Nutrisi', ikon: 'dosing' },
       { to: '/saklar', label: 'Saklar', ikon: 'ambang', allow: ADMIN_DEMO },
       { to: '/watercontrol', label: 'Kontrol Air', ikon: 'air', allow: ADMIN_DEMO },
       { to: '/parameter', label: 'Parameter & Keamanan', ikon: 'kunci', allow: ADMIN_DEMO },
