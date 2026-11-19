@@ -175,7 +175,7 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
     })
   })
 
-  it('Langkah 2 — PanelKalibrasiLangsungV41: tombol pemeliharaan, ambil titik EC/pH, balik kalibrasi, dan kalibrasi pompa bisa diklik', async () => {
+  it('Langkah 2 — PanelKalibrasiLangsungV41: tombol pemeliharaan, ukur/simpan titik EC (KAL_SENSOR), balik kalibrasi, dan kalibrasi pompa bisa diklik', async () => {
     const onReload = vi.fn()
     // Render dengan pemeliharaan aktif & bacaan stabil supaya tombol Ambil titik aktif
     const stateStabil: IotV41State = {
@@ -192,23 +192,24 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
       root.render(<PanelKalibrasiLangsungV41 iot={stateStabil} loading={false} onReload={onReload} />)
     })
 
-    // Klik Ambil titik 1.413 lalu Ambil titik 12.880
-    mockApiPost.mockResolvedValueOnce({ data: { status: true, id_perintah: 77, message: 'Kalibrasi EC disimpan; dikirim ke alat' } })
+    // Kalibrasi EC firmware v6: alat mengukur sendiri (UKUR) lalu menyimpan (SIMPAN) per titik
+    mockApiPost.mockResolvedValue({ data: { status: true, id_perintah: 77, message: 'ok' } })
     await act(async () => {
-      cariTombol('Ambil titik 1.413').click()
+      cariTombol('Ukur titik 1').click()
+    })
+    expect(mockApiPost).toHaveBeenCalledWith('/iot-v41/kal-sensor', { sensor: 'ec', titik: 1, aksi: 'UKUR' })
+    await act(async () => {
+      cariTombol('Titik 2').click()
     })
     await act(async () => {
-      cariTombol('Ambil titik 12.880').click()
+      cariTombol('Simpan titik 2').click()
     })
-    expect(mockApiPost).toHaveBeenCalledWith(
-      '/iot-v41/kalibrasi-dua-titik',
-      expect.objectContaining({ sensor: 'ec', aksi: 'simpan', titik_1: 1413, titik_2: 1413 }),
-    )
-    expect(container.textContent).toContain('Kalibrasi EC ke alat:')
+    expect(mockApiPost).toHaveBeenCalledWith('/iot-v41/kal-sensor', { sensor: 'ec', titik: 2, aksi: 'SIMPAN' })
+    expect(container.textContent).toContain('Kalibrasi EC titik 2 (SIMPAN):')
 
-    // Klik Balik kalibrasi EC
+    // Klik Kembalikan kalibrasi sebelumnya (EC)
     await act(async () => {
-      cariTombol('Balik kalibrasi EC ke nilai sebelumnya').click()
+      cariTombol('Kembalikan kalibrasi sebelumnya').click()
     })
     expect(mockApiPost).toHaveBeenCalledWith('/iot-v41/kalibrasi-dua-titik', {
       sensor: 'ec',

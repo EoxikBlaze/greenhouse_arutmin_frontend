@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import clsx from 'clsx'
 import { api } from '../../lib/api'
 import { useAuth } from '../../lib/authContext'
 import { useApiError } from '../../lib/crudApi'
@@ -10,6 +9,7 @@ import {
 } from '../../lib/iotV41'
 import { Pesan, Rangka } from '../kaca/DialogKaca'
 import { StatusBadge } from '../StatusBadge'
+import { KalibrasiSensorV6 } from './KalibrasiSensorV6'
 
 const fmt = (v: number | null | undefined, d = 2): string => {
   if (v === null || v === undefined || !Number.isFinite(v)) return '—'
@@ -44,17 +44,7 @@ export function PanelKalibrasiLangsungV41({
 
   const p = iot?.params
   const k = iot?.kondisi
-  const stab = iot?.stabilitas
   const papan = iot?.papan
-
-  // State titik ukur sementara (di memori sesi browser seperti $_SESSION['kal'] di kalibrasi.php)
-  const [ec1413, setEc1413] = useState<number | null>(null)
-  const [ec12880, setEc12880] = useState<number | null>(null)
-  const [ph40, setPh40] = useState<number | null>(null)
-  const [ph70, setPh70] = useState<number | null>(null)
-  // Tegangan probe saat tiap titik diambil: inilah yang disimpan alat (bukan bacaan pH).
-  const [volt40, setVolt40] = useState<number | null>(null)
-  const [volt70, setVolt70] = useState<number | null>(null)
 
   // State kalibrasi pompa 2-langkah
   const [pompa, setPompa] = useState<PompaKey>('a')
@@ -62,6 +52,7 @@ export function PanelKalibrasiLangsungV41({
   const [sesiPompa, setSesiPompa] = useState<{ pompa: PompaKey; detik: number } | null>(null)
   const [mlTakar, setMlTakar] = useState<string>('')
 
+  const [detikIsi, setDetikIsi] = useState<number>(10)
   const [sibuk, setSibuk] = useState<string | null>(null)
   const [pesan, setPesan] = useState<string | null>(null)
   const [galat, setGalat] = useState<string | null>(null)
@@ -87,8 +78,6 @@ export function PanelKalibrasiLangsungV41({
   // null = tidak ada bacaan segar (backend mengosongkan data basi) → tampil "—", bukan 0.
   const ecUs = k?.ec_us ?? null
   const phNow = k?.ph ?? null
-  const ecStab = stab?.ec ?? { stabil: false, n: 0, sebaran: null, batas: 20, sebaran_us: null }
-  const phStab = stab?.ph ?? { stabil: false, n: 0, sebaran: null, batas: 0.06 }
 
   async function togglePemeliharaan(aktif: boolean) {
     if (!bolehUbah || sibuk) return
@@ -119,109 +108,6 @@ export function PanelKalibrasiLangsungV41({
     }
   }
 
-  async function ambilTitikEc(titik: '1413' | '12880') {
-    if (!bolehUbah || sibuk) return
-    setGalat(null)
-    setPesan(null)
-    if (!pemeliharaanAktif) {
-      setGalat('Aktifkan mode pemeliharaan terlebih dahulu sebelum mengambil titik kalibrasi.')
-      return
-    }
-    // Tanpa bacaan segar JANGAN pakai nilai larutan referensi sebagai bacaan (dulu begitu → kalibrasi karangan).
-    if (ecUs == null || !(ecUs > 0) || k?.basi) {
-      setGalat('Alat belum mengirim bacaan EC yang segar (alat offline, probe lepas, atau data basi). Titik tidak direkam.')
-      return
-    }
-    const bacaanUs = ecUs
-    const next1413 = titik === '1413' ? bacaanUs : ec1413
-    const next12880 = titik === '12880' ? bacaanUs : ec12880
-    if (titik === '1413') setEc1413(bacaanUs)
-    else setEc12880(bacaanUs)
-
-    if (next1413 !== null && next12880 !== null) {
-      setSibuk('kal_ec')
-      try {
-        const r = await api.post('/iot-v41/kalibrasi-dua-titik', {
-          sensor: 'ec',
-          aksi: 'simpan',
-          titik_1: next1413,
-          titik_2: next12880,
-        })
-        setEc1413(null)
-        setEc12880(null)
-        setPerintahAlat(r.data?.id_perintah ? { id: r.data.id_perintah, label: 'Kalibrasi EC ke alat' } : null)
-        setPesan(String(r.data?.message ?? `Kalibrasi EC 2-titik (${fmt(next1413, 0)} & ${fmt(next12880, 0)} µS/cm) tersimpan.`))
-        onReload()
-      } catch (err) {
-        const f = handleApiError(err)
-        setGalat(f.message)
-      } finally {
-        setSibuk(null)
-      }
-    } else {
-      setPesan(
-        `Titik EC ${titik === '1413' ? '1.413' : '12.880'} µS/cm terekam (${fmt(bacaanUs, 0)} µS/cm). Celupkan probe ke larutan kedua lalu tekan tombol titik berikutnya.`,
-      )
-    }
-  }
-
-  async function ambilTitikPh(titik: '40' | '70') {
-    if (!bolehUbah || sibuk) return
-    setGalat(null)
-    setPesan(null)
-    if (!pemeliharaanAktif) {
-      setGalat('Aktifkan mode pemeliharaan terlebih dahulu sebelum mengambil titik kalibrasi.')
-      return
-    }
-    const voltNow = k?.ph_volt ?? null
-    if (voltNow === null || phNow == null || !(phNow > 0)) {
-      setGalat('Alat belum mengirim bacaan dan tegangan probe pH (alat offline, probe lepas, atau firmware lama). Titik tidak direkam.')
-      return
-    }
-    const bacaanPh = phNow
-    const next40 = titik === '40' ? bacaanPh : ph40
-    const next70 = titik === '70' ? bacaanPh : ph70
-    const nextVolt40 = titik === '40' ? voltNow : volt40
-    const nextVolt70 = titik === '70' ? voltNow : volt70
-    if (titik === '40') {
-      setPh40(bacaanPh)
-      setVolt40(voltNow)
-    } else {
-      setPh70(bacaanPh)
-      setVolt70(voltNow)
-    }
-
-    if (next40 !== null && next70 !== null) {
-      setSibuk('kal_ph')
-      try {
-        const r = await api.post('/iot-v41/kalibrasi-dua-titik', {
-          sensor: 'ph',
-          aksi: 'simpan',
-          titik_1: next40,
-          titik_2: next70,
-          volt4: nextVolt40,
-          volt7: nextVolt70,
-        })
-        setPh40(null)
-        setPh70(null)
-        setVolt40(null)
-        setVolt70(null)
-        setPerintahAlat(r.data?.id_perintah ? { id: r.data.id_perintah, label: 'Kalibrasi pH ke alat' } : null)
-        setPesan(String(r.data?.message ?? 'Kalibrasi pH dua titik tersimpan.'))
-        onReload()
-      } catch (err) {
-        const f = handleApiError(err)
-        setGalat(f.message)
-      } finally {
-        setSibuk(null)
-      }
-    } else {
-      setPesan(
-        `Titik pH ${titik === '40' ? '4,0' : '7,0'} terekam (${fmt(bacaanPh, 2)}). Bilas probe, celupkan ke buffer kedua lalu tekan tombol titik berikutnya.`,
-      )
-    }
-  }
-
   async function balikKalibrasi(sensor: 'ec' | 'ph') {
     if (!bolehUbah || sibuk) return
     setSibuk(`balik_${sensor}`)
@@ -229,21 +115,44 @@ export function PanelKalibrasiLangsungV41({
     setPesan(null)
     try {
       const r = await api.post('/iot-v41/kalibrasi-dua-titik', { sensor, aksi: 'balik' })
-      if (sensor === 'ec') {
-        setEc1413(null)
-        setEc12880(null)
-      } else {
-        setPh40(null)
-        setPh70(null)
-        setVolt40(null)
-        setVolt70(null)
-      }
       setPerintahAlat(r.data?.id_perintah ? { id: r.data.id_perintah, label: `Balik kalibrasi ${sensor.toUpperCase()} ke alat` } : null)
       setPesan(String(r.data?.message ?? `Kalibrasi ${sensor.toUpperCase()} dikembalikan ke nilai sebelumnya.`))
       onReload()
     } catch (err) {
       const f = handleApiError(err)
       setGalat(f.message)
+    } finally {
+      setSibuk(null)
+    }
+  }
+
+  /** Kalibrasi pH/EC firmware v6: alat mengukur & menyimpan sendiri (UKUR lalu SIMPAN per titik). */
+  async function kirimKalSensor(sensor: 'ph' | 'ec', titik: 1 | 2, aksi: 'UKUR' | 'SIMPAN' | 'BATAL') {
+    if (!bolehUbah || sibuk) return
+    setSibuk(`kal_${sensor}`)
+    setGalat(null)
+    setPesan(null)
+    try {
+      const r = await api.post('/iot-v41/kal-sensor', { sensor, titik, aksi })
+      setPerintahAlat(r.data?.id_perintah ? { id: r.data.id_perintah, label: `Kalibrasi ${sensor.toUpperCase()} titik ${titik} (${aksi})` } : null)
+    } catch (err) {
+      setGalat(handleApiError(err).message)
+    } finally {
+      setSibuk(null)
+    }
+  }
+
+  /** Tes pompa isi air: hanya menyalakan beberapa detik untuk memastikan pompa jalan (bukan kalibrasi laju). */
+  async function tesPompaIsi() {
+    if (!bolehUbah || sibuk) return
+    setSibuk('tes_isi')
+    setGalat(null)
+    setPesan(null)
+    try {
+      const r = await api.post('/iot-v41/uji-pompa', { pompa: 'ISI', detik: detikIsi })
+      setPerintahAlat({ id: r.data?.id_perintah, label: `Tes pompa isi air ${detikIsi} detik` })
+    } catch (err) {
+      setGalat(handleApiError(err).message)
     } finally {
       setSibuk(null)
     }
@@ -368,158 +277,19 @@ export function PanelKalibrasiLangsungV41({
       </section>
 
       {/* Grid 3 Kartu Kalibrasi Langsung (EC, pH, Pompa) */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* 1. Kalibrasi EC */}
-        <section className="vsf-card flex flex-col justify-between p-4 sm:p-5" aria-label="1. Kalibrasi EC">
-          <div>
-            <div className="vsf-judul-bagian">1. Kalibrasi EC</div>
-            <p className="mt-0.5 text-[12.5px] text-abu">
-              Dua titik: 1.413 µS/cm lalu 12.880 µS/cm (12,88 mS/cm)
-            </p>
-
-            <div className="vsf-blok mt-3 p-4 text-center">
-              <div className="vsf-label">BACAAN ALAT SEKARANG</div>
-              <div className="mt-1 font-heading text-[28px] font-bold tabular-nums text-tinta">
-                {fmt(ecUs, 0)} <span className="text-[14px] font-normal text-abu">µS/cm</span>
-              </div>
-              <div className="mt-1.5 flex justify-center">
-                <span className={clsx('vsf-chip-nilai', ecStab.stabil ? 'is-normal' : 'is-kosong')}>
-                  {ecStab.stabil ? 'stabil — siap diambil' : 'menunggu stabil…'}
-                </span>
-              </div>
-              <div className="mt-1 text-[11.5px] text-abu">
-                sebaran 5 bacaan: {ecStab.sebaran !== null ? `${ecStab.sebaran} ppm (batas ≤ ${ecStab.batas})` : '—'}
-              </div>
-            </div>
-
-            <div className="mt-3 grid grid-cols-2 gap-2 text-[12px]">
-              <div className="vsf-stat px-2.5 py-2">
-                <span className="font-semibold text-tinta">1. 1.413 µS/cm</span>
-                <div className="mt-0.5 text-[11.5px] text-abu">
-                  {ec1413 !== null ? `terekam (${fmt(ec1413, 0)})` : 'belum diambil'}
-                </div>
-              </div>
-              <div className="vsf-stat px-2.5 py-2">
-                <span className="font-semibold text-tinta">2. 12.880 µS/cm</span>
-                <div className="mt-0.5 text-[11.5px] text-abu">
-                  {ec12880 !== null ? `terekam (${fmt(ec12880, 0)})` : 'belum diambil'}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4">
-            {bolehUbah && (
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="vsf-btn-secondary flex-1"
-                  disabled={!pemeliharaanAktif || sibuk !== null}
-                  onClick={() => void ambilTitikEc('1413')}
-                >
-                  Ambil titik 1.413
-                </button>
-                <button
-                  type="button"
-                  className="vsf-btn-primary flex-1"
-                  disabled={!pemeliharaanAktif || sibuk !== null}
-                  onClick={() => void ambilTitikEc('12880')}
-                >
-                  Ambil titik 12.880
-                </button>
-              </div>
-            )}
-            <p className="mt-2 text-[11.5px] leading-relaxed text-abu">
-              Celup probe ke larutan 1.413 µS/cm → tombol pertama. Bilas, celup ke 12.880 µS/cm → tombol kedua. Kalau keduanya terisi, alat langsung mengirim kalibrasi dua titik.
-            </p>
-            {bolehUbah && (
-              <button
-                type="button"
-                className="mt-1 inline-flex min-h-[44px] items-center text-[12px] font-semibold text-arutmin-forest underline disabled:opacity-50"
-                disabled={!pemeliharaanAktif || sibuk !== null}
-                onClick={() => void balikKalibrasi('ec')}
-              >
-                Balik kalibrasi EC ke nilai sebelumnya
-              </button>
-            )}
-          </div>
-        </section>
-
-        {/* 2. Kalibrasi pH */}
-        <section className="vsf-card flex flex-col justify-between p-4 sm:p-5" aria-label="2. Kalibrasi pH">
-          <div>
-            <div className="vsf-judul-bagian">2. Kalibrasi pH</div>
-            <p className="mt-0.5 text-[12.5px] text-abu">
-              Dua titik: buffer 4,01 lalu 7,00 (format <span className="font-mono">ph_v4/ph_v7</span>)
-            </p>
-
-            <div className="vsf-blok mt-3 p-4 text-center">
-              <div className="vsf-label">BACAAN ALAT SEKARANG</div>
-              <div className="mt-1 font-heading text-[28px] font-bold tabular-nums text-tinta">
-                {fmt(phNow, 2)}
-              </div>
-              <div className="mt-1.5 flex justify-center">
-                <span className={clsx('vsf-chip-nilai', phStab.stabil ? 'is-normal' : 'is-kosong')}>
-                  {phStab.stabil ? 'stabil — siap diambil' : 'menunggu stabil…'}
-                </span>
-              </div>
-              <div className="mt-1 text-[11.5px] text-abu">
-                sebaran 5 bacaan: {phStab.sebaran !== null ? `${fmt(phStab.sebaran, 2)} (batas ≤ 0,06)` : '—'}
-              </div>
-            </div>
-
-            <div className="mt-3 grid grid-cols-2 gap-2 text-[12px]">
-              <div className="vsf-stat px-2.5 py-2">
-                <span className="font-semibold text-tinta">1. pH 4,0</span>
-                <div className="mt-0.5 text-[11.5px] text-abu">
-                  {ph40 !== null ? `terekam (${fmt(ph40, 2)})` : 'belum diambil'}
-                </div>
-              </div>
-              <div className="vsf-stat px-2.5 py-2">
-                <span className="font-semibold text-tinta">2. pH 7,0</span>
-                <div className="mt-0.5 text-[11.5px] text-abu">
-                  {ph70 !== null ? `terekam (${fmt(ph70, 2)})` : 'belum diambil'}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4">
-            {bolehUbah && (
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="vsf-btn-secondary flex-1"
-                  disabled={!pemeliharaanAktif || sibuk !== null}
-                  onClick={() => void ambilTitikPh('40')}
-                >
-                  Ambil titik pH 4,0
-                </button>
-                <button
-                  type="button"
-                  className="vsf-btn-primary flex-1"
-                  disabled={!pemeliharaanAktif || sibuk !== null}
-                  onClick={() => void ambilTitikPh('70')}
-                >
-                  Ambil titik pH 7,0
-                </button>
-              </div>
-            )}
-            <p className="mt-2 text-[11.5px] leading-relaxed text-abu">
-              Celup probe ke buffer 4,0 → tekan tombol pertama. Bilas, celup ke 7,0 → tekan tombol kedua. Kalau keduanya terisi, alat langsung mengirim kalibrasi.
-            </p>
-            {bolehUbah && (
-              <button
-                type="button"
-                className="mt-1 inline-flex min-h-[44px] items-center text-[12px] font-semibold text-arutmin-forest underline disabled:opacity-50"
-                disabled={!pemeliharaanAktif || sibuk !== null}
-                onClick={() => void balikKalibrasi('ph')}
-              >
-                Balik kalibrasi pH ke nilai sebelumnya
-              </button>
-            )}
-          </div>
-        </section>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <KalibrasiSensorV6
+          sensor="ec" judul="1. Kalibrasi EC" bolehUbah={bolehUbah} pemeliharaanAktif={pemeliharaanAktif}
+          bacaan={ecUs != null ? `${fmt(ecUs, 0)} µS/cm` : '—'}
+          larutan={['Larutan standar 1,413 mS/cm', 'Larutan standar 12,88 mS/cm']}
+          sibuk={sibuk} onKirim={kirimKalSensor} onBalik={() => void balikKalibrasi('ec')}
+        />
+        <KalibrasiSensorV6
+          sensor="ph" judul="2. Kalibrasi pH" bolehUbah={bolehUbah} pemeliharaanAktif={pemeliharaanAktif}
+          bacaan={phNow != null ? fmt(phNow, 2) : '—'}
+          larutan={['Buffer pH 4,01', 'Buffer pH 6,86']}
+          sibuk={sibuk} onKirim={kirimKalSensor} onBalik={() => void balikKalibrasi('ph')}
+        />
 
         {/* 3. Kalibrasi Pompa */}
         <section className="vsf-card flex flex-col justify-between p-4 sm:p-5" aria-label="3. Kalibrasi pompa">
@@ -618,6 +388,32 @@ export function PanelKalibrasiLangsungV41({
           <p className="mt-3 text-[11.5px] leading-relaxed text-abu">
             Contoh: 30 detik menghasilkan 60 mL berarti 2,00 mL/detik. Kalibrasi ulang setiap ganti selang.
           </p>
+        </section>
+
+        {/* 4. Tes pompa isi air (bukan kalibrasi: laju tidak dipakai alat) */}
+        <section className="vsf-card flex flex-col justify-between p-4 sm:p-5" aria-label="4. Tes pompa isi air">
+          <div>
+            <div className="vsf-judul-bagian">4. Tes pompa isi air</div>
+            <p className="mt-0.5 text-[12.5px] text-abu">
+              Menyalakan pompa isi beberapa detik untuk memastikan pompa dan selang berfungsi. Tidak ada angka yang disimpan.
+            </p>
+            <label className="mt-3 block">
+              <span className="vsf-label vsf-label-tinta">Lama nyala (detik)</span>
+              <select disabled={!bolehUbah || !pemeliharaanAktif} className="vsf-input mt-1 w-full"
+                value={detikIsi} onChange={(e) => setDetikIsi(Number(e.target.value))}>
+                <option value={5}>5 detik</option>
+                <option value={10}>10 detik</option>
+                <option value={30}>30 detik</option>
+              </select>
+            </label>
+            {bolehUbah && (
+              <button type="button" className="vsf-btn-primary mt-3 w-full"
+                disabled={!pemeliharaanAktif || sibuk !== null} onClick={() => void tesPompaIsi()}>
+                Nyalakan pompa isi
+              </button>
+            )}
+          </div>
+          <p className="mt-3 text-[11.5px] leading-relaxed text-abu">Alat menolak bila tandon sudah penuh. Perlu mode pemeliharaan aktif.</p>
         </section>
       </div>
 
