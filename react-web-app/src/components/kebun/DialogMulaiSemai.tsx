@@ -7,6 +7,13 @@ import { FieldError } from '../CrudScreen'
 import { Ikon } from '../Ikon'
 import { DialogKaca } from '../kaca/DialogKaca'
 import { tanggalIso, tglPendek } from '../../lib/format'
+import { Link } from 'react-router-dom'
+import { useAuth } from '../../lib/authContext'
+
+const KOLOM_HARIAN = [['ppm_awal', 'ppm awal'], ['ppm_target', 'ppm akhir'], ['hari_capai', 'hari capai']] as const
+const KOLOM_TAHAP = [['ppm_semai', 'Semai'], ['ppm_peremajaan', 'Peremajaan'], ['ppm_pendewasaan', 'Pendewasaan']] as const
+const KOLOM_PH = [['ph_min', 'pH min'], ['ph_max', 'pH maks']] as const
+type KunciResep = (typeof KOLOM_HARIAN)[number][0] | (typeof KOLOM_TAHAP)[number][0] | (typeof KOLOM_PH)[number][0]
 import { perkiraanSelesai } from '../../lib/kebun'
 
 /** GET /tanam/pilihan — bisa dibaca semua role; durasi tiap tahap dari tabel sikluses (null = belum diisi admin). */
@@ -20,8 +27,15 @@ type Pilihan = {
     ppm_awal?: number | string | null
     ppm_target?: number | string | null
     hari_capai?: number | string | null
+    cara_naik?: 'harian' | 'tahap' | null
+    ppm_semai?: number | string | null
+    ppm_peremajaan?: number | string | null
+    ppm_pendewasaan?: number | string | null
+    ph_min?: number | string | null
+    ph_max?: number | string | null
   }>
-  meja: Array<{ id: number | string; nama: string }>
+  /** alat = perangkat yang dipasang di penampung meja (Master Data → Meja). */
+  meja: Array<{ id: number | string; nama: string; volume_l?: number | string | null; alat?: string | null }>
 }
 
 const LANGKAH = 10
@@ -43,13 +57,18 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
   const [jumlah, setJumlah] = useState('100')
   const [tgl, setTgl] = useState(() => tanggalIso(Date.now()))
   const [ket, setKet] = useState('')
-  const [kurva, setKurva] = useState({ ppm_awal: '', ppm_target: '', hari_capai: '' })
+  const [kurva, setKurva] = useState<Record<KunciResep, string>>({
+    ppm_awal: '', ppm_target: '', hari_capai: '', ppm_semai: '', ppm_peremajaan: '', ppm_pendewasaan: '', ph_min: '', ph_max: '',
+  })
+  const { role } = useAuth()
+  const admin = role === 'admin'
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   const terpilih = tanamanList.find((t) => String(t.id) === idTanaman) ?? null
   const mejaTerpilih = mejaList.find((m) => String(m.id) === idMeja) ?? null
+  const tahap = terpilih?.cara_naik === 'tahap'
   const durasi = terpilih?.semai == null ? null : Number(terpilih.semai)
   const selesai = perkiraanSelesai(tgl, durasi)
   const n = /^\d+$/.test(jumlah.trim()) ? Number(jumlah.trim()) : null
@@ -58,8 +77,12 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
     setIdTanaman(String(t.id))
     // Meja bawaan tanaman mengisi otomatis, kecuali pengguna sudah memilih meja sendiri.
     if (!mejaManual) setIdMeja(t.id_meja == null ? '' : String(t.id_meja))
-    const teks = (v: unknown) => (v == null ? '' : String(v))
-    setKurva({ ppm_awal: teks(t.ppm_awal), ppm_target: teks(t.ppm_target), hari_capai: teks(t.hari_capai) })
+    const teks = (v: unknown) => (v == null ? '' : String(Number(v)).replace('.', ','))
+    setKurva({
+      ppm_awal: teks(t.ppm_awal), ppm_target: teks(t.ppm_target), hari_capai: teks(t.hari_capai),
+      ppm_semai: teks(t.ppm_semai), ppm_peremajaan: teks(t.ppm_peremajaan), ppm_pendewasaan: teks(t.ppm_pendewasaan),
+      ph_min: teks(t.ph_min), ph_max: teks(t.ph_max),
+    })
     setFieldErrors((e) => ({ ...e, id_tanaman: [] }))
   }
 
@@ -88,7 +111,9 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
       if (idMeja) payload.id_meja = Number(idMeja)
       if (tgl) payload.tgl_awal_semai = tgl
       if (ket.trim()) payload.keterangan = ket.trim()
-      for (const [k, v] of Object.entries(kurva)) if (v.trim()) payload[k] = Number(v.trim())
+      // hanya kolom cara naik tanaman ini (+ pH) — sisanya tetap dari resep Master Data
+      const dipakai = [...(tahap ? KOLOM_TAHAP : KOLOM_HARIAN), ...KOLOM_PH].map(([k]) => k)
+      for (const k of dipakai) if (kurva[k].trim()) payload[k] = Number(kurva[k].trim().replace(',', '.'))
       const res = await api.post('/tanam/mulai', payload)
       const body = res.data as { message?: string; data?: { id_semai?: string | number }; alat?: { ket?: string } } | null
       const id = body?.data?.id_semai
@@ -122,6 +147,8 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
           <legend className="vsf-label vsf-label-tinta">Tanaman *</legend>
           {loading && tanamanList.length === 0 ? (
             <div className="vsf-skeleton mt-2 h-[72px] rounded-card" />
+          ) : tanamanList.length === 0 ? (
+            <KosongMaster teks="Belum ada jenis tanaman." ke="/tanaman" tautan="Isi di Master Data → Jenis Tanaman" admin={admin} />
           ) : (
             <div role="radiogroup" aria-label="Tanaman" className="vsf-pilih-grid mt-2">
               {tanamanList.map((t) => {
@@ -160,9 +187,16 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
               {mejaList.map((m) => (
                 <option key={String(m.id)} value={String(m.id)}>
                   {m.nama}
+                  {m.alat ? ` · alat ${m.alat}` : ' · tanpa alat'}
                 </option>
               ))}
             </select>
+            {!loading && mejaList.length === 0 && (
+              <KosongMaster teks="Belum ada meja." ke="/meja" tautan="Isi di Master Data → Meja Tanaman" admin={admin} />
+            )}
+            {mejaTerpilih && !mejaTerpilih.alat && (
+              <p className="mt-1 text-[12px] text-amber-800">Meja ini belum dipasangi alat: batch tercatat, tetapi alat tidak menjaga penampungnya.</p>
+            )}
           </label>
 
           <label className="block">
@@ -195,18 +229,16 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
 
         {terpilih && (
           <fieldset className="mt-4 min-w-0">
-            <legend className="vsf-label vsf-label-tinta">Target nutrisi batch ini</legend>
+            <legend className="vsf-label vsf-label-tinta">Target nutrisi batch ini · {tahap ? 'per tahap' : 'per hari'}</legend>
             <p className="mt-1 text-[12px] text-abu">
-              Dari kurva {terpilih.nama}. ppm naik rata sejak pindah netpot sampai hari capai, lalu ditahan sampai panen. Boleh diubah untuk batch ini saja.
+              Dari resep {terpilih.nama}.{' '}
+              {tahap
+                ? 'ppm tetap per tahap, naik saat ganti tahap.'
+                : 'Saat Semai = ppm awal, sejak pindah netpot naik rata sampai hari capai, lalu ditahan sampai panen.'}{' '}
+              Boleh diubah untuk batch ini saja.
             </p>
             <div className="mt-2 grid grid-cols-3 gap-2">
-              {(
-                [
-                  ['ppm_awal', 'ppm awal'],
-                  ['ppm_target', 'ppm target'],
-                  ['hari_capai', 'hari capai'],
-                ] as const
-              ).map(([k, label]) => (
+              {[...(tahap ? KOLOM_TAHAP : KOLOM_HARIAN), ...KOLOM_PH].map(([k, label]) => (
                 <label key={k} className="block">
                   <span className="text-[12px] text-abu">{label}</span>
                   <input
@@ -244,5 +276,21 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
           </button>
         </div>
     </DialogKaca>
+  )
+}
+
+/** Pesan bila Master Data masih kosong; admin mendapat tautan langsung. */
+function KosongMaster({ teks, ke, tautan, admin }: { teks: string; ke: string; tautan: string; admin: boolean }) {
+  return (
+    <p className="mt-2 rounded-std bg-amber-50 px-3 py-2 text-[12.5px] text-amber-900">
+      {teks}{' '}
+      {admin ? (
+        <Link to={ke} className="font-semibold underline">
+          {tautan}
+        </Link>
+      ) : (
+        'Minta admin mengisinya di Master Data.'
+      )}
+    </p>
   )
 }

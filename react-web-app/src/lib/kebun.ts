@@ -17,10 +17,15 @@ export type TanamRow = {
   id_semai?: string | number | null
   /** Kurva naik harian batch & target hari ini (null sebelum pindah netpot / kurva belum diatur). */
   nutrisi?: {
-    kurva: { ppm_awal: number; ppm_target: number; hari_capai: number; diubah_hari: number | null } | null
+    kurva:
+      | { cara: 'harian'; ppm_awal: number; ppm_target: number; hari_capai: number; diubah_hari: number | null }
+      | { cara: 'tahap'; ppm_semai: number; ppm_peremajaan: number; ppm_pendewasaan: number }
+      | null
     hari_netpot: number | null
     target_hari_ini: number | null
     per_hari: number | null
+    ph_min?: number | null
+    ph_max?: number | null
   } | null
 }
 

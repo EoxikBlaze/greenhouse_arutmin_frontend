@@ -16,10 +16,14 @@ export function KartuBatch({ r, onUbahKurva }: { r: TanamRow; onUbahKurva?: () =
   const selesai = perkiraanSelesai(r.mulai, r.durasi_hari)
   const jumlah = r.tipe === 'semai' ? r.jumlah_benih : r.jumlah_masuk
   const nut = r.nutrisi
-  const kurvaTeks = nut?.kurva
-    ? `${nut.kurva.ppm_awal}→${nut.kurva.ppm_target} ppm / ${nut.kurva.hari_capai} hari${nut.kurva.diubah_hari ? ` (diubah hari ke-${nut.kurva.diubah_hari})` : ''}`
-    : 'belum diatur'
+  const k = nut?.kurva
+  const kurvaTeks = !k
+    ? 'belum diatur'
+    : k.cara === 'tahap'
+      ? `per tahap ${k.ppm_semai}→${k.ppm_peremajaan}→${k.ppm_pendewasaan} ppm`
+      : `per hari ${k.ppm_awal}→${k.ppm_target} ppm / ${k.hari_capai} hari${k.diubah_hari ? ` (diubah hari ke-${k.diubah_hari})` : ''}`
   const targetTeks = nut?.target_hari_ini != null ? `${nut.target_hari_ini} ppm` : r.tipe === 'semai' ? 'preset semai' : '—'
+  const phTeks = nut?.ph_min != null && nut?.ph_max != null ? `${String(nut.ph_min).replace('.', ',')}–${String(nut.ph_max).replace('.', ',')}` : 'preset'
 
   return (
     <article className={clsx('vsf-batch', siap && 'is-siap')}>
@@ -76,6 +80,7 @@ export function KartuBatch({ r, onUbahKurva }: { r: TanamRow; onUbahKurva?: () =
           [r.tipe === 'semai' ? 'Jumlah benih' : 'Jumlah masuk', typeof jumlah === 'number' ? jumlah : 'belum dicatat'],
           ['Target hari ini', targetTeks],
           ['Kurva nutrisi', kurvaTeks],
+          ['Rentang pH', phTeks],
         ].map(([k, v]) => (
           <div key={k as string} className="flex items-center justify-between gap-2">
             <dt className="text-abu">{k}</dt>

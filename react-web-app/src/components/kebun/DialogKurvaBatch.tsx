@@ -13,9 +13,19 @@ import type { TanamRow } from '../../lib/kebun'
 export function DialogKurvaBatch({ r, onClose, onSukses }: { r: TanamRow; onClose: () => void; onSukses: (pesan: string) => void }) {
   const handleApiError = useApiError()
   const k = r.nutrisi?.kurva
+  const tahap = k?.cara === 'tahap'
   const sudahNetpot = r.tipe !== 'semai'
-  const teks = (v: unknown) => (v == null ? '' : String(v))
-  const [isi, setIsi] = useState({ ppm_awal: teks(k?.ppm_awal), ppm_target: teks(k?.ppm_target), hari_capai: teks(k?.hari_capai) })
+  const teks = (v: unknown) => (v == null ? '' : String(v).replace('.', ','))
+  const [isi, setIsi] = useState<Record<string, string>>({
+    ppm_awal: teks(k?.cara === 'harian' ? k.ppm_awal : null),
+    ppm_target: teks(k?.cara === 'harian' ? k.ppm_target : null),
+    hari_capai: teks(k?.cara === 'harian' ? k.hari_capai : null),
+    ppm_semai: teks(k?.cara === 'tahap' ? k.ppm_semai : null),
+    ppm_peremajaan: teks(k?.cara === 'tahap' ? k.ppm_peremajaan : null),
+    ppm_pendewasaan: teks(k?.cara === 'tahap' ? k.ppm_pendewasaan : null),
+    ph_min: teks(r.nutrisi?.ph_min),
+    ph_max: teks(r.nutrisi?.ph_max),
+  })
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
   const [galat, setGalat] = useState<string | null>(null)
   const [sibuk, setSibuk] = useState(false)
@@ -26,9 +36,9 @@ export function DialogKurvaBatch({ r, onClose, onSukses }: { r: TanamRow; onClos
     setGalat(null)
     try {
       const body: Record<string, number> = {}
-      for (const [kunci, v] of Object.entries(isi)) {
-        if (kunci === 'ppm_awal' && sudahNetpot) continue
-        if (v.trim()) body[kunci] = Number(v.trim())
+      for (const [kunci] of kolom) {
+        const v = isi[kunci] ?? ''
+        if (v.trim()) body[kunci] = Number(v.trim().replace(',', '.'))
       }
       const res = await api.put(`/tanam/semai/${r.id_semai}/kurva`, body)
       const d = res.data as { message?: string; peringatan?: string | null }
@@ -42,13 +52,15 @@ export function DialogKurvaBatch({ r, onClose, onSukses }: { r: TanamRow; onClos
     }
   }
 
-  const kolom = (
-    [
-      ['ppm_awal', 'ppm awal (saat pindah netpot)'],
-      ['ppm_target', 'ppm target'],
-      ['hari_capai', 'hari capai (sejak netpot)'],
-    ] as const
-  ).filter(([kunci]) => !(kunci === 'ppm_awal' && sudahNetpot))
+  const kolom: Array<readonly [string, string]> = [
+    ...(tahap
+      ? ([['ppm_semai', 'Semai (ppm)'], ['ppm_peremajaan', 'Peremajaan (ppm)'], ['ppm_pendewasaan', 'Pendewasaan (ppm)']] as const)
+      : ([['ppm_awal', 'ppm awal'], ['ppm_target', 'ppm akhir'], ['hari_capai', 'hari capai (sejak netpot)']] as const).filter(
+          ([kunci]) => !(kunci === 'ppm_awal' && sudahNetpot),
+        )),
+    ['ph_min', 'pH min'],
+    ['ph_max', 'pH maks'],
+  ]
 
   return (
     <DialogKaca
@@ -60,7 +72,9 @@ export function DialogKurvaBatch({ r, onClose, onSukses }: { r: TanamRow; onClos
       onSubmit={() => void simpan()}
     >
       <p className="mt-3 text-[13px] leading-relaxed text-tinta">
-        {sudahNetpot && r.nutrisi?.target_hari_ini != null ? (
+        {tahap ? (
+          <>ppm dijaga tetap per tahap. Angka tahap yang sedang berjalan berlaku mulai kiriman target berikutnya ke alat.</>
+        ) : sudahNetpot && r.nutrisi?.target_hari_ini != null ? (
           <>
             Target hari ini <b>{r.nutrisi.target_hari_ini} ppm</b> tetap (hari ke-{r.nutrisi.hari_netpot} sejak netpot). Mulai besok ppm naik
             rata ke target baru. Hitungan hari semai sampai panen tidak berubah, dan batch lain tidak ikut berubah.
@@ -74,7 +88,7 @@ export function DialogKurvaBatch({ r, onClose, onSukses }: { r: TanamRow; onClos
           {galat}
         </div>
       )}
-      <div className={`mt-3 grid gap-2 ${kolom.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
         {kolom.map(([kunci, label]) => (
           <label key={kunci} className="block">
             <span className="text-[12px] text-abu">{label}</span>
