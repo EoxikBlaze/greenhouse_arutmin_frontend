@@ -16,8 +16,8 @@ export default function DataPage() {
   const iot = useIotV41State()
   return (
     <div className="vsf-halaman vsf-stagger">
-      <PageHeader judul="Data" deskripsi="Takaran larutan hasil penakaran nyata, dipisah untuk tanaman dan buah." />
-      <div role="tablist" aria-label="Data" className="flex gap-2">
+      <PageHeader judul="Uji Lab" deskripsi="Takaran larutan hasil penakaran nyata, dipisah untuk tanaman dan buah." />
+      <div role="tablist" aria-label="Uji Lab" className="flex gap-2">
         {TAB.map((t) => (
           <button key={t.kode} type="button" role="tab" aria-selected={tab === t.kode}
             className={tab === t.kode ? 'vsf-btn-primary' : 'vsf-btn-secondary'}
