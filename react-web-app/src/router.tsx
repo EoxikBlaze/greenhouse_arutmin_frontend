@@ -64,6 +64,13 @@ export const router = createBrowserRouter([
           // Halaman mandiri IoT Hidroponik 1 Penampung v4.1 (sesuai menu sidebar Hidro Control)
           { path: '/saklar', element: <RequireAuth allow={ADMIN_DEMO} element={<SaklarModePage />} /> },
           { path: '/dosing-manual', element: <Navigate to="/dashboard" replace /> },
+          // menu yang sudah dihapus: tautan/bookmark lama diarahkan ke penggantinya, bukan 404
+          { path: '/pengaturan-alat', element: <Navigate to="/meja" replace /> },
+          { path: '/pengaturan', element: <Navigate to="/meja" replace /> },
+          { path: '/parameter', element: <Navigate to="/dashboard" replace /> },
+          { path: '/watercontrol', element: <Navigate to="/saklar" replace /> },
+          { path: '/air', element: <Navigate to="/saklar" replace /> },
+          { path: '/kuras-air', element: <Navigate to="/saklar" replace /> },
           { path: '/pompa', element: <Navigate to="/dashboard" replace /> },
           { path: '/data', element: <RequireAuth allow={ADMIN_DEMO} element={<DataPage />} /> },
           { path: '/ujilab', element: <Navigate to="/data" replace /> },
