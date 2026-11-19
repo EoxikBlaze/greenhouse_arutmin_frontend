@@ -87,14 +87,13 @@ function inputFor(
 /* ============= 11 · JENIS TANAMAN — API NYATA ============= */
 
 /**
- * Baris GET /tanaman — resep tanaman (migrasi 2026-11-19_01): disalin ke batch saat Mulai Semai,
- * lalu dipakai server untuk target harian yang dikirim ke alat (SEMAI / TARGET).
+ * Baris GET /tanaman — DUA resep tanaman (per hari & per siklus) + pH (migrasi 2026-11-19_01).
+ * Cara yang dipakai dipilih saat Mulai Semai; resep disalin ke batch lalu dipakai server untuk target ke alat.
  */
 type TanamanRow = Record<string, unknown> & {
   id_tanaman: string | number
   nama_tanaman: string
   id_meja: string | number | null
-  cara_naik?: 'harian' | 'tahap' | null
   ppm_awal?: string | number | null
   ppm_target?: string | number | null
   hari_capai?: number | null
@@ -116,17 +115,19 @@ const angkaForm = (v: string | undefined) => {
 }
 
 /**
- * Validasi klien: wajib isi & aturan antar-kolom yang jelas bagi petani. Batas rentang tetap dijaga
- * Zod + CHECK backend (422 per-field).
+ * Validasi klien: tiap resep diisi lengkap atau dikosongkan semua, minimal satu resep lengkap, pH wajib.
+ * Batas rentang tetap dijaga Zod + CHECK backend (422 per-field).
  */
 function validateTanaman(form: FormState): Record<string, string[]> {
   const errs: Record<string, string[]> = {}
   if (!(form.nama_tanaman ?? '').trim()) errs.nama_tanaman = ['Nama tanaman wajib diisi.']
-  const kolom = form.cara_naik === 'tahap' ? KOLOM_TAHAP : KOLOM_HARIAN
-  for (const k of kolom) if (angkaForm(form[k]) == null) errs[k] = ['Wajib diisi.']
-  if (form.cara_naik !== 'tahap' && (angkaForm(form.ppm_awal) ?? 0) > (angkaForm(form.ppm_target) ?? Infinity)) {
-    errs.ppm_target = ['ppm akhir harus ≥ ppm awal.']
+  const lengkap = (kolom: readonly string[]) => kolom.every((k) => angkaForm(form[k]) != null)
+  const kosong = (kolom: readonly string[]) => kolom.every((k) => angkaForm(form[k]) == null)
+  for (const kolom of [KOLOM_HARIAN, KOLOM_TAHAP]) {
+    if (!lengkap(kolom) && !kosong(kolom)) for (const k of kolom) if (angkaForm(form[k]) == null) errs[k] = ['Lengkapi, atau kosongkan semua.']
   }
+  if (kosong(KOLOM_HARIAN) && kosong(KOLOM_TAHAP)) errs.ppm_awal = ['Isi minimal satu resep: per hari atau per siklus.']
+  if ((angkaForm(form.ppm_awal) ?? 0) > (angkaForm(form.ppm_target) ?? Infinity)) errs.ppm_target = ['ppm akhir harus ≥ ppm awal.']
   const phMin = angkaForm(form.ph_min)
   const phMax = angkaForm(form.ph_max)
   if (phMin == null) errs.ph_min = ['Wajib diisi.']
@@ -135,24 +136,20 @@ function validateTanaman(form: FormState): Record<string, string[]> {
   return errs
 }
 
-/** Body PUT/POST /tanaman: kolom cara yang tidak dipakai dikosongkan (null) supaya resep tidak campur. */
+/** Body PUT/POST /tanaman: kolom kosong dikirim null (resep boleh dikosongkan). */
 function payloadTanaman(form: FormState): Record<string, unknown> {
-  const tahap = form.cara_naik === 'tahap'
-  const payload: Record<string, unknown> = { nama_tanaman: (form.nama_tanaman ?? '').trim(), cara_naik: tahap ? 'tahap' : 'harian' }
-  for (const k of KOLOM_RESEP) {
-    const dipakai = k.startsWith('ph_') || (tahap ? (KOLOM_TAHAP as readonly string[]).includes(k) : (KOLOM_HARIAN as readonly string[]).includes(k))
-    payload[k] = dipakai ? angkaForm(form[k]) : null
-  }
+  const payload: Record<string, unknown> = { nama_tanaman: (form.nama_tanaman ?? '').trim() }
+  for (const k of KOLOM_RESEP) payload[k] = angkaForm(form[k])
   return payload
 }
 
-function ringkasResep(r: TanamanRow): string | null {
-  if (r.cara_naik === 'tahap') {
-    if (r.ppm_semai == null) return null
-    return `Per tahap: ${r.ppm_semai} → ${r.ppm_peremajaan} → ${r.ppm_pendewasaan} ppm`
-  }
+function ringkasHarian(r: TanamanRow): string | null {
   if (r.ppm_awal == null) return null
-  return `Per hari: ${angkaMaks(Number(r.ppm_awal), 0)} → ${angkaMaks(Number(r.ppm_target), 0)} ppm dalam ${isi(r.hari_capai)} hari`
+  return `${angkaMaks(Number(r.ppm_awal), 0)} → ${angkaMaks(Number(r.ppm_target), 0)} ppm / ${isi(r.hari_capai)} hari`
+}
+function ringkasSiklus(r: TanamanRow): string | null {
+  if (r.ppm_semai == null) return null
+  return `${r.ppm_semai} → ${r.ppm_peremajaan} → ${r.ppm_pendewasaan} ppm`
 }
 
 export function JenisTanamanPage() {
@@ -190,8 +187,7 @@ export function JenisTanamanPage() {
   function buka(row: TanamanRow | null) {
     setForm({
       nama_tanaman: isi(row?.nama_tanaman),
-      cara_naik: row?.cara_naik === 'tahap' ? 'tahap' : 'harian',
-      ...Object.fromEntries(KOLOM_RESEP.map((k) => [k, isi(row?.[k])])),
+      ...Object.fromEntries(KOLOM_RESEP.map((k) => [k, k.startsWith('ph_') && row?.[k] != null ? isi(Number(row[k])).replace('.', ',') : isi(row?.[k])])),
     })
     setEditingId(row ? String(row.id_tanaman) : null)
     setFieldErrors({})
@@ -256,10 +252,18 @@ export function JenisTanamanPage() {
       ),
     },
     {
-      key: 'nutrisi',
-      header: 'Kenaikan nutrisi',
+      key: 'per-hari',
+      header: 'Naik per hari',
       render: (r) => {
-        const t = ringkasResep(r)
+        const t = ringkasHarian(r)
+        return t ? <span className="vsf-master-chip">{t}</span> : <span className="vsf-master-chip is-kosong">Belum diatur</span>
+      },
+    },
+    {
+      key: 'per-siklus',
+      header: 'Per siklus (Semai → Peremajaan → Pendewasaan)',
+      render: (r) => {
+        const t = ringkasSiklus(r)
         return t ? <span className="vsf-master-chip">{t}</span> : <span className="vsf-master-chip is-kosong">Belum diatur</span>
       },
     },
@@ -287,14 +291,13 @@ export function JenisTanamanPage() {
       <FieldError message={fieldError(fieldErrors, k)} />
     </Field>
   )
-  const tahap = form.cara_naik === 'tahap'
-  const ppmTertinggi = Math.max(...(tahap ? KOLOM_TAHAP : (['ppm_target'] as const)).map((k) => angkaForm(form[k]) ?? 0))
+  const ppmTertinggi = Math.max(...[...KOLOM_TAHAP, 'ppm_target'].map((k) => angkaForm(form[k]) ?? 0))
 
   return (
     <>
       <MasterFrame
         judul="Jenis Tanaman"
-        deskripsi="Resep tiap tanaman: kenaikan nutrisi (per hari atau per tahap) dan rentang pH. Disalin ke batch saat Mulai Semai."
+        deskripsi="Resep tiap tanaman: kenaikan nutrisi per hari dan per siklus, serta rentang pH. Cara yang dipakai dipilih saat Mulai Semai."
         jumlah={`${rows.length} jenis`}
         tambah="Tambah"
         onTambah={() => buka(null)}
@@ -337,37 +340,22 @@ export function JenisTanamanPage() {
           </Field>
 
           <fieldset className="mt-4 border-t border-black/10 pt-3">
-            <legend className="text-[12px] font-bold text-slate-700">Kenaikan nutrisi</legend>
-            <div role="radiogroup" aria-label="Cara kenaikan nutrisi" className="mt-2 grid grid-cols-2 gap-2">
-              {(
-                [
-                  ['harian', 'Per hari', 'Naik sedikit tiap hari (disarankan)'],
-                  ['tahap', 'Per tahap', 'Tetap per tahap, naik saat ganti tahap'],
-                ] as const
-              ).map(([nilai, judul, ket]) => (
-                <button
-                  key={nilai}
-                  type="button"
-                  role="radio"
-                  aria-checked={(form.cara_naik ?? 'harian') === nilai}
-                  className="vsf-pilih"
-                  onClick={() => setForm((s) => ({ ...s, cara_naik: nilai }))}
-                >
-                  <b>{judul}</b>
-                  <small>{ket}</small>
-                </button>
-              ))}
-            </div>
-            <p className="mt-2 text-[12px] leading-relaxed text-slate-600">
-              {tahap
-                ? 'ppm dijaga tetap selama satu tahap, lalu naik ke angka tahap berikutnya.'
-                : 'Saat Semai ppm = ppm awal. Sejak pindah netpot ppm naik rata tiap hari sampai ppm akhir pada hari ke-N, lalu ditahan sampai panen.'}
+            <legend className="text-[12px] font-bold text-slate-700">Resep naik per hari</legend>
+            <p className="mt-1 text-[12px] leading-relaxed text-slate-600">
+              Saat Semai ppm = ppm awal. Sejak pindah netpot ppm naik rata tiap hari sampai ppm akhir pada hari ke-N, lalu ditahan sampai panen.
             </p>
             <div className="mt-2 grid gap-3 sm:grid-cols-3">
-              {tahap
-                ? [kotak('ppm_semai', 'Semai (ppm)', '300'), kotak('ppm_peremajaan', 'Peremajaan (ppm)', '700'), kotak('ppm_pendewasaan', 'Pendewasaan (ppm)', '1100')]
-                : [kotak('ppm_awal', 'ppm awal', '400'), kotak('ppm_target', 'ppm akhir', '1200'), kotak('hari_capai', 'Dicapai hari ke- (sejak netpot)', '30')]}
+              {[kotak('ppm_awal', 'ppm awal', '400'), kotak('ppm_target', 'ppm akhir', '1200'), kotak('hari_capai', 'Dicapai hari ke- (sejak netpot)', '30')]}
             </div>
+          </fieldset>
+
+          <fieldset className="mt-4 border-t border-black/10 pt-3">
+            <legend className="text-[12px] font-bold text-slate-700">Resep per siklus</legend>
+            <p className="mt-1 text-[12px] leading-relaxed text-slate-600">ppm dijaga tetap selama satu tahap, lalu naik ke angka tahap berikutnya.</p>
+            <div className="mt-2 grid gap-3 sm:grid-cols-3">
+              {[kotak('ppm_semai', 'Semai (ppm)', '300'), kotak('ppm_peremajaan', 'Peremajaan (ppm)', '700'), kotak('ppm_pendewasaan', 'Pendewasaan (ppm)', '1100')]}
+            </div>
+            <p className="mt-2 text-[12px] text-slate-600">Isi salah satu atau keduanya. Petani memilih cara yang dipakai saat Mulai Semai.</p>
             {maksAmbang != null && ppmTertinggi > maksAmbang && (
               <p role="alert" className="mt-2 text-[12px] text-amber-800">
                 Melewati batas aman nutrisi di Ambang Sensor ({angkaMaks(maksAmbang, 0)} ppm); peringatan akan menyala saat target tercapai.
@@ -426,6 +414,7 @@ type KonfigMeja = {
   jeda_ab_dtk: number | null
   jeda_otomatis: boolean
   alat: string | null
+  alat_nama: string | null
 }
 type AlatRow = { kode: string; nama: string | null; id_meja: string | number | null; online: boolean | null }
 
@@ -486,6 +475,9 @@ export function MejaTanamanPage() {
     reloadKonfig()
   }
   const [alatDipilih, setAlatDipilih] = useState('')
+  const [namaAlat, setNamaAlat] = useState('')
+  const alatList = konfig?.alat ?? []
+  const namaAlatAsli = alatList.find((a) => a.kode === alatDipilih)?.nama ?? ''
 
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -508,6 +500,7 @@ export function MejaTanamanPage() {
   function resetForm() {
     setForm({})
     setAlatDipilih('')
+    setNamaAlat('')
     setEditingId(null)
     setFieldErrors({})
     setFormError(null)
@@ -533,7 +526,9 @@ export function MejaTanamanPage() {
       next[f.key] = filled ? String(v) : ''
     }
     setForm(next)
-    setAlatDipilih(konfigPer.get(String(row.id_meja))?.alat ?? '')
+    const kodeAlat = konfigPer.get(String(row.id_meja))?.alat ?? ''
+    setAlatDipilih(kodeAlat)
+    setNamaAlat(alatList.find((a) => a.kode === kodeAlat)?.nama ?? '')
     setEditingId(String(row.id_meja))
     setFieldErrors({})
     setFormError(null)
@@ -557,8 +552,8 @@ export function MejaTanamanPage() {
         id = String((r.data as { data?: { id_meja?: string | number } }).data?.id_meja ?? '')
       }
       // alat terpasang (perangkat.id_meja) disimpan terpisah; hanya bila berubah
-      if (id && (konfigPer.get(id)?.alat ?? '') !== alatDipilih) {
-        await api.put(`/meja/${id}/alat`, { kode: alatDipilih || null })
+      if (id && ((konfigPer.get(id)?.alat ?? '') !== alatDipilih || (alatDipilih && namaAlat.trim() !== namaAlatAsli))) {
+        await api.put(`/meja/${id}/alat`, { kode: alatDipilih || null, ...(alatDipilih && namaAlat.trim() ? { nama: namaAlat.trim() } : {}) })
       }
       setOpen(false)
       resetForm()
@@ -619,7 +614,7 @@ export function MejaTanamanPage() {
         const v = (n: number | null, satuan: string, oto: boolean) => (n == null ? 'belum bisa dihitung' : `${n} ${satuan}${oto ? ' (otomatis)' : ''}`)
         return (
           <>
-            <b className="text-tinta">{k.alat ?? 'Belum ada alat'}</b>
+            <b className="text-tinta">{k.alat ? k.alat_nama : 'Belum ada alat'}</b>
             <small className="vsf-master-id">
               {k.volume_l == null ? 'volume belum diisi' : `${k.volume_l} L`} · monitoring {v(k.monitoring_menit, 'mnt', k.monitoring_otomatis)} · jeda A→B{' '}
               {v(k.jeda_ab_dtk, 'dtk', k.jeda_otomatis)}
@@ -707,17 +702,28 @@ export function MejaTanamanPage() {
             </Field>
           ))}
           <Field label="Alat terpasang di penampung meja ini">
-            <select className="vsf-input w-full" value={alatDipilih} onChange={(e) => setAlatDipilih(e.target.value)}>
+            <select
+              className="vsf-input w-full"
+              value={alatDipilih}
+              onChange={(e) => {
+                setAlatDipilih(e.target.value)
+                setNamaAlat(alatList.find((a) => a.kode === e.target.value)?.nama ?? '')
+              }}
+            >
               <option value="">— tidak ada alat —</option>
-              {(konfig?.alat ?? []).map((a) => (
+              {alatList.map((a) => (
                 <option key={a.kode} value={a.kode}>
-                  {a.kode}
-                  {a.nama ? ` · ${a.nama}` : ''}
-                  {a.id_meja != null && String(a.id_meja) !== editingId ? ' (sedang di meja lain — akan dipindah)' : ''}
+                  {a.nama || a.kode} ({a.kode})
+                  {a.id_meja != null && String(a.id_meja) !== editingId ? ' — sedang di meja lain, akan dipindah' : ''}
                 </option>
               ))}
             </select>
           </Field>
+          {alatDipilih && (
+            <Field label="Nama alat (tampil di web)">
+              <input className="vsf-input w-full" placeholder="Alat 1" value={namaAlat} onChange={(e) => setNamaAlat(e.target.value)} />
+            </Field>
+          )}
           <p className="text-[12px] text-abu">Saat alat dipindah, cukup ganti pilihan ini. Mulai Semai berikutnya memakai volume & waktu meja ini.</p>
         </DialogMaster>
       )}

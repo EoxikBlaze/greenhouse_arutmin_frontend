@@ -14,7 +14,11 @@ const KOLOM_HARIAN = [['ppm_awal', 'ppm awal'], ['ppm_target', 'ppm akhir'], ['h
 const KOLOM_TAHAP = [['ppm_semai', 'Semai'], ['ppm_peremajaan', 'Peremajaan'], ['ppm_pendewasaan', 'Pendewasaan']] as const
 const KOLOM_PH = [['ph_min', 'pH min'], ['ph_max', 'pH maks']] as const
 type KunciResep = (typeof KOLOM_HARIAN)[number][0] | (typeof KOLOM_TAHAP)[number][0] | (typeof KOLOM_PH)[number][0]
+type Cara = 'harian' | 'tahap'
 import { perkiraanSelesai } from '../../lib/kebun'
+
+const ada = (v: unknown) => v != null && String(v).trim() !== ''
+const koma = (v: unknown) => String(Number(v)).replace('.', ',')
 
 /** GET /tanam/pilihan — bisa dibaca semua role; durasi tiap tahap dari tabel sikluses (null = belum diisi admin). */
 type Pilihan = {
@@ -27,7 +31,6 @@ type Pilihan = {
     ppm_awal?: number | string | null
     ppm_target?: number | string | null
     hari_capai?: number | string | null
-    cara_naik?: 'harian' | 'tahap' | null
     ppm_semai?: number | string | null
     ppm_peremajaan?: number | string | null
     ppm_pendewasaan?: number | string | null
@@ -35,15 +38,15 @@ type Pilihan = {
     ph_max?: number | string | null
   }>
   /** alat = perangkat yang dipasang di penampung meja (Master Data → Meja). */
-  meja: Array<{ id: number | string; nama: string; volume_l?: number | string | null; alat?: string | null }>
+  meja: Array<{ id: number | string; nama: string; volume_l?: number | string | null; alat?: string | null; alat_nama?: string | null }>
 }
 
 const LANGKAH = 10
 
 /**
  * Form "Mulai Semai Baru" — body POST /tanam/mulai: id_tanaman · id_meja · jumlah_benih · tgl_awal_semai · keterangan
- * · ppm_awal · ppm_target · hari_capai (kurva nutrisi batch). Siklus Semai diisi otomatis server.
- * Server menyalin kurva ke batch lalu mengirim SEMAI ke alat; jawaban `alat.ket` ditampilkan ke petani.
+ * · cara_naik (per hari / per siklus, DIPILIH di sini) · angka resep bila diubah untuk batch ini.
+ * Server menyalin resep ke batch lalu mengirim KONFIGURASI + SEMAI ke alat di meja; `alat.ket` ditampilkan ke petani.
  */
 export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; onSukses: (pesan: string) => void }) {
   const handleApiError = useApiError()
@@ -60,6 +63,8 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
   const [kurva, setKurva] = useState<Record<KunciResep, string>>({
     ppm_awal: '', ppm_target: '', hari_capai: '', ppm_semai: '', ppm_peremajaan: '', ppm_pendewasaan: '', ph_min: '', ph_max: '',
   })
+  const [cara, setCara] = useState<Cara>('harian')
+  const [ubahResep, setUbahResep] = useState(false)
   const { role } = useAuth()
   const admin = role === 'admin'
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
@@ -68,7 +73,9 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
 
   const terpilih = tanamanList.find((t) => String(t.id) === idTanaman) ?? null
   const mejaTerpilih = mejaList.find((m) => String(m.id) === idMeja) ?? null
-  const tahap = terpilih?.cara_naik === 'tahap'
+  const tahap = cara === 'tahap'
+  const punyaHarian = !!terpilih && KOLOM_HARIAN.every(([k]) => ada(terpilih[k]))
+  const punyaSiklus = !!terpilih && KOLOM_TAHAP.every(([k]) => ada(terpilih[k]))
   const durasi = terpilih?.semai == null ? null : Number(terpilih.semai)
   const selesai = perkiraanSelesai(tgl, durasi)
   const n = /^\d+$/.test(jumlah.trim()) ? Number(jumlah.trim()) : null
@@ -77,7 +84,11 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
     setIdTanaman(String(t.id))
     // Meja bawaan tanaman mengisi otomatis, kecuali pengguna sudah memilih meja sendiri.
     if (!mejaManual) setIdMeja(t.id_meja == null ? '' : String(t.id_meja))
-    const teks = (v: unknown) => (v == null ? '' : String(Number(v)).replace('.', ','))
+    const teks = (v: unknown) => (v == null ? '' : koma(v))
+    // bawaan: per hari bila resepnya ada, selainnya per siklus
+    const harianLengkap = KOLOM_HARIAN.every(([k]) => ada(t[k]))
+    setCara(harianLengkap || !KOLOM_TAHAP.every(([k]) => ada(t[k])) ? 'harian' : 'tahap')
+    setUbahResep(false)
     setKurva({
       ppm_awal: teks(t.ppm_awal), ppm_target: teks(t.ppm_target), hari_capai: teks(t.hari_capai),
       ppm_semai: teks(t.ppm_semai), ppm_peremajaan: teks(t.ppm_peremajaan), ppm_pendewasaan: teks(t.ppm_pendewasaan),
@@ -93,6 +104,9 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
   function validate(): Record<string, string[]> {
     const errs: Record<string, string[]> = {}
     if (!idTanaman) errs.id_tanaman = ['Pilih tanaman dulu.']
+    else if (!ubahResep && !(tahap ? punyaSiklus : punyaHarian)) {
+      errs.cara_naik = [`Resep ${tahap ? 'per siklus' : 'per hari'} ${terpilih?.nama ?? ''} belum diisi di Master Data. Pilih cara lain atau isi untuk batch ini.`]
+    }
     if (n === null) errs.jumlah_benih = ['Isi jumlah benih dengan bilangan bulat.']
     else if (n < 1) errs.jumlah_benih = ['Jumlah benih minimal 1.']
     return errs
@@ -111,9 +125,13 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
       if (idMeja) payload.id_meja = Number(idMeja)
       if (tgl) payload.tgl_awal_semai = tgl
       if (ket.trim()) payload.keterangan = ket.trim()
-      // hanya kolom cara naik tanaman ini (+ pH) — sisanya tetap dari resep Master Data
-      const dipakai = [...(tahap ? KOLOM_TAHAP : KOLOM_HARIAN), ...KOLOM_PH].map(([k]) => k)
-      for (const k of dipakai) if (kurva[k].trim()) payload[k] = Number(kurva[k].trim().replace(',', '.'))
+      payload.cara_naik = cara
+      // angka resep hanya dikirim bila diubah untuk batch ini; selainnya server memakai resep Master Data
+      if (ubahResep) {
+        for (const [k] of [...(tahap ? KOLOM_TAHAP : KOLOM_HARIAN), ...KOLOM_PH]) {
+          if (kurva[k].trim()) payload[k] = Number(kurva[k].trim().replace(',', '.'))
+        }
+      }
       const res = await api.post('/tanam/mulai', payload)
       const body = res.data as { message?: string; data?: { id_semai?: string | number }; alat?: { ket?: string } } | null
       const id = body?.data?.id_semai
@@ -187,7 +205,7 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
               {mejaList.map((m) => (
                 <option key={String(m.id)} value={String(m.id)}>
                   {m.nama}
-                  {m.alat ? ` · alat ${m.alat}` : ' · tanpa alat'}
+                  {m.alat ? ` · ${m.alat_nama || m.alat}` : ' · tanpa alat'}
                 </option>
               ))}
             </select>
@@ -229,30 +247,52 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
 
         {terpilih && (
           <fieldset className="mt-4 min-w-0">
-            <legend className="vsf-label vsf-label-tinta">Target nutrisi batch ini · {tahap ? 'per tahap' : 'per hari'}</legend>
-            <p className="mt-1 text-[12px] text-abu">
-              Dari resep {terpilih.nama}.{' '}
-              {tahap
-                ? 'ppm tetap per tahap, naik saat ganti tahap.'
-                : 'Saat Semai = ppm awal, sejak pindah netpot naik rata sampai hari capai, lalu ditahan sampai panen.'}{' '}
-              Boleh diubah untuk batch ini saja.
-            </p>
-            <div className="mt-2 grid grid-cols-3 gap-2">
-              {[...(tahap ? KOLOM_TAHAP : KOLOM_HARIAN), ...KOLOM_PH].map(([k, label]) => (
-                <label key={k} className="block">
-                  <span className="text-[12px] text-abu">{label}</span>
-                  <input
-                    className="vsf-input mt-1 w-full"
-                    inputMode="numeric"
-                    value={kurva[k]}
-                    placeholder="—"
-                    onChange={(e) => setKurva((v) => ({ ...v, [k]: e.target.value }))}
-                  />
-                  <FieldError message={fieldError(fieldErrors, k)} />
-                </label>
+            <legend className="vsf-label vsf-label-tinta">Kenaikan nutrisi batch ini</legend>
+            <div role="radiogroup" aria-label="Cara kenaikan nutrisi" className="vsf-pilih-grid mt-2">
+              {(
+                [
+                  ['harian', 'Per hari', punyaHarian ? `${koma(terpilih.ppm_awal)} → ${koma(terpilih.ppm_target)} ppm / ${koma(terpilih.hari_capai)} hari` : 'belum diisi di Master'],
+                  ['tahap', 'Per siklus', punyaSiklus ? `${koma(terpilih.ppm_semai)} → ${koma(terpilih.ppm_peremajaan)} → ${koma(terpilih.ppm_pendewasaan)} ppm` : 'belum diisi di Master'],
+                ] as const
+              ).map(([nilai, judul, ket]) => (
+                <button key={nilai} type="button" role="radio" aria-checked={cara === nilai} className="vsf-pilih" onClick={() => setCara(nilai)}>
+                  <b>{judul}</b>
+                  <small>{ket}</small>
+                </button>
               ))}
             </div>
-            <FieldError message={fieldError(fieldErrors, 'kurva')} />
+            <p className="mt-2 text-[12px] text-abu">
+              {tahap
+                ? 'ppm tetap selama satu tahap, naik saat ganti tahap.'
+                : 'Saat Semai = ppm awal; sejak pindah netpot naik rata sampai hari capai, lalu ditahan sampai panen.'}{' '}
+              pH {ada(terpilih.ph_min) ? `${koma(terpilih.ph_min)}–${koma(terpilih.ph_max)}` : 'belum diisi'}.
+            </p>
+            <FieldError message={fieldError(fieldErrors, 'cara_naik')} />
+            {!ubahResep ? (
+              <button type="button" className="mt-1 inline-flex min-h-[44px] items-center text-[12px] font-semibold text-arutmin-forest underline" onClick={() => setUbahResep(true)}>
+                Ubah untuk batch ini
+              </button>
+            ) : (
+              <>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {[...(tahap ? KOLOM_TAHAP : KOLOM_HARIAN), ...KOLOM_PH].map(([k, label]) => (
+                    <label key={k} className="block">
+                      <span className="text-[12px] text-abu">{label}</span>
+                      <input
+                        className="vsf-input mt-1 w-full"
+                        inputMode="decimal"
+                        value={kurva[k]}
+                        placeholder="—"
+                        onChange={(e) => setKurva((v) => ({ ...v, [k]: e.target.value }))}
+                      />
+                      <FieldError message={fieldError(fieldErrors, k)} />
+                    </label>
+                  ))}
+                </div>
+                <p className="mt-1 text-[12px] text-abu">Hanya untuk batch ini; resep di Master Data tidak berubah.</p>
+                <FieldError message={fieldError(fieldErrors, 'kurva')} />
+              </>
+            )}
           </fieldset>
         )}
 
