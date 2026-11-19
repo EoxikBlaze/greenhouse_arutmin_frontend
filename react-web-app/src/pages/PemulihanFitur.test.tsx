@@ -4,7 +4,6 @@ import { createRoot, type Root } from 'react-dom/client'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TombolStopPompa } from '../components/TombolStopPompa'
-import { WaterControlPage } from './HidroV41Pages'
 
 const mockGet = vi.fn()
 const mockPost = vi.fn()
@@ -91,18 +90,6 @@ describe('Pemulihan fitur website GARAP', () => {
 
     expect(mockPost).toHaveBeenCalledWith('/iot-v41/stop', {})
     expect(container.textContent).toContain('#77')
-  })
-
-  it('WaterControlPage menjelaskan status nonaktif 503', async () => {
-    await act(async () => {
-      root.render(
-        <MemoryRouter>
-          <WaterControlPage />
-        </MemoryRouter>,
-      )
-    })
-
-    expect(container.textContent).toContain('HTTP 503')
   })
 })
 
