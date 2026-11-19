@@ -8,7 +8,6 @@ import {
   KebunSayaPage,
   CctvPage,
   AsistenAiPage,
-  ParameterKeamananPage,
   KalibrasiPage,
   DataPage,
   AuditPage,
@@ -59,15 +58,14 @@ export const router = createBrowserRouter([
           { path: '/cctv', element: <RequireAuth allow={ALL} element={<CctvPage />} /> },
           { path: '/asisten-ai', element: <RequireAuth allow={ALL} element={<AsistenAiPage />} /> },
           { path: '/profil', element: <RequireAuth allow={ALL} element={<ProfilePage />} /> },
-          { path: '/parameter', element: <RequireAuth allow={ADMIN_DEMO} element={<ParameterKeamananPage />} /> },
           // menu Target Nutrisi dihapus: resep di Master Data, ubah batch & status target di Kebun Saya
           { path: '/dosing', element: <Navigate to="/tanam" replace /> },
           { path: '/kalibrasi', element: <RequireAuth allow={ADMIN_DEMO} element={<KalibrasiPage />} /> },
 
           // Halaman mandiri IoT Hidroponik 1 Penampung v4.1 (sesuai menu sidebar Hidro Control)
           { path: '/saklar', element: <RequireAuth allow={ADMIN_DEMO} element={<SaklarModePage />} /> },
-          { path: '/dosing-manual', element: <Navigate to="/parameter" replace /> },
-          { path: '/pompa', element: <Navigate to="/parameter" replace /> },
+          { path: '/dosing-manual', element: <Navigate to="/dashboard" replace /> },
+          { path: '/pompa', element: <Navigate to="/dashboard" replace /> },
           { path: '/data', element: <RequireAuth allow={ADMIN_DEMO} element={<DataPage />} /> },
           { path: '/ujilab', element: <Navigate to="/data" replace /> },
           { path: '/pengaturan-alat', element: <RequireAuth allow={ADMIN_DEMO} element={<PengaturanAlatPage />} /> },
@@ -85,7 +83,7 @@ export const router = createBrowserRouter([
           { path: '/peremajaan', element: <RequireAuth allow={ADMIN_DEMO} element={<PeremajaanPage />} /> },
           { path: '/pendewasaan', element: <RequireAuth allow={ADMIN_DEMO} element={<PendewasaanPage />} /> },
           { path: '/panen', element: <RequireAuth allow={ADMIN_DEMO} element={<PanenPage />} /> },
-          { path: '/siklus', element: <Navigate to="/parameter" replace /> },
+          { path: '/siklus', element: <Navigate to="/dashboard" replace /> },
 
           // 04 · Master Data — admin (demo read-only)
           { path: '/tanaman', element: <RequireAuth allow={ADMIN_DEMO} element={<JenisTanamanPage />} /> },

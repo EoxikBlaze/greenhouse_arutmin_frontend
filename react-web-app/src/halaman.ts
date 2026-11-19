@@ -8,7 +8,6 @@ export const SensorRealtimePage = lazy(() => import('./pages/SensorRealtimePage'
 export const KebunSayaPage = lazy(() => import('./pages/KebunSayaPage'))
 export const CctvPage = lazy(() => import('./pages/CctvPage'))
 export const AsistenAiPage = lazy(() => import('./pages/AsistenAiPage'))
-export const ParameterKeamananPage = lazy(() => import('./pages/ParameterKeamananPage'))
 export const KalibrasiPage = lazy(() => import('./pages/KalibrasiPage'))
 export const DataPage = lazy(() => import('./pages/DataPage'))
 export const AuditPage = lazy(() => import('./pages/AuditPage'))

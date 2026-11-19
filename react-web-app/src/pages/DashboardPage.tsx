@@ -8,6 +8,7 @@ import { AngkaHidup } from '../components/AngkaHidup'
 import { TrenBatang } from '../components/TrenBatang'
 import { KartuPrediksiPanen } from '../components/analitik/KartuPrediksiPanen'
 import { tglJam } from '../lib/format'
+import { TombolStopPompa } from '../components/TombolStopPompa'
 
 /**
  * Dashboard live — GET /dashboard (semua role).
@@ -282,6 +283,8 @@ export default function DashboardPage() {
           <p className="text-[13px] text-abu sm:text-[14px]">Pantau kondisi air nutrisi, suhu tanaman, dan jadwal panen hidroponik.</p>
         </div>
       </header>
+
+      {role === 'admin' && <TombolStopPompa />}
 
       <div className="grid grid-cols-1 gap-4 md:gap-6 xl:grid-cols-12">
         {/* Hero: status greenhouse + aksi cepat (padanan kartu saldo di referensi) */}

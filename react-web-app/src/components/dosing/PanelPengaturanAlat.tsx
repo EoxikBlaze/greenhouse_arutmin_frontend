@@ -168,8 +168,8 @@ export function PanelPengaturanAlat({ iot, loading, onReload }: { iot: IotV41Sta
           })}
         </dl>
         <p className="mt-2 text-[12px] text-abu">
-          Diubah hanya lewat <Link to="/kalibrasi" className="font-semibold text-arutmin-forest underline">Kalibrasi</Link>. Batas peringatan &amp; dosis ada di{' '}
-          <Link to="/parameter" className="font-semibold text-arutmin-forest underline">Parameter &amp; Keamanan</Link>.
+          Diubah hanya lewat <Link to="/kalibrasi" className="font-semibold text-arutmin-forest underline">Kalibrasi</Link>. Batas peringatan ada di{' '}
+          <Link to="/ambang" className="font-semibold text-arutmin-forest underline">Ambang Sensor</Link>.
         </p>
       </section>
 

@@ -902,7 +902,7 @@ export function AmbangSensorPage() {
     <>
       <MasterFrame
         judul="Ambang Sensor"
-        deskripsi="Batas aman tiap sensor. Di luar rentang ini bacaan dianggap tidak normal."
+        deskripsi="Batas aman tiap sensor untuk peringatan. Saat semai berjalan, batas pH dan ppm mengikuti resep batch (Jenis Tanaman) dan target hari itu; ambang pH/ppm di sini berlaku di luar semai."
         jumlah={`${rows.length} parameter`}
         flash={flash}
       >
