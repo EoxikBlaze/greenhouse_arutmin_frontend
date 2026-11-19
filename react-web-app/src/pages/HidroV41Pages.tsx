@@ -1,4 +1,6 @@
+import { useAuth } from '../lib/authContext'
 import { useIotV41State } from '../lib/iotV41'
+import { TombolStopPompa } from '../components/TombolStopPompa'
 import { PageHeader } from '../components/PageHeader'
 import { Pesan } from '../components/kaca/DialogKaca'
 import { PanelPengaturanAlat } from '../components/dosing/PanelPengaturanAlat'
@@ -6,6 +8,7 @@ import { PanelSaklarMode } from '../components/dosing/PanelSaklarMode'
 
 /* ── 1. Halaman Otomasi Alat ─────────────────────────────── */
 export function SaklarModePage() {
+  const { role } = useAuth()
   const iot = useIotV41State()
   return (
     <div className="vsf-halaman vsf-stagger">
@@ -15,6 +18,7 @@ export function SaklarModePage() {
       />
       {iot.error && <Pesan jenis="galat">{iot.error}</Pesan>}
       <PanelSaklarMode iot={iot.data} loading={iot.loading} onReload={() => void iot.reload()} />
+      {role === 'admin' && <TombolStopPompa />}
     </div>
   )
 }
