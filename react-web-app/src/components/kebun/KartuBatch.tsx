@@ -10,7 +10,7 @@ function statusLabel(status?: string | null): string {
 }
 
 /** Satu batch tanam: tahap, progres hari, dan penanda siap pindah. Kartu tint (tanpa blur sendiri: sudah di dalam kartu kaca). */
-export function KartuBatch({ r, onUbahKurva }: { r: TanamRow; onUbahKurva?: () => void }) {
+export function KartuBatch({ r, onUbahKurva, onPindah }: { r: TanamRow; onUbahKurva?: () => void; onPindah?: () => void }) {
   const p = progres(r)
   const siap = labelSiap(r)
   const selesai = perkiraanSelesai(r.mulai, r.durasi_hari)
@@ -88,6 +88,11 @@ export function KartuBatch({ r, onUbahKurva }: { r: TanamRow; onUbahKurva?: () =
           </div>
         ))}
       </dl>
+      {onPindah && (
+        <button type="button" className={clsx('mt-3 w-full justify-center', siap ? 'vsf-btn-primary' : 'vsf-btn-secondary')} onClick={onPindah}>
+          {r.tahap_berikut === 'panen' ? 'Catat panen' : `Pindah ke ${TAHAP_LABEL[r.tahap_berikut ?? ''] ?? 'tahap berikutnya'}`}
+        </button>
+      )}
       {onUbahKurva && r.id_semai != null && (
         <button
           type="button"

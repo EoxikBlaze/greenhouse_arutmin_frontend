@@ -12,7 +12,7 @@ import { DialogKaca, Pesan } from './kaca/DialogKaca'
 /**
  * Target nutrisi NAIK HARIAN per jenis tanaman — routes/preset.js:
  *   GET /dosing/naik-harian · PUT /dosing/naik-harian/:id_tanaman { ppm_awal, ppm_target, hari_capai }
- * Sejak pindah netpot (mulai Peremajaan) target ppm penampung naik rata tiap hari dari ppm awal sampai
+ * Sejak Mulai Semai (batch baru) target ppm penampung naik rata tiap hari dari ppm awal sampai
  * target akhir, lalu ditahan sampai panen. Admin & petani boleh mengubah; demo hanya melihat.
  */
 
@@ -149,9 +149,8 @@ export function NaikHarian() {
       </div>
       {info && (
         <p id="vsf-naik-info" className="mt-3 max-w-[760px] text-[13px] leading-relaxed text-abu">
-          Cukup isi <b className="text-tinta">target akhir</b> tiap tanaman. Mulai hari pindah netpot (tahap Peremajaan) target ppm
-          penampung naik sedikit tiap hari dari ppm awal sampai target akhir, lalu ditahan sampai panen. Tahap Semai tetap memakai
-          preset. pH tetap dari preset.
+          Cukup isi <b className="text-tinta">target akhir</b> tiap tanaman. Sejak Mulai Semai target ppm penampung naik sedikit tiap hari
+          dari ppm awal sampai target akhir, lalu ditahan sampai panen. Cara per hari atau per siklus dipilih saat Mulai Semai.
         </p>
       )}
 
@@ -215,8 +214,8 @@ export function NaikHarian() {
           {galat && <Pesan jenis="galat">{galat}</Pesan>}
 
           <KolomAngka label="Target akhir" satuan="ppm" value={target} onChange={setTarget} placeholder="2400" autoFocus galat={fieldError(errs, 'ppm_target')} />
-          <KolomAngka label="Dicapai dalam (hari sejak pindah netpot)" satuan="hari" value={hari} onChange={setHari} placeholder="60" galat={fieldError(errs, 'hari_capai')} />
-          <KolomAngka label="ppm awal saat pindah netpot" satuan="ppm" value={awal} onChange={setAwal} placeholder="400" galat={fieldError(errs, 'ppm_awal')} />
+          <KolomAngka label="Dicapai setelah (hari sejak mulai semai)" satuan="hari" value={hari} onChange={setHari} placeholder="60" galat={fieldError(errs, 'hari_capai')} />
+          <KolomAngka label="ppm awal (hari pertama semai)" satuan="ppm" value={awal} onChange={setAwal} placeholder="400" galat={fieldError(errs, 'ppm_awal')} />
 
           <div className={clsx('vsf-ringkasan-form mt-4', perHari == null && 'is-kosong')} aria-live="polite">
             <Ikon nama="tetes" className="h-4 w-4" />
@@ -228,7 +227,7 @@ export function NaikHarian() {
           </div>
           {kurva && (
             <table className="mt-2 w-full text-left text-[12px]" aria-label="Contoh target per hari">
-              <caption className="pb-1 text-left text-abu">Contoh target per hari sejak pindah netpot (dihitung otomatis)</caption>
+              <caption className="pb-1 text-left text-abu">Contoh target per hari sejak mulai semai (dihitung otomatis)</caption>
               <tbody>
                 <tr>{kurva.map((t) => (<th key={t.hari} scope="col" className="pr-2 font-semibold text-abu">Hari {t.hari}</th>))}</tr>
                 <tr>{kurva.map((t) => (<td key={t.hari} className="pr-2 tabular-nums text-tinta">{tampil(t.ppm)}</td>))}</tr>

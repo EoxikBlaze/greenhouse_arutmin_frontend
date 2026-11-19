@@ -15,12 +15,13 @@ export type TanamRow = {
   tahap_berikut?: string | null
   /** Akar batch (semais.id_semai) — kurva nutrisi disimpan per batch di sana. */
   id_semai?: string | number | null
-  /** Kurva naik harian batch & target hari ini (null sebelum pindah netpot / kurva belum diatur). */
+  /** Resep nutrisi batch & target hari ini (null bila resep belum diatur). hari_semai: hari pertama = 0. */
   nutrisi?: {
     kurva:
       | { cara: 'harian'; ppm_awal: number; ppm_target: number; hari_capai: number; diubah_hari: number | null }
       | { cara: 'tahap'; ppm_semai: number; ppm_peremajaan: number; ppm_pendewasaan: number }
       | null
+    hari_semai?: number | null
     hari_netpot: number | null
     target_hari_ini: number | null
     per_hari: number | null
@@ -53,6 +54,29 @@ export function progres(r: TanamRow): Progres {
     label: `Hari ke-${hari} dari ${durasi}`,
     lewat: Math.max(0, hari - durasi),
   }
+}
+
+const KUNCI_PPM_TAHAP = { semai: 'ppm_semai', peremajaan: 'ppm_peremajaan', pendewasaan: 'ppm_pendewasaan' } as const
+
+/**
+ * Apa yang terjadi pada nutrisi bila petani mengonfirmasi pindah tahap. Per siklus: ppm tahap berikutnya BARU mulai
+ * setelah konfirmasi; per hari: tidak berubah (naik tiap hari sejak Mulai Semai, tanpa menunggu klik).
+ */
+export function infoNutrisiPindah(r: TanamRow): string {
+  const n = r.nutrisi
+  const k = n?.kurva
+  if (!k) return 'Target nutrisi batch ini belum diatur, jadi tidak ada perubahan ppm.'
+  if (k.cara === 'harian') {
+    const hariIni = n?.target_hari_ini != null ? ` (hari ini ${n.target_hari_ini} ppm)` : ''
+    return `Target nutrisi tidak berubah: naik per hari${hariIni}, tidak menunggu pindah tahap.`
+  }
+  if (r.tahap_berikut === 'panen') {
+    return 'Setelah panen dicatat, alat berhenti menjaga penampung ini bila tidak ada batch lain di mejanya.'
+  }
+  const sekarang = k[KUNCI_PPM_TAHAP[r.tipe as keyof typeof KUNCI_PPM_TAHAP]]
+  const depan = k[KUNCI_PPM_TAHAP[(r.tahap_berikut ?? '') as keyof typeof KUNCI_PPM_TAHAP]]
+  if (sekarang == null || depan == null) return 'Target nutrisi tahap berikutnya mengikuti resep batch.'
+  return `Target nutrisi naik ${sekarang} → ${depan} ppm mulai setelah Anda menekan konfirmasi. Alat menaikkannya bertahap (maks 150 ppm sekali dosing), jadi butuh beberapa jam.`
 }
 
 /** Lencana "siap" bila server menandai tahap ini cukup umur; null bila belum. */

@@ -10,7 +10,7 @@ import { tanggalIso, tglPendek } from '../../lib/format'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../lib/authContext'
 
-const KOLOM_HARIAN = [['ppm_awal', 'ppm awal'], ['ppm_target', 'ppm akhir'], ['hari_capai', 'hari capai']] as const
+const KOLOM_HARIAN = [['ppm_awal', 'ppm awal'], ['ppm_target', 'ppm akhir'], ['hari_capai', 'dicapai setelah (hari)']] as const
 const KOLOM_TAHAP = [['ppm_semai', 'Semai'], ['ppm_peremajaan', 'Peremajaan'], ['ppm_pendewasaan', 'Pendewasaan']] as const
 const KOLOM_PH = [['ph_min', 'pH min'], ['ph_max', 'pH maks']] as const
 type KunciResep = (typeof KOLOM_HARIAN)[number][0] | (typeof KOLOM_TAHAP)[number][0] | (typeof KOLOM_PH)[number][0]
@@ -76,6 +76,16 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
   const tahap = cara === 'tahap'
   const punyaHarian = !!terpilih && KOLOM_HARIAN.every(([k]) => ada(terpilih[k]))
   const punyaSiklus = !!terpilih && KOLOM_TAHAP.every(([k]) => ada(terpilih[k]))
+  const angkaKurva = (k: KunciResep) => {
+    const t = kurva[k].trim().replace(',', '.')
+    return t === '' || !Number.isFinite(Number(t)) ? null : Number(t)
+  }
+  const [aw, ak, cp] = [angkaKurva('ppm_awal'), angkaKurva('ppm_target'), angkaKurva('hari_capai')]
+  // contoh yang dikirim ke alat: angka target hari itu (mutlak), bukan selisih
+  const contohHarian =
+    aw != null && ak != null && cp != null && cp > 0
+      ? `Hari 1 = ${koma(aw)} ppm, hari 2 = ${koma(Math.round(aw + (ak - aw) / cp))} ppm, … ${koma(ak)} ppm setelah ${cp} hari (naik ±${koma(Math.round(((ak - aw) / cp) * 10) / 10)} ppm per hari).`
+      : null
   const durasi = terpilih?.semai == null ? null : Number(terpilih.semai)
   const selesai = perkiraanSelesai(tgl, durasi)
   const n = /^\d+$/.test(jumlah.trim()) ? Number(jumlah.trim()) : null
@@ -263,8 +273,8 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
             </div>
             <p className="mt-2 text-[12px] text-abu">
               {tahap
-                ? 'ppm tetap selama satu tahap, naik saat ganti tahap.'
-                : 'Saat Semai = ppm awal; sejak pindah netpot naik rata sampai hari capai, lalu ditahan sampai panen.'}{' '}
+                ? 'ppm tetap selama satu tahap. ppm tahap berikutnya baru mulai setelah Anda mengonfirmasi pindah tahap di Kebun Saya.'
+                : (contohHarian ?? 'Hari pertama = ppm awal, lalu naik rata tiap hari, ditahan sampai panen.') + ' Naik otomatis tiap hari, tanpa klik.'}{' '}
               pH {ada(terpilih.ph_min) ? `${koma(terpilih.ph_min)}–${koma(terpilih.ph_max)}` : 'belum diisi'}.
             </p>
             <FieldError message={fieldError(fieldErrors, 'cara_naik')} />

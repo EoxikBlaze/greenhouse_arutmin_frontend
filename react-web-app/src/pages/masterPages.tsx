@@ -342,10 +342,10 @@ export function JenisTanamanPage() {
           <fieldset className="mt-4 border-t border-black/10 pt-3">
             <legend className="text-[12px] font-bold text-slate-700">Resep naik per hari</legend>
             <p className="mt-1 text-[12px] leading-relaxed text-slate-600">
-              Saat Semai ppm = ppm awal. Sejak pindah netpot ppm naik rata tiap hari sampai ppm akhir pada hari ke-N, lalu ditahan sampai panen.
+              Hari pertama Mulai Semai = ppm awal, lalu naik rata tiap hari sampai ppm akhir setelah N hari, lalu ditahan sampai panen. Tidak perlu klik tiap hari.
             </p>
             <div className="mt-2 grid gap-3 sm:grid-cols-3">
-              {[kotak('ppm_awal', 'ppm awal', '400'), kotak('ppm_target', 'ppm akhir', '1200'), kotak('hari_capai', 'Dicapai hari ke- (sejak netpot)', '30')]}
+              {[kotak('ppm_awal', 'ppm awal', '400'), kotak('ppm_target', 'ppm akhir', '1200'), kotak('hari_capai', 'Dicapai setelah (hari sejak mulai semai)', '30')]}
             </div>
           </fieldset>
 

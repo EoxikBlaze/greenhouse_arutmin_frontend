@@ -7,14 +7,14 @@ import type { TanamRow } from '../../lib/kebun'
 
 /**
  * Ubah kurva nutrisi SATU batch — PUT /tanam/semai/:id_semai/kurva.
- * Sebelum pindah netpot: seluruh kurva diganti. Sesudahnya: target hari ini tetap, lalu naik rata ke target baru
+ * Di hari pertama semai: seluruh kurva diganti. Sesudahnya: target hari ini tetap, lalu naik rata ke target baru
  * (hitungan hari semai → panen tidak berubah). Batch lain dari tanaman yang sama tidak ikut berubah.
  */
 export function DialogKurvaBatch({ r, onClose, onSukses }: { r: TanamRow; onClose: () => void; onSukses: (pesan: string) => void }) {
   const handleApiError = useApiError()
   const k = r.nutrisi?.kurva
   const tahap = k?.cara === 'tahap'
-  const sudahNetpot = r.tipe !== 'semai'
+  const berjalan = (r.nutrisi?.hari_semai ?? 0) > 0 // hari pertama semai = 0
   const teks = (v: unknown) => (v == null ? '' : String(v).replace('.', ','))
   const [isi, setIsi] = useState<Record<string, string>>({
     ppm_awal: teks(k?.cara === 'harian' ? k.ppm_awal : null),
@@ -55,8 +55,8 @@ export function DialogKurvaBatch({ r, onClose, onSukses }: { r: TanamRow; onClos
   const kolom: Array<readonly [string, string]> = [
     ...(tahap
       ? ([['ppm_semai', 'Semai (ppm)'], ['ppm_peremajaan', 'Peremajaan (ppm)'], ['ppm_pendewasaan', 'Pendewasaan (ppm)']] as const)
-      : ([['ppm_awal', 'ppm awal'], ['ppm_target', 'ppm akhir'], ['hari_capai', 'hari capai (sejak netpot)']] as const).filter(
-          ([kunci]) => !(kunci === 'ppm_awal' && sudahNetpot),
+      : ([['ppm_awal', 'ppm awal'], ['ppm_target', 'ppm akhir'], ['hari_capai', 'dicapai setelah (hari sejak mulai semai)']] as const).filter(
+          ([kunci]) => !(kunci === 'ppm_awal' && berjalan),
         )),
     ['ph_min', 'pH min'],
     ['ph_max', 'pH maks'],
@@ -74,13 +74,13 @@ export function DialogKurvaBatch({ r, onClose, onSukses }: { r: TanamRow; onClos
       <p className="mt-3 text-[13px] leading-relaxed text-tinta">
         {tahap ? (
           <>ppm dijaga tetap per tahap. Angka tahap yang sedang berjalan berlaku mulai kiriman target berikutnya ke alat.</>
-        ) : sudahNetpot && r.nutrisi?.target_hari_ini != null ? (
+        ) : berjalan && r.nutrisi?.target_hari_ini != null ? (
           <>
-            Target hari ini <b>{r.nutrisi.target_hari_ini} ppm</b> tetap (hari ke-{r.nutrisi.hari_netpot} sejak netpot). Mulai besok ppm naik
+            Target hari ini <b>{r.nutrisi.target_hari_ini} ppm</b> tetap (hari ke-{(r.nutrisi.hari_semai ?? 0) + 1} sejak mulai semai). Mulai besok ppm naik
             rata ke target baru. Hitungan hari semai sampai panen tidak berubah, dan batch lain tidak ikut berubah.
           </>
         ) : (
-          <>Batch belum pindah netpot: seluruh kurva diganti. Batch lain dari tanaman yang sama tidak ikut berubah.</>
+          <>Batch baru mulai hari ini: seluruh kurva diganti. Batch lain dari tanaman yang sama tidak ikut berubah.</>
         )}
       </p>
       {galat && (
