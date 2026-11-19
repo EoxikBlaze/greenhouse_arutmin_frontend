@@ -283,23 +283,23 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
     )
   })
 
-  it('Langkah 4 — PanelSaklarMode: ke-5 switch saklar, tombol [Simpan pengaturan], dan [Batalkan] bisa diklik', async () => {
+  it('Langkah 4 — PanelSaklarMode: ke-4 switch saklar, tombol [Simpan dan kirim ke alat], dan [Batalkan] bisa diklik', async () => {
     const onReload = vi.fn()
     await act(async () => {
       root.render(<PanelSaklarMode iot={BAWAAN_V41} loading={false} onReload={onReload} />)
     })
 
     const switches = Array.from(container.querySelectorAll('button[role="switch"]'))
-    expect(switches.length).toBe(5)
+    expect(switches.length).toBe(4)
 
     // Klik switch terakhir (Isi air otomatis -> OFF) untuk memicu peringatan pengenceran
     await act(async () => {
-      ;(switches[4] as HTMLButtonElement).click()
+      ;(switches[3] as HTMLButtonElement).click()
     })
     expect(container.textContent).toContain('Pengenceran menyala tetapi isi air otomatis mati')
 
     await act(async () => {
-      cariTombol('Simpan pengaturan').click()
+      cariTombol('Simpan dan kirim ke alat').click()
     })
     expect(mockApiPut).toHaveBeenCalledWith(
       '/iot-v41/saklar',

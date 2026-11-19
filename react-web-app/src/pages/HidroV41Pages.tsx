@@ -13,8 +13,8 @@ export function SaklarModePage() {
   return (
     <div className="vsf-halaman vsf-stagger">
       <PageHeader
-        judul="Saklar & Mode"
-        deskripsi="Izin jenis tindakan dan cara pengisian air pada penampung utama."
+        judul="Saklar"
+        deskripsi="Matikan otomasi alat per jenis tindakan, mis. saat pompa rusak atau pH tidak ingin dikoreksi otomatis."
       />
       {iot.error && <Pesan jenis="galat">{iot.error}</Pesan>}
       <PanelSaklarMode iot={iot.data} loading={iot.loading} onReload={() => void iot.reload()} />

@@ -122,6 +122,8 @@ export type JadwalAlat = {
 }
 
 export type IotV41State = {
+  /** Izin otomasi yang dilaporkan alat (nutrisi, ph, encer, isi); null = belum melapor. */
+  otomasi_alat?: { nutrisi: boolean | null; ph: boolean | null; encer: boolean | null; isi: boolean | null } | null
   /** Kunci params yang TIDAK ada di database (nilai bawaan kode, bukan pengaturan tersimpan). */
   params_belum_diatur?: string[]
   jadwal_alat?: JadwalAlat | null
