@@ -26,18 +26,15 @@ export function PanelUjiLab({
   iot,
   loading,
   onReload,
-  kategori = 'tanaman',
 }: {
   iot: IotV41State | null
   loading: boolean
   onReload: () => void
-  kategori?: 'tanaman' | 'buah'
 }) {
   const { role } = useAuth()
   const bolehUbah = role === 'admin'
   const handleApiError = useApiError()
-  const buah = kategori === 'buah'
-  const p = buah ? { ...iot?.params, ...iot?.takaran_buah } : iot?.params
+  const p = iot?.params
   const belum = new Set(iot?.params_belum_diatur ?? [])
 
   // Form Uji Lab EC — kosong sampai diisi hasil takar nyata (dulu terisi angka contoh yang bisa tersimpan sebagai kalibrasi)
@@ -90,7 +87,6 @@ export function PanelUjiLab({
     try {
       await api.post('/iot-v41/ujilab', {
         aksi: 'ec',
-        kategori,
         awal: Number(awal.replace(',', '.')),
         akhir: Number(akhir.replace(',', '.')),
         volume: Number(volEc.replace(',', '.')),
@@ -120,7 +116,6 @@ export function PanelUjiLab({
     try {
       await api.post('/iot-v41/ujilab', {
         aksi: 'ph',
-        kategori,
         arah,
         volume: Number(volPh.replace(',', '.')),
         delta_ph: Number(deltaPh.replace(',', '.')),
@@ -144,7 +139,7 @@ export function PanelUjiLab({
     )
   }
 
-  const arsip = (iot?.arsip_ujilab ?? []).filter((a) => /^\[UJI LAB (EC|PH)[^\]]*\bBUAH\]/.test(a.catatan ?? '') === buah)
+  const arsip = (iot?.arsip_ujilab ?? [])
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
@@ -324,7 +319,7 @@ export function PanelUjiLab({
           </div>
 
           <p className="text-[12px] leading-relaxed text-abu">
-            Hasilnya mL per 1 satuan pH per 1 liter: mL ÷ (ΔpH × volume). Nilai ini yang dipakai menghitung takaran koreksi pH.
+            Hasilnya mL per 1 satuan pH per 1 liter: mL ÷ (ΔpH × volume). Alat memakai satu takaran untuk naik dan turun: dihitung dari angka yang lebih kecil, untuk menggeser pH sekitar 0,3 per suntikan.
           </p>
         </form>
       </section>
@@ -333,12 +328,12 @@ export function PanelUjiLab({
       <section className="vsf-card w-full min-w-0 p-4 sm:p-5 lg:col-span-6" aria-label="Angka tersimpan di server">
         <div className="vsf-judul-bagian">Angka tersimpan di server</div>
         <p className="mt-0.5 text-[12.5px] text-abu">
-          Sumber: tabel {buah ? 'takaran_nutrisi_buah' : 'konfigurasi_dosis'} &amp; kalibrasi_sensor di server. Dipakai untuk menghitung rekomendasi takaran; ESP32 tidak memakainya langsung.
+          Angka dari hasil uji lab. Dikirim ke alat saat Mulai Semai (ppm per mL nutrisi, dan takaran pH per suntikan); alat membatasi sendiri jumlah tiap suntikan.
         </p>
         <dl className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
           <div className="vsf-stat">
             <dt className="vsf-label">ppm per mL</dt>
-            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{(buah ? p?.ppm_per_ml == null : belum.has('ppm_per_ml')) ? 'Belum diatur' : fmt(p?.ppm_per_ml, 2)}</dd>
+            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{belum.has('ppm_per_ml') ? 'Belum diatur' : fmt(p?.ppm_per_ml, 2)}</dd>
           </div>
           <div className="vsf-stat">
             <dt className="vsf-label">Volume penampung</dt>
@@ -346,11 +341,11 @@ export function PanelUjiLab({
           </div>
           <div className="vsf-stat">
             <dt className="vsf-label">pH up (mL/pH/L)</dt>
-            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{(buah ? p?.ph_up_ml == null : belum.has('ph_up_ml')) ? 'Belum diatur' : fmt(p?.ph_up_ml, 3)}</dd>
+            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{belum.has('ph_up_ml') ? 'Belum diatur' : fmt(p?.ph_up_ml, 3)}</dd>
           </div>
           <div className="vsf-stat">
             <dt className="vsf-label">pH down (mL/pH/L)</dt>
-            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{(buah ? p?.ph_down_ml == null : belum.has('ph_down_ml')) ? 'Belum diatur' : fmt(p?.ph_down_ml, 3)}</dd>
+            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{belum.has('ph_down_ml') ? 'Belum diatur' : fmt(p?.ph_down_ml, 3)}</dd>
           </div>
           <div className="vsf-stat sm:col-span-2">
             <dt className="vsf-label">Laju pompa A / B</dt>

@@ -134,7 +134,6 @@ export type IotV41State = {
   papan: IotV41Papan
   arsip_kalibrasi: ArsipKalibrasiRow[]
   arsip_ujilab: ArsipKalibrasiRow[]
-  takaran_buah?: { ppm_per_ml: number | null; ph_up_ml: number | null; ph_down_ml: number | null }
 }
 
 const bulat = (v: number, d = 2) => Math.round(v * 10 ** d) / 10 ** d
