@@ -5,6 +5,7 @@ import { useApiObject } from '../lib/useApiObject'
 import { useAuth } from '../lib/authContext'
 import { Ikon } from '../components/Ikon'
 import { StripStatus } from '../components/sensor/StripStatus'
+import { PanelNutrisi } from '../components/sensor/PanelNutrisi'
 import { KartuNilai } from '../components/sensor/KartuNilai'
 import { FilterBar, type Rentang } from '../components/sensor/FilterBar'
 import { PanelGrafik } from '../components/sensor/PanelGrafik'
@@ -219,6 +220,8 @@ export default function SensorRealtimePage() {
       />
 
       <KartuNilai waktuTerbaru={waktuTerbaru} terakhir={terakhir} ambang={ambang} terpilih={terpilih} onToggle={toggle} kini={kini} memuat={loading} />
+
+      <PanelNutrisi />
 
       <FilterBar
         rentang={rentang}
