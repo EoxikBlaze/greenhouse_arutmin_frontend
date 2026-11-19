@@ -166,7 +166,7 @@ export default function DashboardPage() {
   }
   const metrik = [
     { k: 'ph', label: 'pH (Asam-Basa)', nilai: angka(s?.ph, 2), num: s?.ph, digit: 2, akhiran: '', target: batas('ph') },
-    { k: 'waterTemp', label: 'Suhu Air Tandon', nilai: `${angka(s?.waterTemp, 1)} °C`, num: s?.waterTemp, digit: 1, akhiran: ' °C', target: batas('waterTemp') },
+    { k: 'waterTemp', label: 'Suhu Air di Penampung', nilai: `${angka(s?.waterTemp, 1)} °C`, num: s?.waterTemp, digit: 1, akhiran: ' °C', target: batas('waterTemp') },
     {
       k: 'tds',
       label: 'Nutrisi (ppm)',
@@ -190,7 +190,7 @@ export default function DashboardPage() {
     { k: 'humidity', label: 'Kelembapan', nilai: `${angka(s?.humidity)} %`, num: s?.humidity, digit: 0, akhiran: ' %', target: batas('humidity') },
     {
       k: 'level',
-      label: 'Level Tandon',
+      label: 'Level Penampung Air',
       nilai: alat?.level_air ? (LEVEL_AIR[alat.level_air] ?? alat.level_air) : '—',
       target:
         alat?.level_air === 'ERROR'

@@ -107,7 +107,7 @@ export default function ParameterKeamananPage() {
         {terakhir.loading && !terakhir.data ? <Rangka /> : <TabelParameter baris={baris} />}
         <p className="mt-2 text-[12px] text-abu">
           Bacaan terakhir: {waktuBacaan ? `${tglJam(waktuBacaan)}${terakhir.data?.seconds_ago != null ? ` (${terakhir.data.seconds_ago} detik lalu)` : ''}` : 'belum ada'}
-          {' · '}Level tandon: {iot.data?.kondisi.level_diperbarui_pada ? tglJam(iot.data.kondisi.level_diperbarui_pada) : 'belum dilaporkan alat'}.
+          {' · '}Level penampung air: {iot.data?.kondisi.level_diperbarui_pada ? tglJam(iot.data.kondisi.level_diperbarui_pada) : 'belum dilaporkan alat'}.
           {' '}ESP32 tidak punya sensor nutrisi terpisah; EC dihitung dari TDS.
         </p>
       </section>

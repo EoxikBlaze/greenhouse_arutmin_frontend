@@ -53,7 +53,7 @@ export function WaterControlPage() {
     <div className="vsf-halaman vsf-stagger">
       <PageHeader
         judul="Status Kontrol Air"
-        deskripsi="Pemantauan pelampung tandon dan status katup air. Pengisian air manual dari web dinonaktifkan demi keselamatan."
+        deskripsi="Pemantauan pelampung penampung air dan status katup air. Pengisian air manual dari web dinonaktifkan demi keselamatan."
       />
 
       <Pesan jenis="ok">
@@ -63,7 +63,7 @@ export function WaterControlPage() {
       {role === 'admin' && <TombolStopPompa />}
 
       <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Status air dan pelampung">
-        <div className="vsf-judul-bagian">Status Tandon &amp; Pelampung</div>
+        <div className="vsf-judul-bagian">Status Penampung Air &amp; Pelampung</div>
         {(wc.error || iot.error) && <Pesan jenis="galat">{wc.error ?? iot.error}</Pesan>}
         <dl className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="vsf-stat">

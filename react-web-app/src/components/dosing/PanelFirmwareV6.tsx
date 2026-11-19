@@ -58,7 +58,7 @@ const NAMA_KUNCI: Record<string, { judul: string; deskripsi: string }> = {
   },
   EC_CURIGA: {
     judul: 'EC Turun Mendadak (>40%)',
-    deskripsi: 'Nilai EC turun drastis tanpa adanya pengisian air tandon. Dosing ditahan otomatis.',
+    deskripsi: 'Nilai EC turun drastis tanpa adanya pengisian air di penampung. Dosing ditahan otomatis.',
   },
 }
 
@@ -215,7 +215,7 @@ export function PanelFirmwareV6() {
         </div>
 
         <div className="rounded-xl border border-white/60 bg-white/40 p-3 backdrop-blur-sm dark:border-white/10 dark:bg-black/20">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-abu">Level Air Tandon</span>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-abu">Level Penampung Air</span>
           <div className="mt-1 font-bold text-tinta">
             {v6?.level_air || (alat?.float_atas_penuh ? 'PENUH' : alat?.float_bawah_rendah === false ? 'RENDAH' : 'SEDANG')}
           </div>

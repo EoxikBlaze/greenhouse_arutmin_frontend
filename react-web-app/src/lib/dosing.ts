@@ -118,7 +118,7 @@ const PARAM: Record<string, [string, string]> = {
   limit_batas_ons_pompa: ['Batas waktu nyala pompa', 'Pengisian air'],
   konfirmasi_peremajaan_batas_jam: ['Batas jawab konfirmasi peremajaan', 'Konfirmasi'],
   konfirmasi_peremajaan_jam_ke: ['Mulai konfirmasi peremajaan', 'Konfirmasi'],
-  konfirmasi_tandon_jam: ['Batas jawab konfirmasi tandon', 'Konfirmasi'],
+  konfirmasi_tandon_jam: ['Batas jawab konfirmasi penampung air', 'Konfirmasi'],
   pengingat_konfirmasi_jam: ['Pengingat konfirmasi', 'Konfirmasi'],
   ulang_konfirmasi_jam: ['Jeda konfirmasi ulang', 'Konfirmasi'],
   reset_counter_jam: ['Jam reset counter harian', 'Sistem'],

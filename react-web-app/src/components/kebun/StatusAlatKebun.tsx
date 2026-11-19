@@ -65,7 +65,7 @@ export function StatusAlatKebun({ kelola }: { kelola: boolean }) {
         <span>
           {dijaga ? (
             <>
-              <b>Alat sedang menjaga tandon</b>
+              <b>Alat sedang menjaga penampung air</b>
               {a?.target_ppm != null && ` · target ${a.target_ppm} ppm`}
               {a?.ph_min != null && a?.ph_max != null && ` · pH ${koma(a.ph_min)}–${koma(a.ph_max)}`}
               {a?.kunci && ` · terkunci ${a.kunci}`}

@@ -35,7 +35,7 @@ export type BarisParameter = {
 const SENSOR: ReadonlyArray<{ kunci: string; label: string; satuan: string; desimal: number }> = [
   { kunci: 'tds', label: 'EC / TDS', satuan: 'ppm', desimal: 0 },
   { kunci: 'ph', label: 'pH', satuan: '', desimal: 2 },
-  { kunci: 'waterTemp', label: 'Suhu air tandon', satuan: '°C', desimal: 1 },
+  { kunci: 'waterTemp', label: 'Suhu air di penampung', satuan: '°C', desimal: 1 },
   { kunci: 'airTemp', label: 'Suhu udara', satuan: '°C', desimal: 1 },
   { kunci: 'humidity', label: 'Kelembapan udara', satuan: '%', desimal: 0 },
 ]
@@ -84,7 +84,7 @@ export function barisSensor(terakhir: BacaanTerakhir, ambang: BarisAmbang[]): Ba
 
 /** Level tandon dari dua pelampung. null = alat belum pernah melaporkan (firmware lama / belum tersambung). */
 export function barisLevel(floatBawah: number | null | undefined, floatAtas: number | null | undefined): BarisParameter {
-  const dasar = { kunci: 'level', label: 'Level tandon', satuan: '', batas: 'Pelampung bawah & atas', batasDiubah: null }
+  const dasar = { kunci: 'level', label: 'Level penampung air', satuan: '', batas: 'Pelampung bawah & atas', batasDiubah: null }
   if (floatBawah == null && floatAtas == null) return { ...dasar, nilai: null, status: 'kosong' }
   if (floatBawah === 0) return { ...dasar, nilai: 'Kurang (pelampung bawah turun)', status: 'perhatian' }
   if (floatAtas === 1) return { ...dasar, nilai: 'Penuh (pelampung atas terangkat)', status: 'normal' }

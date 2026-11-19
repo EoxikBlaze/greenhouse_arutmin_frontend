@@ -26,7 +26,7 @@ export function RingkasanCctv({
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0">
           <div className="vsf-judul-bagian">CCTV greenhouse</div>
-          <p className="mt-0.5 text-[13px] text-abu">Pantau greenhouse, nursery, dan area tandon.</p>
+          <p className="mt-0.5 text-[13px] text-abu">Pantau greenhouse, nursery, dan area penampung air.</p>
         </div>
         {kelola && (
           <button type="button" className="vsf-btn-primary w-full sm:ml-auto sm:w-auto" onClick={onTambah}>

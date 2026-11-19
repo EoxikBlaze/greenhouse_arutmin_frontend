@@ -19,8 +19,8 @@ export function DialogKonfirmasiAksi({
       onBatal={onBatal}
     >
       {fill
-        ? 'Katup tandon akan dibuka dan air mulai mengalir sampai Anda menekan Stop.'
-        : 'Katup tandon akan ditutup dan pengisian air berhenti.'}
+        ? 'Katup penampung air akan dibuka dan air mulai mengalir sampai Anda menekan Stop.'
+        : 'Katup penampung air akan ditutup dan pengisian air berhenti.'}
     </DialogKonfirmasi>
   )
 }
