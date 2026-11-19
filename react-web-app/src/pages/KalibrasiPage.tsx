@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useApiList } from '../lib/crudApi'
 import { useIotV41State } from '../lib/iotV41'
 import { useApiObject } from '../lib/useApiObject'
@@ -17,7 +18,9 @@ export default function KalibrasiPage() {
   const { data: terkini } = useApiObject<Terkini>('/api/latest-sensor', { pollMs: 5_000 })
   const iotV41 = useIotV41State()
 
+  const [versi, setVersi] = useState(0)
   const muatSemua = () => {
+    setVersi((v) => v + 1)
     reload()
     void iotV41.reload()
   }
@@ -31,7 +34,7 @@ export default function KalibrasiPage() {
       {iotV41.error && <Pesan jenis="galat">{iotV41.error}</Pesan>}
       <PanelKalibrasiLangsungV41 iot={iotV41.data} loading={iotV41.loading} onReload={muatSemua} />
 
-      <RiwayatKalibrasi baris={iotV41.data?.arsip_kalibrasi ?? []} />
+      <RiwayatKalibrasi params={iotV41.data?.params} versi={versi} />
     </div>
   )
 }
