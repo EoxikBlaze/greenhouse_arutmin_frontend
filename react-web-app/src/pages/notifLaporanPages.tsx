@@ -7,10 +7,36 @@ import { Ikon } from '../components/Ikon'
 import { DialogKaca } from '../components/kaca/DialogKaca'
 import { Segmen } from '../components/sensor/FilterBar'
 import { EksporCsv } from '../components/analitik/EksporCsv'
+import { PageHeader } from '../components/PageHeader'
+import { LaporanTabel, type JenisLaporan } from '../components/laporan/LaporanTabel'
 
 /** 403 dari requireRole / demoGuard — dipresentasikan ramah, bukan banner merah. */
 function aksesDitolak(msg: string | null): boolean {
   return !!msg && /menu ini untuk pengelola|akses ditolak/i.test(msg)
+}
+
+const TAB_LAPORAN = ['Ringkasan bulanan', 'Per batch', 'Sensor harian', 'Dosing & air', 'Peringatan', 'Kalibrasi'] as const
+type TabLaporan = (typeof TAB_LAPORAN)[number]
+const LAPORAN_TABEL: Record<Exclude<TabLaporan, 'Ringkasan bulanan'>, { jenis: JenisLaporan; penjelasan: string }> = {
+  'Per batch': { jenis: 'batch', penjelasan: 'Satu baris per batch: tahap, hasil panen, rentang ppm dan pH selama tumbuh, jumlah dosing dan peringatan.' },
+  'Sensor harian': { jenis: 'sensor', penjelasan: 'Rata-rata, terendah, dan tertinggi tiap sensor per hari, plus persen bacaan di rentang aman.' },
+  'Dosing & air': { jenis: 'dosing', penjelasan: 'Jumlah tindakan yang dilakukan alat per hari: nutrisi A+B, koreksi pH, pengenceran, isi air.' },
+  Peringatan: { jenis: 'peringatan', penjelasan: 'Jumlah peringatan per jenis dan berapa lama biasanya berlangsung.' },
+  Kalibrasi: { jenis: 'kalibrasi', penjelasan: 'Status jadwal kalibrasi pH, EC, dan pompa, dan berapa kali dikalibrasi pada periode ini.' },
+}
+
+/** Laporan: ringkasan bulanan (xlsx) + laporan rinci per batch, sensor, dosing, peringatan, kalibrasi (CSV). */
+export function LaporanPage() {
+  const [tab, setTab] = useState<TabLaporan>('Ringkasan bulanan')
+  return (
+    <div className="vsf-halaman vsf-stagger">
+      <PageHeader judul="Laporan" deskripsi="Ringkasan dan rincian kebun, sensor, alat, dan kalibrasi. Semua bisa diunduh." />
+      <section className="vsf-card w-full min-w-0 p-4 sm:p-5">
+        <Segmen label="Jenis laporan" pilihan={TAB_LAPORAN} nilai={tab} onPilih={setTab} />
+      </section>
+      {tab === 'Ringkasan bulanan' ? <LaporanBulanan /> : <LaporanTabel key={tab} {...LAPORAN_TABEL[tab]} />}
+    </div>
+  )
 }
 
 /* ============= 15 · LAPORAN (GET /laporan → matriks per bulan; unduh .xlsx di browser) ============= */
@@ -44,7 +70,7 @@ function sel(v: number | null | undefined, digit = 0): string {
 
 const KOLOM = ['Periode', 'Semai', 'Remaja', 'Dewasa', 'Panen (tanaman)', 'Rata-rata pH']
 
-export function LaporanPage() {
+function LaporanBulanan() {
   const handleApiError = useApiError()
   const [dari, setDari] = useState('')
   const [sampai, setSampai] = useState('')
