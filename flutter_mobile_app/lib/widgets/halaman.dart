@@ -117,7 +117,7 @@ class PageTop extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 11,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                         letterSpacing: 1.4,
                         color: Tok.abuTeks,
                       ),

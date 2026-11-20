@@ -63,4 +63,7 @@ class Ikon {
   static const IconData kirim = LucideIcons.send;
   static const IconData musik = LucideIcons.music;
   static const IconData awanMati = LucideIcons.cloudOff;
+  static const IconData lonceng = LucideIcons.bell;
+  static const IconData galeri = LucideIcons.images;
+  static const IconData tunjuk = LucideIcons.pointer;
 }

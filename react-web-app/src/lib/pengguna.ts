@@ -6,6 +6,9 @@ export type UserRow = {
   email?: string | null
   level?: string | null
   is_demo?: boolean
+  /** Hanya pada GET /profil: akun punya foto, dan versinya (waktu ubah) untuk muat ulang. */
+  foto?: boolean
+  foto_versi?: number | null
 }
 
 export const LEVELS = ['admin', 'user', 'petani'] as const

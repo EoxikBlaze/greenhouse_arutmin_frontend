@@ -56,7 +56,7 @@ class TentangPage extends StatelessWidget {
       deskripsi:
           'Implementasi sistem IoT presisi berbasis ESP32, sensor nutrisi TDS, pH, dan suhu air, serta aplikasi monitoring pintar untuk greenhouse hidroponik PT Arutmin Indonesia Tambang Asam-Asam.',
       ikon: Icons.precision_manufacturing_rounded,
-      warna: Color(0xFF10B981),
+      warna: Tok.forest,
     ),
     _ProkerItem(
       nomor: '02',
@@ -64,7 +64,7 @@ class TentangPage extends StatelessWidget {
       deskripsi:
           'Dokumentasi multimedia, liputan berkala kegiatan lapangan, video profil greenhouse, dan publikasi media sosial resmi @kkn.arutminidn2026.',
       ikon: Icons.campaign_rounded,
-      warna: Color(0xFF8B5CF6),
+      warna: Tok.navy,
     ),
     _ProkerItem(
       nomor: '03',
@@ -72,7 +72,7 @@ class TentangPage extends StatelessWidget {
       deskripsi:
           'Workshop dan edukasi teknologi hidroponik modern serta pemanfaatan otomasi digital bagi generasi muda dan petani lingkar tambang untuk mewujudkan pertanian cerdas.',
       ikon: Icons.school_rounded,
-      warna: Color(0xFFF59E0B),
+      warna: Tok.olive,
     ),
     _ProkerItem(
       nomor: '04',
@@ -80,7 +80,7 @@ class TentangPage extends StatelessWidget {
       deskripsi:
           'Penguatan sinergi strategis antara mahasiswa TRKJ Politala, Himpunan Mahasiswa Pertanian/Teknologi, dan PT Arutmin Indonesia dalam pemeliharaan greenhouse secara berkelanjutan.',
       ikon: Icons.groups_rounded,
-      warna: Color(0xFF3B82F6),
+      warna: Tok.moss,
     ),
   ];
 
@@ -487,7 +487,7 @@ class _KartuProker extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: Tok.fontJudul,
                     fontSize: 11,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     letterSpacing: 1.2,
                     color: p.warna,
                   ),

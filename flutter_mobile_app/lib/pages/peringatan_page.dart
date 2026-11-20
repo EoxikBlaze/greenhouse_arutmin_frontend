@@ -52,7 +52,7 @@ class PeringatanPage extends StatefulWidget {
 }
 
 class _PeringatanPageState extends State<PeringatanPage> {
-  static const Color _warnaSukses = Color(0xFF16A34A);
+  static const Color _warnaSukses = Color(0xFF4E7733);
 
   List<ItemPeringatan> _daftar = [];
   bool _memuat = true;
@@ -131,7 +131,7 @@ class _PeringatanPageState extends State<PeringatanPage> {
               bisaDiack: false,
             ));
           }
-          if (p['ec_setpoint'] != null && (p['ec_setpoint'] as num) == 0) {
+          if (p['ec_setpoint'] != null && keDouble(p['ec_setpoint']) == 0) {
             listKondisi.add(ItemPeringatan(
               id: 'kondisi-tidur',
               kode: 'TARGET_TIDUR',
@@ -525,7 +525,7 @@ class _StatMini extends StatelessWidget {
             style: TextStyle(
               fontFamily: Tok.fontJudul,
               fontSize: 24,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
               color: warnaNilai,
             ),
           ),
@@ -551,7 +551,7 @@ class _KartuPeringatan extends StatelessWidget {
   final bool bolehUbah;
   final VoidCallback onTandaiSelesai;
 
-  static const Color _warnaSukses = Color(0xFF16A34A);
+  static const Color _warnaSukses = Color(0xFF4E7733);
   static const Color _warnaInfo = Color(0xFF2563EB);
 
   Color get _warnaLevel {
@@ -623,7 +623,7 @@ class _KartuPeringatan extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: Tok.fontJudul,
                         fontSize: 10.5,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                         color: warna,
                       ),
                     ),

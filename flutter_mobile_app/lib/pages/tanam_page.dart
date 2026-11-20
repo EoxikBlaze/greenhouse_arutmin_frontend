@@ -1052,7 +1052,7 @@ class _SheetMulaiState extends State<_SheetMulai> {
                                       style: TextStyle(
                                         fontFamily: Tok.fontJudul,
                                         fontSize: 24,
-                                        fontWeight: FontWeight.w800,
+                                        fontWeight: FontWeight.w700,
                                         color: Tok.tinta,
                                       ),
                                       decoration: const InputDecoration(

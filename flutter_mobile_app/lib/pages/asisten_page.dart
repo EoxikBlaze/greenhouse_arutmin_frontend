@@ -670,9 +670,9 @@ class _Gelembung extends StatelessWidget {
                 Row(
                   children: [
                     const Icon(
-                      Icons.photo_library_rounded,
+                      Ikon.galeri,
                       size: 16,
-                      color: Color(0xFF8B5CF6),
+                      color: Tok.moss,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -780,9 +780,9 @@ class _Gelembung extends StatelessWidget {
                     for (final s in p.saran)
                       ActionChip(
                         avatar: const Icon(
-                          Icons.touch_app_rounded,
+                          Ikon.tunjuk,
                           size: 14,
-                          color: Color(0xFF8B5CF6),
+                          color: Tok.moss,
                         ),
                         label: Text(
                           s,

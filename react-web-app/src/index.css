@@ -2030,6 +2030,8 @@ html.vsf-splash-aktif { overflow: hidden; }
   box-shadow: var(--lg-rim-kecil);
 }
 .vsf-avatar.is-besar { width: 56px; height: 56px; font-size: 19px; }
+.vsf-avatar { overflow: hidden; }
+.vsf-avatar-foto { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; }
 .vsf-pengguna { display: flex; align-items: center; gap: 10px; min-width: 0; text-align: left; border-radius: 12px; }
 .vsf-pengguna:hover b { text-decoration: underline; }
 .vsf-pengguna:focus-visible { outline: 2px solid var(--moss); outline-offset: 3px; }

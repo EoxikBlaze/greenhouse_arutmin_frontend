@@ -20,6 +20,7 @@ import 'services/setup_service.dart';
 import 'theme/tema.dart';
 import 'theme/tokens.dart';
 import 'util/performa.dart';
+import 'widgets/beranda_baru/tepi_blur.dart';
 import 'widgets/brand.dart';
 import 'widgets/dock.dart';
 import 'widgets/halaman.dart';
@@ -280,6 +281,10 @@ class _MainShellState extends State<_MainShell> {
   final Set<int> _dibuka = {0};
   int _indeks = 0;
   bool _adaNotif = false;
+
+  /// Foto akun dari backend (GET /profil/foto). null = belum ada atau belum termuat:
+  /// header tetap menampilkan inisial.
+  ImageProvider? _fotoProfil;
   Widget? _halamanDalam;
   String? _judulHalamanDalam;
   final NotifikasiService _notifikasi = NotifikasiService();
@@ -307,7 +312,18 @@ class _MainShellState extends State<_MainShell> {
       ),
     ];
     _cekAlertAktif();
+    _muatFotoProfil();
     _mulaiNotifikasi();
+  }
+
+  Future<void> _muatFotoProfil() async {
+    try {
+      final bytes = await apiService.getBytes('/profil/foto');
+      if (!mounted) return;
+      setState(() => _fotoProfil = MemoryImage(bytes));
+    } on ApiException {
+      // 404 = belum ada foto; jaringan putus = coba lagi saat shell dibuka berikutnya.
+    }
   }
 
   Future<void> _mulaiNotifikasi() async {
@@ -475,6 +491,30 @@ class _MainShellState extends State<_MainShell> {
                     ),
                   ),
 
+                  // Efek tepi gulir ala iPhone: isi memudar di bawah status bar dan
+                  // home indicator (blur bertahap + kaca). Dimatikan di mode ringan.
+                  if (!PerformaRender.ringan) ...[
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: TepiBlur(
+                        tinggi: MediaQuery.paddingOf(context).top + 36,
+                        atas: true,
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: TepiBlur(
+                        tinggi: 60 + MediaQuery.paddingOf(context).bottom,
+                        atas: false,
+                        warna: const Color(0x33D9D9D9),
+                      ),
+                    ),
+                  ],
+
                   // Header Arutmin selalu dipin di paling atas (tidak bergerak saat ganti halaman)
                   Positioned(
                     top: 0,
@@ -501,7 +541,7 @@ class _MainShellState extends State<_MainShell> {
                               : null,
                           adaNotif: _adaNotif,
                           inisial: inisial,
-                          fotoProfil: null,
+                          fotoProfil: _fotoProfil,
                           onProfileTap: () {
                             if (_halamanDalam != null) _tutupHalaman();
                             _bukaTab('Akun');
@@ -591,15 +631,11 @@ class _TombolAiDiatasFooter extends StatelessWidget {
           height: 44,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            gradient: Tok.primary,
             borderRadius: BorderRadius.circular(999),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF8B5CF6).withValues(alpha: 0.42),
+                color: Tok.forest.withValues(alpha: 0.35),
                 blurRadius: 14,
                 offset: const Offset(0, 4),
               ),
@@ -612,7 +648,7 @@ class _TombolAiDiatasFooter extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.auto_awesome, color: Colors.white, size: 18),
+              const Icon(Ikon.ai, color: Colors.white, size: 18),
               const SizedBox(width: 8),
               const Text(
                 'Tanya AI',
@@ -628,7 +664,7 @@ class _TombolAiDiatasFooter extends StatelessWidget {
                 width: 8,
                 height: 8,
                 decoration: const BoxDecoration(
-                  color: Color(0xFF10B981),
+                  color: Tok.moss,
                   shape: BoxShape.circle,
                 ),
               ),

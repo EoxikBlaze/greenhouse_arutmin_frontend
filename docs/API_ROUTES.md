@@ -35,6 +35,9 @@ Sumber: `/Users/rizki/Documents/Vertonik-Smart-Farm/routes/web.php` dan `routes/
 | POST | `/profil/update` | `profil.update` |
 | GET | `/profil/password` | `profil.password` |
 | POST | `/profil/password` | `profil.password.update` |
+| GET | `/profil/foto` | `profil.foto` — gambar akun sendiri; 404 bila belum ada; ETag + 304 |
+| POST | `/profil/foto` | `profil.foto.simpan` — isi permintaan = berkas PNG/JPEG/WebP mentah, maks 512 KB; demo 403 |
+| DELETE | `/profil/foto` | `profil.foto.hapus` |
 | RESOURCE | `meja` | `MejaController` |
 | RESOURCE | `tanaman` | `TanamanController` |
 | RESOURCE | `siklus` | `SiklusController` |

@@ -6,6 +6,7 @@ import '../widgets/app_bar_glass.dart';
 import '../widgets/brand.dart';
 import '../widgets/halaman.dart';
 import '../widgets/kaca.dart';
+import '../util/format.dart';
 
 /// Isian form → badan `hasil` POST /uji-lab (hanya kolom terisi). Mengembalikan galat atau null.
 ({List<Map<String, dynamic>> hasil, String? galat}) susunHasilUjiLab(
@@ -17,8 +18,8 @@ import '../widgets/kaca.dart';
     final mentah = (isian[e.key] ?? '').trim();
     if (mentah.isEmpty) continue;
     final n = double.tryParse(mentah.replaceAll(',', '.'));
-    final lo = (e.value['min'] as num?) ?? 0;
-    final hi = (e.value['max'] as num?) ?? double.infinity;
+    final lo = keDouble(e.value['min']) ?? 0;
+    final hi = keDouble(e.value['max']) ?? double.infinity;
     if (n == null || n < lo || n > hi) {
       return (
         hasil: const [],

@@ -10,6 +10,10 @@ export function KartuProfil({
   onUbah,
   onSandi,
   onKeluar,
+  fotoUrl,
+  sibukFoto = false,
+  onGantiFoto,
+  onHapusFoto,
 }: {
   user: UserRow | null
   memuat: boolean
@@ -17,13 +21,17 @@ export function KartuProfil({
   onUbah: () => void
   onSandi: () => void
   onKeluar: () => void
+  fotoUrl?: string | null
+  sibukFoto?: boolean
+  onGantiFoto?: () => void
+  onHapusFoto?: () => void
 }) {
   const info = infoLevel(user?.level)
   const alasan = terkunci ? 'Akun demo tidak boleh mengubah profil' : undefined
   return (
     <section className="vsf-card vsf-kartu-profil p-4 sm:p-6" aria-label="Kartu profil">
       <div className="flex flex-wrap items-center gap-4">
-        <Avatar nama={user?.username} besar />
+        <Avatar nama={user?.username} besar fotoUrl={fotoUrl} />
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-[20px] font-bold text-tinta">
             {memuat && !user ? 'Memuat…' : (user?.username ?? '—')}
@@ -61,6 +69,17 @@ export function KartuProfil({
           <Ikon nama="kunci" className="h-4 w-4" />
           Ganti password
         </button>
+        {onGantiFoto && (
+          <button type="button" className="vsf-btn-secondary" disabled={!user || terkunci || sibukFoto} title={alasan} onClick={onGantiFoto}>
+            <Ikon nama="ubah" className="h-4 w-4" />
+            {sibukFoto ? 'Memproses…' : 'Ganti foto'}
+          </button>
+        )}
+        {onHapusFoto && fotoUrl && (
+          <button type="button" className="vsf-btn-secondary" disabled={terkunci || sibukFoto} title={alasan} onClick={onHapusFoto}>
+            Hapus foto
+          </button>
+        )}
         <button type="button" className="vsf-btn-secondary vsf-teks-bahaya ml-auto" onClick={onKeluar}>
           <Ikon nama="keluar" className="h-4 w-4" />
           Keluar
