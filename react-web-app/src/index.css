@@ -994,6 +994,16 @@
   backdrop-filter: blur(var(--glass-blur)) ;
 }
 .vsf-kpi-emas .vsf-kpi-ikon { background: rgba(255, 255, 255, 0.45); color: #1c1604; }
+/* Bacaan di luar batas aman (Ambang Sensor): menggantikan warna sorotan; teks "Di luar batas" menyertai warnanya. */
+.vsf-kpi-merah {
+  color: #fff;
+  background:
+    radial-gradient(14rem 8rem at 100% 0%, rgba(255, 190, 150, 0.22), transparent 70%),
+    linear-gradient(145deg, rgba(170, 52, 44, 0.97), rgba(112, 30, 28, 0.96));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+}
+.vsf-kpi-merah .vsf-kpi-ikon { background: rgba(255, 255, 255, 0.22); color: #fff; }
 
 /* Grafik batang tumbuh dari bawah */
 @keyframes vsf-batang-tumbuh { from { transform: scaleY(0); } to { transform: scaleY(1); } }
@@ -2460,3 +2470,55 @@ html[data-perf='ringan'] * { transition-duration: 0.12s !important; }
 html[data-perf='ringan'] .vsf-memuat { animation: none; opacity: 1; }
 html[data-perf='ringan'] .vsf-memuat-logo img { animation: none; }
 html[data-perf='ringan'] .vsf-memuat-cincin { animation-duration: 1.6s; }
+
+/* ══ Analisis ilmiah — HANYA dipakai halaman Analisis (kelas baru; tidak mengubah gaya lain) ══
+   Tabel gaya makalah ("booktabs"): garis tebal di atas dan bawah, garis tipis di bawah kepala, tanpa garis tegak.
+   Keterangan tabel di ATAS ("Tabel 1. …"), keterangan gambar di BAWAH ("Gambar 1. …"), catatan kaki kecil di bawah tabel. */
+.vsf-ilmiah-blok { margin-top: 1.25rem; }
+.vsf-ilmiah-keterangan {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--tinta, #1e2d3d);
+}
+.vsf-ilmiah-keterangan b { font-weight: 700; }
+.vsf-ilmiah-tabel-bungkus { margin-top: 0.4rem; overflow-x: auto; }
+.vsf-ilmiah-tabel {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  border-top: 2px solid #27384c;
+  border-bottom: 2px solid #27384c;
+}
+.vsf-ilmiah-tabel thead th {
+  border-bottom: 1px solid #27384c;
+  padding: 6px 10px;
+  text-align: right;
+  font-weight: 700;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+.vsf-ilmiah-tabel thead th:first-child,
+.vsf-ilmiah-tabel tbody th { text-align: left; }
+.vsf-ilmiah-tabel tbody th { font-weight: 400; padding: 5px 10px; white-space: nowrap; }
+.vsf-ilmiah-tabel tbody td { padding: 5px 10px; text-align: right; }
+.vsf-ilmiah-tabel tbody tr + tr > * { border-top: 1px solid rgba(39, 56, 76, 0.12); }
+.vsf-ilmiah-tabel .teks { text-align: left; white-space: normal; }
+.vsf-ilmiah-tabel .tebal { font-weight: 700; }
+.vsf-ilmiah-tabel .peringatan { color: #a32d2d; font-weight: 700; }
+.vsf-ilmiah-tabel .baik { color: #3b6d11; font-weight: 700; }
+.vsf-ilmiah-catatan { margin-top: 0.35rem; font-size: 12px; line-height: 1.5; color: var(--abu, #566478); }
+.vsf-ilmiah-gambar { margin-top: 0.4rem; }
+.vsf-ilmiah-temuan {
+  border-left: 3px solid #4e7733;
+  background: rgba(107, 157, 74, 0.1);
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.vsf-ilmiah-temuan ul { margin: 0.25rem 0 0; padding-left: 1.1rem; list-style: disc; }
+.vsf-ilmiah-metode h3 { margin: 1rem 0 0.25rem; font-size: 14px; font-weight: 700; }
+.vsf-ilmiah-metode p, .vsf-ilmiah-metode li { font-size: 13px; line-height: 1.65; }
+.vsf-ilmiah-metode ul { margin: 0.2rem 0 0; padding-left: 1.2rem; list-style: disc; }
+.vsf-ilmiah-rumus { font-family: var(--font-mono, ui-monospace, monospace); font-size: 12.5px; background: rgba(39, 56, 76, 0.06); padding: 1px 6px; border-radius: 4px; }

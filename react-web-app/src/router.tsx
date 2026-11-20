@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage'
 import {
   DashboardPage,
   SensorRealtimePage,
+  AnalisisPage,
   KebunSayaPage,
   CctvPage,
   AsistenAiPage,
@@ -52,6 +53,7 @@ export const router = createBrowserRouter([
           { path: '/sensor', element: <Navigate to="/sensor-realtime" replace /> },
           { path: '/telemetri', element: <Navigate to="/sensor-realtime" replace /> },
           { path: '/sensor-realtime', element: <RequireAuth allow={ALL} element={<SensorRealtimePage />} /> },
+          { path: '/analisis', element: <RequireAuth allow={ALL} element={<AnalisisPage />} /> },
           { path: '/peringatan', element: <RequireAuth allow={ALL} element={<PeringatanPage />} /> },
           { path: '/tanam', element: <RequireAuth allow={ALL} element={<KebunSayaPage />} /> },
           { path: '/cctv', element: <RequireAuth allow={ALL} element={<CctvPage />} /> },
@@ -87,7 +89,7 @@ export const router = createBrowserRouter([
           { path: '/peremajaan', element: <RequireAuth allow={ADMIN_DEMO} element={<PeremajaanPage />} /> },
           { path: '/pendewasaan', element: <RequireAuth allow={ADMIN_DEMO} element={<PendewasaanPage />} /> },
           { path: '/panen', element: <RequireAuth allow={ADMIN_DEMO} element={<PanenPage />} /> },
-          { path: '/siklus', element: <Navigate to="/dashboard" replace /> },
+          { path: '/siklus', element: <Navigate to="/tanaman" replace /> },
 
           // 04 · Master Data — admin (demo read-only)
           { path: '/tanaman', element: <RequireAuth allow={ADMIN_DEMO} element={<JenisTanamanPage />} /> },

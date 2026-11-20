@@ -8,6 +8,7 @@ import { relatif } from '../lib/waktu'
 import { PageHeader } from '../components/PageHeader'
 import { StatusBadge } from '../components/StatusBadge'
 import { DialogKonfirmasi, Pesan } from '../components/kaca/DialogKaca'
+import { Segmen } from '../components/sensor/FilterBar'
 
 /**
  * Halaman Peringatan — GET /alert-logs. Peringatan dinilai server dari data & keadaan alat (src/peringatan.js,
@@ -26,14 +27,29 @@ export type BarisAlert = {
   sedang_terjadi?: boolean
 }
 type Respons = { data?: BarisAlert[]; aktif?: number; total?: number }
+type ResponRiwayat = { data?: BarisAlert[]; total?: number; page?: number; per_page?: number }
+
+const TINGKAT = ['Semua', 'Merah', 'Kuning', 'Info'] as const
+const SEVERITY: Record<(typeof TINGKAT)[number], string> = { Semua: '', Merah: 'critical', Kuning: 'warning', Info: 'info' }
+const OPSI_HALAMAN = [50, 100] as const
+
+/** Lama kejadian: "<1 mnt", "12 mnt", "2 j 5 mnt", "1 hr 3 j". */
+function lamaTeks(ms: number): string {
+  const menit = Math.max(0, Math.round(ms / 60_000))
+  if (menit < 1) return '<1 mnt'
+  if (menit < 60) return `${menit} mnt`
+  const jam = Math.floor(menit / 60)
+  if (jam < 24) return `${jam} j ${menit % 60} mnt`
+  return `${Math.floor(jam / 24)} hr ${jam % 24} j`
+}
 
 /** Kunci yang bisa dibuka perintah BUKA_KUNCI (Kontrak §6.2); FLOAT_ERROR & SENSOR_RUSAK harus diperbaiki fisik. */
-const BISA_DIBUKA = ['kunci_isi_sering', 'kunci_isi_timeout', 'kunci_pompa_kelamaan', 'kunci_ec_curiga']
+const BISA_DIBUKA = ['kunci_isi_sering', 'kunci_isi_timeout', 'kunci_pompa_kelamaan', 'kunci_ec_curiga', 'kunci_nutrisi_habis']
 
 const JUDUL: Record<string, string> = {
   estop: 'E-STOP', estop_fisik: 'E-STOP fisik', tombol_reset: 'Tombol RESET', alat_offline: 'Alat offline',
   data_tidak_masuk: 'Data sensor', belum_siap: 'Belum siap', ppm_probe: 'Probe EC', air_rendah: 'Air rendah',
-  sensor_ph: 'pH', sensor_tds: 'Nutrisi', sensor_waterTemp: 'Suhu air', sensor_airTemp: 'Suhu udara', sensor_humidity: 'Kelembapan',
+  sensor_ph: 'pH', sensor_tds: 'Nutrisi', sensor_waterTemp: 'Suhu air', sensor_airTemp: 'Suhu udara', sensor_humidity: 'Kelembapan', ota_gagal: 'Update program',
 }
 function judul(type: string): string {
   if (JUDUL[type]) return JUDUL[type]
@@ -69,10 +85,21 @@ export function PeringatanPage() {
   const [galat, setGalat] = useState<string | null>(null)
   const [konfirmasi, setKonfirmasi] = useState(false)
   const [sibuk, setSibuk] = useState(false)
+  // Riwayat: halaman bernomor dari server, bisa disaring menurut tingkat (merah/kuning/info)
+  const [tingkat, setTingkat] = useState<(typeof TINGKAT)[number]>('Semua')
+  const [halaman, setHalaman] = useState(1)
+  const [perHal, setPerHal] = useState<number>(OPSI_HALAMAN[0])
+  const sev = SEVERITY[tingkat]
+  const { data: rw, loading: muatRw, reload: reloadRw } = useApiObject<ResponRiwayat>(
+    `/alert-logs/riwayat?page=${halaman}&per_page=${perHal}${sev ? `&severity=${sev}` : ''}`,
+    { pollMs: 30_000 },
+  )
 
   const semua = data?.data ?? []
   const aktif = semua.filter((a) => a.sedang_terjadi)
-  const riwayat = semua.filter((a) => !a.sedang_terjadi)
+  const riwayat = rw?.data ?? []
+  const totalRiwayat = rw?.total ?? 0
+  const jumlahHalaman = Math.max(1, Math.ceil(totalRiwayat / perHal))
   const merah = aktif.filter((a) => a.severity === 'critical').length
   const bisaDibuka = aktif.some((a) => a.kunci_kejadian && BISA_DIBUKA.includes(a.kunci_kejadian))
 
@@ -96,6 +123,7 @@ export function PeringatanPage() {
       await api.post(`/alert-logs/${id}/ack`)
       setPesan('Catatan ditandai sudah ditangani.')
       reload()
+      reloadRw()
     } catch (err) {
       setGalat(handleApiError(err).message)
     }
@@ -145,20 +173,25 @@ export function PeringatanPage() {
       </section>
 
       <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Riwayat peringatan">
-        <div className="vsf-judul-bagian">Riwayat</div>
-        {riwayat.length === 0 ? (
-          <p className="mt-3 text-[13px] text-abu">Belum ada riwayat.</p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="vsf-judul-bagian">Riwayat</div>
+          <Segmen label="Tingkat peringatan" pilihan={TINGKAT} nilai={tingkat} onPilih={(t) => { setTingkat(t); setHalaman(1) }} />
+        </div>
+        {muatRw && !rw ? (
+          <div className="vsf-skeleton mt-3 h-[120px] rounded-card" />
+        ) : riwayat.length === 0 ? (
+          <p className="mt-3 text-[13px] text-abu">{tingkat === 'Semua' ? 'Belum ada riwayat.' : `Belum ada riwayat tingkat ${tingkat.toLowerCase()}.`}</p>
         ) : (
           <div className="vsf-daftar mt-3">
             {riwayat.map((a) => (
-              <div key={a.id} className="vsf-param" style={{ ['--kolom' as string]: '115px 85px 120px minmax(0,1fr) 150px' }}>
+              <div key={a.id} className="vsf-param" style={{ ['--kolom' as string]: '115px 85px 120px minmax(0,1fr) 210px' }}>
                 <div className="vsf-param-sel font-mono text-[12px]">{tglJam(a.created_at)}</div>
                 <div className="vsf-param-sel"><Level severity={a.severity} /></div>
                 <div className="vsf-param-sel text-[12px] font-bold text-tinta">{judul(a.type)}</div>
                 <div className="vsf-param-sel text-[13px] text-tinta">{a.value}</div>
                 <div className="vsf-param-sel text-[12px] text-abu">
                   {a.selesai_pada ? (
-                    <>pulih {tglJam(a.selesai_pada)}</>
+                    <>pulih {tglJam(a.selesai_pada)} · selama {lamaTeks(Date.parse(a.selesai_pada) - Date.parse(a.created_at))}</>
                   ) : a.acknowledged ? (
                     'ditangani'
                   ) : admin ? (
@@ -177,6 +210,28 @@ export function PeringatanPage() {
             ))}
           </div>
         )}
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[13px]">
+          <span className="text-abu">
+            {totalRiwayat === 0
+              ? 'Tidak ada catatan'
+              : `Menampilkan ${((halaman - 1) * perHal + 1).toLocaleString('id-ID')}–${((halaman - 1) * perHal + riwayat.length).toLocaleString('id-ID')} dari ${totalRiwayat.toLocaleString('id-ID')} catatan`}
+          </span>
+          <nav aria-label="Halaman riwayat peringatan" className="flex flex-wrap items-center gap-2">
+            <label className="flex items-center gap-2 text-abu">
+              Baris
+              <select className="vsf-input w-[76px]" value={perHal} onChange={(e) => { setPerHal(Number(e.target.value)); setHalaman(1) }}>
+                {OPSI_HALAMAN.map((n) => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </label>
+            <button type="button" className="vsf-btn-secondary" disabled={halaman <= 1 || muatRw} onClick={() => setHalaman((h) => Math.max(1, h - 1))}>
+              ‹ Lebih baru
+            </button>
+            <span className="text-abu">Halaman {halaman} dari {jumlahHalaman}</span>
+            <button type="button" className="vsf-btn-secondary" disabled={halaman >= jumlahHalaman || muatRw} onClick={() => setHalaman((h) => h + 1)}>
+              Lebih lama ›
+            </button>
+          </nav>
+        </div>
       </section>
 
       {konfirmasi && (
@@ -188,9 +243,9 @@ export function PeringatanPage() {
           onYa={() => void bukaKunci()}
           onBatal={() => setKonfirmasi(false)}
         >
-          Perintah <b>BUKA_KUNCI</b> dikirim ke alat: membuka kunci pompa isi, pompa kelamaan, dan EC curiga, sehingga pompa
-          boleh bekerja lagi. Pastikan penyebabnya (bocor, sumber air, probe EC) sudah diperiksa. Kunci pelampung error dan
-          sensor rusak tidak terbuka dengan perintah ini — perbaiki di alat.
+          Perintah <b>BUKA_KUNCI</b> dikirim ke alat: membuka kunci pompa isi, pompa kelamaan, EC curiga, dan nutrisi habis,
+          sehingga pompa boleh bekerja lagi. Pastikan penyebabnya (bocor, sumber air, probe EC, botol nutrisi A/B kosong atau
+          selang lepas) sudah diperiksa. Kunci pelampung error dan sensor rusak tidak terbuka dengan perintah ini — perbaiki di alat.
         </DialogKonfirmasi>
       )}
     </div>

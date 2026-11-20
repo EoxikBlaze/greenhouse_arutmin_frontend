@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useAuth } from '../lib/authContext'
 import { useApiList } from '../lib/crudApi'
 import { useIotV41State } from '../lib/iotV41'
 import { useApiObject } from '../lib/useApiObject'
@@ -6,6 +7,7 @@ import type { Alat, Terkini } from '../lib/kalibrasi'
 import { PageHeader } from '../components/PageHeader'
 import { Pesan } from '../components/kaca/DialogKaca'
 import { PanelKalibrasiLangsungV41 } from '../components/kalibrasi/PanelKalibrasiLangsungV41'
+import { PanelFirmwareAlat } from '../components/kalibrasi/PanelFirmwareAlat'
 import { RingkasanKalibrasi } from '../components/kalibrasi/RingkasanKalibrasi'
 import { RiwayatKalibrasi } from '../components/kalibrasi/RiwayatKalibrasi'
 
@@ -16,6 +18,8 @@ import { RiwayatKalibrasi } from '../components/kalibrasi/RiwayatKalibrasi'
 export default function KalibrasiPage() {
   const { rows, reload } = useApiList<Alat>('/kalibrasi')
   const { data: terkini } = useApiObject<Terkini>('/api/latest-sensor', { pollMs: 5_000 })
+  const { role } = useAuth()
+  const bolehTulis = role === 'admin'
   const iotV41 = useIotV41State()
 
   const [versi, setVersi] = useState(0)
@@ -33,6 +37,7 @@ export default function KalibrasiPage() {
 
       {iotV41.error && <Pesan jenis="galat">{iotV41.error}</Pesan>}
       <PanelKalibrasiLangsungV41 iot={iotV41.data} loading={iotV41.loading} onReload={muatSemua} />
+      {bolehTulis && <PanelFirmwareAlat pemeliharaanAktif={Boolean(iotV41.data?.params?.pemeliharaan)} />}
 
       <RiwayatKalibrasi params={iotV41.data?.params} versi={versi} />
     </div>

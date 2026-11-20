@@ -7,6 +7,8 @@ import {
   type TitikSeri,
 } from '../../lib/sensorLaporan'
 import { angkaId } from '../../lib/format'
+import type { Penanda } from '../../lib/analisis'
+import { LajurPenanda, LegendaPenanda } from './PenandaDosing'
 
 type Batas = { min: number | null; max: number | null }
 
@@ -21,7 +23,9 @@ const ddmm = (ms: number) => formatTanggal(ms).slice(0, 5)
  * Satu panel grafik per sensor: area halus + pita rentang aman, titik di luar batas berwarna merah,
  * crosshair + tooltip saat disentuh/ditunjuk. Lebar mengikuti kontainer (teks tetap 12 px di HP).
  */
-export function PanelGrafik({ def, seri, batas }: { def: DefParam; seri: TitikSeri[]; batas: Batas }) {
+export function PanelGrafik({ def, seri, batas, acuan = null, polos = false, penanda = [] }: { def: DefParam; seri: TitikSeri[]; batas: Batas; acuan?: { nilai: number; teks: string } | null; polos?: boolean; penanda?: Penanda[] }) {
+  // polos = tanpa kartu luar (dipakai di dalam kartu lain, mis. Dashboard)
+  const kartu = polos ? '' : 'vsf-card p-4 sm:p-5'
   const gid = useId()
   // Callback ref (state): wadah baru ada setelah data tiba, jadi observer harus ikut terpasang saat itu.
   const [wadah, setWadah] = useState<HTMLDivElement | null>(null)
@@ -53,8 +57,8 @@ export function PanelGrafik({ def, seri, batas }: { def: DefParam; seri: TitikSe
 
   const geo = useMemo(() => {
     if (!stat) return null
-    const awal = Math.min(stat.min, batas.min ?? Infinity)
-    const akhir = Math.max(stat.maks, batas.max ?? -Infinity)
+    const awal = Math.min(stat.min, batas.min ?? Infinity, acuan?.nilai ?? Infinity)
+    const akhir = Math.max(stat.maks, batas.max ?? -Infinity, acuan?.nilai ?? -Infinity)
     const span = akhir - awal || Math.abs(awal) * 0.1 || 1
     // Sensor tak pernah negatif: bantalan bawah tidak boleh menembus nol.
     const lo = awal >= 0 ? Math.max(0, awal - span * 0.1) : awal - span * 0.1
@@ -64,11 +68,11 @@ export function PanelGrafik({ def, seri, batas }: { def: DefParam; seri: TitikSe
     const x = (t: number) => PL + (t1 === t0 ? 0.5 : (t - t0) / (t1 - t0)) * (lebar - PL - PR)
     const y = (v: number) => PT + (1 - (v - lo) / (hi - lo)) * (H - PT - PB)
     return { lo, hi, t0, t1, x, y }
-  }, [stat, seri, batas.min, batas.max, lebar, H, PL])
+  }, [stat, seri, batas.min, batas.max, acuan?.nilai, lebar, H, PL])
 
   if (!stat || !geo) {
     return (
-      <section className="vsf-card p-4 sm:p-5">
+      <section className={kartu}>
         <div className="vsf-judul-bagian">{def.label}</div>
         <p className="mt-3 rounded-card bg-white/55 px-4 py-8 text-center text-[13px] text-tinta">
           Belum ada nilai {def.label} pada rentang ini — alat belum mengirim sensor ini.
@@ -107,7 +111,7 @@ export function PanelGrafik({ def, seri, batas }: { def: DefParam; seri: TitikSe
   }
 
   return (
-    <section className="vsf-card p-4 sm:p-5">
+    <section className={kartu}>
       <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
         <div>
           <div className="vsf-judul-bagian">
@@ -181,6 +185,14 @@ export function PanelGrafik({ def, seri, batas }: { def: DefParam; seri: TitikSe
             </g>
           )}
 
+          {acuan && (
+            <g pointerEvents="none">
+              <line x1={PL} x2={lebar - PR} y1={y(acuan.nilai)} y2={y(acuan.nilai)} stroke="#185FA5" strokeWidth={1.5} strokeDasharray="6 4" />
+              <text x={lebar - PR - 4} y={y(acuan.nilai) - 6} textAnchor="end" fontSize={12} fill="#185FA5">
+                {acuan.teks}
+              </text>
+            </g>
+          )}
           <polygon points={area} fill={`url(#${gid}-area)`} />
           <polyline points={garis} fill="none" stroke="#3F6B2F" strokeWidth={2.25} strokeLinejoin="round" strokeLinecap="round" />
 
@@ -206,6 +218,7 @@ export function PanelGrafik({ def, seri, batas }: { def: DefParam; seri: TitikSe
             </text>
           ))}
 
+          {penanda.length > 0 && <LajurPenanda penanda={penanda} t0={t0} t1={t1} x={x} y={dasar - 10} />}
           {titikSorot && (
             <g pointerEvents="none">
               <line x1={x(titikSorot.t)} x2={x(titikSorot.t)} y1={PT} y2={dasar} stroke="rgba(30,45,61,0.45)" strokeWidth={1} />
@@ -232,6 +245,7 @@ export function PanelGrafik({ def, seri, batas }: { def: DefParam; seri: TitikSe
         )}
       </div>
 
+      {penanda.length > 0 && <LegendaPenanda penanda={penanda} t0={t0} t1={t1} />}
       {adaBand && (
         <p className="mt-2 flex items-center gap-2 text-[12px] text-abu">
           <span aria-hidden className="inline-block h-3 w-5 rounded-sm border border-dashed border-arutmin-olive bg-arutmin-moss/20" />

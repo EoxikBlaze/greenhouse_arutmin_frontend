@@ -5,7 +5,8 @@ import { useApiObject, useFlashOnChange } from '../lib/useApiObject'
 import { relatif, waktuBasi } from '../lib/waktu'
 import { Ikon, type NamaIkon } from '../components/Ikon'
 import { AngkaHidup } from '../components/AngkaHidup'
-import { TrenBatang } from '../components/TrenBatang'
+import { TrenSensor } from '../components/TrenSensor'
+import { PanelStatusPompa, type StatusPompa } from '../components/PanelStatusPompa'
 import { KartuPrediksiPanen } from '../components/analitik/KartuPrediksiPanen'
 import { tglJam } from '../lib/format'
 import { petunjukKurang } from '../lib/kebun'
@@ -29,6 +30,8 @@ type SensorTerkini = {
 type KeadaanAlat = {
   level_air?: string | null
   pompa_isi?: boolean | null
+  /** Status tiap relay (firmware v6.4+); null = alat lama, web menebak dari `kegiatan`. */
+  pompa?: StatusPompa | null
   mode?: string | null
   kegiatan?: string | null
   kunci?: string | null
@@ -136,7 +139,7 @@ function IkonMetrik({ kind }: { kind: string }) {
 
 export default function DashboardPage() {
   const { role, username } = useAuth()
-  const { data, loading, error, reload } = useApiObject<DashboardData>('/dashboard', { pollMs: 10_000 })
+  const { data, loading, error, reload } = useApiObject<DashboardData>('/dashboard', { pollMs: 5_000 })
   // P4 — sorot kilat 0.5s saat data sensor terkini berubah (refresh senyap).
   const sensorFlash = useFlashOnChange(JSON.stringify(data?.latest_sensor ?? null))
 
@@ -164,6 +167,14 @@ export default function DashboardPage() {
     if (Number(a.min) >= Number(a.max)) return 'batas aman perlu dicek'
     const f = (v: number | string) => String(Number(v)).replace('.', ',')
     return `batas aman ${f(a.min)}–${f(a.max)}`
+  }
+  // Bacaan segar di luar batas aman dari Ambang Sensor → kartu merah (+ teks), bukan sekadar hiasan.
+  const luarBatas = (k: string, v: unknown): boolean => {
+    const a = data?.ambang?.[k]
+    const n = v == null || v === '' ? NaN : Number(v)
+    if (usang || !a || a.min == null || a.max == null || !Number.isFinite(n)) return false
+    const [lo, hi] = [Number(a.min), Number(a.max)]
+    return lo < hi && (n < lo || n > hi)
   }
   const metrik = [
     { k: 'ph', label: 'pH (Asam-Basa)', nilai: angka(s?.ph, 2), num: s?.ph, digit: 2, akhiran: '', target: batas('ph') },
@@ -317,9 +328,9 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="rounded-card border border-white/80 bg-white/55 p-3 shadow-[inset_0_1px_0_#fff]">
-              <div className="text-[12px] text-abu">Total batch tercatat</div>
+              <div className="text-[12px] text-abu">Batch selesai (sudah panen)</div>
               <div className="font-display text-[24px] font-bold leading-tight tabular-nums text-arutmin-forest">
-                {loading && !data ? '—' : <AngkaHidup nilai={Number(data?.total_semai ?? 0) + Number(data?.total_peremajaan ?? 0) + Number(data?.total_pendewasaan ?? 0)} />}
+                {loading && !data ? '—' : <AngkaHidup nilai={Number(data?.total_panen ?? 0)} />}
               </div>
             </div>
           </div>
@@ -358,7 +369,8 @@ export default function DashboardPage() {
             {loading && !data
               ? Array.from({ length: 8 }, (_, i) => <div key={i} className="vsf-skeleton min-h-[132px]" />)
               : metrik.map((m) => {
-                  const sorot = m.k === 'ph' ? 'vsf-kpi-hijau' : m.k === 'tds' ? 'vsf-kpi-emas' : 'vsf-kpi-kaca'
+                  const luar = 'num' in m && luarBatas(m.k, m.num)
+                  const sorot = luar ? 'vsf-kpi-merah' : m.k === 'ph' ? 'vsf-kpi-hijau' : m.k === 'tds' ? 'vsf-kpi-emas' : 'vsf-kpi-kaca'
                   return (
                     <Link
                       key={m.k}
@@ -381,6 +393,7 @@ export default function DashboardPage() {
                             <>Bacaan lama{umurTeks ? ` · ${umurTeks}` : ''}</>
                           ) : (
                             <>
+                              {luar && <b>Di luar batas • </b>}
                               {m.target}
                               {'num' in m && ` • ${statusKata}`}
                             </>
@@ -407,9 +420,12 @@ export default function DashboardPage() {
           </div>
         </section>
 
+        {/* Status pompa/relay: menyala atau mati sekarang */}
+        <PanelStatusPompa pompa={alat?.pompa} kegiatan={alat?.kegiatan} online={online} estop={alat?.estop} memuat={loading && !data} />
+
         {/* Grafik batang tren sensor */}
         <div className="xl:col-span-7">
-          <TrenBatang />
+          <TrenSensor ambang={data?.ambang ?? null} />
         </div>
 
         {/* Daftar tahap tanam (padanan "Recent Activities") */}

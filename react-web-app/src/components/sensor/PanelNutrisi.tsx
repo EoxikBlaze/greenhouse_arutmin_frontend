@@ -34,9 +34,11 @@ function Penanda({ jenis, x, y }: { jenis: JenisDosing; x: number; y: number }) 
  * Grafik "Nutrisi: target vs aktual" di menu Sensor. Data hanya dari server: ppm sensor, target yang benar-benar dikirim ke alat,
  * rencana target ke depan, dan kapan alat menyuntik (dari hitungan harian yang dilaporkan alat; jumlah mL tidak dilaporkan alat).
  */
-export function PanelNutrisi() {
+export function PanelNutrisi({ hari, ec }: { hari?: number; ec?: number | null } = {}) {
   const [rentang, setRentang] = useState<Pilihan>('3 Hari')
-  const { data, loading, error } = useApiObject<DataNutrisi>(`/monitoring/nutrisi?hari=${HARI[rentang]}`, { pollMs: 60_000 })
+  // `hari` dari halaman Sensor (satu pengatur rentang): pilihan rentang milik panel ini disembunyikan
+  const hariPakai = hari ?? HARI[rentang]
+  const { data, loading, error } = useApiObject<DataNutrisi>(`/monitoring/nutrisi?hari=${hariPakai}`, { pollMs: 60_000 })
   const [wadah, setWadah] = useState<HTMLDivElement | null>(null)
   const [lebar, setLebar] = useState(720)
   const [sorot, setSorot] = useState<number | null>(null)
@@ -97,8 +99,12 @@ export function PanelNutrisi() {
               ? `${data.batch.tanaman ?? 'Tanaman'} · ${data.batch.tahap} · hari ke-${(data.batch.hari_semai ?? 0) + 1} sejak mulai semai · ${data.batch.cara === 'tahap' ? 'per siklus' : 'per hari'}`
               : 'Belum ada batch berjalan di Kebun Saya.'}
           </p>
+          <p className="mt-0.5 text-[12px] text-abu">
+            Sensor mengukur EC (daya hantar listrik); ppm = EC × 500, jadi grafik ini sudah mewakili EC
+            {ec != null && Number.isFinite(ec) ? ` (sekarang ${angkaId(ec, 2)} mS/cm)` : ''}.
+          </p>
         </div>
-        <Segmen label="Rentang grafik nutrisi" pilihan={PILIHAN} nilai={rentang} onPilih={setRentang} />
+        {hari === undefined && <Segmen label="Rentang grafik nutrisi" pilihan={PILIHAN} nilai={rentang} onPilih={setRentang} />}
       </div>
 
       {hi && (
@@ -152,7 +158,7 @@ export function PanelNutrisi() {
               className="vsf-chart block max-w-full"
               style={{ touchAction: 'pan-y' }}
               role="img"
-              aria-label={`Grafik nutrisi ${rentang}: ${data.aktual.length} bacaan ppm, ${data.target_alat.length} target terkirim ke alat, ${data.dosing.length} kali alat menyuntik`}
+              aria-label={`Grafik nutrisi ${hariPakai} hari: ${data.aktual.length} bacaan ppm, ${data.target_alat.length} target terkirim ke alat, ${data.dosing.length} kali alat menyuntik`}
               onPointerMove={geser}
               onPointerDown={geser}
               onPointerLeave={() => setSorot(null)}

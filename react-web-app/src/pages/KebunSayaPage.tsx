@@ -3,9 +3,11 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useApiList } from '../lib/crudApi'
 import { useAuth } from '../lib/authContext'
 import { Ikon } from '../components/Ikon'
+import { PanelNutrisi } from '../components/sensor/PanelNutrisi'
 import { StatusAlatKebun } from '../components/kebun/StatusAlatKebun'
 import { DialogKurvaBatch } from '../components/kebun/DialogKurvaBatch'
 import { DialogPindahTahap } from '../components/kebun/DialogPindahTahap'
+import { DialogDurasiBatch } from '../components/kebun/DialogDurasiBatch'
 import { RingkasanKebun } from '../components/kebun/RingkasanKebun'
 import { KartuBatch } from '../components/kebun/KartuBatch'
 import { DialogMulaiSemai } from '../components/kebun/DialogMulaiSemai'
@@ -44,6 +46,7 @@ export default function KebunSayaPage() {
   const [mulaiOpen, setMulaiOpen] = useState<boolean>(!!stateAwal?.mulaiBaru)
   const [ubahKurva, setUbahKurva] = useState<TanamRow | null>(null)
   const [pindah, setPindah] = useState<TanamRow | null>(null)
+  const [ubahDurasi, setUbahDurasi] = useState<TanamRow | null>(null)
   const bolehKurva = role === 'admin' || role === 'petani' // demo hanya melihat
 
   // Bersihkan state navigasi SETELAH dibaca (refresh tidak membuka form lagi).
@@ -161,6 +164,7 @@ export default function KebunSayaPage() {
                 key={`${t.tipe}-${t.id}`}
                 r={t}
                 onUbahKurva={bolehKurva ? () => setUbahKurva(t) : undefined}
+                onUbahDurasi={bolehKurva ? () => setUbahDurasi(t) : undefined}
                 onPindah={bolehKurva ? () => setPindah(t) : undefined}
               />
             ))}
@@ -168,9 +172,13 @@ export default function KebunSayaPage() {
         )}
       </section>
 
+      {/* Grafik target vs aktual batch berjalan (ppm, target alat, rencana, penanda dosing) */}
+      {!loading && !error && rows.length > 0 && <PanelNutrisi />}
+
       {/* Form mulai tanam (POST /tanam/mulai) — terbuka dari hero Dashboard juga. */}
       {kelola && mulaiOpen && (
         <DialogMulaiSemai
+          batchBerjalan={rows}
           onClose={() => setMulaiOpen(false)}
           onSukses={(pesan) => {
             setFlash(pesan)
@@ -187,6 +195,18 @@ export default function KebunSayaPage() {
           onSukses={(pesan) => {
             setFlash(pesan)
             setPindah(null)
+            reload()
+          }}
+        />
+      )}
+
+      {ubahDurasi && (
+        <DialogDurasiBatch
+          r={ubahDurasi}
+          onClose={() => setUbahDurasi(null)}
+          onSukses={(pesan) => {
+            setFlash(pesan)
+            setUbahDurasi(null)
             reload()
           }}
         />

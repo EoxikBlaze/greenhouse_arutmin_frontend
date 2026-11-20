@@ -5,6 +5,7 @@ import { Field, FieldError } from '../components/CrudScreen'
 import { useAuth } from '../lib/authContext'
 import { useApiObject } from '../lib/useApiObject'
 import { angkaMaks } from '../lib/format'
+import { durasiDariIsian, durasiDariServer, hariBulat, isianDurasi, jumlahTahap, kosongSemua, ringkasDurasi, totalBulat, type DurasiTahap } from '../lib/durasiTahap'
 import {
   AksiBaris,
   DialogHapusMaster,
@@ -107,6 +108,12 @@ type TanamanRow = Record<string, unknown> & {
 const KOLOM_HARIAN = ['ppm_awal', 'ppm_target', 'hari_capai'] as const
 const KOLOM_TAHAP = ['ppm_semai', 'ppm_peremajaan', 'ppm_pendewasaan'] as const
 const KOLOM_RESEP = [...KOLOM_HARIAN, ...KOLOM_TAHAP, 'ph_min', 'ph_max'] as const
+/** Durasi tiap tahap (hari): disimpan di tabel sikluses lewat PUT /tanam/durasi/:id, bukan di baris tanaman. */
+type DurasiTanaman = { id: string | number; semai: number | null; peremajaan: number | null; pendewasaan: number | null }
+/** Durasi tersimpan satu tanaman → DurasiTahap, null bila ada tahap yang belum diisi. */
+const durasiTersimpan = (d: DurasiTanaman | null): DurasiTahap | null => (d ? durasiDariServer(d.semai, d.peremajaan, d.pendewasaan) : null)
+/** Isian durasi form → DurasiTahap (total saja dibagi otomatis; tiga tahap lengkap dipakai apa adanya). */
+const durasiForm = (f: FormState) => durasiDariIsian(f.dur_total ?? '', f.dur_semai ?? '', f.dur_peremajaan ?? '', f.dur_pendewasaan ?? '')
 
 const isi = (v: unknown) => (v == null ? '' : String(v))
 const angkaForm = (v: string | undefined) => {
@@ -128,6 +135,14 @@ function validateTanaman(form: FormState): Record<string, string[]> {
   }
   if (kosong(KOLOM_HARIAN) && kosong(KOLOM_TAHAP)) errs.ppm_awal = ['Isi minimal satu resep: per hari atau per siklus.']
   if ((angkaForm(form.ppm_awal) ?? 0) > (angkaForm(form.ppm_target) ?? Infinity)) errs.ppm_target = ['ppm akhir harus ≥ ppm awal.']
+  // durasi: total saja (dibagi otomatis) ATAU ketiga tahap lengkap; kosong semua = belum diatur
+  const tahapKosong = kosongSemua(form.dur_semai, form.dur_peremajaan, form.dur_pendewasaan)
+  const tahapLengkap = [form.dur_semai, form.dur_peremajaan, form.dur_pendewasaan].every((v) => hariBulat(v) != null)
+  if (!tahapKosong && !tahapLengkap) {
+    for (const k of ['dur_semai', 'dur_peremajaan', 'dur_pendewasaan'] as const) if (hariBulat(form[k]) == null) errs[k] = ['Isi ketiga tahap (1–365 hari), atau kosongkan dan isi total saja.']
+  } else if (tahapKosong && !kosongSemua(form.dur_total) && totalBulat(form.dur_total) == null) {
+    errs.dur_total = ['Total hari harus bilangan bulat 3–365.']
+  }
   const phMin = angkaForm(form.ph_min)
   const phMax = angkaForm(form.ph_max)
   if (phMin == null) errs.ph_min = ['Wajib diisi.']
@@ -158,6 +173,9 @@ export function JenisTanamanPage() {
   // batas alert TDS (Ambang Sensor) — hanya untuk peringatan di form
   const { data: naik } = useApiObject<{ ambang_tds: { min: number; max: number } | null }>('/dosing/naik-harian')
   const maksAmbang = naik?.ambang_tds?.max ?? null
+  // durasi tahap per tanaman (master) — dari /tanam/pilihan, boleh dibaca semua peran
+  const { data: pilihan, reload: reloadDurasi } = useApiObject<{ tanaman: DurasiTanaman[] }>('/tanam/pilihan')
+  const durasiDari = (id: string | number | null | undefined) => (pilihan?.tanaman ?? []).find((t) => String(t.id) === String(id)) ?? null
 
   const [open, setOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -188,6 +206,7 @@ export function JenisTanamanPage() {
     setForm({
       nama_tanaman: isi(row?.nama_tanaman),
       ...Object.fromEntries(KOLOM_RESEP.map((k) => [k, k.startsWith('ph_') && row?.[k] != null ? isi(Number(row[k])).replace('.', ',') : isi(row?.[k])])),
+      ...isianDurasi(durasiTersimpan(durasiDari(row?.id_tanaman))),
     })
     setEditingId(row ? String(row.id_tanaman) : null)
     setFieldErrors({})
@@ -205,12 +224,20 @@ export function JenisTanamanPage() {
     setSubmitting(true)
     try {
       const payload = payloadTanaman(form)
+      let idSimpan = editingId
       if (editingId) await api.put(`/tanaman/${editingId}`, payload)
-      else await api.post('/tanaman', payload)
+      else {
+        const r = await api.post('/tanaman', payload)
+        idSimpan = r.data?.data?.id_tanaman != null ? String(r.data.data.id_tanaman) : null
+      }
+      // durasi tahap (opsional): disimpan terpisah ke tabel sikluses
+      const dur = durasiForm(form)
+      if (idSimpan && dur) await api.put(`/tanam/durasi/${idSimpan}`, dur)
       setOpen(false)
       resetForm()
-      setFlash('Data tanaman tersimpan. Batch yang sedang berjalan tetap memakai resep lamanya.')
+      setFlash('Data tanaman tersimpan. Batch yang sedang berjalan tetap memakai resep dan durasi lamanya.')
       reload()
+      reloadDurasi()
     } catch (err) {
       const f = handleApiError(err)
       setFieldErrors(f.fieldErrors)
@@ -268,6 +295,14 @@ export function JenisTanamanPage() {
       },
     },
     {
+      key: 'durasi',
+      header: 'Semai sampai panen',
+      render: (r) => {
+        const t = ringkasDurasi(durasiTersimpan(durasiDari(r.id_tanaman)))
+        return t ? <span className="vsf-master-chip">{t}</span> : <span className="vsf-master-chip is-kosong">Belum diatur</span>
+      },
+    },
+    {
       key: 'ph',
       header: 'Rentang pH',
       render: (r) =>
@@ -297,7 +332,7 @@ export function JenisTanamanPage() {
     <>
       <MasterFrame
         judul="Jenis Tanaman"
-        deskripsi="Resep tiap tanaman: kenaikan nutrisi per hari dan per siklus, serta rentang pH. Cara yang dipakai dipilih saat Mulai Semai."
+        deskripsi="Resep tiap tanaman: kenaikan nutrisi per hari dan per siklus, rentang pH, dan lama semai sampai panen. Cara yang dipakai dipilih saat Mulai Semai."
         jumlah={`${rows.length} jenis`}
         tambah="Tambah"
         onTambah={() => buka(null)}
@@ -328,7 +363,7 @@ export function JenisTanamanPage() {
       {open && (
         <DialogMaster
           judul={editingId ? 'Ubah Jenis Tanaman' : 'Tambah Jenis Tanaman'}
-          sub="Durasi tiap tahap diatur di menu Siklus."
+          sub="Resep nutrisi, rentang pH, dan lama tiap tahap. Mulai Semai memakai ini sebagai nilai awal dan boleh diubah per batch."
           galat={formError}
           menyimpan={submitting}
           onTutup={tutup}
@@ -361,6 +396,38 @@ export function JenisTanamanPage() {
                 Melewati batas aman nutrisi di Ambang Sensor ({angkaMaks(maksAmbang, 0)} ppm); peringatan akan menyala saat target tercapai.
               </p>
             )}
+          </fieldset>
+
+          <fieldset className="mt-4 border-t border-black/10 pt-3">
+            <legend className="text-[12px] font-bold text-slate-700">Lama dari semai sampai panen</legend>
+            <p className="mt-1 text-[12px] leading-relaxed text-slate-600">
+              Cukup isi total harinya; alat membagi sendiri ke Semai, Peremajaan, dan Pendewasaan. Dipakai untuk perkiraan panen dan pengingat pindah tahap.
+            </p>
+            <div className="mt-2 grid gap-3 sm:grid-cols-3">
+              <Field label="Total semai sampai panen (hari)">
+                <input
+                  className="vsf-input w-full" inputMode="numeric" placeholder="33" value={form.dur_total ?? ''}
+                  onChange={(e) => setForm((s) => ({ ...s, dur_total: e.target.value, dur_semai: '', dur_peremajaan: '', dur_pendewasaan: '' }))}
+                />
+                <FieldError message={fieldError(fieldErrors, 'dur_total')} />
+              </Field>
+            </div>
+            {(() => {
+              const d = durasiForm(form)
+              const manual = !kosongSemua(form.dur_semai, form.dur_peremajaan, form.dur_pendewasaan)
+              return d ? (
+                <p className="mt-2 text-[12px] font-semibold text-slate-700">
+                  {manual ? 'Per tahap (diatur sendiri)' : 'Dibagi otomatis'}: Semai {d.semai}, Peremajaan {d.peremajaan}, Pendewasaan {d.pendewasaan} hari. Total {jumlahTahap(d)} hari.
+                </p>
+              ) : null
+            })()}
+            <details className="mt-2" open={!kosongSemua(form.dur_semai, form.dur_peremajaan, form.dur_pendewasaan)}>
+              <summary className="cursor-pointer text-[12px] font-semibold text-arutmin-forest">Atur per tahap sendiri (opsional)</summary>
+              <div className="mt-2 grid gap-3 sm:grid-cols-3">
+                {[kotak('dur_semai', 'Semai (hari)', '7'), kotak('dur_peremajaan', 'Peremajaan (hari)', '12'), kotak('dur_pendewasaan', 'Pendewasaan (hari)', '14')]}
+              </div>
+              <p className="mt-1 text-[12px] text-slate-600">Bila ketiganya diisi, total di atas ikut jumlahnya.</p>
+            </details>
           </fieldset>
 
           <fieldset className="mt-4 border-t border-black/10 pt-3">

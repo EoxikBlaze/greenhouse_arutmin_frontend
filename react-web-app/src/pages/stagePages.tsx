@@ -1205,12 +1205,20 @@ export function DurasiSiklusPage() {
           )}
           {'nama_siklus' in form && (
             <Field label="Nama siklus">
-              <input
+              {/* Perkiraan panen mencocokkan nama ini persis: pilihan tetap mencegah salah ketik */}
+              <select
                 className="vsf-input w-full"
-                placeholder="Semai"
                 value={form.nama_siklus}
                 onChange={(e) => setForm((s) => ({ ...s, nama_siklus: e.target.value }))}
-              />
+              >
+                <option value="">— pilih tahap —</option>
+                {['Semai', 'Peremajaan', 'Pendewasaan'].map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+                {form.nama_siklus && !['semai', 'peremajaan', 'pendewasaan'].includes(form.nama_siklus.toLowerCase()) && (
+                  <option value={form.nama_siklus}>{form.nama_siklus} (nama lama)</option>
+                )}
+              </select>
               <FieldError message={fieldError(fieldErrors, 'nama_siklus')} />
             </Field>
           )}

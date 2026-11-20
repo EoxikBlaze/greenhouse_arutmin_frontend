@@ -15,7 +15,8 @@ const KOLOM_TAHAP = [['ppm_semai', 'Semai'], ['ppm_peremajaan', 'Peremajaan'], [
 const KOLOM_PH = [['ph_min', 'pH min'], ['ph_max', 'pH maks']] as const
 type KunciResep = (typeof KOLOM_HARIAN)[number][0] | (typeof KOLOM_TAHAP)[number][0] | (typeof KOLOM_PH)[number][0]
 type Cara = 'harian' | 'tahap'
-import { perkiraanSelesai } from '../../lib/kebun'
+import { perkiraanSelesai, TAHAP_LABEL, type TanamRow } from '../../lib/kebun'
+import { durasiDariIsian, durasiDariServer, hariBulat, isianDurasi, jumlahTahap, kosongSemua, totalBulat } from '../../lib/durasiTahap'
 
 const ada = (v: unknown) => v != null && String(v).trim() !== ''
 const koma = (v: unknown) => String(Number(v)).replace('.', ',')
@@ -27,6 +28,8 @@ type Pilihan = {
     nama: string
     id_meja: number | string | null
     semai: number | string | null
+    peremajaan?: number | string | null
+    pendewasaan?: number | string | null
     /** Kurva naik harian tanaman (disalin ke batch saat mulai; boleh diubah di sini). */
     ppm_awal?: number | string | null
     ppm_target?: number | string | null
@@ -48,7 +51,7 @@ const LANGKAH = 10
  * · cara_naik (per hari / per siklus, DIPILIH di sini) · angka resep bila diubah untuk batch ini.
  * Server menyalin resep ke batch lalu mengirim KONFIGURASI + SEMAI ke alat di meja; `alat.ket` ditampilkan ke petani.
  */
-export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; onSukses: (pesan: string) => void }) {
+export function DialogMulaiSemai({ onClose, onSukses, batchBerjalan = [] }: { onClose: () => void; onSukses: (pesan: string) => void; batchBerjalan?: TanamRow[] }) {
   const handleApiError = useApiError()
   const { data, loading, error } = useApiObject<Pilihan>('/tanam/pilihan')
   const tanamanList = data?.tanaman ?? []
@@ -65,6 +68,9 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
   })
   const [cara, setCara] = useState<Cara>('harian')
   const [ubahResep, setUbahResep] = useState(false)
+  const [ubahDurasi, setUbahDurasi] = useState(false)
+  // lama semai sampai panen batch ini: total saja (dibagi otomatis) atau tiga tahap; nilai awal dari Jenis Tanaman
+  const [durasiIsi, setDurasiIsi] = useState({ dur_total: '', dur_semai: '', dur_peremajaan: '', dur_pendewasaan: '' })
   const { role } = useAuth()
   const admin = role === 'admin'
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({})
@@ -73,6 +79,8 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
 
   const terpilih = tanamanList.find((t) => String(t.id) === idTanaman) ?? null
   const mejaTerpilih = mejaList.find((m) => String(m.id) === idMeja) ?? null
+  // batch yang sudah berjalan di meja terpilih: alat hanya menjaga SATU target per penampung (mengikuti batch yang dimulai paling baru)
+  const batchDiMeja = idMeja ? batchBerjalan.filter((b) => b.id_meja != null && String(b.id_meja) === idMeja) : []
   const tahap = cara === 'tahap'
   const punyaHarian = !!terpilih && KOLOM_HARIAN.every(([k]) => ada(terpilih[k]))
   const punyaSiklus = !!terpilih && KOLOM_TAHAP.every(([k]) => ada(terpilih[k]))
@@ -86,8 +94,12 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
     aw != null && ak != null && cp != null && cp > 0
       ? `Hari 1 = ${koma(aw)} ppm, hari 2 = ${koma(Math.round(aw + (ak - aw) / cp))} ppm, … ${koma(ak)} ppm setelah ${cp} hari (naik ±${koma(Math.round(((ak - aw) / cp) * 10) / 10)} ppm per hari).`
       : null
-  const durasi = terpilih?.semai == null ? null : Number(terpilih.semai)
-  const selesai = perkiraanSelesai(tgl, durasi)
+  const durEfektif = durasiDariIsian(durasiIsi.dur_total, durasiIsi.dur_semai, durasiIsi.dur_peremajaan, durasiIsi.dur_pendewasaan)
+  const totalDurasi = jumlahTahap(durEfektif)
+  const selesai = perkiraanSelesai(tgl, totalDurasi)
+  const tahapManual = !kosongSemua(durasiIsi.dur_semai, durasiIsi.dur_peremajaan, durasiIsi.dur_pendewasaan)
+  const durMaster = terpilih ? durasiDariServer(terpilih.semai, terpilih.peremajaan, terpilih.pendewasaan) : null
+  const totalMaster = jumlahTahap(durMaster)
   const n = /^\d+$/.test(jumlah.trim()) ? Number(jumlah.trim()) : null
 
   function pilihTanaman(t: Pilihan['tanaman'][number]) {
@@ -99,6 +111,8 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
     const harianLengkap = KOLOM_HARIAN.every(([k]) => ada(t[k]))
     setCara(harianLengkap || !KOLOM_TAHAP.every(([k]) => ada(t[k])) ? 'harian' : 'tahap')
     setUbahResep(false)
+    setUbahDurasi(false)
+    setDurasiIsi(isianDurasi(durasiDariServer(t.semai, t.peremajaan, t.pendewasaan)))
     setKurva({
       ppm_awal: teks(t.ppm_awal), ppm_target: teks(t.ppm_target), hari_capai: teks(t.hari_capai),
       ppm_semai: teks(t.ppm_semai), ppm_peremajaan: teks(t.ppm_peremajaan), ppm_pendewasaan: teks(t.ppm_pendewasaan),
@@ -117,6 +131,9 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
     else if (!ubahResep && !(tahap ? punyaSiklus : punyaHarian)) {
       errs.cara_naik = [`Resep ${tahap ? 'per siklus' : 'per hari'} ${terpilih?.nama ?? ''} belum diisi di Master Data. Pilih cara lain atau isi untuk batch ini.`]
     }
+    const tahapLengkap = [durasiIsi.dur_semai, durasiIsi.dur_peremajaan, durasiIsi.dur_pendewasaan].every((v) => hariBulat(v) != null)
+    if (tahapManual && !tahapLengkap) errs.durasi = ['Isi ketiga tahap (1–365 hari), atau kosongkan dan isi total saja.']
+    else if (!tahapManual && !kosongSemua(durasiIsi.dur_total) && totalBulat(durasiIsi.dur_total) == null) errs.durasi = ['Total hari harus bilangan bulat 3–365.']
     if (n === null) errs.jumlah_benih = ['Isi jumlah benih dengan bilangan bulat.']
     else if (n < 1) errs.jumlah_benih = ['Jumlah benih minimal 1.']
     return errs
@@ -136,6 +153,12 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
       if (tgl) payload.tgl_awal_semai = tgl
       if (ket.trim()) payload.keterangan = ket.trim()
       payload.cara_naik = cara
+      // durasi batch ini; kosong = server menyalin durasi Jenis Tanaman
+      if (durEfektif) {
+        payload.durasi_semai = durEfektif.semai
+        payload.durasi_peremajaan = durEfektif.peremajaan
+        payload.durasi_pendewasaan = durEfektif.pendewasaan
+      }
       // angka resep hanya dikirim bila diubah untuk batch ini; selainnya server memakai resep Master Data
       if (ubahResep) {
         for (const [k] of [...(tahap ? KOLOM_TAHAP : KOLOM_HARIAN), ...KOLOM_PH]) {
@@ -160,7 +183,7 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
     terpilih?.nama,
     n !== null && n > 0 ? `${n} benih` : null,
     mejaTerpilih?.nama,
-    durasi !== null ? `Semai ${durasi} hari${selesai !== null ? `, selesai ±${tglPendek(selesai)}` : ''}` : null,
+    totalDurasi !== null ? `Semai sampai panen ${totalDurasi} hari${selesai !== null ? `, panen ±${tglPendek(selesai)}` : ''}` : null,
   ].filter(Boolean)
 
   return (
@@ -180,7 +203,7 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
           ) : (
             <div role="radiogroup" aria-label="Tanaman" className="vsf-pilih-grid mt-2">
               {tanamanList.map((t) => {
-                const d = t.semai == null ? null : Number(t.semai)
+                const total = jumlahTahap(durasiDariServer(t.semai, t.peremajaan, t.pendewasaan))
                 return (
                   <button
                     key={String(t.id)}
@@ -191,7 +214,7 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
                     onClick={() => pilihTanaman(t)}
                   >
                     <b>{t.nama}</b>
-                    <small>{d === null ? 'durasi belum diatur' : `Semai ${d} hari`}</small>
+                    <small>{total === null ? 'durasi belum diatur' : `${total} hari semai–panen`}</small>
                   </button>
                 )
               })}
@@ -221,6 +244,15 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
             </select>
             {!loading && mejaList.length === 0 && (
               <KosongMaster teks="Belum ada meja." ke="/meja" tautan="Isi di Master Data → Meja Tanaman" admin={admin} />
+            )}
+            {batchDiMeja.length > 0 && (
+              <p role="status" className="mt-1 text-[12px] text-amber-800">
+                Meja ini sudah punya {batchDiMeja.length} batch berjalan ({batchDiMeja.map((b) => `${b.varietas ?? 'Tanaman'} ${TAHAP_LABEL[b.tipe] ?? b.tipe}`).join(', ')}).
+                Alat hanya menjaga satu target per penampung: target akan mengikuti batch yang dimulai paling baru, termasuk untuk batch lama.
+              </p>
+            )}
+            {!idMeja && (
+              <p className="mt-1 text-[12px] text-abu">Tanpa meja, batch hanya dicatat dan alat tidak menjaga nutrisinya.</p>
             )}
             {mejaTerpilih && !mejaTerpilih.alat && (
               <p className="mt-1 text-[12px] text-amber-800">Meja ini belum dipasangi alat: batch tercatat, tetapi alat tidak menjaga penampungnya.</p>
@@ -254,6 +286,62 @@ export function DialogMulaiSemai({ onClose, onSukses }: { onClose: () => void; o
           </div>
           <FieldError message={fieldError(fieldErrors, 'jumlah_benih')} />
         </div>
+
+        {terpilih && (
+          <fieldset className="mt-4 min-w-0">
+            <legend className="vsf-label vsf-label-tinta">Lama semai sampai panen</legend>
+            {durMaster && !ubahDurasi ? (
+              <>
+                <p className="mt-1 text-[13px] text-tinta">
+                  <b>{totalMaster} hari</b> <span className="text-abu">(Semai {durMaster.semai} · Peremajaan {durMaster.peremajaan} · Pendewasaan {durMaster.pendewasaan}), ikut Master Data.</span>
+                </p>
+                <button type="button" className="mt-1 inline-flex min-h-[44px] items-center text-[12px] font-semibold text-arutmin-forest underline" onClick={() => setUbahDurasi(true)}>
+                  Ubah untuk batch ini
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <input
+                    className="vsf-input w-28" inputMode="numeric" placeholder="33" aria-label="Total hari semai sampai panen" value={durasiIsi.dur_total}
+                    onChange={(e) => setDurasiIsi({ dur_total: e.target.value, dur_semai: '', dur_peremajaan: '', dur_pendewasaan: '' })}
+                  />
+                  <span className="text-[13px] text-abu">hari</span>
+                </div>
+                <p className="mt-1 text-[12px] text-abu">
+                  {durEfektif
+                    ? `${tahapManual ? 'Per tahap (diatur sendiri)' : 'Dibagi otomatis'}: Semai ${durEfektif.semai}, Peremajaan ${durEfektif.peremajaan}, Pendewasaan ${durEfektif.pendewasaan} hari.`
+                    : 'Belum diatur di Jenis Tanaman: isi total harinya supaya perkiraan panen muncul.'}{' '}
+                  Nilai awal dari Jenis Tanaman; mengubahnya hanya berlaku untuk batch ini.
+                </p>
+                <details className="mt-1" open={tahapManual}>
+                  <summary className="cursor-pointer text-[12px] font-semibold text-arutmin-forest">Atur per tahap sendiri (opsional)</summary>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {([['dur_semai', 'Semai'], ['dur_peremajaan', 'Peremajaan'], ['dur_pendewasaan', 'Pendewasaan']] as const).map(([k, label]) => (
+                      <label key={k} className="block">
+                        <span className="text-[12px] text-abu">{label} (hari)</span>
+                        <input
+                          className="vsf-input mt-1 w-full" inputMode="numeric" value={durasiIsi[k]}
+                          onChange={(e) => setDurasiIsi((v) => ({ ...v, [k]: e.target.value }))}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                </details>
+                {durMaster && (
+                  <button
+                    type="button" className="mt-1 inline-flex min-h-[44px] items-center text-[12px] font-semibold text-arutmin-forest underline"
+                    onClick={() => { setDurasiIsi(isianDurasi(durMaster)); setUbahDurasi(false) }}
+                  >
+                    Kembali ke Master Data
+                  </button>
+                )}
+              </>
+            )}
+            <FieldError message={fieldError(fieldErrors, 'durasi')} />
+            <FieldError message={fieldError(fieldErrors, 'durasi_semai')} />
+          </fieldset>
+        )}
 
         {terpilih && (
           <fieldset className="mt-4 min-w-0">

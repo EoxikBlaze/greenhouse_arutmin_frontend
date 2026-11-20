@@ -57,7 +57,7 @@ export function KartuPrediksiPanen({ maks = 5, className = '' }: { maks?: number
                   <StatusBadge tone={TONE[r.prediksi.status]} label={LABEL[r.prediksi.status]} />
                 </div>
               ) : (
-                <span className="text-[12px] text-abu">Durasi siklus belum diatur</span>
+                <span className="text-[12px] text-abu">Durasi siklus belum diatur (isi lama semai sampai panen di Master Data → Jenis Tanaman)</span>
               )}
             </li>
           ))}

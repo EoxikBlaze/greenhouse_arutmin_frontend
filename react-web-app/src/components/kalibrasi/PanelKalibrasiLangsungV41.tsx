@@ -127,13 +127,13 @@ export function PanelKalibrasiLangsungV41({
   }
 
   /** Kalibrasi pH/EC firmware v6: alat mengukur & menyimpan sendiri (UKUR lalu SIMPAN per titik). */
-  async function kirimKalSensor(sensor: 'ph' | 'ec', titik: 1 | 2, aksi: 'UKUR' | 'SIMPAN' | 'BATAL') {
+  async function kirimKalSensor(sensor: 'ph' | 'ec', titik: 0 | 1 | 2, aksi: 'UKUR' | 'SIMPAN' | 'BATAL', acuan?: number) {
     if (!bolehUbah || sibuk) return
     setSibuk(`kal_${sensor}`)
     setGalat(null)
     setPesan(null)
     try {
-      const r = await api.post('/iot-v41/kal-sensor', { sensor, titik, aksi })
+      const r = await api.post('/iot-v41/kal-sensor', { sensor, titik, aksi, ...(acuan !== undefined ? { acuan } : {}) })
       setPerintahAlat(r.data?.id_perintah ? { id: r.data.id_perintah, label: `Kalibrasi ${sensor.toUpperCase()} titik ${titik} (${aksi})` } : null)
     } catch (err) {
       setGalat(handleApiError(err).message)
