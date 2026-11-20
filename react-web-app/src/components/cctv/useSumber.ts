@@ -20,19 +20,19 @@ export function useSumber(k: Kamera, coba: number): { src: string | null; gagal:
 
   useEffect(() => {
     if (!k.aktif || k.tipe !== 'rtsp') return
-    let batal = false
+    const ctrl = new AbortController()
     api
-      .get<Blob>(`/cctv/${k.id}/gambar`, { responseType: 'blob' })
+      .get<Blob>(`/cctv/${k.id}/gambar`, { responseType: 'blob', signal: ctrl.signal })
       .then((r) => {
-        if (batal) return
+        if (ctrl.signal.aborted) return
         const u = URL.createObjectURL(r.data)
         if (blobRef.current) URL.revokeObjectURL(blobRef.current)
         blobRef.current = u
         setBlob(u)
         setGagal(false)
       })
-      .catch(() => { if (!batal) setGagal(true) })
-    return () => { batal = true }
+      .catch(() => { if (!ctrl.signal.aborted) setGagal(true) })
+    return () => { ctrl.abort() }
   }, [k.id, k.aktif, k.tipe, tik, coba])
 
   // lepas object URL terakhir saat ubin hilang

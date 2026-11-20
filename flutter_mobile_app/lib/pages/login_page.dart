@@ -133,6 +133,13 @@ class _LoginPageState extends State<LoginPage>
               children: [
                 ActionChip(
                   label: const Text(
+                    'GARAP Cloud (garap.net)',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  onPressed: () => ctrl.text = 'https://garap.net',
+                ),
+                ActionChip(
+                  label: const Text(
                     'Lokal (127.0.0.1:8000)',
                     style: TextStyle(fontSize: 11),
                   ),
@@ -308,23 +315,6 @@ class _LoginPageState extends State<LoginPage>
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            // Hanya akun demo (hanya-baca) yang boleh diisi otomatis: sandi admin/petani
-            // tidak boleh ada di kode sumber atau APK.
-            Center(
-              child: _TombolPeranCepat(
-                label: 'Demo (Hanya Lihat)',
-                sub: 'Data disembunyikan · Uji coba',
-                aktif: _usernameCtrl.text == 'demo',
-                onTap: _busy
-                    ? null
-                    : () => setState(() {
-                        _usernameCtrl.text = 'demo';
-                        _passwordCtrl.text = 'demo123';
-                        _error = null;
-                      }),
-              ),
-            ),
             const SizedBox(height: 12),
             Center(
               child: TextButton.icon(
@@ -370,7 +360,7 @@ class _LoginPageState extends State<LoginPage>
                               style: TextStyle(
                                 fontFamily: Tok.fontJudul,
                                 fontSize: 15.5,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w700,
                                 color: Tok.tinta,
                                 letterSpacing: 1.5,
                               ),
@@ -435,7 +425,7 @@ class _LoginPageState extends State<LoginPage>
                     fontFamily: Tok.fontJudul,
                     color: Tok.tinta,
                     fontSize: 36,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     letterSpacing: 3,
                   ),
                 ),
@@ -508,66 +498,6 @@ class _LoginPageState extends State<LoginPage>
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TombolPeranCepat extends StatelessWidget {
-  const _TombolPeranCepat({
-    required this.label,
-    required this.sub,
-    required this.aktif,
-    required this.onTap,
-  });
-
-  final String label;
-  final String sub;
-  final bool aktif;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Tok.ease,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: aktif ? Tok.isiKaca(0.88) : Tok.isiKaca(0.55),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: aktif
-                  ? Tok.moss.withValues(alpha: 0.65)
-                  : Tok.tepiKaca,
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                  color: aktif ? Tok.hijauTeks : Tok.tinta,
-                ),
-              ),
-              const SizedBox(height: 1),
-              Text(
-                sub,
-                style: TextStyle(
-                  fontSize: 10.5,
-                  color: Tok.abuTeks,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

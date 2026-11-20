@@ -91,6 +91,7 @@ function awali(sel) {
   }).join(',\n')
 }
 const lewati = (rule) => {
+  if (rule.selector && rule.selector.includes("data-perf='ringan'")) return true
   for (let p = rule.parent; p; p = p.parent) if (p.type === 'atrule' && /keyframes/i.test(p.name)) return true
   return false
 }

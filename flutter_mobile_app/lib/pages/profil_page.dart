@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../theme/tema.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
+import '../util/performa.dart';
 import '../widgets/brand.dart';
 import '../widgets/ikon.dart';
 import '../widgets/dock.dart';
@@ -406,9 +407,9 @@ class _ProfilPageState extends State<ProfilPage> {
                     icon: const Icon(Ikon.keluar, size: 18),
                     label: const Text('Keluar'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Tok.error,
+                      foregroundColor: Tok.errorTeks,
                       backgroundColor: Tok.putih(0.6),
-                      side: const BorderSide(color: Tok.error),
+                      side: BorderSide(color: Tok.errorTeks),
                       shape: const StadiumBorder(),
                     ),
                   ),
@@ -468,7 +469,7 @@ class _Pintas extends StatelessWidget {
   }
 }
 
-/// Pengaturan tampilan tema (Terang / Gelap).
+/// Pengaturan tampilan tema (Terang / Gelap) dan Mode Hemat Daya (Normal / Hemat daya).
 class _PilihTema extends StatelessWidget {
   const _PilihTema();
 
@@ -490,6 +491,25 @@ class _PilihTema extends StatelessWidget {
             pilih: Tok.gelap ? 1 : 0,
             rata: true,
             onPilih: (i) => PreferensiTema.atur(i == 1),
+          ),
+          const SizedBox(height: Tok.sp4),
+          Text('Mode hemat daya & performa', style: Tok.h3),
+          const SizedBox(height: 2),
+          Text(
+            'Mode hemat daya mematikan blur latar agar baterai lebih hemat dan teks tetap tajam di mode siang maupun malam.',
+            style: Tok.kecil,
+          ),
+          const SizedBox(height: Tok.sp3),
+          ValueListenableBuilder<TingkatPerforma>(
+            valueListenable: PerformaRender.tingkat,
+            builder: (context, perf, _) => PilPilih(
+              label: const ['Normal', 'Hemat daya'],
+              pilih: perf == TingkatPerforma.ringan ? 1 : 0,
+              rata: true,
+              onPilih: (i) => PerformaRender.atur(
+                i == 1 ? TingkatPerforma.ringan : TingkatPerforma.bagus,
+              ),
+            ),
           ),
         ],
       ),

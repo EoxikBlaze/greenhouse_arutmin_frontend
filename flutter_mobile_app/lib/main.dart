@@ -7,17 +7,20 @@ import 'pages/asisten_page.dart';
 import 'pages/beranda_petani.dart';
 import 'pages/dashboard_page.dart';
 import 'pages/login_page.dart';
+import 'pages/pantau_semai_page.dart';
+import 'pages/pengaturan_page.dart';
 import 'pages/peringatan_page.dart';
 import 'pages/profil_page.dart';
 import 'pages/sensor_page.dart';
-import 'pages/tanam_page.dart';
-import 'pages/watercontrol_page.dart';
+import 'pages/setup_wizard_page.dart';
 import 'services/api_service.dart';
 import 'services/notifikasi_service.dart';
 import 'services/sesi_store.dart';
+import 'services/setup_service.dart';
 import 'theme/tema.dart';
 import 'theme/tokens.dart';
 import 'util/performa.dart';
+import 'widgets/beranda_baru/tepi_blur.dart';
 import 'widgets/brand.dart';
 import 'widgets/dock.dart';
 import 'widgets/halaman.dart';
@@ -158,17 +161,43 @@ class _GarapRoot extends StatefulWidget {
 class _GarapRootState extends State<_GarapRoot> {
   /// Alasan kembali ke halaman masuk (null = belum pernah sesi berakhir).
   String? _pesanSesi;
+  final _setupSvc = SetupService();
+  SetupProgress? _setupProgres;
+  bool _sedangCekSetup = false;
+
+  /// Pengguna menekan "Lewati setup": wizard tidak ditampilkan lagi selama sesi
+  /// ini. Status setup di server TIDAK diubah (belum dianggap selesai).
+  bool _setupDilewati = false;
 
   @override
   void initState() {
     super.initState();
     apiService.onUnauthorized = _sesiBerakhir;
+    if (apiService.isLoggedIn) {
+      _periksaSetup();
+    }
+  }
+
+  Future<void> _periksaSetup() async {
+    if (!apiService.isLoggedIn || apiService.role != 'admin') {
+      if (mounted) setState(() => _sedangCekSetup = false);
+      return;
+    }
+    setState(() => _sedangCekSetup = true);
+    final p = await _setupSvc.muatStatusSetup(apiService);
+    if (!mounted) return;
+    setState(() {
+      _setupProgres = p;
+      _sedangCekSetup = false;
+    });
   }
 
   /// 401 dari server: token dicabut di [ApiService], cukup umumkan pesan
   /// lalu biarkan build() menampilkan halaman masuk lagi.
   void _sesiBerakhir() {
     _pesanSesi = 'Sesi Anda berakhir. Silakan masuk kembali.';
+    _setupProgres = null;
+    _sedangCekSetup = false;
     if (!mounted) return;
     setState(() {});
   }
@@ -176,6 +205,9 @@ class _GarapRootState extends State<_GarapRoot> {
   void _keluar() {
     apiService.clearSession();
     _pesanSesi = null;
+    _setupDilewati = false;
+    _setupProgres = null;
+    _sedangCekSetup = false;
     if (mounted) setState(() {});
   }
 
@@ -195,7 +227,34 @@ class _GarapRootState extends State<_GarapRoot> {
         pesanSesi: _pesanSesi,
         onLoggedIn: () {
           _pesanSesi = null;
-          if (mounted) setState(() {});
+          _setupDilewati = false;
+          _periksaSetup();
+        },
+      );
+    } else if (_sedangCekSetup) {
+      isi = const Scaffold(
+        key: ValueKey('cek-setup'),
+        body: Stack(
+          children: [
+            Positioned.fill(child: LatarCair()),
+            Center(child: CircularProgressIndicator()),
+          ],
+        ),
+      );
+    } else if (apiService.role == 'admin' &&
+        _setupProgres != null &&
+        !_setupProgres!.setupSelesai &&
+        !_setupDilewati) {
+      isi = SetupWizardPage(
+        key: const ValueKey('wizard'),
+        api: apiService,
+        progresAwal: _setupProgres,
+        onKeluar: _keluar,
+        onLewati: () {
+          if (mounted) setState(() => _setupDilewati = true);
+        },
+        onSelesai: (baru) {
+          if (mounted) setState(() => _setupProgres = baru);
         },
       );
     } else {
@@ -217,7 +276,7 @@ class _Tab {
   final Widget Function(bool aktif) bangun;
 }
 
-/// Shell utama: dock mengambang bergaya navy dengan tab menurut peran.
+/// Shell utama: dock mengambang bergaya navy dengan 4 tab ringkas.
 class _MainShell extends StatefulWidget {
   const _MainShell({super.key, required this.onLogout});
 
@@ -232,6 +291,10 @@ class _MainShellState extends State<_MainShell> {
   final Set<int> _dibuka = {0};
   int _indeks = 0;
   bool _adaNotif = false;
+
+  /// Foto akun dari backend (GET /profil/foto). null = belum ada atau belum termuat:
+  /// header tetap menampilkan inisial.
+  ImageProvider? _fotoProfil;
   Widget? _halamanDalam;
   String? _judulHalamanDalam;
   final NotifikasiService _notifikasi = NotifikasiService();
@@ -242,31 +305,43 @@ class _MainShellState extends State<_MainShell> {
   void initState() {
     super.initState();
     final role = apiService.role;
-    final kontrol = role == 'admin' || role == 'demo';
     _tab = [
       _Tab(
-        'Beranda',
+        'Dashboard',
         Ikon.beranda,
         (a) => role == 'petani'
             ? BerandaPetani(api: apiService, aktif: a, onBukaTab: _bukaTab)
             : DashboardPage(api: apiService, aktif: a, onBukaTab: _bukaTab),
       ),
-      _Tab('Sensor', Ikon.sensor, (a) => SensorPage(api: apiService, aktif: a)),
-      if (kontrol)
-        _Tab(
-          'Kontrol',
-          Ikon.air,
-          (a) => WaterControlPage(api: apiService, aktif: a),
-        ),
-      _Tab('Tanam', Ikon.tanam, (a) => TanamPage(api: apiService, aktif: a)),
       _Tab(
-        'Akun',
+        'Pantau Semai',
+        Ikon.tanam,
+        (a) => PantauSemaiPage(api: apiService, aktif: a),
+      ),
+      _Tab(
+        'Pengaturan',
+        Ikon.ambang,
+        (a) => PengaturanPage(api: apiService, aktif: a),
+      ),
+      _Tab(
+        'Profil',
         Ikon.profil,
         (a) => ProfilPage(api: apiService, aktif: a, onLogout: widget.onLogout),
       ),
     ];
     _cekAlertAktif();
+    _muatFotoProfil();
     _mulaiNotifikasi();
+  }
+
+  Future<void> _muatFotoProfil() async {
+    try {
+      final bytes = await apiService.getBytes('/profil/foto');
+      if (!mounted) return;
+      setState(() => _fotoProfil = MemoryImage(bytes));
+    } on ApiException {
+      // 404 = belum ada foto; jaringan putus = coba lagi saat shell dibuka berikutnya.
+    }
   }
 
   Future<void> _mulaiNotifikasi() async {
@@ -318,9 +393,20 @@ class _MainShellState extends State<_MainShell> {
     });
   }
 
-  /// Dipakai Beranda (menu dan tombol aksi) untuk pindah ke tab lain berdasarkan labelnya.
+  /// Dipakai Beranda (menu dan tombol aksi) untuk pindah ke tab lain atau subpage.
   void _bukaTab(String label) {
-    final i = _tab.indexWhere((t) => t.label == label);
+    if (label == 'Sensor') {
+      _bukaHalaman(SensorPage(api: apiService), 'Sensor Realtime');
+      return;
+    }
+    final peta = {
+      'Beranda': 'Dashboard',
+      'Tanam': 'Pantau Semai',
+      'Kontrol': 'Pengaturan',
+      'Akun': 'Profil',
+    };
+    final tujuan = peta[label] ?? label;
+    final i = _tab.indexWhere((t) => t.label == tujuan);
     if (i >= 0) _pilih(i);
   }
 
@@ -337,11 +423,10 @@ class _MainShellState extends State<_MainShell> {
   String _subjudulTab(int i) {
     if (i < 0 || i >= _tab.length) return 'Dashboard';
     final l = _tab[i].label;
-    if (l == 'Beranda') return 'Dashboard';
-    if (l == 'Sensor') return 'Sensor';
-    if (l == 'Kontrol') return 'Kontrol Air';
-    if (l == 'Tanam') return 'Jadwal Tanam';
-    if (l == 'Akun') return 'Profil Akun';
+    if (l == 'Dashboard') return 'Dashboard';
+    if (l == 'Pantau Semai') return 'Pantau Semai';
+    if (l == 'Pengaturan') return 'Pengaturan';
+    if (l == 'Profil') return 'Profil Akun';
     return l;
   }
 
@@ -424,6 +509,30 @@ class _MainShellState extends State<_MainShell> {
                     ),
                   ),
 
+                  // Efek tepi gulir ala iPhone: isi memudar di bawah status bar dan
+                  // home indicator (blur bertahap + kaca). Dimatikan di mode ringan.
+                  if (!PerformaRender.ringan) ...[
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: TepiBlur(
+                        tinggi: MediaQuery.paddingOf(context).top + 36,
+                        atas: true,
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: TepiBlur(
+                        tinggi: 60 + MediaQuery.paddingOf(context).bottom,
+                        atas: false,
+                        warna: const Color(0x33D9D9D9),
+                      ),
+                    ),
+                  ],
+
                   // Header Arutmin selalu dipin di paling atas (tidak bergerak saat ganti halaman)
                   Positioned(
                     top: 0,
@@ -450,7 +559,7 @@ class _MainShellState extends State<_MainShell> {
                               : null,
                           adaNotif: _adaNotif,
                           inisial: inisial,
-                          fotoProfil: null,
+                          fotoProfil: _fotoProfil,
                           onProfileTap: () {
                             if (_halamanDalam != null) _tutupHalaman();
                             _bukaTab('Akun');
@@ -540,15 +649,11 @@ class _TombolAiDiatasFooter extends StatelessWidget {
           height: 44,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            gradient: Tok.primary,
             borderRadius: BorderRadius.circular(999),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF8B5CF6).withValues(alpha: 0.42),
+                color: Tok.forest.withValues(alpha: 0.35),
                 blurRadius: 14,
                 offset: const Offset(0, 4),
               ),
@@ -561,7 +666,7 @@ class _TombolAiDiatasFooter extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.auto_awesome, color: Colors.white, size: 18),
+              const Icon(Ikon.ai, color: Colors.white, size: 18),
               const SizedBox(width: 8),
               const Text(
                 'Tanya AI',
@@ -577,7 +682,7 @@ class _TombolAiDiatasFooter extends StatelessWidget {
                 width: 8,
                 height: 8,
                 decoration: const BoxDecoration(
-                  color: Color(0xFF10B981),
+                  color: Tok.moss,
                   shape: BoxShape.circle,
                 ),
               ),

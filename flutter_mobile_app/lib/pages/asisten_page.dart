@@ -7,6 +7,7 @@ import '../widgets/brand.dart';
 import '../widgets/ikon.dart';
 import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
+import 'analisis_harian_panel.dart';
 
 /// Chat dengan asisten AI — POST /api/ai/chat (admin & petani; demo ditolak).
 class AsistenPage extends StatefulWidget {
@@ -28,11 +29,7 @@ class _Tabel {
 }
 
 class _GambarPanduan {
-  const _GambarPanduan({
-    required this.url,
-    required this.judul,
-    this.kenapa,
-  });
+  const _GambarPanduan({required this.url, required this.judul, this.kenapa});
 
   final String url;
   final String judul;
@@ -200,6 +197,7 @@ List<_Tabel> _uraiTabel(dynamic v) {
 }
 
 class _AsistenPageState extends State<AsistenPage> {
+  int _tab = 0; // 0 = percakapan, 1 = analisis harian
   static const _batas = 600;
   static const _saran = <String>[
     'Bagaimana kondisi pH dan TDS sekarang?',
@@ -225,6 +223,9 @@ class _AsistenPageState extends State<AsistenPage> {
   final _ctrl = TextEditingController();
   final _gulir = ScrollController();
   bool _memuat = false;
+
+  /// Kalimat yang sudah dialirkan server selama model menulis (pratinjau, belum final).
+  String? _pratinjau;
 
   @override
   void initState() {
@@ -275,13 +276,19 @@ class _AsistenPageState extends State<AsistenPage> {
     _keBawah();
 
     try {
-      // Ollama di Raspberry Pi butuh hingga ±30-45 dtk → batas tunggu 60 dtk.
-      final d = await widget.api.postJson('/api/ai/chat', {
-        'pesan': t,
-        'riwayat': riwayat,
-      }, const Duration(seconds: 60));
+      // Jawaban dialirkan per kalimat; 60 dtk = batas jeda antar-potongan (Ollama di Pi bisa lambat memulai).
+      final d = await widget.api.postAliran(
+        '/api/ai/chat',
+        {'pesan': t, 'riwayat': riwayat},
+        batas: const Duration(seconds: 60),
+        onKalimat: (k) {
+          if (!mounted) return;
+          setState(() => _pratinjau = k.join(' '));
+          _keBawah();
+        },
+      );
       if (!mounted) return;
-      final map = d is Map ? d : const <Object?, Object?>{};
+      final map = d;
       final saranList = <String>[];
       if (map['saran_pertanyaan'] is List) {
         for (final s in map['saran_pertanyaan'] as List) {
@@ -328,6 +335,7 @@ class _AsistenPageState extends State<AsistenPage> {
         );
         _RiwayatChatStore.simpan(_pesan);
         _memuat = false;
+        _pratinjau = null;
       });
     } catch (e) {
       // selain ApiException (mis. bentuk balasan tak terduga) — jangan biarkan
@@ -345,6 +353,7 @@ class _AsistenPageState extends State<AsistenPage> {
         );
         _RiwayatChatStore.simpan(_pesan);
         _memuat = false;
+        _pratinjau = null;
       });
     }
     _keBawah();
@@ -367,120 +376,177 @@ class _AsistenPageState extends State<AsistenPage> {
                     onPressed: _memuat
                         ? null
                         : () => setState(() {
-                              _pesan.clear();
-                              _RiwayatChatStore.hapus();
-                            }),
+                            _pesan.clear();
+                            _RiwayatChatStore.hapus();
+                          }),
                   ),
               ],
             ),
       body: LatarHalaman(
         child: Column(
           children: [
-            Expanded(
-              child: _pesan.isEmpty
-                  ? _Kosong(onSaran: _kirim, saran: _saran)
-                  : ListView.builder(
-                      controller: _gulir,
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                      itemCount: _pesan.length + (_memuat ? 1 : 0),
-                      itemBuilder: (context, i) {
-                        if (i == _pesan.length) return const _Mengetik();
-                        return _Gelembung(_pesan[i], onPilihSaran: _kirim);
-                      },
-                    ),
-            ),
-            SizedBox(
-              height: 40,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                children: [
-                  for (final x in _pintasan)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ActionChip(
-                        label: Text(
-                          x.label,
-                          style: TextStyle(fontSize: 12, color: Tok.tinta),
-                        ),
-                        backgroundColor: Tok.isiKaca(0.72),
-                        side: BorderSide(color: Tok.tepiKaca),
-                        shape: const StadiumBorder(),
-                        onPressed: _memuat ? null : () => _kirim(x.pesan),
-                      ),
-                    ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+              child: SegmentedButton<int>(
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(value: 0, label: Text('Percakapan')),
+                  ButtonSegment(value: 1, label: Text('Analisis Harian')),
                 ],
+                selected: {_tab},
+                onSelectionChanged: (s) => setState(() => _tab = s.first),
               ),
             ),
-            SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _ctrl,
-                        minLines: 1,
-                        maxLines: 4,
-                        maxLength: _batas,
-                        textInputAction: TextInputAction.send,
-                        onSubmitted: _kirim,
-                        decoration: InputDecoration(
-                          hintText: 'Tulis pertanyaan…',
-                          counterText: '',
-                          filled: true,
-                          fillColor: Tok.inputIsi,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 14,
+            Expanded(
+              child: _tab == 1
+                  ? AnalisisHarianPanel(api: widget.api)
+                  : Column(
+                      children: [
+                        Expanded(
+                          child: _pesan.isEmpty
+                              ? _Kosong(onSaran: _kirim, saran: _saran)
+                              : ListView.builder(
+                                  controller: _gulir,
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    16,
+                                    16,
+                                    8,
+                                  ),
+                                  itemCount: _pesan.length + (_memuat ? 1 : 0),
+                                  itemBuilder: (context, i) {
+                                    if (i == _pesan.length) {
+                                      final pratinjau = _pratinjau;
+                                      return pratinjau == null
+                                          ? const _Mengetik()
+                                          : _Gelembung(
+                                              _Pesan(
+                                                pratinjau,
+                                                dariUser: false,
+                                              ),
+                                              onPilihSaran: _kirim,
+                                            );
+                                    }
+                                    return _Gelembung(
+                                      _pesan[i],
+                                      onPilihSaran: _kirim,
+                                    );
+                                  },
+                                ),
+                        ),
+                        SizedBox(
+                          height: 40,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            children: [
+                              for (final x in _pintasan)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: ActionChip(
+                                    label: Text(
+                                      x.label,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Tok.tinta,
+                                      ),
+                                    ),
+                                    backgroundColor: Tok.isiKaca(0.72),
+                                    side: BorderSide(color: Tok.tepiKaca),
+                                    shape: const StadiumBorder(),
+                                    onPressed: _memuat
+                                        ? null
+                                        : () => _kirim(x.pesan),
+                                  ),
+                                ),
+                            ],
                           ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(999),
-                            borderSide: BorderSide(color: Tok.tepiKaca),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(999),
-                            borderSide: BorderSide(color: Tok.tepiKaca),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(999),
-                            borderSide: const BorderSide(
-                              color: Tok.moss,
-                              width: 1.6,
+                        ),
+                        SafeArea(
+                          top: false,
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _ctrl,
+                                    minLines: 1,
+                                    maxLines: 4,
+                                    maxLength: _batas,
+                                    textInputAction: TextInputAction.send,
+                                    onSubmitted: _kirim,
+                                    decoration: InputDecoration(
+                                      hintText: 'Tulis pertanyaan…',
+                                      counterText: '',
+                                      filled: true,
+                                      fillColor: Tok.inputIsi,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                            vertical: 14,
+                                          ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                        borderSide: BorderSide(
+                                          color: Tok.tepiKaca,
+                                        ),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                        borderSide: BorderSide(
+                                          color: Tok.tepiKaca,
+                                        ),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                        borderSide: const BorderSide(
+                                          color: Tok.moss,
+                                          width: 1.6,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                SizedBox(
+                                  width: 50,
+                                  height: 50,
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: Ink(
+                                      decoration: const BoxDecoration(
+                                        gradient: Tok.activePill,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: InkWell(
+                                        customBorder: const CircleBorder(),
+                                        onTap: _memuat
+                                            ? null
+                                            : () => _kirim(_ctrl.text),
+                                        child: Icon(
+                                          Ikon.kirim,
+                                          color: Colors.white.withValues(
+                                            alpha: _memuat ? 0.5 : 1,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    SizedBox(
-                      width: 50,
-                      height: 50,
-                      child: Material(
-                        color: Colors.transparent,
-                        child: Ink(
-                          decoration: const BoxDecoration(
-                            gradient: Tok.activePill,
-                            shape: BoxShape.circle,
-                          ),
-                          child: InkWell(
-                            customBorder: const CircleBorder(),
-                            onTap: _memuat ? null : () => _kirim(_ctrl.text),
-                            child: Icon(
-                              Ikon.kirim,
-                              color: Colors.white.withValues(
-                                alpha: _memuat ? 0.5 : 1,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
@@ -604,9 +670,9 @@ class _Gelembung extends StatelessWidget {
                 Row(
                   children: [
                     const Icon(
-                      Icons.photo_library_rounded,
+                      Ikon.galeri,
                       size: 16,
-                      color: Color(0xFF8B5CF6),
+                      color: Tok.moss,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -625,10 +691,14 @@ class _Gelembung extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Tok.gelap ? const Color(0xFF1E293B) : Colors.white,
+                        color: Tok.gelap
+                            ? const Color(0xFF1E293B)
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: Tok.gelap ? Colors.white12 : const Color(0xFFE2E8F0),
+                          color: Tok.gelap
+                              ? Colors.white12
+                              : const Color(0xFFE2E8F0),
                         ),
                         boxShadow: [
                           BoxShadow(
@@ -672,7 +742,8 @@ class _Gelembung extends StatelessWidget {
                                     color: Tok.tinta,
                                   ),
                                 ),
-                                if (g.kenapa != null && g.kenapa!.isNotEmpty) ...[
+                                if (g.kenapa != null &&
+                                    g.kenapa!.isNotEmpty) ...[
                                   const SizedBox(height: 4),
                                   Text(
                                     '💡 Kenapa diarahkan ke sini: ${g.kenapa!}',
@@ -709,9 +780,9 @@ class _Gelembung extends StatelessWidget {
                     for (final s in p.saran)
                       ActionChip(
                         avatar: const Icon(
-                          Icons.touch_app_rounded,
+                          Ikon.tunjuk,
                           size: 14,
-                          color: Color(0xFF8B5CF6),
+                          color: Tok.moss,
                         ),
                         label: Text(
                           s,

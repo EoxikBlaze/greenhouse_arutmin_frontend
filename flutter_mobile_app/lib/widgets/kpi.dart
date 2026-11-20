@@ -145,8 +145,8 @@ class KartuKpi extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         onTap: onTap,
         warna: hijau
-            ? const [Color(0xEB6B9D4A), Color(0xE62D452F)]
-            : const [Color(0xF2F0D660), Color(0xE6D6A828)],
+            ? const [Color(0xF53D6228), Color(0xF5243A26)]
+            : const [Color(0xF7F2DA68), Color(0xF5DAAE30)],
         child: isi,
       );
     }

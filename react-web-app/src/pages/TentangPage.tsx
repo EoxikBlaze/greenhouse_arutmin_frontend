@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Monogram } from '../components/Monogram'
 import { SiteFooter } from '../components/SiteFooter'
@@ -6,16 +6,18 @@ import { useAuth } from '../lib/authContext'
 import { useReveal } from '../lib/useReveal'
 import { useSplash } from '../lib/useSplash'
 import { usePudarTepi } from '../lib/usePudarTepi'
-import { InfoTekan } from '../components/InfoTekan'
-import { info } from '../lib/info'
-import { DataLangsung } from '../components/DataLangsung'
 import { FONT_SKRIP, Percikan } from '../components/tentang/BannerKKN'
 import { GrupMerek, PilSosial } from '../components/tentang/GrupMerek'
 import { SplashTentang } from '../components/tentang/SplashTentang'
 import { SaklarTema } from '../components/SaklarTema'
 
-const BAGIAN = ['sistem', 'cara-kerja', 'data', 'aplikasi', 'mitra', 'proker', 'tim']
-const LABEL_BAGIAN: Record<string, string> = { sistem: 'Sistem', 'cara-kerja': 'Cara kerja', data: 'Data', aplikasi: 'Aplikasi', mitra: 'Mitra', proker: 'Proker', tim: 'Tim' }
+const BAGIAN = ['sistem', 'politala', 'cara-kerja', 'tim']
+const LABEL_BAGIAN: Record<string, string> = {
+  sistem: 'Tentang GARAP',
+  politala: 'Politala',
+  'cara-kerja': 'Cara kerja',
+  tim: 'Anggota tim',
+}
 
 /** Bagian yang sedang di tengah layar — untuk menandai tautan header (aria-current). */
 function useScrollspy(ids: string[]) {
@@ -36,197 +38,91 @@ function useScrollspy(ids: string[]) {
 }
 
 /**
- * TENTANG KAMI (/tentang) — halaman publik, TANPA login (rute berdiri sendiri
- * di luar RequireAuth, seperti /login). Berisi 7 kartu peran tim proyek
- * Vertonik Smart Farm (GARAP — greenhouse hidroponik).
- * Nama anggota sengaja DIKOSONGKAN dengan placeholder '(nama)' — halaman ini
- * tidak mengarang nama orang.
+ * TENTANG KAMI (/) — halaman publik tentang GARAP (Vertonik Smart Farm),
+ * keterlibatan Politeknik Negeri Tanah Laut dalam program KKN Industri di
+ * PT Arutmin Indonesia, cara kerja sistem dalam 3 langkah sederhana, serta
+ * galeri ketujuh anggota tim pengembang.
  */
 
 type Peran = {
   jabatan: string
   nama: string
-  deskripsi: string
-  ikon: ReactNode
-  /** Foto potongan (PNG transparan) di public/tim/ — tampil keluar dari kartu. Kosong = avatar inisial. */
-  foto?: string
+  foto: string
 }
 
-/** Ikon garis minimalis (24×24, stroke currentColor) — senada monogram Vertonik. */
-function Ikon({ children }: { children: ReactNode }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-5 w-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      {children}
-    </svg>
-  )
+type Pembimbing = {
+  nama: string
+  label: string
+  instansi: string
+  peran: string
+  foto: string
+  gayaFoto: string
+  latarPutih?: boolean
 }
+
+const PEMBIMBING: Pembimbing[] = [
+  {
+    nama: 'I Made Candra Girinata',
+    label: 'Dosen Pembimbing',
+    instansi: 'Politeknik Negeri Tanah Laut',
+    peran: 'Membimbing pelaksanaan kegiatan KKN Industri serta pengembangan sistem Vertonik Smart Farm (GARAP).',
+    foto: '/pembimbing/i-made-candra-girinata.png',
+    gayaFoto: 'absolute bottom-0 left-1/2 h-[20rem] w-auto max-w-none -translate-x-1/2 object-contain object-bottom',
+  },
+  {
+    nama: 'Raka Pradvia Permadi',
+    label: 'Pembimbing Lapangan',
+    instansi: 'PT Arutmin Indonesia',
+    peran: 'Mendampingi kegiatan KKN di lapangan serta penerapan Vertonik Smart Farm pada greenhouse PT Arutmin Indonesia.',
+    foto: '/pembimbing/raka-pradvia-permadi.jpg',
+    gayaFoto: 'absolute bottom-0 left-1/2 h-[21rem] w-auto max-w-none -translate-x-1/2 object-contain object-bottom',
+    latarPutih: true,
+  },
+  {
+    nama: 'Nurul Yakin',
+    label: 'Pembimbing Lapangan',
+    instansi: 'PT Arutmin Indonesia',
+    peran: 'Mendampingi kegiatan KKN di lapangan serta penerapan Vertonik Smart Farm pada greenhouse PT Arutmin Indonesia.',
+    foto: '/pembimbing/nurul-yakin.png',
+    gayaFoto: 'absolute bottom-0 left-1/2 h-[20.5rem] w-auto max-w-none -translate-x-1/2 object-contain object-bottom',
+  },
+  {
+    nama: 'Abdulmajid',
+    label: 'Pembimbing Lapangan',
+    instansi: 'PT Arutmin Indonesia',
+    peran: 'Mendampingi kegiatan KKN di lapangan serta penerapan Vertonik Smart Farm pada greenhouse PT Arutmin Indonesia.',
+    foto: '/pembimbing/abdulmajid.png',
+    gayaFoto: 'absolute top-3 left-1/2 h-[30rem] w-auto max-w-none -translate-x-1/2 object-contain object-top',
+  },
+]
 
 const PERAN: Peran[] = [
-  {
-    jabatan: 'Project Manager',
-    nama: 'Rivi Ramdani',
-    foto: '/tim/rivi-ramdani.webp',
-    deskripsi:
-      'Memimpin arah proyek Vertonik Smart Farm: menyusun rencana kerja, membagi tugas, dan memastikan seluruh tim bergerak menuju tujuan yang sama.',
-    ikon: <Ikon><path d="m12 3 2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.4 6.8 19.2l1-5.9L3.5 9.2l5.9-.8z" /></Ikon>,
-  },
-  {
-    jabatan: 'Finance',
-    nama: 'Nova Atika Angelia',
-    foto: '/tim/nova-atika-angelia.webp',
-    deskripsi:
-      'Mengelola anggaran proyek dan mencatat setiap pengeluaran — dari pengadaan sensor, perangkat IoT, sampai kebutuhan operasional greenhouse.',
-    ikon: <Ikon><rect x="2.5" y="6" width="19" height="12" rx="2.5" /><circle cx="12" cy="12" r="2.6" /><path d="M6 10v4M18 10v4" /></Ikon>,
-  },
-  {
-    jabatan: 'Secretary',
-    nama: 'Putri Nadilatu Zahra',
-    foto: '/tim/putri-nadilatu-zahra.webp',
-    deskripsi:
-      'Menata dokumentasi proyek, menyusun notulen rapat, dan menjaga komunikasi antaranggota tim tetap teratur dan mudah ditemukan.',
-    ikon: <Ikon><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h4" /></Ikon>,
-  },
-  {
-    jabatan: 'Creative & Public Relations',
-    nama: 'Siti Azizahtusholihah',
-    foto: '/tim/siti-azizahtusholihah.webp',
-    deskripsi:
-      'Merancang identitas visual dan kabar terbaru proyek, serta menjaga hubungan baik dengan pengguna dan mitra Vertonik Smart Farm.',
-    ikon: <Ikon><path d="M4 10v4a1 1 0 0 0 1 1h2l6 4V5L7 9H5a1 1 0 0 0-1 1z" /><path d="M17.5 9.5a4 4 0 0 1 0 5" /></Ikon>,
-  },
-  {
-    jabatan: 'Backend Engineering',
-    nama: 'Muhammad Rizki Maulana',
-    foto: '/tim/muhammad-rizki-maulana.webp',
-    deskripsi:
-      'Membangun dan merawat API GARAP beserta basis data greenhouse, agar data sensor dan budidaya tersimpan aman, konsisten, dan andal.',
-    ikon: <Ikon><ellipse cx="12" cy="6" rx="7.5" ry="3" /><path d="M4.5 6v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6" /><path d="M4.5 12v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-6" /></Ikon>,
-  },
-  {
-    jabatan: 'IoT Engineer',
-    nama: 'Muhammad Zainal Haqi',
-    foto: '/tim/muhammad-zainal-haqi.webp',
-    deskripsi:
-      'Merancang perangkat ESP32 dan rangkaian sensor hidroponik yang mengirim suhu, pH, dan TDS greenhouse secara langsung ke sistem.',
-    ikon: <Ikon><rect x="7" y="7" width="10" height="10" rx="2" /><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4" /></Ikon>,
-  },
-  {
-    jabatan: 'Web & Application Developer',
-    nama: 'Eka Ridhoni August Firmansyah',
-    foto: '/tim/eka-ridhoni-august-firmansyah.webp',
-    deskripsi:
-      'Mengembangkan antarmuka web dan aplikasi yang membuat petani mudah memantau kondisi serta mengatur tanam dari mana saja.',
-    ikon: <Ikon><rect x="2.5" y="4.5" width="19" height="13" rx="2" /><path d="M8 21h8M12 17.5V21" /><path d="m10 9-2 2 2 2M14 9l2 2-2 2" /></Ikon>,
-  },
-]
-
-/** Angka sistem dari dokumen Perancangan Sistem IoT Hidroponik (FINAL). */
-const MITRA = [
-  { nama: 'KKN Arutmin Asik 2026', peran: 'Program KKN Industri', src: '/logo/kkn.webp', teks: 'Program Kuliah Kerja Nyata Industri mahasiswa Politeknik Negeri Tanah Laut di PT Arutmin Indonesia tahun 2026. Vertonik Smart Farm adalah salah satu hasil kerjanya.', href: 'https://instagram.com/kkn.arutminidn2026' },
-  { nama: 'PT Arutmin Indonesia', peran: 'Mitra industri', src: '/logo/arutmin.webp', teks: 'Perusahaan pertambangan batubara tempat program KKN dijalankan dan mitra penyedia lokasi greenhouse.', href: 'https://www.arutmin.com' },
-  { nama: 'Politeknik Negeri Tanah Laut', peran: 'Perguruan tinggi', src: '/logo/polytala.webp', teks: 'Perguruan tinggi asal para mahasiswa KKN yang merancang dan membangun sistem ini.', href: 'https://polytala.ac.id' },
-  { nama: 'TRKJ', peran: 'Program studi', src: '/logo/trkj.webp', teks: 'Program studi Teknologi Rekayasa Komputer dan Jaringan — bidang keilmuan di balik perangkat IoT, jaringan, dan aplikasi proyek ini.' } as { nama: string; peran: string; src: string; teks: string; href?: string },
-]
-
-const PROKER = [
-  {
-    no: '01',
-    judul: 'Otomatisasi Vertonik Smart Farm',
-    deskripsi: 'Implementasi sistem IoT presisi berbasis ESP32, sensor nutrisi TDS, pH, dan suhu air, serta aplikasi kontrol pintar untuk greenhouse hidroponik PT Arutmin Indonesia Tambang Asam-Asam.',
-    tag: 'Teknologi & IoT',
-  },
-  {
-    no: '02',
-    judul: 'Publikasi & Peliputan KKN',
-    deskripsi: 'Dokumentasi multimedia, liputan berkala kegiatan lapangan, video profil greenhouse, dan penyebaran informasi melalui kanal media sosial resmi @kkn.arutminidn2026.',
-    tag: 'Media & Publikasi',
-  },
-  {
-    no: '03',
-    judul: 'Seminar Petani Berdasi',
-    deskripsi: 'Workshop dan edukasi teknologi hidroponik modern serta pemanfaatan otomasi digital bagi generasi muda dan kelompok tani lingkar tambang untuk mewujudkan pertanian cerdas.',
-    tag: 'Edukasi & Workshop',
-  },
-  {
-    no: '04',
-    judul: 'Kolaborasi HMPT & Mitra Industri',
-    deskripsi: 'Penguatan sinergi strategis antara mahasiswa TRKJ Politala, Himpunan Mahasiswa Pertanian/Teknologi, dan PT Arutmin Indonesia dalam pemeliharaan greenhouse secara berkelanjutan.',
-    tag: 'Kemitraan & Sinergi',
-  },
-]
-
-const ANGKA = [
-  { nilai: '±70 L', label: 'penampung per meja', info: 'Setiap meja punya penampung ±70 liter dengan target nutrisi dan pengunci pengaman sendiri.', ket: 'target & pengunci sendiri' },
-  { nilai: '1', label: 'pengendali (ESP32)', info: 'Satu papan pengendali membaca sensor sekaligus mengurus pompa semua meja secara bergiliran: satu aksi pada satu waktu supaya arus pompa aman.', ket: 'sensor & pompa, bergiliran' },
-]
-
-const APLIKASI = [
-  { judul: 'Dashboard Web', info: 'Ringkasan semua meja: status sensor, alert terbuka, dan panen terakhir. Perlu login.', href: '/dashboard', tag: 'Web', teks: 'Ringkasan kebun, alert terbuka, dan status tiap meja dalam satu layar.',
-    ikon: <><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M7 14l3-3 3 2 4-5M8 21h8" /></> },
-  { judul: 'Aplikasi Mobile', info: 'Versi ponsel untuk petani: kondisi sensor, peringatan, siklus tanam, CCTV, dan asisten AI.', tag: 'Android · iOS', teks: 'Pantau kondisi kebun dan peringatan lewat ponsel, di mana saja.',
-    ikon: <><rect x="7" y="2.5" width="10" height="19" rx="2.5" /><path d="M11 18.5h2" /></> },
-  { judul: 'Sensor Langsung', info: 'Grafik dan angka EC/TDS, pH, suhu air, serta suhu dan kelembapan ruang yang diperbarui terus. Perlu login.', href: '/sensor-realtime', tag: 'Web · Mobile', teks: 'EC/TDS, pH, suhu, dan kelembapan tiap penampung dengan riwayat grafik.',
-    ikon: <><path d="M12 3c3 4 5 6.6 5 9.5a5 5 0 0 1-10 0C7 9.600 9 7 12 3z" /></> },
-  { judul: 'Pengaturan Nutrisi', info: 'Atur preset dan pantau parameter nutrisi A/B. Eksekusi pompa dinonaktifkan sampai validasi keselamatan selesai. Perlu login.', href: '/dosing', tag: 'Pompa nonaktif', teks: 'Halaman untuk konfigurasi dan pemantauan; tidak menjalankan pompa.',
-    ikon: <><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.800 3h10.400A2 2 0 0 0 19 18l-5-9V3" /><path d="M7.500 15h9" /></> },
-  { judul: 'CCTV Kebun', info: 'Tampilan kamera greenhouse langsung dari aplikasi. Perlu login.', href: '/cctv', tag: 'Web · Mobile', teks: 'Lihat kondisi tanaman langsung dari kamera tanpa ke lokasi.',
-    ikon: <><path d="M3 8l12-3 2 5-12 3zM17 10l4 1v4l-4-1M8 17l-1 4" /></> },
-  { judul: 'Asisten AI', info: 'Tanya kondisi kebun, minta diagnosa menyeluruh, dan terima tabel data. Dilengkapi pengaman anti manipulasi prompt. Perlu login.', href: '/asisten-ai', tag: 'Web · Mobile', teks: 'Tanya kondisi kebun, minta diagnosa, dan dapat tabel data siap baca.',
-    ikon: <><path d="M12 3l1.800 4.800L18.600 9.600 13.800 11.400 12 16.200 10.200 11.400 5.400 9.600 10.200 7.800zM19 15l.8 2.200L22 18l-2.200.8L19 21l-.8-2.200L16 18l2.200-.8z" /></> },
+  { jabatan: 'Project Manager', nama: 'Rivi Ramdani', foto: '/tim/rivi-ramdani.webp' },
+  { jabatan: 'Finance', nama: 'Nova Atika Angelia', foto: '/tim/nova-atika-angelia.webp' },
+  { jabatan: 'Secretary', nama: 'Putri Nadilatu Zahra', foto: '/tim/putri-nadilatu-zahra.webp' },
+  { jabatan: 'Creative & Public Relations', nama: 'Siti Azizahtusholihah', foto: '/tim/siti-azizahtusholihah.webp' },
+  { jabatan: 'Backend Engineering', nama: 'Muhammad Rizki Maulana', foto: '/tim/muhammad-rizki-maulana.webp' },
+  { jabatan: 'IoT Engineer', nama: 'Muhammad Zainal Haqi', foto: '/tim/muhammad-zainal-haqi.webp' },
+  { jabatan: 'Web & Application Developer', nama: 'Eka Ridhoni August Firmansyah', foto: '/tim/eka-ridhoni-august-firmansyah.webp' },
 ]
 
 const ALUR = [
-  { no: '01', judul: 'Baca', info: 'Pembacaan dilakukan saat air diam di botol sampel agar nilai EC, pH, dan suhu stabil dan akurat.', teks: 'Air tiap penampung diambil ke botol sampel, lalu EC, pH, dan suhu dibaca saat air diam.' },
-  { no: '02', judul: 'Rencana penilaian', info: 'Rancangan pemberian nutrisi akan membandingkan bacaan dengan target dan batas yang disetujui. Penilaian ini belum mengaktifkan eksekusi.', teks: 'Target, batas operasi, dan status keselamatan harus tervalidasi sebelum keputusan dosing dapat digunakan.' },
-  { no: '03', judul: 'Eksekusi dinonaktifkan', info: 'Pompa belum dijalankan oleh aplikasi. Eksekusi tetap diblokir sampai validasi, protokol, dan perangkat memenuhi persyaratan keselamatan.', teks: 'Tidak ada perintah dosing yang dikirim ke perangkat pada tahap ini.' },
+  {
+    no: '01',
+    judul: 'Kondisi greenhouse dipantau',
+    teks: 'Sistem mengumpulkan informasi mengenai keadaan lingkungan greenhouse dan tanaman secara berkelanjutan.',
+  },
+  {
+    no: '02',
+    judul: 'Informasi ditampilkan di website atau ponsel',
+    teks: 'Ringkasan kondisi kebun disajikan dengan tampilan yang rapi dan mudah dilihat melalui website maupun ponsel.',
+  },
+  {
+    no: '03',
+    judul: 'Petani menentukan perawatan',
+    teks: 'Informasi yang tampil digunakan petani sebagai panduan untuk memilih langkah perawatan tanaman yang tepat.',
+  },
 ]
-
-/** Palet blok kolase per anggota (a→b gradasi blok utama, x/y blok aksen). */
-const PALET = [
-  { a: '#FFD45E', b: '#F5A81C', x: '#0A1F38', y: '#8F1D2C' },
-  { a: '#7FE0C2', b: '#1FA37F', x: '#0A1F38', y: '#E9CD53' },
-  { a: '#9CC4FF', b: '#3F7BEA', x: '#8F1D2C', y: '#0A1F38' },
-  { a: '#FF9E8A', b: '#E5533D', x: '#0A1F38', y: '#E9CD53' },
-  { a: '#C9B6FF', b: '#7A5CFF', x: '#0A1F38', y: '#FFD45E' },
-  { a: '#D8EE8A', b: '#8FBF2F', x: '#8F1D2C', y: '#0A1F38' },
-  { a: '#FFC4DF', b: '#E8589B', x: '#0A1F38', y: '#E9CD53' },
-]
-
-/** Siluet pengganti foto — posisi & ukuran sama dengan foto asli (h-84, keluar dari kartu). */
-function Siluet({ warna }: { warna: string }) {
-  return (
-    <svg
-      viewBox="0 0 200 336"
-      className="pointer-events-none absolute left-1/2 top-[-71px] z-20 h-[339px] w-auto -translate-x-1/2"
-      aria-hidden="true"
-      focusable="false"
-    >
-      {/* kontur putih dulu, lalu isi warna — tanpa garis di sambungan kepala/leher/bahu */}
-      <g fill="#fff" stroke="#fff" strokeWidth="9" strokeLinejoin="round">
-        <path d="M18 336c0-78 40-118 82-118s82 40 82 118z" />
-        <rect x="82" y="150" width="36" height="76" rx="14" />
-        <circle cx="100" cy="100" r="46" />
-      </g>
-      <g fill={warna}>
-        <path d="M18 336c0-78 40-118 82-118s82 40 82 118z" />
-        <rect x="82" y="150" width="36" height="76" rx="14" />
-        <circle cx="100" cy="100" r="46" />
-      </g>
-      <text x="100" y="318" textAnchor="middle" fontSize="12" fontWeight="700" fill="#fff" letterSpacing="1.5">FOTO SEGERA</text>
-    </svg>
-  )
-}
-
-const MAROON = '#8F1D2C'
 
 export function TentangPage() {
   const { isAuthenticated } = useAuth()
@@ -239,7 +135,6 @@ export function TentangPage() {
     const el = (e.target as HTMLElement).closest<HTMLElement>('.vsf-card, .vsf-kaca')
     if (!el || rafKilau.current) return
     const { clientX, clientY } = e
-    // satu pembaruan per frame — pointermove bisa datang >100×/detik
     rafKilau.current = requestAnimationFrame(() => {
       rafKilau.current = 0
       const r = el.getBoundingClientRect()
@@ -277,7 +172,7 @@ export function TentangPage() {
   // muat & decode foto/logo SETELAH splash (tidak berebut bandwidth dengan latar & font splash)
   useEffect(() => {
     if (fase !== 'selesai') return undefined
-    const daftar = [...PERAN.map((p) => p.foto), ...MITRA.map((m) => m.src)].filter((u): u is string => Boolean(u))
+    const daftar = [...PEMBIMBING.map((p) => p.foto), ...PERAN.map((p) => p.foto)].filter((u): u is string => Boolean(u))
     const muat = () => {
       for (const u of daftar) {
         const im = new Image()
@@ -309,12 +204,12 @@ export function TentangPage() {
       <div className="vsf-latar" aria-hidden />
       <div className="vsf-kabut" aria-hidden />
       {fase !== 'selesai' && <SplashTentang target={() => heroGrup.current} onKeluar={keluar} onSelesai={selesai} />}
+
       {/* Header — bilah liquid glass melayang di atas foto langit */}
       <header className="vsf-sp vsf-topbar sticky top-0 z-30 px-3 pt-3 sm:px-5 sm:pt-4" style={{ ['--sd' as string]: '.35s' }}>
         <div className="vsf-bilah mx-auto flex min-h-[60px] max-w-[1180px] items-center gap-3 py-2 pl-3 pr-2 sm:pl-4">
           <Link to="/" className="flex min-w-0 items-center gap-3" aria-label="Vertonik Smart Farm">
             <Monogram className="h-10 w-14 shrink-0" />
-            {/* <420px: tombol menu ikut di bilah → nama terpotong "V…"; cukup monogram (aria-label di tautan) */}
             <span className="hidden min-w-0 min-[420px]:block">
               <span className="block truncate font-display text-[17px] font-bold leading-tight text-white">Vertonik</span>
               <span className="block truncate text-[12px] font-semibold text-[var(--emas)]">Smart Farm</span>
@@ -322,7 +217,9 @@ export function TentangPage() {
           </Link>
           <nav className="ml-auto hidden items-center gap-1 text-[14px] font-medium lg:flex" aria-label="Bagian halaman">
             {BAGIAN.map((id) => (
-              <a key={id} href={`#${id}`} className="vsf-bilah-tautan" aria-current={aktif === id ? 'true' : undefined}>{LABEL_BAGIAN[id]}</a>
+              <a key={id} href={`#${id}`} className="vsf-bilah-tautan" aria-current={aktif === id ? 'true' : undefined}>
+                {LABEL_BAGIAN[id]}
+              </a>
             ))}
           </nav>
           <SaklarTema className="ml-auto lg:ml-2" />
@@ -345,7 +242,7 @@ export function TentangPage() {
         </div>
         {menu && (
           <nav id="menu-bagian" aria-label="Bagian halaman" className="vsf-bilah mx-auto mt-2 max-w-[1180px] p-2 lg:hidden">
-            <ul className="grid grid-cols-2 gap-1 sm:grid-cols-3">
+            <ul className="grid grid-cols-2 gap-1 sm:grid-cols-4">
               {BAGIAN.map((id) => (
                 <li key={id}>
                   <a href={`#${id}`} onClick={() => setMenu(false)} className="vsf-bilah-tautan min-h-[44px] w-full" aria-current={aktif === id ? 'true' : undefined}>
@@ -359,20 +256,24 @@ export function TentangPage() {
       </header>
 
       <main ref={refMuncul} onPointerMove={kilau} className="vsf-satu mx-auto w-full max-w-[1180px] flex-1 px-4 py-6 sm:px-6">
-        {/* Hero — grup merek (tujuan terbang splash) + ajakan; tombol ada di halaman, bukan di splash */}
+        {/* 1. Pembuka — judul dan pengantar singkat tentang GARAP */}
         <section className="flex min-h-[calc(100dvh-150px)] flex-col items-center justify-center py-8 text-center" aria-labelledby="vsf-hero-title">
           <div className="vsf-hero-grup flex w-full justify-center">
             <GrupMerek ref={heroGrup} animasi={!awal} interaktif judul />
           </div>
-          <p className="vsf-sp mt-5 max-w-[560px] text-[15px] leading-relaxed text-white [text-shadow:0_2px_12px_rgba(7,21,39,.7)]" style={{ ['--sd' as string]: '.5s' }}>
-            Pantau nutrisi tanaman dan tentukan tindak lanjut berdasarkan data.
+          <p className="vsf-sp mt-5 max-w-[620px] text-[15px] leading-relaxed text-white [text-shadow:0_2px_12px_rgba(7,21,39,.75)] sm:text-[16px]" style={{ ['--sd' as string]: '.5s' }}>
+            <b>GARAP (Vertonik Smart Farm)</b> adalah sistem pendukung pemantauan greenhouse hidroponik yang membantu
+            petani mengetahui kondisi kebun dan merawat tanaman dengan lebih mudah.
           </p>
-          <div className="vsf-sp mt-5 flex flex-wrap justify-center gap-2" style={{ ['--sd' as string]: '.6s' }}>
+          <div className="vsf-sp mt-5 flex flex-wrap justify-center gap-2.5" style={{ ['--sd' as string]: '.6s' }}>
             <Link to={isAuthenticated ? '/dashboard' : '/login'} className="vsf-btn-primary">
-              {isAuthenticated ? 'Dashboard' : 'Login'}
+              {isAuthenticated ? 'Buka Dashboard' : 'Masuk ke Sistem'}
             </Link>
+            <a href="#sistem" className="vsf-kaca vsf-kaca-hidup inline-flex min-h-[44px] items-center rounded-full px-5 text-[13px] font-semibold text-navy">
+              Tentang GARAP
+            </a>
             <a href="#cara-kerja" className="vsf-kaca vsf-kaca-hidup inline-flex min-h-[44px] items-center rounded-full px-5 text-[13px] font-semibold text-navy">
-              Cara kerja sistem
+              Cara kerja
             </a>
             <a href="#tim" className="vsf-kaca vsf-kaca-hidup inline-flex min-h-[44px] items-center rounded-full px-5 text-[13px] font-semibold text-navy">
               Kenali tim
@@ -380,206 +281,177 @@ export function TentangPage() {
           </div>
         </section>
 
-        {/* Pengantar GARAP + angka sistem (bento) */}
-        <div className="mt-6 grid gap-4 lg:grid-cols-[1.15fr_1fr]">
-          <section className="vsf-card vsf-muncul flex flex-col justify-center p-6 sm:p-8" aria-labelledby="vsf-intro-title">
-            <div className="vsf-eyebrow">Tentang Kami</div>
-            <h2 id="vsf-intro-title" className="mt-2 max-w-[760px] text-[22px] leading-snug sm:text-[28px]">
-              Pantau nutrisi tanaman dan tentukan tindak lanjut berdasarkan data.
-            </h2>
-            <p className="mt-3 max-w-[760px] text-[14.5px] leading-relaxed text-slate-600">
-              Vertonik Smart Farm (GARAP) memantau greenhouse hidroponik dengan beberapa penampung nutrisi lewat sensor
-              pH, EC/TDS, dan suhu, lalu menyimpan target nutrisi tiap meja. Pemberian nutrisi otomatis saat ini
-              dinonaktifkan; tindak lanjut tetap diputuskan petani.
-            </p>
-            <p className="mt-4 text-[12px] text-slate-500">Tekan kartu untuk membuka tautan, tahan untuk membaca penjelasannya.</p>
+        {/* 2 & 3. Tentang GARAP / Vertonik Smart Farm & Tentang Politeknik Negeri Tanah Laut */}
+        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
+          <section id="sistem" className="vsf-card vsf-muncul flex flex-col justify-between scroll-mt-24 p-6 sm:p-8" aria-labelledby="vsf-intro-title">
+            <div>
+              <div className="flex flex-wrap items-center gap-3">
+                <img src="/logo/arutmin.webp" alt="Logo PT Arutmin Indonesia" className="h-9 w-auto object-contain" draggable={false} />
+                <span className="vsf-eyebrow">Tentang GARAP · Vertonik Smart Farm</span>
+              </div>
+              <h2 id="vsf-intro-title" className="mt-3 text-[21px] leading-snug sm:text-[25px]">
+                Sistem pendukung pemantauan greenhouse hidroponik
+              </h2>
+              <p className="mt-3 text-[14.5px] leading-relaxed text-slate-600">
+                <b>Vertonik Smart Farm (GARAP)</b> merupakan sistem yang membantu pemantauan kondisi greenhouse
+                hidroponik di PT Arutmin Indonesia. Melalui tampilan yang sederhana di website dan ponsel, petani
+                dapat melihat keadaan lingkungan kebun serta perkembangan tanaman sehari-hari tanpa harus memeriksa
+                setiap bagian secara manual.
+              </p>
+            </div>
           </section>
 
-          <section id="sistem" className="grid scroll-mt-24 grid-cols-2 gap-3" aria-label="Angka sistem">
-            {ANGKA.map((a, i) => (
-              <div key={a.label} {...info(a.label, a.info)} className="vsf-card vsf-muncul flex flex-col justify-center p-4" style={{ ['--d' as string]: `${i * 0.08}s` }}>
-                <div className="font-display text-[28px] font-bold leading-none text-arutmin-forest">{a.nilai}</div>
-                <div className="mt-2 text-[13px] font-semibold text-tinta">{a.label}</div>
-                <div className="mt-0.5 text-[12px] text-slate-500">{a.ket}</div>
+          <section id="politala" className="vsf-card vsf-muncul flex flex-col justify-between scroll-mt-24 p-6 sm:p-8" aria-labelledby="vsf-politala-title">
+            <div>
+              <div className="flex flex-wrap items-center gap-3">
+                <img src="/logo/polytala.webp" alt="Logo Politeknik Negeri Tanah Laut" className="h-9 w-auto object-contain" draggable={false} />
+                <img src="/logo/trkj.webp" alt="Logo TRKJ" className="h-9 w-auto object-contain" draggable={false} />
+                <span className="vsf-eyebrow">Institusi Pendidikan</span>
               </div>
-            ))}
+              <h2 id="vsf-politala-title" className="mt-3 text-[21px] leading-snug sm:text-[25px]">
+                Politeknik Negeri Tanah Laut
+              </h2>
+              <p className="mt-3 text-[14.5px] leading-relaxed text-slate-600">
+                <b>Politeknik Negeri Tanah Laut</b> adalah perguruan tinggi asal tim mahasiswa yang menjalankan program
+                Kuliah Kerja Nyata (KKN) Industri di PT Arutmin Indonesia. Dalam program ini, tim mahasiswa merancang
+                dan mengembangkan sistem GARAP untuk mendukung kegiatan pemantauan dan perawatan tanaman di greenhouse.
+              </p>
+            </div>
           </section>
         </div>
 
-        <DataLangsung />
-
-        {/* Aplikasi dalam satu ekosistem */}
-        <section id="aplikasi" className="mt-12 scroll-mt-24" aria-labelledby="vsf-fitur-title">
-          <div className="vsf-eyebrow vsf-judul-latar">Aplikasi</div>
-          <h2 id="vsf-fitur-title" className="vsf-judul-latar mt-2 text-[22px] sm:text-[28px]">Satu ekosistem, dari sensor sampai ke genggaman petani</h2>
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {APLIKASI.map((f, i) => (
-              <article key={f.judul} {...info(f.judul, f.info, f.href)} className="vsf-card vsf-kaca-hidup vsf-muncul group flex flex-col gap-3 rounded-3xl p-5" style={{ ['--d' as string]: `${i * 0.07}s` }}>
-                <div className="flex items-start justify-between gap-3">
-                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-navy to-[#14407a] text-[#E9CD53] shadow-md transition-transform duration-500 [transition-timing-function:var(--pegas)] group-hover:-rotate-6 group-hover:scale-110">
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{f.ikon}</svg>
-                  </span>
-                  <span className="rounded-full bg-white/70 px-2.5 py-1 text-[12px] font-bold uppercase tracking-wide text-navy ring-1 ring-white/80">{f.tag}</span>
-                </div>
-                <div>
-                  <h3 className="text-[16px] font-bold text-tinta">{f.judul}</h3>
-                  <p className="mt-1 text-[13.5px] leading-relaxed text-slate-600">{f.teks}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {/* Cara kerja */}
+        {/* 4. Cara kerja sistem dalam 3 langkah sederhana */}
         <section id="cara-kerja" className="mt-12 scroll-mt-24" aria-labelledby="vsf-alur-title">
-          <div className="vsf-eyebrow vsf-judul-latar">Cara kerja</div>
-          <h2 id="vsf-alur-title" className="vsf-judul-latar mt-2 text-[22px]">Satu siklus, bergiliran untuk tiap penampung</h2>
+          <div className="vsf-eyebrow vsf-judul-latar">Cara kerja sistem</div>
+          <h2 id="vsf-alur-title" className="vsf-judul-latar mt-2 text-[22px]">
+            Tiga langkah sederhana membantu pemantauan kebun
+          </h2>
           <ol className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
-            {ALUR.map((a) => (
-              <li key={a.no} {...info(a.judul, a.info)} className="vsf-card vsf-muncul relative overflow-hidden p-5" style={{ ['--d' as string]: `${ALUR.indexOf(a) * 0.1}s` }}>
+            {ALUR.map((a, idx) => (
+              <li
+                key={a.no}
+                className="vsf-card vsf-muncul relative min-h-40 overflow-hidden p-5 sm:p-6"
+                style={{ ['--d' as string]: `${idx * 0.1}s` }}
+              >
                 <span className="absolute right-4 top-3 font-display text-[40px] font-bold leading-none text-arutmin-mint" aria-hidden>
                   {a.no}
                 </span>
                 <div className="relative">
                   <div className="text-[16px] font-bold text-tinta">{a.judul}</div>
-                  <p className="mt-2 text-[13.5px] leading-relaxed text-slate-600">{a.teks}</p>
+                  <p className="mt-2 max-w-[36ch] text-[14px] leading-relaxed text-slate-600">{a.teks}</p>
                 </div>
               </li>
             ))}
           </ol>
         </section>
 
-
-        {/* Mitra & institusi — logo resmi */}
-        <section id="mitra" className="mt-16 scroll-mt-24" aria-labelledby="vsf-mitra-title">
-          <h2 id="vsf-mitra-title" className="vsf-judul-latar text-center font-display text-[22px] font-bold sm:text-[26px]">
-            Kolaborasi KKN Arutmin Asik 2026
-          </h2>
-          <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {MITRA.map((m, i) => (
-              <figure
-                key={m.nama}
-                {...info(m.nama, m.teks, m.href)}
-                className="vsf-muncul vsf-kaca vsf-kaca-hidup flex flex-col items-center rounded-3xl p-5 text-center"
-                style={{ ['--d' as string]: `${i * 0.08}s` }}
-              >
-                <div className="flex h-24 w-full items-center justify-center sm:h-28">
-                  <img src={m.src} alt={`Logo ${m.nama}`} className="max-h-full max-w-full object-contain" draggable={false} />
-                </div>
-                <figcaption className="mt-3 text-[12.5px] font-bold text-navy">{m.nama}</figcaption>
-                <span className="text-[12px] text-slate-600">{m.peran}</span>
-              </figure>
-            ))}
-          </div>
-        </section>
-
-        {/* Program Kerja KKN */}
-        <section id="proker" className="mt-16 scroll-mt-24" aria-labelledby="vsf-proker-title">
-          <div className="vsf-eyebrow vsf-judul-latar">Program Kerja</div>
-          <h2 id="vsf-proker-title" className="vsf-judul-latar mt-2 text-[22px] font-bold sm:text-[26px]">
-            Empat Program Kerja KKN Industri Arutmin Asik 2026
-          </h2>
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {PROKER.map((p, i) => (
-              <article
-                key={p.no}
-                className="vsf-card vsf-kaca-hidup vsf-muncul flex flex-col justify-between rounded-3xl p-5"
-                style={{ ['--d' as string]: `${i * 0.08}s` }}
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-display text-[26px] font-bold text-arutmin-forest">{p.no}</span>
-                    <span className="rounded-full bg-navy/10 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-navy dark:bg-white/10 dark:text-white">
-                      {p.tag}
-                    </span>
-                  </div>
-                  <h3 className="mt-3 text-[16px] font-bold leading-snug text-tinta">{p.judul}</h3>
-                  <p className="mt-2 text-[13px] leading-relaxed text-slate-600 dark:text-slate-300">{p.deskripsi}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {/* Tim — poster "Tim Kami": langit + gunung, kartu jaket almamater (marun) */}
-        <section id="tim" className="mt-16 scroll-mt-24 pb-6" aria-labelledby="vsf-peran-title">
+        {/* 5. Dosen Pembimbing & Pembimbing Lapangan — dekat dengan Anggota Kelompok */}
+        <section id="pembimbing" className="mt-16 scroll-mt-24" aria-labelledby="vsf-pembimbing-title">
           <div>
             <div className="vsf-muncul flex items-center justify-center gap-2 text-center">
               <Percikan kiri />
-              <h2 id="vsf-peran-title" className="text-[44px] font-normal leading-none text-white [text-shadow:0_3px_20px_rgba(7,21,39,.6)] sm:text-[64px]" style={{ fontFamily: FONT_SKRIP }}>
-                Tim Kami
+              <h2
+                id="vsf-pembimbing-title"
+                className="text-[44px] font-normal leading-none text-white [text-shadow:0_3px_20px_rgba(7,21,39,.65)] sm:text-[64px]"
+                style={{ fontFamily: FONT_SKRIP }}
+              >
+                Dosen Pembimbing
               </h2>
               <Percikan />
             </div>
-            <p className="vsf-muncul mx-auto mt-3 max-w-[560px] text-center text-[14px] leading-relaxed text-white [text-shadow:0_2px_12px_rgba(7,21,39,.7)]" style={{ ['--d' as string]: '.1s' }}>
-              Tujuh peran, satu tujuan: perencanaan, perangkat, dan aplikasi dikerjakan bersama.
+            <p className="vsf-muncul mx-auto mt-3 max-w-[640px] text-center text-[14.5px] leading-relaxed text-white [text-shadow:0_2px_12px_rgba(7,21,39,.75)]" style={{ ['--d' as string]: '.1s' }}>
+              Dosen pembimbing dari Politeknik Negeri Tanah Laut bersama pembimbing lapangan dari PT Arutmin Indonesia
+              yang mengarahkan kegiatan KKN Industri serta pengembangan Vertonik Smart Farm (GARAP).
             </p>
-
-            {[
-              { judul: 'Manajemen', isi: PERAN.slice(0, 3), kolom: 'lg:grid-cols-3', mulai: 0 },
-              { judul: 'Teknis & kreatif', isi: PERAN.slice(3), kolom: 'lg:grid-cols-4', mulai: 3 },
-            ].map((g) => (
-              <div key={g.judul} className="mt-4">
-                <div className={`grid grid-cols-1 gap-x-4 gap-y-24 sm:grid-cols-2 lg:gap-y-4 ${g.kolom} pt-28`}>
-                  {g.isi.map((p, i) => {
-                    const kosong = p.nama === '(nama)'
-                    const pal = PALET[(g.mulai + i) % PALET.length]
-                    return (
-                      <div key={p.jabatan} className="vsf-muncul group relative" style={{ ['--d' as string]: `${i * 0.09}s` }}>
-                        <article
-                          className="vsf-kaca vsf-kaca-hidup relative flex h-full flex-col rounded-card"
-                        >
-                          {/* panggung kolase seragam untuk semua anggota */}
-                          <div className="relative mt-3 h-64 shrink-0" aria-hidden>
-                            <i className="absolute inset-x-7 bottom-0 top-20 rounded-t-[28px] shadow-[inset_0_2px_0_rgba(255,255,255,.6)]" style={{ background: `linear-gradient(135deg, ${pal.a}, ${pal.b})` }} />
-                            <i className="absolute bottom-0 left-3 h-28 w-14 rounded-tr-[22px]" style={{ background: pal.x }} />
-                            <i className="absolute bottom-0 right-3 h-20 w-14 rounded-tl-[22px]" style={{ background: pal.y }} />
-                            <i className="vsf-kedip absolute right-6 top-14 h-5 w-5 rounded-full bg-white/90" />
-                          </div>
-                          <div className="flex flex-1 flex-col p-5 pt-3">
-                            <div className="min-w-0">
-                              <div className={`text-[15px] font-bold leading-snug ${kosong ? 'italic text-slate-400' : 'text-tinta'}`}>
-                                {kosong ? 'Segera diisi' : p.nama}
-                              </div>
-                              <div className="mt-0.5 flex items-start gap-1.5 text-[12.5px] font-semibold leading-snug" style={{ color: MAROON }}>
-                                <span className="shrink-0">{p.ikon}</span>
-                                <span>{p.jabatan}</span>
-                              </div>
-                            </div>
-                            <p className="mt-4 flex-1 text-[13.5px] leading-relaxed text-slate-600">{p.deskripsi}</p>
-                          </div>
-                        </article>
-                        {/* di luar kartu → tidak tertimpa tepi kaca/rim/blur; selalu di lapisan teratas */}
-                        {p.foto ? (
-                          <img
-                            src={p.foto}
-                            alt=""
-                            draggable={false}
-                            loading="lazy"
-                            decoding="async"
-                            className="pointer-events-none absolute left-1/2 top-[-71px] z-20 h-[339px] w-auto max-w-none -translate-x-1/2 select-none object-contain object-bottom transition-transform duration-500 [transition-timing-function:var(--pegas)] group-hover:-translate-y-[5px] group-hover:scale-[1.04]"
-                          />
-                        ) : (
-                          <Siluet warna={pal.x} />
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
+            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {PEMBIMBING.map((p, i) => (
+                <article
+                  key={p.nama}
+                  className="vsf-muncul vsf-kaca vsf-kaca-hidup flex flex-col overflow-hidden rounded-card"
+                  style={{ ['--d' as string]: `${i * 0.07}s` }}
+                >
+                  <div
+                    className={
+                      p.latarPutih
+                        ? 'relative h-[21rem] overflow-hidden bg-white'
+                        : 'vsf-foto-tim relative h-[21rem] overflow-hidden bg-gradient-to-b from-[#CFE2CE] to-[#F4F7F2]'
+                    }
+                  >
+                    <img
+                      src={p.foto}
+                      alt={`Foto ${p.nama}`}
+                      draggable={false}
+                      loading="lazy"
+                      decoding="async"
+                      className={p.gayaFoto}
+                    />
+                  </div>
+                  <div className="flex flex-1 flex-col justify-between p-4">
+                    <div>
+                      <span className="inline-flex items-center rounded-full bg-navy px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-[var(--emas)]">
+                        {p.label}
+                      </span>
+                      <h3 className="mt-2 text-[15px] font-bold leading-snug text-tinta">{p.nama}</h3>
+                      <p className="mt-0.5 text-[12.5px] font-semibold leading-snug text-arutmin-forest">
+                        {p.instansi}
+                      </p>
+                    </div>
+                    <p className="mt-2 text-[12.5px] leading-relaxed text-slate-600">{p.peran}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* Ajakan penutup */}
-        <section className="vsf-muncul vsf-kaca vsf-kaca-netral mt-16 flex flex-col items-center gap-4 rounded-[32px] px-6 py-10 text-center" aria-labelledby="vsf-cta-title">
-          <h2 id="vsf-cta-title" className="font-display text-[24px] font-bold text-white sm:text-[30px]">Siap memantau kebun Anda?</h2>
-          <p className="max-w-[520px] text-[14px] leading-relaxed text-white/80">Login untuk melihat sensor, mengatur nutrisi (pompa nonaktif), dan bertanya pada asisten AI.</p>
-          <Link to={isAuthenticated ? '/dashboard' : '/login'} className="vsf-btn-primary">{isAuthenticated ? 'Dashboard' : 'Login'}</Link>
-          <PilSosial interaktif netral />
+        {/* 6. Anggota tim — galeri foto, nama, dan peran sesuai infografik KKN */}
+        <section id="tim" className="mt-14 scroll-mt-24 pb-6" aria-labelledby="vsf-peran-title">
+          <div>
+            <div className="vsf-muncul flex items-center justify-center gap-2 text-center">
+              <Percikan kiri />
+              <h2
+                id="vsf-peran-title"
+                className="text-[44px] font-normal leading-none text-white [text-shadow:0_3px_20px_rgba(7,21,39,.65)] sm:text-[64px]"
+                style={{ fontFamily: FONT_SKRIP }}
+              >
+                Anggota Kelompok
+              </h2>
+              <Percikan />
+            </div>
+            <p className="vsf-muncul mx-auto mt-3 max-w-[580px] text-center text-[14.5px] leading-relaxed text-white [text-shadow:0_2px_12px_rgba(7,21,39,.75)]" style={{ ['--d' as string]: '.1s' }}>
+              Tujuh mahasiswa Politeknik Negeri Tanah Laut dalam program KKN Industri yang berkolaborasi mengembangkan
+              Vertonik Smart Farm (GARAP).
+            </p>
+            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {PERAN.map((p, i) => (
+                <article
+                  key={p.nama}
+                  className="vsf-muncul vsf-kaca vsf-kaca-hidup overflow-hidden rounded-card"
+                  style={{ ['--d' as string]: `${i * 0.07}s` }}
+                >
+                  <div className="vsf-foto-tim relative h-[21rem] overflow-hidden bg-gradient-to-b from-[#CFE2CE] to-[#F4F7F2]">
+                    <img
+                      src={p.foto}
+                      alt={`Foto ${p.nama}`}
+                      draggable={false}
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute bottom-0 left-1/2 h-[21rem] w-auto max-w-none -translate-x-1/2 object-contain object-bottom"
+                    />
+                  </div>
+                  <div className="min-h-[92px] p-4">
+                    <h3 className="text-[15px] font-bold leading-snug text-tinta">{p.nama}</h3>
+                    <p className="mt-1 text-[13px] font-semibold leading-snug text-arutmin-forest">{p.jabatan}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div className="vsf-muncul mt-8 flex justify-center">
+              <PilSosial interaktif />
+            </div>
+          </div>
         </section>
       </main>
-      <InfoTekan />
       <SiteFooter />
     </div>
   )

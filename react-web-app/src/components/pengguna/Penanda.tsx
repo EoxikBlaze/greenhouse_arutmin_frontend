@@ -1,9 +1,10 @@
 import { infoLevel, inisial } from '../../lib/pengguna'
 
-export function Avatar({ nama, besar = false }: { nama?: string | null; besar?: boolean }) {
+/** [fotoUrl] hanya untuk foto AKUN SENDIRI (blob dari /profil/foto); daftar pengguna lain tetap inisial. */
+export function Avatar({ nama, besar = false, fotoUrl }: { nama?: string | null; besar?: boolean; fotoUrl?: string | null }) {
   return (
     <span className={besar ? 'vsf-avatar is-besar' : 'vsf-avatar'} aria-hidden>
-      {inisial(nama)}
+      {fotoUrl ? <img src={fotoUrl} alt="" className="vsf-avatar-foto" /> : inisial(nama)}
     </span>
   )
 }

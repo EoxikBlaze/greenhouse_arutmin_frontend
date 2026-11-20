@@ -967,9 +967,9 @@
   transition: transform var(--dur-normal) var(--ease-v2), box-shadow var(--dur-normal) var(--ease-v2);
 }
 .vsf-kpi:hover { transform: translateY(-3px); }
-/* Alat tidak mengirim data: angka dipudarkan supaya tidak terbaca sebagai kondisi sekarang. */
-.vsf-kpi[data-usang='true'] { filter: saturate(0.4); }
-.vsf-kpi[data-usang='true'] .vsf-kpi-angka { opacity: 0.55; }
+/* Alat tidak mengirim data: angka sedikit diredam, tetapi tetap kontras ≥5:1 agar jelas terbaca. */
+.vsf-kpi[data-usang='true'] { filter: saturate(0.65); }
+.vsf-kpi[data-usang='true'] .vsf-kpi-angka { opacity: 0.9; }
 .vsf-kpi-kaca {
   color: var(--tinta);
   -webkit-backdrop-filter: blur(var(--glass-blur)) brightness(1.06);
@@ -979,21 +979,21 @@
 .vsf-kpi-hijau {
   color: #fff;
   background:
-    radial-gradient(14rem 8rem at 100% 0%, rgba(233, 205, 83, 0.38), transparent 70%),
-    linear-gradient(145deg, rgba(107, 157, 74, 0.92), rgba(45, 69, 47, 0.9));
+    radial-gradient(14rem 8rem at 100% 0%, rgba(233, 205, 83, 0.2), transparent 70%),
+    linear-gradient(145deg, rgba(61, 98, 40, 0.97), rgba(36, 58, 38, 0.96));
   -webkit-backdrop-filter: blur(var(--glass-blur)) ;
   backdrop-filter: blur(var(--glass-blur)) ;
 }
 .vsf-kpi-hijau .vsf-kpi-ikon { background: rgba(255, 255, 255, 0.22); color: #fff; }
 .vsf-kpi-emas {
-  color: #2a2208;
+  color: #1c1604;
   background:
-    radial-gradient(14rem 8rem at 0% 100%, rgba(255, 255, 255, 0.42), transparent 70%),
-    linear-gradient(145deg, rgba(240, 214, 96, 0.95), rgba(214, 168, 40, 0.9));
+    radial-gradient(14rem 8rem at 0% 100%, rgba(255, 255, 255, 0.35), transparent 70%),
+    linear-gradient(145deg, rgba(242, 218, 104, 0.97), rgba(218, 174, 48, 0.95));
   -webkit-backdrop-filter: blur(var(--glass-blur)) ;
   backdrop-filter: blur(var(--glass-blur)) ;
 }
-.vsf-kpi-emas .vsf-kpi-ikon { background: rgba(255, 255, 255, 0.4); color: #2a2208; }
+.vsf-kpi-emas .vsf-kpi-ikon { background: rgba(255, 255, 255, 0.45); color: #1c1604; }
 
 /* Grafik batang tumbuh dari bawah */
 @keyframes vsf-batang-tumbuh { from { transform: scaleY(0); } to { transform: scaleY(1); } }
@@ -1057,8 +1057,8 @@
 @property --lg-naik { syntax: '<number>'; inherits: true; initial-value: 0; }
 :root {
   --k: 1;
-  --lg-clr-a: min(1, calc(0.5 * var(--k)));
-  --lg-clr-b: min(1, calc(0.32 * var(--k)));
+  --lg-clr-a: min(1, calc(0.76 * var(--k)));
+  --lg-clr-b: min(1, calc(0.6 * var(--k)));
   --lg-blur-kpi: 16px;
   /* rim terarah putih (tanpa pendar warna) + glow dalam */
   --lg-rim:
@@ -1080,8 +1080,8 @@ html[data-kaca='pekat'] { --k: 1.3; }
 /* ── regular: chrome ── */
 .glass-chrome {
   /* dihitung per elemen (bukan di :root) supaya --lg-naik dari scroll edge ikut terbaca */
-  --lg-reg-a: min(1, calc((0.56 + 0.2 * var(--lg-naik)) * var(--k)));
-  --lg-reg-b: min(1, calc((0.36 + 0.16 * var(--lg-naik)) * var(--k)));
+  --lg-reg-a: min(1, calc((0.82 + 0.14 * var(--lg-naik)) * var(--k)));
+  --lg-reg-b: min(1, calc((0.68 + 0.16 * var(--lg-naik)) * var(--k)));
   background:
     radial-gradient(240px circle at var(--mx) var(--my), rgb(255 255 255 / var(--sheen)), transparent 70%),
     var(--lg-spec),
@@ -1151,23 +1151,23 @@ html[data-kaca='pekat'] { --k: 1.3; }
 
 /* ── kontrol sebahasa (tint + rim, TANPA blur sendiri: bukan kaca di atas kaca) ── */
 .vsf-btn-secondary {
-  color: var(--ar-forest, #2d452f);
+  color: rgb(var(--ar-forest));
   background:
     var(--lg-spec),
-    linear-gradient(155deg, rgb(255 255 255 / 0.74), rgb(255 255 255 / 0.46));
-  border-color: rgb(255 255 255 / 0.7);
+    linear-gradient(155deg, rgb(255 255 255 / 0.86), rgb(255 255 255 / 0.68));
+  border-color: rgb(107 157 74 / 0.55);
   box-shadow: var(--lg-rim-kecil), 0 6px 16px -10px rgb(20 30 40 / 0.35);
 }
 .vsf-btn-secondary:hover:not(:disabled) {
   background:
     var(--lg-spec),
-    linear-gradient(155deg, rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.62));
-  border-color: rgb(107 157 74 / 0.7);
+    linear-gradient(155deg, rgb(255 255 255 / 0.96), rgb(255 255 255 / 0.8));
+  border-color: rgb(107 157 74 / 0.8);
 }
 .vsf-btn-primary {
   background:
-    radial-gradient(120% 90% at 18% 0%, rgb(255 255 255 / 0.32), transparent 55%),
-    linear-gradient(145deg, rgb(107 157 74 / 0.96), rgb(45 69 47 / 0.94));
+    radial-gradient(120% 90% at 18% 0%, rgb(255 255 255 / 0.14), transparent 55%),
+    linear-gradient(145deg, rgb(66 102 43 / 0.98), rgb(38 61 40 / 0.98));
   box-shadow: var(--lg-rim-kecil), 0 10px 22px -12px rgb(45 69 47 / 0.75);
 }
 .vsf-btn-primary:active:not(:disabled),
@@ -1304,30 +1304,30 @@ html[data-kaca='pekat'] { --k: 1.3; }
 
 .vsf-kaca-gelap {
   background:
-    radial-gradient(130% 70% at 14% 0%, rgb(255 255 255 / 0.16), transparent 60%),
-    linear-gradient(145deg, rgb(10 31 56 / min(1, calc(0.6 * var(--k)))), rgb(10 31 56 / min(1, calc(0.34 * var(--k))))) !important;
-  border-color: rgb(255 255 255 / 0.26) !important;
+    radial-gradient(130% 70% at 14% 0%, rgb(255 255 255 / 0.14), transparent 60%),
+    linear-gradient(145deg, rgb(10 31 56 / min(1, calc(0.84 * var(--k)))), rgb(7 21 39 / min(1, calc(0.72 * var(--k))))) !important;
+  border-color: rgb(255 255 255 / 0.28) !important;
   box-shadow: var(--lg-rim-gelap), var(--lg-drop-landing) !important;
   color: #fff;
 }
 
 .vsf-bilah {
   background:
-    radial-gradient(130% 120% at 14% -30%, rgb(255 255 255 / 0.3), transparent 60%),
-    linear-gradient(145deg, rgb(10 31 56 / min(1, calc(0.5 * var(--k)))), rgb(10 31 56 / min(1, calc(0.32 * var(--k)))));
-  border-color: rgb(255 255 255 / 0.26);
+    radial-gradient(130% 120% at 14% -30%, rgb(255 255 255 / 0.22), transparent 60%),
+    linear-gradient(145deg, rgb(10 31 56 / min(1, calc(0.82 * var(--k)))), rgb(7 21 39 / min(1, calc(0.70 * var(--k)))));
+  border-color: rgb(255 255 255 / 0.28);
   box-shadow: var(--lg-rim-gelap), 0 18px 40px -18px rgb(7 21 39 / 0.7);
 }
 .vsf-bilah-chip,
 .vsf-bilah-tombol-kaca {
-  background: rgb(255 255 255 / 0.12);
+  background: rgb(10 31 56 / 0.65);
   box-shadow: var(--lg-rim-kecil);
 }
-.vsf-bilah-tombol-kaca:hover { background: rgb(255 255 255 / 0.22); }
+.vsf-bilah-tombol-kaca:hover { background: rgb(10 31 56 / 0.8); }
 .vsf-bilah-tombol-terang {
   background:
-    radial-gradient(120% 90% at 18% 0%, rgb(255 255 255 / 0.3), transparent 55%),
-    linear-gradient(145deg, rgb(107 157 74 / 0.96), rgb(45 69 47 / 0.94));
+    radial-gradient(120% 90% at 18% 0%, rgb(255 255 255 / 0.14), transparent 55%),
+    linear-gradient(145deg, rgb(66 102 43 / 0.98), rgb(38 61 40 / 0.98));
   box-shadow: var(--lg-rim-kecil), 0 10px 22px -12px rgb(45 69 47 / 0.75);
 }
 
@@ -1624,7 +1624,7 @@ html[data-kaca='pekat'] { --k: 1.3; }
   min-height: 44px;
   font-size: 20px;
   font-weight: 600;
-  color: var(--ar-forest, #2d452f);
+  color: rgb(var(--ar-forest));
   transition: background-color 150ms ease;
 }
 .vsf-stepper button:hover:not(:disabled) { background: rgb(207 226 206 / 0.7); }
@@ -1880,7 +1880,7 @@ html.vsf-splash-aktif { overflow: hidden; }
 .vsf-tentang[data-splash] .vsf-latar { animation-play-state: paused; }
 /* kaca netral gelap (tanpa biru) untuk pil/CTA di badan halaman */
 .vsf-kaca-netral {
-  background: linear-gradient(135deg, rgb(24 28 32 / 0.58), rgb(24 28 32 / 0.34)) !important;
+  background: linear-gradient(135deg, rgb(24 28 32 / 0.82), rgb(24 28 32 / 0.68)) !important;
   border-color: rgb(255 255 255 / 0.28) !important;
   color: #fff;
 }
@@ -2030,6 +2030,8 @@ html.vsf-splash-aktif { overflow: hidden; }
   box-shadow: var(--lg-rim-kecil);
 }
 .vsf-avatar.is-besar { width: 56px; height: 56px; font-size: 19px; }
+.vsf-avatar { overflow: hidden; }
+.vsf-avatar-foto { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; }
 .vsf-pengguna { display: flex; align-items: center; gap: 10px; min-width: 0; text-align: left; border-radius: 12px; }
 .vsf-pengguna:hover b { text-decoration: underline; }
 .vsf-pengguna:focus-visible { outline: 2px solid var(--moss); outline-offset: 3px; }
@@ -2171,9 +2173,9 @@ html.vsf-splash-aktif { overflow: hidden; }
 .vsf-segmen-kaca button[aria-checked='true'] small { color: rgb(255 255 255 / 0.85); }
 .vsf-segmen-kaca button:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
 .vsf-pratinjau-kaca { display: flex; align-items: center; gap: 10px; min-width: 170px; padding: 12px 14px; border-radius: 18px; font-size: 13px; color: var(--tinta); box-shadow: var(--lg-rim-kecil); background: linear-gradient(90deg, #6B9D4A, #2f5a22 55%, #d9a441); background-size: 100% 100%; position: relative; isolation: isolate; overflow: hidden; }
-.vsf-pratinjau-kaca::before { content: ''; position: absolute; inset: 0; z-index: -1; background: rgb(255 255 255 / 0.55); }
-.vsf-pratinjau-kaca.is-jernih::before { background: rgb(255 255 255 / 0.28); }
-.vsf-pratinjau-kaca.is-pekat::before { background: rgb(255 255 255 / 0.9); }
+.vsf-pratinjau-kaca::before { content: ''; position: absolute; inset: 0; z-index: -1; background: rgb(255 255 255 / 0.78); }
+.vsf-pratinjau-kaca.is-jernih::before { background: rgb(255 255 255 / 0.68); }
+.vsf-pratinjau-kaca.is-pekat::before { background: rgb(255 255 255 / 0.92); }
 .vsf-pratinjau-kaca span { width: 22px; height: 22px; border-radius: 999px; background: linear-gradient(145deg, #6B9D4A, #3c6b2b); }
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
   .vsf-pratinjau-kaca::before, .vsf-pratinjau-kaca.is-jernih::before, .vsf-pratinjau-kaca.is-pekat::before { background: #fff; }
@@ -2255,28 +2257,150 @@ html.vsf-splash-aktif { overflow: hidden; }
   .vsf-btn-primary:active, .vsf-btn-secondary:active, .vsf-btn-danger:active { scale: none; }
 }
 
-/* ══ Mode RINGAN otomatis (html[data-perf='ringan'], lib/performa.ts) ══
-   CPU lambat: matikan semua blur (backdrop-filter = biaya terbesar), kartu & chrome dibuat SOLID (tanpa transparansi),
-   animasi masuk dimatikan, transisi dipendekkan. Mode 'bagus' = tampilan penuh (tidak ada aturan tambahan). */
-/* kartu & chrome SOLID (tidak transparan) — sama dengan aturan "transparansi dikurangi" */
-html[data-perf='ringan'] .glass-chrome { background: #f4f8fb !important; border-color: var(--garis) !important; }
+/* ══ Mode RINGAN otomatis / manual (html[data-perf='ringan'], lib/performa.ts) ══
+   CPU lambat / hemat daya: matikan semua blur (backdrop-filter = biaya terbesar), kartu & chrome dibuat SOLID (tanpa transparansi),
+   elemen anak di dalam kartu diberi permukaan berbatas tegas agar tidak menyatu, animasi masuk dimatikan, transisi dipendekkan. */
+html[data-perf='ringan'] .glass-chrome { background: #f4f8fb !important; border-color: var(--garis) !important; box-shadow: 0 2px 10px -4px rgba(10, 31, 56, 0.14) !important; }
 html[data-perf='ringan'] .vsf-card,
 html[data-perf='ringan'] .glass-card,
 html[data-perf='ringan'] .glass-hero,
 html[data-perf='ringan'] .vsf-kpi-kaca,
 html[data-perf='ringan'] .vsf-modal-card,
-html[data-perf='ringan'] .vsf-kaca,
-html[data-perf='ringan'] .vsf-pillnav-track { background: #fff !important; border-color: var(--garis) !important; }
-html[data-perf='ringan'] .vsf-bilah { background: #0a1f38 !important; }
+html[data-perf='ringan'] .vsf-kaca:not(.vsf-kaca-gelap):not(.vsf-kaca-netral),
+html[data-perf='ringan'] .vsf-satu .vsf-card,
+html[data-perf='ringan'] .vsf-pillnav-track { background: #ffffff !important; border-color: var(--garis) !important; box-shadow: 0 1px 4px rgba(10, 31, 56, 0.1) !important; }
+html[data-perf='ringan'] .vsf-kaca-gelap,
+html[data-perf='ringan'] .vsf-bilah,
+html[data-perf='ringan'] .vsf-bilah-tombol-kaca { background: #0a1f38 !important; color: #ffffff !important; border-color: rgba(255, 255, 255, 0.28) !important; box-shadow: none !important; }
+html[data-perf='ringan'] .vsf-kaca-netral { background: #20262c !important; color: #ffffff !important; border-color: rgba(255, 255, 255, 0.28) !important; box-shadow: none !important; }
+html[data-perf='ringan'] .vsf-kpi-hijau { background: #2d4d22 !important; color: #ffffff !important; border-color: #243b25 !important; }
+html[data-perf='ringan'] .vsf-kpi-emas { background: #e5c449 !important; color: #1c1604 !important; border-color: #c9a628 !important; }
+html[data-perf='ringan'] .vsf-btn-primary,
+html[data-perf='ringan'] .vsf-bilah-tombol-terang { background: linear-gradient(145deg, #42662b, #263d28) !important; color: #ffffff !important; }
+html[data-perf='ringan'] .vsf-btn-secondary { background: #f4f7f2 !important; color: #1e3320 !important; border-color: #6b9d4a !important; box-shadow: none !important; }
+html[data-perf='ringan'] .vsf-btn-secondary.vsf-teks-bahaya { background: #fef2f2 !important; color: #991b1b !important; border-color: #f87171 !important; }
+html[data-perf='ringan'] .vsf-stat,
+html[data-perf='ringan'] .vsf-batch:not(.is-lock),
+html[data-perf='ringan'] .vsf-param,
+html[data-perf='ringan'] .vsf-penampung:not(.is-lock),
+html[data-perf='ringan'] .vsf-blok,
+html[data-perf='ringan'] .vsf-baris,
+html[data-perf='ringan'] .vsf-riwayat-air-baris,
+html[data-perf='ringan'] .vsf-riwayat-kepala,
+html[data-perf='ringan'] .vsf-riwayat-air-kepala,
+html[data-perf='ringan'] .vsf-kal-blok,
+html[data-perf='ringan'] .vsf-kal-chip,
+html[data-perf='ringan'] .vsf-master-tabel td,
+html[data-perf='ringan'] .vsf-segmen,
+html[data-perf='ringan'] .vsf-segmen-kaca,
+html[data-perf='ringan'] .vsf-chip-ringkas:not([aria-pressed='true']),
+html[data-perf='ringan'] .vsf-kartu-level-isi,
+html[data-perf='ringan'] .vsf-saklar,
+html[data-perf='ringan'] .vsf-detail-blok,
+html[data-perf='ringan'] .vsf-beda-baris:not(.is-kepala),
+html[data-perf='ringan'] .vsf-laporan-popup-sel,
+html[data-perf='ringan'] .vsf-chip-info,
+html[data-perf='ringan'] .vsf-pilih:not([aria-checked='true']) {
+  background: #f4f7f2 !important;
+  border-color: #d7e0d2 !important;
+  box-shadow: none !important;
+}
+html[data-perf='ringan'] .vsf-pilih[aria-checked='true'],
+html[data-perf='ringan'] .vsf-kartu-level input:checked + .vsf-kartu-level-isi {
+  background: #dcebd9 !important;
+  border-color: #4e7733 !important;
+  color: #0b1a2b !important;
+}
+html[data-perf='ringan'] .vsf-penampung.is-lock,
+html[data-perf='ringan'] .vsf-batch.is-lock {
+  background: #fef2f2 !important;
+  border-color: #f87171 !important;
+}
+html[data-perf='ringan'] .vsf-switch-kaca:not([data-nyala='true']) {
+  background: #cbd5e1 !important;
+  box-shadow: inset 0 0 0 1px #94a3b8 !important;
+}
+html[data-perf='ringan'] .vsf-chip-terang,
+html[data-perf='ringan'] .vsf-saklar-tema {
+  background: #ffffff !important;
+  border: 1px solid #d7e0d2 !important;
+  box-shadow: none !important;
+}
 html[data-perf='ringan'][data-tema='gelap'] .glass-chrome,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-pillnav-track {
+  background: #101926 !important;
+  border-color: rgb(var(--ar-border)) !important;
+  box-shadow: none !important;
+}
 html[data-perf='ringan'][data-tema='gelap'] .vsf-card,
 html[data-perf='ringan'][data-tema='gelap'] .glass-card,
 html[data-perf='ringan'][data-tema='gelap'] .glass-hero,
 html[data-perf='ringan'][data-tema='gelap'] .vsf-kpi-kaca,
 html[data-perf='ringan'][data-tema='gelap'] .vsf-modal-card,
-html[data-perf='ringan'][data-tema='gelap'] .vsf-kaca,
-html[data-perf='ringan'][data-tema='gelap'] .vsf-pillnav-track { background: rgb(var(--ar-card)) !important; }
-html[data-perf='ringan'] .vsf-modal-backdrop { background: rgba(10, 31, 56, 0.7) !important; }
+html[data-perf='ringan'][data-tema='gelap'] .vsf-kaca:not(.vsf-kaca-gelap):not(.vsf-kaca-netral),
+html[data-perf='ringan'][data-tema='gelap'] .vsf-satu .vsf-card {
+  background: rgb(var(--ar-card)) !important;
+  border-color: rgb(var(--ar-border)) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4) !important;
+}
+html[data-perf='ringan'][data-tema='gelap'] .vsf-stat,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-batch:not(.is-lock),
+html[data-perf='ringan'][data-tema='gelap'] .vsf-param,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-penampung:not(.is-lock),
+html[data-perf='ringan'][data-tema='gelap'] .vsf-blok,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-baris,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-riwayat-air-baris,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-riwayat-kepala,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-riwayat-air-kepala,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-kal-blok,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-kal-chip,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-master-tabel td,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-segmen,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-segmen-kaca,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-chip-ringkas:not([aria-pressed='true']),
+html[data-perf='ringan'][data-tema='gelap'] .vsf-kartu-level-isi,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-saklar,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-detail-blok,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-beda-baris:not(.is-kepala),
+html[data-perf='ringan'][data-tema='gelap'] .vsf-laporan-popup-sel,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-chip-info,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-pilih:not([aria-checked='true']) {
+  background: #1b283b !important;
+  border-color: rgb(var(--ar-border)) !important;
+  box-shadow: none !important;
+}
+html[data-perf='ringan'][data-tema='gelap'] .vsf-pilih[aria-checked='true'],
+html[data-perf='ringan'][data-tema='gelap'] .vsf-kartu-level input:checked + .vsf-kartu-level-isi {
+  background: #1e3a2b !important;
+  border-color: #6b9d4a !important;
+  color: rgb(var(--tinta-rgb)) !important;
+}
+html[data-perf='ringan'][data-tema='gelap'] .vsf-penampung.is-lock,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-batch.is-lock {
+  background: #3b181c !important;
+  border-color: #f87171 !important;
+}
+html[data-perf='ringan'][data-tema='gelap'] .vsf-btn-secondary {
+  background: #182536 !important;
+  color: #dcfce7 !important;
+  border-color: #6b9d4a !important;
+}
+html[data-perf='ringan'][data-tema='gelap'] .vsf-btn-secondary.vsf-teks-bahaya {
+  background: #3b181c !important;
+  color: #fecaca !important;
+  border-color: #f87171 !important;
+}
+html[data-perf='ringan'][data-tema='gelap'] .vsf-switch-kaca:not([data-nyala='true']) {
+  background: #334155 !important;
+  box-shadow: inset 0 0 0 1px #64748b !important;
+}
+html[data-perf='ringan'][data-tema='gelap'] .vsf-chip-terang,
+html[data-perf='ringan'][data-tema='gelap'] .vsf-saklar-tema {
+  background: #182536 !important;
+  border: 1px solid rgb(var(--ar-border)) !important;
+  box-shadow: none !important;
+}
+html[data-perf='ringan'] .vsf-modal-backdrop { background: rgba(10, 31, 56, 0.72) !important; }
 html[data-perf='ringan'] *,
 html[data-perf='ringan'] *::before,
 html[data-perf='ringan'] *::after {
@@ -2287,6 +2411,7 @@ html[data-perf='ringan'] .vsf-page,
 html[data-perf='ringan'] .vsf-stagger > *,
 html[data-perf='ringan'] .vsf-table tbody tr,
 html[data-perf='ringan'] .vsf-pop { animation: none !important; }
+html[data-perf='ringan'] .vsf-muncul { opacity: 1 !important; translate: none !important; scale: none !important; transition: none !important; }
 html[data-perf='ringan'] * { transition-duration: 0.12s !important; }
 
 /* ── Pemuat halaman (MemuatHalaman) ── */

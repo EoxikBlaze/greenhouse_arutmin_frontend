@@ -245,7 +245,7 @@ Color _warnaTahap(String t) {
     case 'peremajaan':
       return Tok.moss;
     case 'pendewasaan':
-      return Tok.navy3;
+      return Tok.navyTeks;
   }
   return Tok.abu;
 }
@@ -954,7 +954,7 @@ class _SheetMulaiState extends State<_SheetMulai> {
                   // 2. Meja Semai
                   Row(
                     children: [
-                      const Icon(Icons.table_restaurant_rounded, size: 16, color: Tok.navy),
+                      Icon(Icons.table_restaurant_rounded, size: 16, color: Tok.hijauTeks),
                       const SizedBox(width: 6),
                       Text('2. Meja Semai Hidroponik', style: Tok.eyebrow),
                     ],
@@ -969,13 +969,13 @@ class _SheetMulaiState extends State<_SheetMulai> {
                           avatar: Icon(
                             Icons.table_bar_rounded,
                             size: 15,
-                            color: _angka(m['id']) == _idMeja ? Colors.white : Tok.navy,
+                            color: _angka(m['id']) == _idMeja ? Colors.white : Tok.hijauTeks,
                           ),
                           label: Text(
                             '${m['nama']}${m['jumlah_lubang'] != null ? ' (${m['jumlah_lubang']} lubang)' : ''}',
                           ),
                           selected: _angka(m['id']) == _idMeja,
-                          selectedColor: Tok.navy,
+                          selectedColor: Tok.mossGelap,
                           backgroundColor: Tok.isiKaca(0.6),
                           labelStyle: TextStyle(
                             color: _angka(m['id']) == _idMeja ? Colors.white : Tok.tinta,
@@ -985,7 +985,7 @@ class _SheetMulaiState extends State<_SheetMulai> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                             side: BorderSide(
-                              color: _angka(m['id']) == _idMeja ? Tok.navy : Tok.tepiKaca,
+                              color: _angka(m['id']) == _idMeja ? Tok.moss : Tok.tepiKaca,
                               width: _angka(m['id']) == _idMeja ? 1.5 : 1,
                             ),
                           ),
@@ -1052,7 +1052,7 @@ class _SheetMulaiState extends State<_SheetMulai> {
                                       style: TextStyle(
                                         fontFamily: Tok.fontJudul,
                                         fontSize: 24,
-                                        fontWeight: FontWeight.w800,
+                                        fontWeight: FontWeight.w700,
                                         color: Tok.tinta,
                                       ),
                                       decoration: const InputDecoration(

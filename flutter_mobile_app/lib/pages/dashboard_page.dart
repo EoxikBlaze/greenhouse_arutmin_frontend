@@ -578,7 +578,7 @@ class _GrupMenu extends StatelessWidget {
         teks.toUpperCase(),
         style: TextStyle(
           fontSize: 12,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w700,
           letterSpacing: 1.4,
           color: Tok.abuTeks,
         ),
@@ -685,7 +685,7 @@ class _HeroStatus extends StatelessWidget {
                   'STATUS GREENHOUSE',
                   style: TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     letterSpacing: 1.4,
                     color: Tok.hijauTeks,
                   ),

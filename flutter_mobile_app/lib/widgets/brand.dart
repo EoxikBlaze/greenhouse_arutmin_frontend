@@ -426,11 +426,15 @@ class StatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final latar = terang
-        ? Tok.isiKaca(0.68)
-        : warna.withValues(alpha: Tok.gelap ? 0.22 : 0.12);
+        ? Tok.isiKaca(0.84, 0.78)
+        : warna.withValues(alpha: Tok.gelap ? 0.24 : 0.16);
     final teksWarna = terang
-        ? (Color.lerp(warna, Tok.tinta, Tok.gelap ? 0.30 : 0.55) ?? warna)
-        : (Tok.gelap ? (Color.lerp(warna, Colors.white, 0.22) ?? warna) : warna);
+        ? (Tok.gelap
+              ? (Color.lerp(warna, Colors.white, 0.58) ?? warna)
+              : (Color.lerp(warna, Tok.tinta, 0.65) ?? warna))
+        : (Tok.gelap
+              ? (Color.lerp(warna, Colors.white, 0.62) ?? warna)
+              : (Color.lerp(warna, Tok.tinta, 0.52) ?? warna));
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -792,7 +796,7 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
                         style: TextStyle(
                           fontFamily: Tok.fontJudul,
                           fontSize: 21,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w700,
                           color: Tok.tinta,
                           height: 1.05,
                           letterSpacing: -0.4,
@@ -828,7 +832,7 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
                               Container(
                                 height: 2.8,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF8B5CF6),
+                                  color: Tok.moss,
                                   borderRadius: BorderRadius.circular(2),
                                 ),
                               ),
@@ -845,7 +849,7 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
                     IconButton(
                       tooltip: 'Pemberitahuan',
                       icon: const Icon(
-                        Icons.notifications_rounded,
+                        Ikon.lonceng,
                         size: 28,
                         color: Color(0xFF71717A),
                       ),
@@ -895,12 +899,12 @@ class ArutminHeader extends StatelessWidget implements PreferredSizeWidget {
                                 style: TextStyle(
                                   fontFamily: Tok.fontJudul,
                                   fontSize: 13,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w700,
                                   color: Tok.gelap ? Colors.white : Tok.navy,
                                 ),
                               )
                             : Icon(
-                                Icons.person_rounded,
+                                Ikon.profil,
                                 size: 22,
                                 color: Tok.gelap ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                               ))

@@ -64,6 +64,9 @@ flutter:
   uses-material-design: true
 
   # Halaman Tentang Kami (Akun → Pengaturan): logo mitra & foto tim, sama dengan web
+  shaders:
+    - shaders/kaca.frag
+
   assets:
     - assets/tentang/logo/
     - assets/tentang/tim/

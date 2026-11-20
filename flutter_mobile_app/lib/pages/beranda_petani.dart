@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
+import '../widgets/beranda_baru/banner_data_lama.dart';
+import '../widgets/beranda_baru/kartu_sensor.dart';
 import '../widgets/brand.dart';
 import '../widgets/dock.dart';
 import '../widgets/ikon.dart';
@@ -140,33 +142,61 @@ class _BerandaPetaniState extends State<BerandaPetani> {
         : const <Object?, Object?>{};
     final terakhir = iot is Map ? iot['last_seen']?.toString() : null;
 
-    Widget angka(String label, String kunci, String satuan, int desimal) {
+    // Satu kartu per sensor, dari data nyata. Alat mati = "Data lama";
+    // nilai kosong tampil "—" dan "Belum ada data", bukan angka tebakan.
+    Widget kartu(String label, String kunci, String satuan, int desimal) {
       final batas = ambang[kunci] is Map
           ? ambang[kunci] as Map<Object?, Object?>
           : const <Object?, Object?>{};
-      return _KartuAngka(
-        label: label,
-        nilai: keDouble(sensor[kunci]),
+      final nilai = keDouble(sensor[kunci]);
+      final penilaian = nilaiSensor(
+        nilai,
+        keDouble(batas['min']),
+        keDouble(batas['max']),
+      );
+      final keadaan = nilai == null
+          ? KeadaanSensor.tanpaData
+          : !hidup
+          ? KeadaanSensor.basi
+          : penilaian == Penilaian.perluDicek
+          ? KeadaanSensor.perluDicek
+          : KeadaanSensor.segar;
+      return KartuSensor(
+        nama: label,
+        nilai: nilai?.toStringAsFixed(desimal).replaceAll('.', ','),
         satuan: satuan,
-        desimal: desimal,
-        penilaian: nilaiSensor(
-          keDouble(sensor[kunci]),
-          keDouble(batas['min']),
-          keDouble(batas['max']),
-        ),
-        lama: !hidup,
+        keterangan: terakhir == null
+            ? 'Belum ada data dari alat'
+            : 'Terakhir ${waktuRelatif(terakhir)}',
+        keadaan: keadaan,
       );
     }
 
+    Widget baris(Widget kiri, Widget kanan) => IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: kiri),
+          const SizedBox(width: 14),
+          Expanded(child: kanan),
+        ],
+      ),
+    );
+
+    final jam = _jamDari(terakhir);
     return Column(
       children: [
-        _KartuAlat(hidup: hidup, terakhir: terakhir),
+        if (!hidup && jam != null)
+          BannerDataLama(jam: jam)
+        else
+          _KartuAlat(hidup: hidup, terakhir: terakhir),
         const SizedBox(height: 12),
-        angka('pH (asam-basa air)', 'ph', '', 2),
-        const SizedBox(height: 12),
-        angka('Nutrisi (TDS)', 'tds', 'ppm', 0),
-        const SizedBox(height: 12),
-        angka('Suhu air', 'waterTemp', '°C', 1),
+        baris(kartu('pH', 'ph', '', 1), kartu('TDS', 'tds', 'ppm', 0)),
+        const SizedBox(height: 14),
+        baris(
+          kartu('Suhu Air', 'waterTemp', '°C', 1),
+          kartu('Suhu Udara', 'airTemp', '°C', 1),
+        ),
         const SizedBox(height: 20),
         SizedBox(
           width: double.infinity,
@@ -191,6 +221,14 @@ class _BerandaPetaniState extends State<BerandaPetani> {
       ],
     );
   }
+}
+
+/// "09:41" dari waktu ISO bacaan terakhir; null bila tidak bisa dibaca.
+String? _jamDari(String? iso) {
+  final d = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
+  if (d == null) return null;
+  String dua(int n) => n.toString().padLeft(2, '0');
+  return '${dua(d.hour)}:${dua(d.minute)}';
 }
 
 class _KartuAlat extends StatelessWidget {
@@ -235,66 +273,6 @@ class _KartuAlat extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _KartuAngka extends StatelessWidget {
-  const _KartuAngka({
-    required this.label,
-    required this.nilai,
-    required this.satuan,
-    required this.desimal,
-    required this.penilaian,
-    required this.lama,
-  });
-
-  final String label;
-  final double? nilai;
-  final String satuan;
-  final int desimal;
-  final Penilaian penilaian;
-  final bool lama;
-
-  @override
-  Widget build(BuildContext context) {
-    final (teks, warna) = switch (penilaian) {
-      Penilaian.aman => ('Aman', Tok.moss),
-      Penilaian.perluDicek => ('Perlu dicek', Tok.error),
-      Penilaian.belumAda => ('Belum ada data', Tok.abu),
-    };
-    return Opacity(
-      opacity: lama ? 0.6 : 1,
-      child: Panel(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(fontSize: 15, color: Tok.abuTeks),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    nilai == null
-                        ? '-'
-                        : '${nilai!.toStringAsFixed(desimal)}${satuan.isEmpty ? '' : ' $satuan'}',
-                    style: Tok.h1.copyWith(fontSize: 38),
-                  ),
-                ],
-              ),
-            ),
-            StatusPill(
-              // data lama: jangan menilai aman/tidak (itu kondisi lalu); abu-abu "Data lama"
-              teks: lama && nilai != null ? 'Data lama' : teks,
-              warna: lama ? Tok.abu : warna,
-            ),
-          ],
-        ),
       ),
     );
   }

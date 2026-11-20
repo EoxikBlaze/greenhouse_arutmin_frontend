@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api'
 import { useApiError } from '../lib/crudApi'
 import { useApiObject } from '../lib/useApiObject'
 import { useAuth } from '../lib/authContext'
+import { hapusFoto, unggahFoto, useFotoProfil } from '../lib/fotoProfil'
 import type { UserRow } from '../lib/pengguna'
 import { Pesan, Rangka } from '../components/kaca/DialogKaca'
 import { DialogGantiSandi, type FormSandi } from '../components/profile/DialogGantiSandi'
@@ -20,6 +21,10 @@ export function ProfilePage() {
   const { demo, logout } = useAuth()
   const { data, loading, error, reload } = useApiObject<ProfilPayload>('/profil')
   const user = data?.user ?? null
+  const fotoUrl = useFotoProfil(user?.foto, user?.foto_versi)
+  const inputFoto = useRef<HTMLInputElement>(null)
+  const [sibukFoto, setSibukFoto] = useState(false)
+  const [galatFoto, setGalatFoto] = useState<string | null>(null)
 
   const [flash, setFlash] = useState<string | null>(null)
   useEffect(() => {
@@ -42,6 +47,37 @@ export function ProfilePage() {
     setUbah({ username: user?.username ?? '', email: user?.email ?? '' })
     setUbahErr({})
     setUbahGalat(null)
+  }
+
+  async function pilihFoto(file: File | undefined) {
+    if (!file || sibukFoto) return
+    setSibukFoto(true)
+    setGalatFoto(null)
+    try {
+      await unggahFoto(file)
+      setFlash('Foto profil tersimpan.')
+      reload()
+    } catch (err) {
+      setGalatFoto(err instanceof Error && !('response' in err) ? err.message : handleApiError(err).message)
+    } finally {
+      setSibukFoto(false)
+      if (inputFoto.current) inputFoto.current.value = ''
+    }
+  }
+
+  async function lepasFoto() {
+    if (sibukFoto) return
+    setSibukFoto(true)
+    setGalatFoto(null)
+    try {
+      await hapusFoto()
+      setFlash('Foto profil dihapus.')
+      reload()
+    } catch (err) {
+      setGalatFoto(handleApiError(err).message)
+    } finally {
+      setSibukFoto(false)
+    }
   }
 
   function bukaSandi() {
@@ -121,8 +157,21 @@ export function ProfilePage() {
           onUbah={bukaUbah}
           onSandi={bukaSandi}
           onKeluar={logout}
+          fotoUrl={fotoUrl}
+          sibukFoto={sibukFoto}
+          onGantiFoto={() => inputFoto.current?.click()}
+          onHapusFoto={() => void lepasFoto()}
         />
       )}
+      <input
+        ref={inputFoto}
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        className="hidden"
+        aria-label="Pilih foto profil"
+        onChange={(e) => void pilihFoto(e.target.files?.[0])}
+      />
+      {galatFoto && <Pesan jenis="galat" onTutup={() => setGalatFoto(null)}>{galatFoto}</Pesan>}
       <PanelTampilan />
 
       {ubah && (

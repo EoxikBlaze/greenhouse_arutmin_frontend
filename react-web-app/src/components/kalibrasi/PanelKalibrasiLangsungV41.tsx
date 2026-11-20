@@ -96,11 +96,19 @@ export function PanelKalibrasiLangsungV41({
     setGalat(null)
     setPesan(null)
     try {
-      await api.post('/iot-v41/pemeliharaan', { aksi: 'pemeliharaan', aktif })
+      const r = await api.post('/iot-v41/pemeliharaan', { aksi: 'pemeliharaan', aktif })
+      setPerintahAlat(
+        r.data?.id_perintah
+          ? { id: r.data.id_perintah, label: aktif ? 'Mode pemeliharaan (MULAI) ke alat' : 'Mode pemeliharaan (SELESAI) ke alat' }
+          : null,
+      )
       setPesan(
-        aktif
-          ? 'Mode pemeliharaan aktif (tindakan otomatis dijeda). Aplikasi tidak mematikan pompa: matikan dengan tombol fisik bila perlu.'
-          : 'Mode pemeliharaan dimatikan. Alat belum diberi tahu.',
+        String(
+          r.data?.message ??
+            (aktif
+              ? 'Mode pemeliharaan disimpan di server. Tunggu konfirmasi alat sebelum menyalakan uji pompa.'
+              : 'Mode pemeliharaan dimatikan di server. Tunggu konfirmasi alat.'),
+        ),
       )
       onReload()
     } catch (err) {
@@ -133,7 +141,7 @@ export function PanelKalibrasiLangsungV41({
     if (next1413 !== null && next12880 !== null) {
       setSibuk('kal_ec')
       try {
-        await api.post('/iot-v41/kalibrasi-dua-titik', {
+        const r = await api.post('/iot-v41/kalibrasi-dua-titik', {
           sensor: 'ec',
           aksi: 'simpan',
           titik_1: next1413,
@@ -141,7 +149,8 @@ export function PanelKalibrasiLangsungV41({
         })
         setEc1413(null)
         setEc12880(null)
-        setPesan(`Kalibrasi EC 2-titik (${fmt(next1413, 0)} & ${fmt(next12880, 0)} µS/cm) tersimpan beserta riwayatnya. Belum dikirim ke alat.`)
+        setPerintahAlat(r.data?.id_perintah ? { id: r.data.id_perintah, label: 'Kalibrasi EC ke alat' } : null)
+        setPesan(String(r.data?.message ?? `Kalibrasi EC 2-titik (${fmt(next1413, 0)} & ${fmt(next12880, 0)} µS/cm) tersimpan.`))
         onReload()
       } catch (err) {
         const f = handleApiError(err)
@@ -299,7 +308,7 @@ export function PanelKalibrasiLangsungV41({
 
   return (
     <div className="space-y-4">
-      {(pesan || galat) && (
+      {(pesan || galat || perintahAlat) && (
         <div>
           {pesan && <Pesan jenis="ok">{pesan}</Pesan>}
           {galat && <Pesan jenis="galat" onTutup={() => setGalat(null)}>{galat}</Pesan>}
@@ -441,7 +450,7 @@ export function PanelKalibrasiLangsungV41({
           <div>
             <div className="vsf-judul-bagian">2. Kalibrasi pH</div>
             <p className="mt-0.5 text-[12.5px] text-abu">
-              Dua titik: buffer 4,0 lalu 7,0
+              Dua titik: buffer 4,01 lalu 7,00 (format <span className="font-mono">ph_v4/ph_v7</span>)
             </p>
 
             <div className="vsf-blok mt-3 p-4 text-center">

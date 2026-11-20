@@ -24,6 +24,20 @@ double? keDouble(dynamic v) {
   return double.tryParse(v.toString());
 }
 
+/// Ubah id/angka dari backend menjadi `int`, atau null. PostgreSQL mengirim kolom
+/// `bigint` (id, hitungan) sebagai TEKS ("1"), jadi `as num` pada id akan jatuh.
+int? keInt(dynamic v) {
+  if (v == null) return null;
+  if (v is num) return v.toInt();
+  final teks = v.toString();
+  return int.tryParse(teks) ?? double.tryParse(teks)?.toInt();
+}
+
+/// Seperti [keInt] tetapi wajib ada: melempar [FormatException] yang jelas
+/// (bukan galat cast) bila nilainya kosong atau bukan angka.
+int keIntWajib(dynamic v, [String nama = 'id']) =>
+    keInt(v) ?? (throw FormatException('Nilai $nama dari server tidak valid: $v'));
+
 /// Angka dengan [desimal] digit; '-' bila kosong / bukan angka.
 String fmtAngka(dynamic v, {int desimal = 1}) {
   if (v == null) return '-';

@@ -117,7 +117,7 @@ class PageTop extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 11,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                         letterSpacing: 1.4,
                         color: Tok.abuTeks,
                       ),
@@ -243,7 +243,7 @@ class PilPilih extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: aktif ? Colors.white : Tok.tinta.withValues(alpha: 0.72),
+              color: aktif ? Colors.white : Tok.tinta.withValues(alpha: 0.88),
             ),
           ),
         ),
