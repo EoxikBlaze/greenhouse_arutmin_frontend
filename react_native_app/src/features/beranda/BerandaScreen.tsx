@@ -7,6 +7,7 @@ import { ApiError } from '@/api/client';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { colors } from '@/theme/tokens';
 import { Banner } from '@/ui/Banner';
+import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { EmptyState } from '@/ui/EmptyState';
 import { Header } from '@/ui/Header';
@@ -78,6 +79,7 @@ export function BerandaScreen() {
           <ChevronRight size={20} color={colors.textPrimary} />
         </Card>
       </Pressable>
+      <Button variant="secondary" label="Tanya Asisten GARAP" onPress={() => router.navigate('/asisten')} />
     </Screen>
   );
 }

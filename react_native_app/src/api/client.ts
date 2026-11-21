@@ -108,7 +108,7 @@ export class ApiClient {
     await this.persist(false);
   }
 
-  private async request<T>(path: string, method: 'GET' | 'POST' | 'PUT', body?: unknown): Promise<T> {
+  private async request<T>(path: string, method: 'GET' | 'POST' | 'PUT', body?: unknown, raw = false): Promise<T> {
     if (method !== 'GET' && this.role === 'demo' && path !== '/login' && path !== '/logout') {
       throw new ApiError(403, MSG_DEMO);
     }
@@ -129,6 +129,10 @@ export class ApiClient {
       throw new ApiError(null, MSG_UNREACHABLE);
     } finally { clearTimeout(timer); }
 
+    // raw: jawaban non-JSON (NDJSON asisten) dibaca sebagai teks; galat tetap diurai sebagai JSON.
+    if (raw && res.ok) {
+      try { return (await res.text()) as T; } catch { throw new ApiError(null, MSG_UNREACHABLE); }
+    }
     let data: any = null;
     try { data = await res.json(); } catch { /* body kosong */ }
     if (res.ok) return data as T;
@@ -141,6 +145,7 @@ export class ApiClient {
 
   get<T>(path: string) { return this.request<T>(path, 'GET'); }
   post<T>(path: string, body: unknown) { return this.request<T>(path, 'POST', body); }
+  postText(path: string, body: unknown) { return this.request<string>(path, 'POST', body, true); }
 
   async login(username: string, password: string, remember: boolean): Promise<User> {
     const r = await this.request<{ token?: string; user?: User }>('/login', 'POST', { username, password, remember });

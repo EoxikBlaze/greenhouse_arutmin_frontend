@@ -1,3 +1,3 @@
-import { Segera } from '@/ui/Segera';
+import { AlatScreen } from '@/features/alat/AlatScreen';
 
-export default function Alat() { return <Segera title="Alat" />; }
+export default AlatScreen;

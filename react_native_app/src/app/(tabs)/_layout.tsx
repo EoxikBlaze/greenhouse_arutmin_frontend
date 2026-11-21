@@ -16,6 +16,16 @@ export default function TabsLayout() {
       <Tabs.Screen name="akun" options={{ title: 'Akun' }} />
       <Tabs.Screen name="sensor" options={{ title: 'Detail sensor' }} />
       <Tabs.Screen name="grafik" options={{ title: 'Grafik & riwayat' }} />
+      <Tabs.Screen name="batch" options={{ title: 'Detail batch' }} />
+      <Tabs.Screen name="mulai-semai" options={{ title: 'Mulai semai' }} />
+      <Tabs.Screen name="konfirmasi" options={{ title: 'Konfirmasi' }} />
+      <Tabs.Screen name="detail-peringatan" options={{ title: 'Detail peringatan' }} />
+      <Tabs.Screen name="saklar" options={{ title: 'Saklar' }} />
+      <Tabs.Screen name="kalibrasi" options={{ title: 'Kalibrasi' }} />
+      <Tabs.Screen name="konfirmasi-perangkat" options={{ title: 'Konfirmasi perintah' }} />
+      <Tabs.Screen name="ganti-sandi" options={{ title: 'Ganti kata sandi' }} />
+      <Tabs.Screen name="tentang" options={{ title: 'Tentang' }} />
+      <Tabs.Screen name="asisten" options={{ title: 'Asisten' }} />
     </Tabs>
   );
 }

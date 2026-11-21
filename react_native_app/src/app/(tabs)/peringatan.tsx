@@ -1,3 +1,3 @@
-import { Segera } from '@/ui/Segera';
+import { PeringatanScreen } from '@/features/peringatan/PeringatanScreen';
 
-export default function Peringatan() { return <Segera title="Peringatan" />; }
+export default PeringatanScreen;

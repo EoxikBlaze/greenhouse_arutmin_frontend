@@ -1,3 +1,3 @@
-import { Segera } from '@/ui/Segera';
+import { TanamScreen } from '@/features/tanam/TanamScreen';
 
-export default function Tanam() { return <Segera title="Tanam" />; }
+export default TanamScreen;

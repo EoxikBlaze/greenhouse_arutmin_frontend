@@ -14,8 +14,8 @@ export interface DockProps {
 }
 
 // Dock melayang: radius 31, padding 6, item aktif = accent-soft radius 24.
-// Layar turunan yang tidak punya item dock; tab aktifnya = induk (Sensor/Grafik dibuka dari Beranda).
-const CHILD_OF: Record<string, string> = { sensor: 'index', grafik: 'index' };
+// Layar turunan yang tidak punya item dock; tab aktifnya = induk (Sensor/Grafik dari Beranda, layar batch dari Tanam).
+const CHILD_OF: Record<string, string> = { sensor: 'index', grafik: 'index', batch: 'tanam', 'mulai-semai': 'tanam', konfirmasi: 'tanam', 'detail-peringatan': 'peringatan', saklar: 'alat', kalibrasi: 'alat', 'konfirmasi-perangkat': 'alat', 'ganti-sandi': 'akun', tentang: 'akun', asisten: 'index' };
 
 export function Dock({ state, descriptors }: DockProps) {
   const { bottom } = useSafeAreaInsets();
