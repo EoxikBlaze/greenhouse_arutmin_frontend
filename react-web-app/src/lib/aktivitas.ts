@@ -55,7 +55,7 @@ export function ringkasAktivitas(a: Aktivitas): string {
     case 'dosing': return `${aksi} ${a.ringkas ?? ''}`.trim()
     case 'kalibrasi': return `${labelAktivitas(a.objek ?? a.aksi)}: ${a.ringkas ?? ''}`
     case 'login': return `${a.pelaku} masuk ke sistem`
-    default: return `${aksi} ${a.objek ?? ''}${a.ref ? ` #${a.ref}` : ''}`.trim()
+    default: return a.ringkas ? `${a.ringkas}${a.ref && !/^\d+$/.test(String(a.ref)) ? '' : a.ref ? ` #${a.ref}` : ''}` : `${aksi} ${a.objek ?? ''}${a.ref ? ` #${a.ref}` : ''}`.trim()
   }
 }
 

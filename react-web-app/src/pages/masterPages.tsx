@@ -459,7 +459,7 @@ const MEJA_FIELDS: FieldDef[] = [
   { key: 'meja', label: 'Nama meja', header: 'Nama Meja', placeholder: 'Meja Selada', kind: 'text', core: true },
   { key: 'jumlah_lubang', label: 'Jumlah lubang', header: 'Jumlah Lubang', placeholder: '10', kind: 'int', core: true },
   { key: 'jenis_talang', label: 'Jenis talang', header: 'Jenis Talang', placeholder: 'NFT', kind: 'select', core: false, options: ['NFT', 'DFT'] },
-  { key: 'kapasitas_penampung_l', label: 'Volume penampung air (L)', header: 'Volume (L)', placeholder: '100', kind: 'num', core: false },
+  { key: 'kapasitas_penampung_l', label: 'Volume penampung air (L), 5 sampai 5000', header: 'Volume (L)', placeholder: '100', kind: 'num', core: false },
   { key: 'jumlah_talang', label: 'Jumlah talang', header: 'Jumlah Talang', placeholder: '12', kind: 'int', core: false },
   { key: 'lubang_per_talang', label: 'Lubang per talang', header: 'Lubang/Talang', placeholder: '26', kind: 'int', core: false },
   { key: 'panjang_talang_m', label: 'Panjang talang (m)', header: 'Panjang (m)', placeholder: '8.1', kind: 'num', core: false },

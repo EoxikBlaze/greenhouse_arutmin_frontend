@@ -147,6 +147,8 @@ export function PanelUjiLab({
 
   const arsip = (iot?.arsip_ujilab ?? [])
   const buah = kategori === 'Buah'
+  // arsip memuat kedua kategori; hasil buah ditandai "BUAH" di catatannya
+  const arsipKat = arsip.filter((a) => /BUAH\]/.test(a.catatan ?? '') === buah)
   const dataKat = buah
     ? { ppm: p?.buah?.ppm_per_ml ?? null, up: p?.buah?.ph_up_ml ?? null, down: p?.buah?.ph_down_ml ?? null }
     : {
@@ -261,6 +263,11 @@ export function PanelUjiLab({
           <p className="text-[12px] leading-relaxed text-abu">
             Yang disimpan adalah <b className="text-tinta">kenaikan per mL</b>: (akhir − awal) ÷ (A + B). Rumus: (1000 − 100) ÷ 10 = 90 ppm/mL.
           </p>
+          {Number(mlA) > 0 && Number(mlB) > 0 && Math.abs(Number(mlA) - Number(mlB)) / ((Number(mlA) + Number(mlB)) / 2) > 0.1 && (
+            <p role="status" className="vsf-tone-warn rounded-input px-3 py-2 text-[12px] leading-relaxed">
+              A dan B berbeda jauh. Alat selalu menyuntik A dan B <b>sama banyak</b>, jadi hasil ini hanya perkiraan. Untuk hasil yang tepat, ulangi uji dengan A = B.
+            </p>
+          )}
         </form>
       </section>
 
@@ -377,20 +384,20 @@ export function PanelUjiLab({
           </div>
         </dl>
         <p className="mt-3 text-[12px] leading-relaxed text-abu">
-          Pembaruan uji lab terakhir: {arsip[0]?.dilakukan_pada ? tglPendek(arsip[0].dilakukan_pada) : 'belum ada'}. &ldquo;Belum diatur&rdquo; = belum ada di database; hanya hasil uji lab nyata yang mengisinya.
+          Pembaruan uji lab terakhir: {arsipKat[0]?.dilakukan_pada ? tglPendek(arsipKat[0].dilakukan_pada) : 'belum ada'}. &ldquo;Belum diatur&rdquo; = belum ada di database; hanya hasil uji lab nyata yang mengisinya.
         </p>
       </section>
 
       {/* Kartu 4: Arsip Hasil Uji Lab */}
       <section className="vsf-card w-full min-w-0 p-4 sm:p-5 lg:col-span-6" aria-label="Arsip hasil uji lab">
-        <div className="vsf-judul-bagian">Arsip hasil uji lab</div>
-        {arsip.length === 0 ? (
+        <div className="vsf-judul-bagian">Arsip hasil uji lab ({kategori.toLowerCase()})</div>
+        {arsipKat.length === 0 ? (
           <div className="vsf-blok mt-3 px-4 py-6 text-center text-[13px] text-abu">
             Belum ada hasil uji lab.
           </div>
         ) : (
           <div className="vsf-daftar mt-3">
-            {arsip.map((a) => (
+            {arsipKat.map((a) => (
               <div
                 key={String(a.id)}
                 className="vsf-param"

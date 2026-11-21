@@ -22,7 +22,7 @@ export const LEVEL_INFO: Record<Level, { label: string; ringkas: string; akses: 
   admin: {
     label: 'Admin',
     ringkas: 'Kelola semua menu dan akun',
-    akses: ['Semua menu Pantau dan Kendali (termasuk Otomasi Alat, STOP dan E-STOP)', 'Siklus Tanam, Kalibrasi, Catatan Aktivitas, Laporan', 'Master Data (Jenis Tanaman, Meja, Uji Lab, Ambang Sensor) dan Manajemen User'],
+    akses: ['Semua menu Pantau dan Kendali (Kebun Saya, Otomasi Alat, Pengaturan Alat, STOP dan E-STOP)', 'Siklus Tanam, Kalibrasi (termasuk update program alat), Catatan Aktivitas, Laporan', 'Master Data (Jenis Tanaman, Meja, Uji Lab, Ambang Sensor) dan Manajemen User'],
   },
   user: {
     label: 'User',
