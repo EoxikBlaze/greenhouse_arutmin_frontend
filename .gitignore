@@ -101,3 +101,6 @@ flutter_mobile_app/*.apk
 
 # Laporan audit lokal: memuat celah yang belum ditutup, jangan masuk repo publik
 docs/LAPORAN_AUDIT_2026-11-11.md
+
+# Firmware ESP32: rahasia.h (WiFi, API key, sandi OTA) TIDAK PERNAH masuk git; pakai rahasia.contoh.h
+firmware/**/rahasia.h
