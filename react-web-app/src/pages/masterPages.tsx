@@ -753,7 +753,8 @@ export function MejaTanamanPage() {
             </Field>
           )}
           {(() => {
-            // Hanya volume penampung yang wajib untuk alat. Waktu operasi otomatis bila kosong; detail fisik talang hanya catatan.
+            // Volume, jumlah talang, dan laju per talang selalu terlihat: ketiganya dipakai menghitung waktu monitoring & jeda A→B otomatis.
+            // Isian manual monitoring/jeda dan detail fisik lain dilipat.
             const kolom = (keys: string[]) =>
               MEJA_FIELDS.filter((f) => keys.includes(f.key) && f.key in form).map((f) => (
                 <Field key={f.key} label={f.label}>
@@ -766,18 +767,23 @@ export function MejaTanamanPage() {
                   <FieldError message={fieldError(fieldErrors, f.key)} />
                 </Field>
               ));
-            const WAKTU = ['jumlah_talang', 'laju_per_talang_lpm', 'monitoring_menit', 'jeda_ab_dtk'];
+            const SIRKULASI = ['jumlah_talang', 'laju_per_talang_lpm'];
+            const WAKTU = ['monitoring_menit', 'jeda_ab_dtk'];
             const FISIK = ['jumlah_lubang', 'jenis_talang', 'lubang_per_talang', 'panjang_talang_m', 'kenaikan_air_cm'];
             const adaGalat = (keys: string[]) => keys.some((k) => (fieldErrors[k] ?? []).length > 0);
             return (
               <>
                 {kolom(['kapasitas_penampung_l'])}
+                {kolom(SIRKULASI)}
+                <p className="mt-1 text-[12px] leading-relaxed text-slate-600">
+                  Volume, jumlah talang, dan laju per talang menentukan satu putaran larutan (volume ÷ (jumlah talang × laju per talang)). Dari situ waktu monitoring dan jeda A→B alat dihitung otomatis. Isi ketiganya dengan teliti.
+                </p>
                 <details className="mt-3" open={adaGalat(WAKTU) || !!form.monitoring_menit || !!form.jeda_ab_dtk}>
-                  <summary className="cursor-pointer text-[12.5px] font-bold text-slate-700">Waktu monitoring &amp; jeda A→B (opsional, otomatis bila kosong)</summary>
+                  <summary className="cursor-pointer text-[12.5px] font-bold text-slate-700">Atur waktu monitoring &amp; jeda A→B sendiri (opsional, kosong = otomatis)</summary>
                   <div className="mt-2">{kolom(WAKTU)}</div>
                 </details>
                 <details className="mt-3" open={adaGalat(FISIK)}>
-                  <summary className="cursor-pointer text-[12.5px] font-bold text-slate-700">Detail fisik meja &amp; talang (catatan, tidak dipakai alat)</summary>
+                  <summary className="cursor-pointer text-[12.5px] font-bold text-slate-700">Detail fisik lain (jenis talang, panjang, dll.: hanya catatan, tidak dipakai alat)</summary>
                   <div className="mt-2">{kolom(FISIK)}</div>
                 </details>
               </>
