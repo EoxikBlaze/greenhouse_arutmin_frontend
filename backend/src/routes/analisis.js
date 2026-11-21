@@ -1,0 +1,346 @@
+'use strict';
+/**
+ * Analisis sensor & batch — mount: app.use('/api/analisis', semuaRole, analisis). Semua GET, hanya baca.
+ *   GET /dosing-kejadian     kapan alat menyuntik (penanda di grafik)
+ *   GET /kestabilan          persen waktu dalam batas aman + simpangan baku, per sensor dan per hari
+ *   GET /respons-dosing      kenaikan ppm sesudah tiap dosing A+B
+ *   GET /konsumsi            laju ppm turun per hari tanpa dosing + hitungan kegiatan per hari
+ *   GET /pola-harian         suhu, kelembapan, dan VPD per jam
+ *   GET /korelasi            korelasi peringkat Spearman antar sensor (n efektif memperhitungkan autokorelasi)
+ *   GET /kualitas-data       cakupan, lonjakan, nilai mustahil, umur kalibrasi, dan kecenderungan harian (Mann–Kendall + Theil–Sen)
+ *   GET /batch               ringkasan batch (semai → panen)
+ *   GET /bandingkan-batch    ?a=&b= grafik harian dua batch per hari sejak semai
+ *   GET /paket-riset         sensor + dosing + kalibrasi + batch + metadata (dibuat jadi .xlsx di web)
+ * Rentang: ?dari=&sampai= (ISO/tanggal; bawaan 7 hari terakhir; maks 92 hari). Data sensor dirata-rata per 5 menit.
+ */
+const express = require('express');
+const { q } = require('../db');
+const { queryParam } = require('./_id');
+const { tanggalErrors } = require('./_validate');
+const { requireRole } = require('../auth');
+const { thresholdsMap } = require('./monitoring');
+const AS = require('../analisisSensor');
+const ST = require('../statistikIlmiah');
+const { FISIK } = require('../sanitySensor');
+
+const router = express.Router();
+
+const HARI_MS = 86_400_000;
+const RENTANG_MAKS = 92 * HARI_MS;
+const BUCKET_DETIK = 300;
+const BARIS_PAKET_MAKS = 30_000;
+const SENSOR = ['ph', 'tds', 'waterTemp', 'airTemp', 'humidity'];
+
+/** Rentang dari query; kirim 422 dan kembalikan null bila tidak sah. */
+function ambilRentang(req, res) {
+  const dariQ = queryParam(req.query, 'dari');
+  const sampaiQ = queryParam(req.query, 'sampai');
+  const err = tanggalErrors(dariQ, sampaiQ);
+  if (Object.keys(err).length) { res.status(422).json({ message: 'Data tidak valid.', errors: err }); return null; }
+  const sampai = sampaiQ ? Date.parse(sampaiQ) : Date.now();
+  const dari = dariQ ? Date.parse(dariQ) : sampai - 7 * HARI_MS;
+  if (!Number.isFinite(dari) || !Number.isFinite(sampai) || dari > sampai) {
+    res.status(422).json({ message: 'Rentang tidak sah: "dari" harus sebelum "sampai".', errors: { dari: ['Harus sebelum atau sama dengan sampai.'] } });
+    return null;
+  }
+  if (sampai - dari > RENTANG_MAKS) {
+    res.status(422).json({ message: 'Rentang maksimal 92 hari.', errors: { dari: ['Pilih rentang yang lebih pendek (maks 92 hari).'] } });
+    return null;
+  }
+  return { dari, sampai, dariIso: new Date(dari).toISOString(), sampaiIso: new Date(sampai).toISOString() };
+}
+
+/** Bacaan dirata-rata per 5 menit: [{ t, ph, tds, waterTemp, ec, airTemp, humidity }]. */
+async function bacaanLimaMenit(dariIso, sampaiIso, idMeja = null) {
+  const rows = await q(
+    `SELECT (to_timestamp(b * ${BUCKET_DETIK}) AT TIME ZONE 'UTC') AS waktu, ph, tds, "waterTemp", ec, "airTemp", humidity
+       FROM (SELECT floor(extract(epoch FROM created_at) / ${BUCKET_DETIK})::bigint AS b,
+                    avg(ph)::float8 AS ph, avg(tds)::float8 AS tds, avg("waterTemp")::float8 AS "waterTemp",
+                    avg(ec_ms_cm)::float8 AS ec, avg("airTemp")::float8 AS "airTemp", avg(humidity)::float8 AS humidity
+               FROM monitorings
+              WHERE created_at >= $1::timestamptz AND created_at <= $2::timestamptz
+                AND ($3::bigint IS NULL OR id_meja = $3 OR id_meja IS NULL)
+              GROUP BY 1) x ORDER BY b`, [dariIso, sampaiIso, idMeja]);
+  return rows.map((r) => ({ ...r, t: new Date(r.waktu).getTime() }));
+}
+
+const seriDari = (titik, kunci) => titik.filter((p) => p[kunci] != null).map((p) => ({ t: p.t, v: Number(p[kunci]) }));
+
+async function kejadianDosing(dariIso, sampaiIso) {
+  const rows = await q(
+    `SELECT jenis, terjadi_pada FROM dosing_kejadian
+      WHERE terjadi_pada >= $1::timestamptz AND terjadi_pada <= $2::timestamptz ORDER BY terjadi_pada`, [dariIso, sampaiIso]).catch(() => []);
+  return rows.map((r) => ({ t: new Date(r.terjadi_pada).getTime(), jenis: r.jenis }));
+}
+
+router.get('/dosing-kejadian', async (req, res, next) => {
+  try {
+    const r = ambilRentang(req, res); if (!r) return;
+    res.json({ status: true, dari: r.dariIso, sampai: r.sampaiIso, kejadian: await kejadianDosing(r.dariIso, r.sampaiIso) });
+  } catch (e) { next(e); }
+});
+
+router.get('/kestabilan', async (req, res, next) => {
+  try {
+    const r = ambilRentang(req, res); if (!r) return;
+    const [titik, ambang] = await Promise.all([bacaanLimaMenit(r.dariIso, r.sampaiIso), thresholdsMap()]);
+    const jamDiharapkan = (r.sampai - r.dari) / 3_600_000;
+    const sensor = {};
+    for (const k of SENSOR) {
+      const b = ambang?.[k];
+      const batas = b && b.min != null && b.max != null ? { min: Number(b.min), max: Number(b.max) } : null;
+      const seri = seriDari(titik, k);
+      const dasar = AS.kestabilan(seri, batas);
+      // selang kepercayaan persen-dalam-batas dihitung ANTAR HARI (satu nilai per hari): titik 5 menit berautokorelasi,
+      // sehingga menganggapnya independen akan menyempitkan selang secara palsu
+      const tirHari = dasar.per_hari.map((h) => h.dalam_batas_persen).filter((v) => v != null);
+      sensor[k] = {
+        ...dasar, batas,
+        sebaran: ST.ringkasSebaran(seri.map((p) => p.v)),
+        ci_dalam_batas: tirHari.length >= 2 ? ST.ciRata(tirHari) : null,
+        hari_n: dasar.per_hari.length,
+      };
+    }
+    res.json({
+      status: true, dari: r.dariIso, sampai: r.sampaiIso,
+      // cakupan = jam yang ada datanya / jam rentang (celah = alat mati atau offline)
+      cakupan_persen: jamDiharapkan > 0 ? Math.min(100, ((titik.length * BUCKET_DETIK) / 3600 / jamDiharapkan) * 100) : null,
+      sensor,
+    });
+  } catch (e) { next(e); }
+});
+
+router.get('/respons-dosing', async (req, res, next) => {
+  try {
+    const r = ambilRentang(req, res); if (!r) return;
+    const [titik, kejadian] = await Promise.all([bacaanLimaMenit(r.dariIso, r.sampaiIso), kejadianDosing(r.dariIso, r.sampaiIso)]);
+    const hasil = AS.responsDosing(seriDari(titik, 'tds'), kejadian);
+    const naikBersih = hasil.kejadian.filter((h) => h.bersih).map((h) => h.naik);
+    res.json({
+      status: true, dari: r.dariIso, sampai: r.sampaiIso, jumlah_ab: kejadian.filter((k) => k.jenis === 'AB').length,
+      ...hasil,
+      statistik: { sebaran: ST.ringkasSebaran(naikBersih), ci_median: ST.ciMedian(naikBersih) },
+    });
+  } catch (e) { next(e); }
+});
+
+router.get('/konsumsi', async (req, res, next) => {
+  try {
+    const r = ambilRentang(req, res); if (!r) return;
+    const [titik, kejadian] = await Promise.all([bacaanLimaMenit(r.dariIso, r.sampaiIso), kejadianDosing(r.dariIso, r.sampaiIso)]);
+    const perHari = new Map();
+    for (const k of kejadian) {
+      const tgl = AS.tanggalLokal(k.t);
+      if (!perHari.has(tgl)) perHari.set(tgl, { tanggal: tgl, ab: 0, ph: 0, encer: 0, isi: 0 });
+      perHari.get(tgl)[k.jenis.toLowerCase()] += 1;
+    }
+    const hasil = AS.konsumsiNutrisi(seriDari(titik, 'tds'), kejadian);
+    const perHariSegmen = hasil.segmen.map((s) => s.turun_per_jam * 24);
+    // normalisasi: massa nutrisi terlarut yang hilang per hari = ppm (mg/L) × volume (L); per tanaman bila jumlahnya diketahui
+    const meja = (await q(`SELECT m.kapasitas_penampung_l AS volume FROM perangkat p JOIN mejas m ON m.id_meja = p.id_meja
+                           WHERE p.peran IN ('gabungan','aktuator') ORDER BY p.kode LIMIT 1`).catch(() => []))[0];
+    const volume = meja && Number(meja.volume) > 0 ? Number(meja.volume) : null;
+    const idMeja = (await q(`SELECT id_meja FROM perangkat WHERE peran IN ('gabungan','aktuator') AND id_meja IS NOT NULL ORDER BY kode LIMIT 1`).catch(() => []))[0]?.id_meja ?? null;
+    const tanaman = idMeja == null ? null : Number((await q(
+      `SELECT coalesce(sum(x), 0)::int AS n FROM (
+         SELECT jumlah_benih AS x FROM semais WHERE status = 'proses' AND id_meja = $1
+         UNION ALL SELECT jumlah_masuk FROM peremajaans WHERE status = 'proses' AND id_meja = $1
+         UNION ALL SELECT jumlah_masuk FROM pendewasaans WHERE status = 'proses' AND id_meja = $1) t`, [idMeja]).catch(() => [{ n: 0 }]))[0].n) || null;
+    const gramHari = volume != null && hasil.ppm_turun_per_hari != null ? (hasil.ppm_turun_per_hari * volume) / 1000 : null;
+    res.json({
+      status: true, dari: r.dariIso, sampai: r.sampaiIso,
+      ...hasil,
+      statistik: { sebaran_segmen_per_hari: ST.ringkasSebaran(perHariSegmen), ci_median: ST.ciMedian(perHariSegmen) },
+      normalisasi: {
+        volume_l: volume, tanaman_aktif: tanaman,
+        gram_per_hari: gramHari, gram_per_tanaman_per_hari: gramHari != null && tanaman ? gramHari / tanaman : null,
+      },
+      kegiatan_per_hari: [...perHari.values()].sort((a, b) => a.tanggal.localeCompare(b.tanggal)),
+    });
+  } catch (e) { next(e); }
+});
+
+router.get('/pola-harian', async (req, res, next) => {
+  try {
+    const r = ambilRentang(req, res); if (!r) return;
+    const titik = await bacaanLimaMenit(r.dariIso, r.sampaiIso);
+    const pola = AS.polaHarian(titik.map((p) => ({ t: p.t, suhu: p.airTemp, rh: p.humidity })));
+    res.json({
+      status: true, dari: r.dariIso, sampai: r.sampaiIso, ...pola,
+      kategori_vpd: pola.per_jam.map((j) => ({ jam: j.jam, nilai: AS.nilaiVpd(j.vpd) })),
+      catatan: 'VPD < 0,4 kPa terlalu lembap, 0,4–1,2 baik, > 1,2 terlalu kering (acuan umum sayuran daun).',
+    });
+  } catch (e) { next(e); }
+});
+
+const NAMA_SENSOR = { ph: 'pH', tds: 'Nutrisi (ppm)', waterTemp: 'Suhu air', airTemp: 'Suhu udara', humidity: 'Kelembapan' };
+
+/** Rata-rata per jam dari titik 5 menit: kurangi autokorelasi dan beda cakupan antar sensor. */
+function rataPerJam(titik, kunci) {
+  const jam = new Map();
+  for (const p of titik) {
+    if (p[kunci] == null) continue;
+    const k = Math.floor(p.t / 3_600_000);
+    if (!jam.has(k)) jam.set(k, []);
+    jam.get(k).push(Number(p[kunci]));
+  }
+  return jam;
+}
+const kekuatan = (rho) => { const a = Math.abs(rho); return a < 0.2 ? 'sangat lemah' : a < 0.4 ? 'lemah' : a < 0.6 ? 'sedang' : a < 0.8 ? 'kuat' : 'sangat kuat'; };
+
+router.get('/korelasi', async (req, res, next) => {
+  try {
+    const r = ambilRentang(req, res); if (!r) return;
+    const titik = await bacaanLimaMenit(r.dariIso, r.sampaiIso);
+    const perJam = Object.fromEntries(SENSOR.map((k) => [k, rataPerJam(titik, k)]));
+    const rata = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+    const pasangan = [];
+    for (let i = 0; i < SENSOR.length; i += 1) {
+      for (let j = i + 1; j < SENSOR.length; j += 1) {
+        const [ka, kb] = [SENSOR[i], SENSOR[j]];
+        const bersama = [...perJam[ka].keys()].filter((jm) => perJam[kb].has(jm)).sort((x, y) => x - y);
+        const x = bersama.map((jm) => rata(perJam[ka].get(jm)));
+        const y = bersama.map((jm) => rata(perJam[kb].get(jm)));
+        const sp = ST.spearman(x, y);
+        pasangan.push({ a: ka, b: kb, nama_a: NAMA_SENSOR[ka], nama_b: NAMA_SENSOR[kb], n: bersama.length,
+          ...(sp ? { rho: sp.rho, n_efektif: sp.n_efektif, p: sp.p, kekuatan: kekuatan(sp.rho) } : { rho: null, n_efektif: null, p: null, kekuatan: null }) });
+      }
+    }
+    res.json({ status: true, dari: r.dariIso, sampai: r.sampaiIso, satuan_waktu: 'rata-rata per jam', jumlah_perbandingan: pasangan.filter((p) => p.p != null).length, pasangan });
+  } catch (e) { next(e); }
+});
+
+router.get('/kualitas-data', async (req, res, next) => {
+  try {
+    const r = ambilRentang(req, res); if (!r) return;
+    const [titik, kal] = await Promise.all([
+      bacaanLimaMenit(r.dariIso, r.sampaiIso),
+      q(`SELECT sensor, max(dilakukan_pada) AS terakhir FROM kalibrasi_log WHERE sensor IN ('ph','ec') AND coalesce(lulus, true) GROUP BY sensor`).catch(() => []),
+    ]);
+    const umurKal = (s) => { const t = kal.find((x) => x.sensor === s)?.terakhir; return t ? Math.floor((Date.now() - new Date(t).getTime()) / 86_400_000) : null; };
+    const jamDiharapkan = (r.sampai - r.dari) / 3_600_000;
+    const sensor = {};
+    for (const k of SENSOR) {
+      const seri = seriDari(titik, k);
+      const nilai = seri.map((p) => p.v);
+      const [lo, hi] = FISIK[k] ?? [-Infinity, Infinity];
+      const harian = new Map();
+      for (const p of seri) {
+        const tgl = AS.tanggalLokal(p.t);
+        if (!harian.has(tgl)) harian.set(tgl, []);
+        harian.get(tgl).push(p.v);
+      }
+      const tanggal = [...harian.keys()].sort();
+      const hari0 = tanggal.length ? Date.parse(`${tanggal[0]}T00:00:00`) : 0;
+      const median = tanggal.map((t) => ({ hari: Math.round((Date.parse(`${t}T00:00:00`) - hari0) / 86_400_000), nilai: ST.median(harian.get(t)) }));
+      sensor[k] = {
+        nama: NAMA_SENSOR[k], n: nilai.length,
+        cakupan_persen: jamDiharapkan > 0 ? Math.min(100, ((nilai.length * BUCKET_DETIK) / 3600 / jamDiharapkan) * 100) : null,
+        di_luar_fisik: nilai.filter((v) => v < lo || v > hi).length,
+        lonjakan: nilai.length ? ST.deteksiLonjakan(nilai) : { n: 0, lonjakan: 0, persen: 0 },
+        tren: ST.kecenderungan(median),
+        hari_n: median.length,
+        umur_kalibrasi_hari: k === 'ph' ? umurKal('ph') : k === 'tds' ? umurKal('ec') : null,
+      };
+    }
+    res.json({ status: true, dari: r.dariIso, sampai: r.sampaiIso, sensor });
+  } catch (e) { next(e); }
+});
+
+/** Ringkasan batch: satu baris per semai (akar batch), lengkap dengan hasil panen. */
+async function daftarBatch(batas = 60) {
+  return q(
+    `SELECT s.id_semai AS id, t.nama_tanaman AS tanaman, s.id_meja, mj.meja, s.tgl_awal_semai AS mulai, s.status, s.jumlah_benih,
+            (SELECT max(p.tgl_panen) FROM panens p JOIN pendewasaans d ON d.id_pendewasaan = p.id_pendewasaan
+               JOIN peremajaans r ON r.id_peremajaan = d.id_peremajaan WHERE r.id_semai = s.id_semai) AS tgl_panen,
+            (SELECT coalesce(sum(p.panen_berhasil), 0)::int FROM panens p JOIN pendewasaans d ON d.id_pendewasaan = p.id_pendewasaan
+               JOIN peremajaans r ON r.id_peremajaan = d.id_peremajaan WHERE r.id_semai = s.id_semai) AS panen_berhasil,
+            (SELECT coalesce(sum(p.panen_gagal), 0)::int FROM panens p JOIN pendewasaans d ON d.id_pendewasaan = p.id_pendewasaan
+               JOIN peremajaans r ON r.id_peremajaan = d.id_peremajaan WHERE r.id_semai = s.id_semai) AS panen_gagal
+       FROM semais s LEFT JOIN tanamen t ON t.id_tanaman = s.id_tanaman LEFT JOIN mejas mj ON mj.id_meja = s.id_meja
+      ORDER BY s.id_semai DESC LIMIT $1`, [batas]);
+}
+
+router.get('/batch', async (_req, res, next) => {
+  try { res.json({ status: true, list: await daftarBatch() }); } catch (e) { next(e); }
+});
+
+/** Deret harian satu batch menurut hari sejak semai (hari 0 = tanggal mulai) + ringkasan kestabilan. */
+async function deretBatch(id, ambang) {
+  const b = (await daftarBatch(1000)).find((x) => String(x.id) === String(id));
+  if (!b) return null;
+  const mulaiMs = new Date(b.mulai).getTime();
+  const akhirMs = b.tgl_panen ? new Date(b.tgl_panen).getTime() + HARI_MS : Date.now();
+  const titik = await bacaanLimaMenit(new Date(mulaiMs).toISOString(), new Date(Math.min(akhirMs, mulaiMs + RENTANG_MAKS)).toISOString(), b.id_meja);
+  const perHari = new Map();
+  for (const p of titik) {
+    const n = Math.floor((p.t - mulaiMs) / HARI_MS);
+    if (n < 0) continue;
+    if (!perHari.has(n)) perHari.set(n, []);
+    perHari.get(n).push(p);
+  }
+  const rata = (arr, k) => { const v = arr.map((p) => p[k]).filter((x) => x != null); return v.length ? v.reduce((x, y) => x + Number(y), 0) / v.length : null; };
+  const hari = [...perHari.entries()].sort(([x], [y]) => x - y).map(([n, arr]) => ({
+    n, ph: rata(arr, 'ph'), tds: rata(arr, 'tds'), waterTemp: rata(arr, 'waterTemp'), airTemp: rata(arr, 'airTemp'), humidity: rata(arr, 'humidity'),
+  }));
+  const ringkas = {};
+  for (const k of SENSOR) {
+    const bt = ambang?.[k];
+    ringkas[k] = AS.kestabilan(seriDari(titik, k), bt && bt.min != null && bt.max != null ? { min: Number(bt.min), max: Number(bt.max) } : null);
+    delete ringkas[k].per_hari;
+  }
+  return { batch: b, hari, ringkas, jumlah_titik: titik.length };
+}
+
+router.get('/bandingkan-batch', async (req, res, next) => {
+  try {
+    const idOk = (v) => /^\d{1,18}$/.test(String(v ?? ''));
+    const a = queryParam(req.query, 'a');
+    const b = queryParam(req.query, 'b');
+    if (!idOk(a) || !idOk(b)) return res.status(422).json({ message: 'Data tidak valid.', errors: { a: ['Pilih dua batch (a dan b).'] } });
+    const ambang = await thresholdsMap();
+    const [da, db] = await Promise.all([deretBatch(a, ambang), deretBatch(b, ambang)]);
+    if (!da || !db) return res.status(404).json({ message: 'Batch tidak ditemukan.' });
+    // uji peringkat bertanda pada nilai harian yang ADA di kedua batch pada hari-ke yang sama
+    const uji = {};
+    for (const k of SENSOR) {
+      const peta = new Map(db.hari.map((h) => [h.n, h[k]]));
+      const pasang = da.hari.filter((h) => h[k] != null && peta.get(h.n) != null).map((h) => [Number(h[k]), Number(peta.get(h.n))]);
+      const w = ST.wilcoxonBerpasangan(pasang.map((p) => p[0]), pasang.map((p) => p[1]));
+      uji[k] = { nama: NAMA_SENSOR[k], n_pasang: pasang.length, selisih_median: w ? w.selisih_median : (pasang.length ? ST.median(pasang.map((p) => p[0] - p[1])) : null),
+        p: w ? w.p : null, metode: w ? w.metode : null, cukup: pasang.length >= 6 };
+    }
+    res.json({ status: true, a: da, b: db, uji, jumlah_uji: SENSOR.length });
+  } catch (e) { next(e); }
+});
+
+// Paket data riset (unduhan lengkap) hanya untuk pengelola, sama dengan tombolnya di web; petani tetap bisa melihat analisisnya
+router.get('/paket-riset', requireRole(['admin', 'demo']), async (req, res, next) => {
+  try {
+    const r = ambilRentang(req, res); if (!r) return;
+    const [titik, kejadian, kal, perangkat, ambang, batch] = await Promise.all([
+      bacaanLimaMenit(r.dariIso, r.sampaiIso), kejadianDosing(r.dariIso, r.sampaiIso),
+      q(`SELECT sensor, dilakukan_pada, nilai_ref, bacaan_sebelum, bacaan_sesudah, lulus, catatan FROM kalibrasi_log ORDER BY dilakukan_pada DESC LIMIT 200`).catch(() => []),
+      q(`SELECT kode, nama, peran, versi_firmware, id_meja FROM perangkat WHERE peran IS NOT NULL ORDER BY kode`).catch(() => []),
+      thresholdsMap(), daftarBatch(200),
+    ]);
+    const terpotong = titik.length > BARIS_PAKET_MAKS;
+    res.json({
+      status: true,
+      metadata: {
+        dibuat: new Date().toISOString(), dari: r.dariIso, sampai: r.sampaiIso, interval_detik: BUCKET_DETIK,
+        catatan: [
+          'Bacaan dirata-rata per 5 menit; waktu = jam dinding lokal server.',
+          'tds = ppm = EC (mS/cm) x 500.',
+          'Alat hanya melaporkan hitungan dosing per hari, bukan mL; kolom dosing berisi waktu kejadian.',
+          'Rentang aman = tabel Ambang Sensor pada saat unduh.',
+        ],
+        terpotong, baris_maks: BARIS_PAKET_MAKS,
+      },
+      ambang, perangkat, kalibrasi: kal, dosing: kejadian, batch,
+      sensor: titik.slice(-BARIS_PAKET_MAKS).map((p) => ({ waktu: p.waktu, ph: p.ph, tds: p.tds, ec_ms_cm: p.ec, suhu_air: p.waterTemp, suhu_udara: p.airTemp, kelembapan: p.humidity })),
+    });
+  } catch (e) { next(e); }
+});
+
+module.exports = router;

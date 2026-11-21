@@ -1,0 +1,590 @@
+'use strict';
+/**
+ * Antrean perintah aktuator (server → ESP32 aktuator) dengan PAGAR KESELAMATAN di server.
+ *
+ * Prinsip: siapa pun yang meminta (pengguna, otomasi, AI) HANYA bisa mengantre perintah
+ * yang lolos pagar di sini. AI/otomasi tidak pernah mengirim nilai mentah ke perangkat —
+ * semua nilai divalidasi ulang terhadap `konfigurasi_dosis`, lock penampung, batas harian
+ * dan latch E-STOP. Firmware ESP32 WAJIB punya batas sendiri juga (pertahanan berlapis).
+ */
+const { pool, q, one } = require('./db');
+const { tidakTerisi } = require('./parameter');
+const saklar = require('./saklar');
+
+/** Batas konfigurasi_dosis yang dipakai pagar per jenis perintah — wajib terisi & sah. */
+const BATAS_WAJIB = {
+  AB: ['maks_ml_per_suntikan', 'maks_volume_ab_hari_ml', 'maks_suntikan_per_kejadian', 'maks_kejadian_per_hari', 'peringatan_dini_kejadian'],
+  PH: ['maks_ml_ph_per_suntikan', 'maks_volume_ph_hari_ml'],
+  BILAS: ['maks_ml_bilas_per_perintah'],
+};
+
+const TIPE = [
+  'DOSIS', 'BILAS', 'SAMPLING', 'ISI_AIR', 'STOP', 'STOP_DARURAT',
+  'UJI_POMPA', 'KALIBRASI', 'BALIK_KALIBRASI', 'JADWAL',
+  'KAL_SENSOR', 'KONFIGURASI', 'SEMAI', 'TARGET', 'PANEN', 'PEMELIHARAAN', 'BUKA_KUNCI', 'OTOMASI', 'STATUS',
+  'OTA', 'KONSOL'
+];
+/** JADWAL = waktu operasi yang disimpan permanen di NVS ESP32 (bukan aktuasi). Rentang = batas keras firmware gabungan-0.7. */
+const JADWAL_RENTANG = { interval_sensor_detik: [5, 60], jeda_ab_detik: [60, 600], isi_air_maks_detik: [60, 600] };
+/** Nama pompa di firmware (NAMA_OUT). ISI_AIR sengaja tidak ada: punya perintah sendiri. */
+const POMPA_UJI = ['A', 'B', 'PH_UP', 'PH_DOWN', 'ISI'];
+/** Batas firmware: UJI_POMPA menolak > 120 dtk; laju pompa 0–500 mL/dtk. */
+const UJI_POMPA_DETIK = [5, 120];
+const LAJU_KALIBRASI = ['laju_a', 'laju_b', 'laju_ph_up', 'laju_ph_down'];
+/** DAFTAR-IZIN pengiriman (containment DOSIS): hanya tipe ini yang boleh di-dequeue/dikirim, cocok PERSIS.
+ *  Sengaja bukan daftar-tolak: varian tulisan DOSIS (tab, newline, huruf/Unicode lain) dan tipe tak dikenal tetap tertahan. */
+const TIPE_DIKIRIM = TIPE.filter((t) => t !== 'DOSIS');
+const LARUTAN = ['AB', 'PH_UP', 'PH_DOWN'];
+const PERANGKAT_AKTUATOR = 'aktuator-01';
+
+class PerintahDitolak extends Error {
+  constructor(status, pesan, errors) {
+    super(pesan);
+    this.status = status;
+    this.errors = errors;
+  }
+}
+
+/** Penolakan yang juga MENGUNCI penampung (Perancangan FINAL Aturan 9: alert 3 & 4 → LOCK). */
+function tolakDanKunci(status, pesan, kunci) {
+  const e = new PerintahDitolak(status, pesan);
+  e.kunci = kunci; // { alasan, type, value } — diterapkan SETELAH rollback, agar tetap tersimpan
+  return e;
+}
+
+/** Kejadian tanpa ronde baru selama ini dianggap selesai (mixing 15 mnt × 5 ronde masih jauh di bawahnya). */
+const KEJADIAN_BASI_MENIT = 60;
+const HARI_WITA = "(now() AT TIME ZONE 'Asia/Makassar')::date";
+// reset_harian_pada = timestamp TANPA zona: simpan jam WITA eksplisit, bukan now() (yang mengikuti TimeZone sesi DB —
+// di sesi UTC, 16:00–24:00 UTC tanggalnya ≠ tanggal WITA → jatah harian ter-reset tiap permintaan)
+const JAM_WITA = "(now() AT TIME ZONE 'Asia/Makassar')";
+
+/**
+ * LOCK penampung + alert kritis + tutup kejadian berjalan + batalkan dosis yang masih menunggu.
+ * Dosing mati sampai admin membuka kunci; sensor, pencatatan, sirkulasi tetap jalan.
+ * @returns {Promise<boolean>} false bila penampung sudah terkunci (alert tidak didobel)
+ */
+async function kunciPenampung(idMeja, { alasan, type, value }) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('INSERT INTO penampung_states (id_meja) VALUES ($1) ON CONFLICT (id_meja) DO NOTHING', [idMeja]);
+    const baru = (await client.query(
+      `UPDATE penampung_states SET status_lock = true, lock_alasan = $2, lock_sejak = now(), updated_at = now()
+        WHERE id_meja = $1 AND NOT status_lock RETURNING id_meja`, [idMeja, String(alasan).slice(0, 100)])).rows[0];
+    if (!baru) { await client.query('ROLLBACK'); return false; }
+    const alert = (await client.query(
+      `INSERT INTO alert_logs (type, value, id_meja, severity, locked, created_at, updated_at)
+       VALUES ($1, $2, $3, 'critical', true, now(), now()) RETURNING id`,
+      [type, String(value).slice(0, 100), idMeja])).rows[0];
+    // kejadian lama (status NULL) → lock; alur persetujuan (3C): belum ada dosis (WAITING/APPROVED) → CANCELLED,
+    // sedang berjalan → FAULT. Transisi alur baru dicatat di dosing_transisi.
+    await client.query(
+      `WITH o AS (SELECT id, status FROM dosing_events WHERE id_meja = $1 AND hasil = 'berjalan' FOR UPDATE),
+            u AS (UPDATE dosing_events d SET
+                    status = CASE WHEN o.status IN ('WAITING_APPROVAL', 'APPROVED') THEN 'CANCELLED' WHEN o.status IS NOT NULL THEN 'FAULT' END,
+                    hasil = CASE WHEN o.status IN ('WAITING_APPROVAL', 'APPROVED') THEN 'dibatalkan' ELSE 'lock' END,
+                    lock_terpicu = o.status IS NULL OR o.status NOT IN ('WAITING_APPROVAL', 'APPROVED'),
+                    alasan_akhir = CASE WHEN o.status IS NULL THEN d.alasan_akhir ELSE $3 END,
+                    id_alert = $2, selesai_pada = now(), updated_at = now()
+                  FROM o WHERE d.id = o.id RETURNING d.id, o.status AS dari, d.status AS ke)
+       INSERT INTO dosing_transisi (id_kejadian, dari, ke, aktor_tipe, alasan)
+       SELECT id, dari, ke, 'system', $3 FROM u WHERE dari IS NOT NULL`,
+      [idMeja, alert.id, `penampung dikunci: ${String(alasan).slice(0, 100)}`]);
+    await client.query(
+      `UPDATE perintah_aktuator SET status = 'batal', selesai_pada = now()
+        WHERE status = 'menunggu' AND tipe = 'DOSIS' AND (parameter->>'penampung')::bigint = $1`, [idMeja]);
+    await client.query('COMMIT');
+    return true;
+  } catch (e) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
+/** Buka LOCK (admin, setelah memeriksa). Hitungan harian TIDAK direset (Perancangan: reset hanya 00:00). */
+async function bukaKunci(idMeja, oleh) {
+  const row = await one(
+    `UPDATE penampung_states SET status_lock = false, lock_alasan = NULL, lock_sejak = NULL, updated_at = now()
+      WHERE id_meja = $1 AND status_lock RETURNING id_meja`, [idMeja]);
+  if (!row) return false;
+  await q(
+    `INSERT INTO alert_logs (type, value, id_meja, severity, locked, created_at, updated_at)
+     VALUES ('reset', $1, $2, 'info', false, now(), now())`,
+    [`LOCK dibuka oleh ${oleh || 'admin'}`.slice(0, 100), idMeja]);
+  return true;
+}
+
+/** Peta konfigurasi_dosis → {param: number}. */
+async function bacaKonfig(runner = q) {
+  const rows = await runner('SELECT param, nilai FROM konfigurasi_dosis', []);
+  const m = {};
+  for (const r of rows.rows ?? rows) m[r.param] = Number(r.nilai);
+  return m;
+}
+
+const angka = (v) => (typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN);
+const bulat1 = (n) => Math.round(n * 10) / 10;
+
+/**
+ * Validasi murni (tanpa DB). Mengembalikan parameter ter-normalisasi atau melempar 422.
+ * @param {string} tipe
+ * @param {object} p
+ * @param {Record<string,number>} cfg konfigurasi_dosis
+ */
+function validasiPerintah(tipe, p, cfg) {
+  if (!TIPE.includes(tipe)) throw new PerintahDitolak(422, 'Tipe perintah tidak dikenal.', { tipe: [`Pilih salah satu: ${TIPE.join(', ')}.`] });
+  const body = p && typeof p === 'object' && !Array.isArray(p) ? p : {};
+  const err = {};
+  const out = {};
+  const penampung = () => {
+    const n = angka(body.penampung);
+    if (!Number.isInteger(n) || n < 1 || n > 999999) err.penampung = ['penampung wajib berupa id meja (bilangan bulat ≥ 1).'];
+    else out.penampung = n;
+  };
+  if (tipe === 'DOSIS') {
+    penampung();
+    if (!LARUTAN.includes(body.larutan)) err.larutan = [`larutan harus salah satu dari ${LARUTAN.join(', ')}.`];
+    else out.larutan = body.larutan;
+    const ml = angka(body.ml);
+    if (!Number.isFinite(ml) || ml <= 0) err.ml = ['ml wajib angka > 0.'];
+    else {
+      const batas = body.larutan === 'AB'
+        ? (cfg.maks_ml_per_suntikan ?? 214)
+        : (cfg.maks_ml_ph_per_suntikan ?? 10);
+      if (ml > batas) err.ml = [`ml melebihi batas per suntikan (${batas} mL).`];
+      else out.ml = bulat1(ml);
+    }
+  } else if (tipe === 'BILAS') {
+    penampung();
+    const ml = angka(body.ml ?? 100);
+    const batas = cfg.maks_ml_bilas_per_perintah ?? 500;
+    if (!Number.isFinite(ml) || ml <= 0 || ml > batas) err.ml = [`ml bilas harus 1–${batas}.`];
+    else out.ml = bulat1(ml);
+  } else if (tipe === 'SAMPLING') {
+    penampung();
+  } else if (tipe === 'ISI_AIR') {
+    penampung();
+    const aksi = String(body.aksi || 'MULAI').toUpperCase();
+    if (!['MULAI', 'STOP'].includes(aksi)) err.aksi = ['aksi harus MULAI atau STOP.'];
+    else out.aksi = aksi;
+    // nomor katup di perangkat (≠ id_meja server); dipakai firmware v0.3, opsional demi kontrak lama
+    if (body.katup !== undefined) {
+      const k = angka(body.katup);
+      if (!Number.isInteger(k) || k < 1 || k > 64) err.katup = ['katup harus bilangan bulat 1–64.'];
+      else out.katup = k;
+    }
+  } else if (tipe === 'UJI_POMPA') {
+    const pompa = String(body.pompa || '').toUpperCase();
+    if (!POMPA_UJI.includes(pompa)) err.pompa = [`pompa harus salah satu dari ${POMPA_UJI.join(', ')}.`];
+    else out.pompa = pompa;
+    const detik = angka(body.detik);
+    if (!Number.isFinite(detik) || detik < UJI_POMPA_DETIK[0] || detik > UJI_POMPA_DETIK[1]) err.detik = [`detik harus ${UJI_POMPA_DETIK[0]}–${UJI_POMPA_DETIK[1]}.`];
+    else out.detik = bulat1(detik);
+  } else if (tipe === 'KALIBRASI') {
+    // Laju pompa, tegangan pH, dan faktor koreksi TDS/EC (disimpan di NVS ESP32).
+    for (const k of LAJU_KALIBRASI) {
+      if (body[k] === undefined) continue;
+      const v = angka(body[k]);
+      if (!Number.isFinite(v) || v <= 0 || v > 500) err[k] = [`${k} harus > 0 dan ≤ 500 mL/detik.`];
+      else out[k] = Math.round(v * 100) / 100;
+    }
+    // pH: tegangan probe di buffer 7,0 dan 4,0, wajib sepasang (batas sama dengan firmware: selisih ≥ 0,05 V).
+    if (body.ph_v7 !== undefined || body.ph_v4 !== undefined) {
+      const v7 = angka(body.ph_v7); const v4 = angka(body.ph_v4);
+      const sah = (v) => Number.isFinite(v) && v > 0 && v < 5;
+      if (!sah(v7) || !sah(v4) || Math.abs(v4 - v7) < 0.05) err.ph_v7 = ['ph_v7 dan ph_v4 wajib sepasang, 0–5 V, dan berselisih ≥ 0,05 V.'];
+      else { out.ph_v7 = Math.round(v7 * 10000) / 10000; out.ph_v4 = Math.round(v4 * 10000) / 10000; }
+    }
+    // EC/TDS: faktor pengali koreksi firmware (gabungan.ino menolak ≤ 0,01 atau > 20).
+    if (body.tds_faktor !== undefined) {
+      const fk = angka(body.tds_faktor);
+      if (!Number.isFinite(fk) || fk <= 0.01 || fk > 20) err.tds_faktor = ['tds_faktor harus > 0,01 dan ≤ 20.'];
+      else out.tds_faktor = Math.round(fk * 10000) / 10000;
+    }
+    if (!Object.keys(out).length && !Object.keys(err).length) err.laju = [`isi minimal satu dari ${LAJU_KALIBRASI.join(', ')}, pasangan ph_v7/ph_v4, atau tds_faktor.`];
+  } else if (tipe === 'JADWAL') {
+    for (const [k, [min, maks]] of Object.entries(JADWAL_RENTANG)) {
+      if (body[k] === undefined) continue;
+      const v = angka(body[k]);
+      if (!Number.isInteger(v) || v < min || v > maks) err[k] = [`${k} harus bilangan bulat ${min}–${maks} detik.`];
+      else out[k] = v;
+    }
+    if (!Object.keys(out).length && !Object.keys(err).length) err.jadwal = [`isi minimal satu dari ${Object.keys(JADWAL_RENTANG).join(', ')}.`];
+  } else if (tipe === 'BALIK_KALIBRASI') {
+    if (body.sensor !== 'ph' && body.sensor !== 'ec') err.sensor = ['sensor harus ph atau ec.'];
+    else out.sensor = body.sensor;
+  } else if (tipe === 'KAL_SENSOR') {
+    const sensor = String(body.sensor || '').toLowerCase();
+    if (sensor !== 'ph' && sensor !== 'ec') err.sensor = ['sensor harus ph atau ec.'];
+    else out.sensor = sensor;
+    const titik = angka(body.titik);
+    // titik 0 = air baku / udara, hanya EC (firmware v6.3); pH tetap 1 atau 2
+    if (!(titik === 1 || titik === 2 || (titik === 0 && sensor === 'ec'))) err.titik = [sensor === 'ec' ? 'titik harus 0, 1, atau 2.' : 'titik harus 1 atau 2.'];
+    else out.titik = titik;
+    const aksi = String(body.aksi || '').toUpperCase();
+    if (!['UKUR', 'SIMPAN', 'BATAL'].includes(aksi)) err.aksi = ['aksi harus UKUR, SIMPAN, atau BATAL.'];
+    else out.aksi = aksi;
+    if (body.acuan !== undefined) {
+      const acuan = angka(body.acuan);
+      // titik 0 boleh acuan 0 (probe di udara); selain itu > 0
+      if (!Number.isFinite(acuan) || acuan < 0 || (acuan === 0 && out.titik !== 0)) err.acuan = ['acuan harus angka > 0 (titik 0: ≥ 0).'];
+      else out.acuan = acuan;
+    }
+  } else if (tipe === 'KONFIGURASI') {
+    const params = [
+      'volume_l', 'monitoring_menit', 'jeda_ab_dtk', 'ppm_per_ml_ab',
+      'laju_a', 'laju_b', 'laju_ph_up', 'laju_ph_down',
+      'toleransi_bawah_ppm', 'toleransi_atas_ppm', 'persen_dosis', 'maks_ppm_sekali',
+      'ppm_min_dosing', 'ph_toleransi', 'ph_jeda_menit', 'ph_ml_per_100l', 'ph_ml_maks',
+      'maks_ab_hari', 'maks_ph_hari', 'maks_encer_hari', 'maks_isi_hari', 'timeout_isi_menit',
+      'pemeliharaan_maks_menit', 'telemetri_dtk', 'tz_menit', 'id_meja', 'ec_faktor'
+    ];
+    for (const p of params) {
+      if (body[p] !== undefined) {
+        const v = angka(body[p]);
+        if (!Number.isFinite(v)) err[p] = [`${p} harus berupa angka.`];
+        else out[p] = v;
+      }
+    }
+    if (!Object.keys(out).length && !Object.keys(err).length) err.konfigurasi = ['Minimal satu parameter konfigurasi harus diisi.'];
+  } else if (tipe === 'SEMAI') {
+    const tPpm = angka(body.target_ppm);
+    if (!Number.isFinite(tPpm) || tPpm <= 0) err.target_ppm = ['target_ppm wajib angka > 0.'];
+    else out.target_ppm = Math.round(tPpm);
+    const phMin = angka(body.ph_min);
+    if (!Number.isFinite(phMin) || phMin < 0 || phMin > 14) err.ph_min = ['ph_min wajib 0–14.'];
+    else out.ph_min = phMin;
+    const phMax = angka(body.ph_max);
+    if (!Number.isFinite(phMax) || phMax < 0 || phMax > 14 || phMax <= phMin) err.ph_max = ['ph_max wajib > ph_min dan 0–14.'];
+    else out.ph_max = phMax;
+  } else if (tipe === 'TARGET') {
+    if (body.target_ppm !== undefined) {
+      const tPpm = angka(body.target_ppm);
+      if (!Number.isFinite(tPpm) || tPpm <= 0) err.target_ppm = ['target_ppm wajib angka > 0.'];
+      else out.target_ppm = Math.round(tPpm);
+    }
+    if (body.ph_min !== undefined || body.ph_max !== undefined) {
+      const phMin = angka(body.ph_min);
+      const phMax = angka(body.ph_max);
+      if (!Number.isFinite(phMin) || phMin < 0 || phMin > 14) err.ph_min = ['ph_min wajib 0–14.'];
+      else out.ph_min = phMin;
+      if (!Number.isFinite(phMax) || phMax < 0 || phMax > 14 || (out.ph_min && phMax <= out.ph_min)) err.ph_max = ['ph_max wajib > ph_min dan 0–14.'];
+      else out.ph_max = phMax;
+    }
+    if (!Object.keys(out).length && !Object.keys(err).length) err.target = ['target_ppm atau pasangan ph_min/ph_max harus diisi.'];
+  } else if (tipe === 'PEMELIHARAAN') {
+    const aksi = String(body.aksi || '').toUpperCase();
+    if (aksi !== 'MULAI' && aksi !== 'SELESAI') err.aksi = ['aksi harus MULAI atau SELESAI.'];
+    else out.aksi = aksi;
+  } else if (tipe === 'OTOMASI') {
+    // izin otomasi per aktuator (saklar web): hanya kunci yang dikirim yang diubah
+    for (const k of ['nutrisi', 'ph', 'encer', 'isi']) {
+      if (body[k] === undefined) continue;
+      const v = body[k] === true || body[k] === 1 || body[k] === '1' ? 1 : body[k] === false || body[k] === 0 || body[k] === '0' ? 0 : null;
+      if (v === null) err[k] = [`${k} harus 0 atau 1.`];
+      else out[k] = v;
+    }
+    if (!Object.keys(out).length && !Object.keys(err).length) err.otomasi = ['minimal satu dari nutrisi, ph, encer, isi.'];
+  } else if (tipe === 'OTA') {
+    // Alat mengunduh http://<IP Pi><path> lalu mencocokkan SHA-256. Aturan sama dengan firmware v6.2+.
+    const path = typeof body.path === 'string' ? body.path : '';
+    if (!path || path.length > 120 || path[0] !== '/' || path.includes('..') || !/^[A-Za-z0-9/_.-]+$/.test(path)) {
+      err.path = ['path harus diawali "/", tanpa "..", hanya huruf/angka dan /_.- (maks 120 karakter).'];
+    } else out.path = path;
+    const sha = typeof body.sha256 === 'string' ? body.sha256.trim().toLowerCase() : '';
+    if (!/^[0-9a-f]{64}$/.test(sha)) err.sha256 = ['sha256 harus 64 karakter hex.'];
+    else out.sha256 = sha;
+  } else if (tipe === 'KONSOL') {
+    // Baris perintah Serial; firmware menolak wifi/server/cari/scan/kosongkan/auto/mqtt dari web. Muat 47 karakter.
+    const baris = typeof body.baris === 'string' ? body.baris.trim() : '';
+    if (!baris || baris.length > 47 || /[ -]/.test(baris)) err.baris = ['baris wajib 1–47 karakter tanpa karakter kontrol.'];
+    else out.baris = baris;
+  } else if (tipe === 'BUKA_KUNCI' || tipe === 'PANEN' || tipe === 'STATUS') {
+    // Perintah tanpa parameter wajib
+  }
+  if (Object.keys(err).length) throw new PerintahDitolak(422, 'Data tidak valid.', err);
+  return out;
+}
+
+/** Perintah yang menambah risiko (butuh pagar penuh & ditolak saat E-STOP). */
+const berisiko = (tipe, param) => tipe === 'DOSIS' || tipe === 'BILAS' || tipe === 'SAMPLING' || tipe === 'UJI_POMPA'
+  || (tipe === 'ISI_AIR' && param.aksi === 'MULAI');
+
+/**
+ * Antre perintah. Atomik (transaksi) — pagar, penghitung harian, dan INSERT satu kesatuan.
+ * @returns {Promise<object>} baris perintah_aktuator
+ */
+async function buatPerintah({ tipe, parameter, sumber = 'pengguna', userId = null, alasan = null, ttlDetik = 120, perangkat = PERANGKAT_AKTUATOR, idempotencyKey = null }) {
+  const ttl = Math.min(600, Math.max(10, Number(ttlDetik) || 120));
+  const client = await pool.connect();
+  let released = false;
+  try {
+    await client.query('BEGIN');
+    const cfg = await bacaKonfig((t, pr) => client.query(t, pr));
+    const wajib = tipe === 'DOSIS' ? BATAS_WAJIB[parameter?.larutan === 'AB' ? 'AB' : 'PH'] : tipe === 'BILAS' ? BATAS_WAJIB.BILAS : [];
+    if (wajib.length) {
+      const kosong = await tidakTerisi({ konfigurasi_dosis: wajib }, (t, pr) => client.query(t, pr));
+      if (kosong.length) {
+        throw new PerintahDitolak(409, `Batas keselamatan belum terisi/tidak sah: ${kosong.map((k) => `${k.param} (${k.status})`).join(', ')}. Perintah ditolak.`);
+      }
+    }
+    const param = validasiPerintah(tipe, parameter, cfg);
+    if (tipe === 'UJI_POMPA' && sumber !== 'pengguna') throw new PerintahDitolak(403, 'Uji pompa hanya boleh diminta pengguna, bukan otomasi atau AI.');
+
+    const dev = (await client.query('SELECT kode, peran FROM perangkat WHERE kode = $1', [perangkat])).rows[0];
+    if (!dev || !['aktuator', 'gabungan'].includes(dev.peran)) throw new PerintahDitolak(404, 'Perangkat aktuator tidak ditemukan.');
+
+    const estop = (await client.query("SELECT nilai FROM aktuator_state WHERE kunci = 'estop' FOR UPDATE")).rows[0]?.nilai === '1';
+    if (estop && berisiko(tipe, param)) {
+      throw new PerintahDitolak(423, 'E-STOP aktif — semua perintah berisiko ditolak sampai di-reset oleh admin.');
+    }
+
+    // Saklar OFF: otomasi (bukan pengguna) tidak boleh menyalakan aktuator. Dosing manual tetap boleh (override).
+    if (sumber !== 'pengguna' && berisiko(tipe, param)) {
+      const kodeSaklar = tipe === 'DOSIS' ? saklar.SAKLAR_LARUTAN[param.larutan] : tipe === 'ISI_AIR' ? 'isi_air' : null;
+      if (kodeSaklar && !(await saklar.otomasiBoleh(kodeSaklar, (t, pr) => client.query(t, pr)))) {
+        throw new PerintahDitolak(423, `Saklar ${kodeSaklar} OFF — otomasi tidak boleh menyalakannya.`);
+      }
+    }
+
+    if (berisiko(tipe, param)) {
+      const antre = Number((await client.query(
+        "SELECT count(*) FROM perintah_aktuator WHERE perangkat_kode = $1 AND status IN ('menunggu','dikirim')", [perangkat])).rows[0].count);
+      if (antre >= 10) throw new PerintahDitolak(429, 'Antrean perintah penuh (maks 10). Tunggu perintah sebelumnya selesai.');
+      const meja = tipe === 'UJI_POMPA' || (await client.query('SELECT 1 FROM mejas WHERE id_meja = $1', [param.penampung])).rows[0];
+      if (!meja) throw new PerintahDitolak(404, 'Penampung (meja) tidak ditemukan.');
+    }
+
+    if (tipe === 'DOSIS') {
+      // state penampung: buat bila belum ada, kunci baris, reset harian bila lewat tengah malam (WITA)
+      await client.query('INSERT INTO penampung_states (id_meja) VALUES ($1) ON CONFLICT (id_meja) DO NOTHING', [param.penampung]);
+      const st = (await client.query(
+        `SELECT *, (reset_harian_pada IS NULL OR reset_harian_pada::date < (now() AT TIME ZONE 'Asia/Makassar')::date) AS perlu_reset
+           FROM penampung_states WHERE id_meja = $1 FOR UPDATE`, [param.penampung])).rows[0];
+      let { volume_ab_hari_ml: ab, volume_ph_hari_ml: ph, kejadian_dosis_hari: kej } = st;
+      if (st.perlu_reset) { ab = 0; ph = 0; kej = 0; }
+      ab = Number(ab); ph = Number(ph);
+      if (st.status_lock) throw new PerintahDitolak(423, `Penampung terkunci${st.lock_alasan ? ` (${st.lock_alasan})` : ''} — dosis ditolak.`);
+      if (st.mode_pemeliharaan && sumber !== 'pengguna') throw new PerintahDitolak(423, 'Penampung dalam mode pemeliharaan — dosis otomatis ditolak.');
+      // volume harian = pagar utama. Otomasi yang mentok → LOCK + alert (alert 4); pengguna cukup ditolak
+      // (boleh meminta takaran lebih kecil).
+      const habis = (jenis, isi, batas) => {
+        const pesan = `Batas volume ${jenis} harian tercapai (${isi}/${batas} mL).`;
+        return sumber === 'pengguna' ? new PerintahDitolak(409, pesan)
+          : tolakDanKunci(409, `${pesan} Penampung dikunci.`, { alasan: `Jatah volume ${jenis} harian habis`, type: 'batas_dosis', value: `${jenis} ${isi}/${batas} mL` });
+      };
+      if (param.larutan === 'AB') {
+        const batas = cfg.maks_volume_ab_hari_ml ?? 500;
+        if (ab + param.ml > batas) throw habis('AB', ab, batas);
+        ab += param.ml;
+
+        // B3 — KEJADIAN: 1 sesi perbaikan = sampai 5 suntikan; hanya kejadian BARU yang memotong jatah 8/hari.
+        await client.query(
+          `UPDATE dosing_events SET hasil = 'timeout', selesai_pada = now(), updated_at = now()
+            WHERE id_meja = $1 AND hasil = 'berjalan' AND status IS NULL
+              AND (hari < ${HARI_WITA} OR updated_at < now() - interval '${KEJADIAN_BASI_MENIT} minutes')`, [param.penampung]);
+        let ev = (await client.query(
+          "SELECT id, ronde_total FROM dosing_events WHERE id_meja = $1 AND hasil = 'berjalan' AND status IS NULL ORDER BY id DESC LIMIT 1 FOR UPDATE",
+          [param.penampung])).rows[0];
+        const maksSuntik = cfg.maks_suntikan_per_kejadian ?? 5;
+        const maksKej = cfg.maks_kejadian_per_hari ?? 8;
+        if (ev && ev.ronde_total >= maksSuntik) {
+          // B4 — retry habis (alert 3): target tak tercapai setelah 5 suntikan
+          throw tolakDanKunci(423, `Retry habis: ${ev.ronde_total} suntikan dalam satu kejadian belum mencapai target. Penampung dikunci — periksa sebelum membuka kunci.`,
+            { alasan: `Retry EC habis (${ev.ronde_total}x)`, type: 'retry_habis', value: `${ev.ronde_total}/${maksSuntik} suntikan` });
+        }
+        if (!ev) {
+          if (kej >= maksKej) {
+            // B4 — jatah kejadian harian habis (alert 4)
+            throw tolakDanKunci(409, `Jatah ${maksKej} kejadian dosing hari ini habis. Penampung dikunci sampai diperiksa.`,
+              { alasan: `Jatah ${maksKej} kejadian/hari habis`, type: 'batas_dosis', value: `${kej}/${maksKej} kejadian` });
+          }
+          const manual = sumber === 'pengguna' && userId != null;
+          ev = (await client.query(
+            `INSERT INTO dosing_events (id_meja, hari, pemicu, aktor_tipe, dipicu_oleh, alasan)
+             VALUES ($1, ${HARI_WITA}, $2, $3, $4, $5) RETURNING id, ronde_total`,
+            [param.penampung, manual ? 'USER_MANUAL' : sumber === 'otomasi' ? 'SISTEM' : 'API',
+              manual ? 'user' : 'system', manual ? userId : null, alasan ? String(alasan).slice(0, 200) : null])).rows[0];
+          kej += 1;
+          const dini = cfg.peringatan_dini_kejadian ?? 3;
+          if (kej === dini) {
+            // PERINGATAN DINI (belum LOCK): cek talang bocor, sensor, atau kebutuhan tanaman
+            await client.query(
+              `INSERT INTO alert_logs (type, value, id_meja, severity, locked, created_at, updated_at)
+               VALUES ('batas_dosis', $1, $2, 'info', false, now(), now())`,
+              [`${kej} kejadian dosing hari ini — cek talang, sensor, kebutuhan tanaman`, param.penampung]);
+          }
+        }
+        await client.query(
+          'UPDATE dosing_events SET ronde_total = ronde_total + 1, volume_total_ml = volume_total_ml + $2, updated_at = now() WHERE id = $1',
+          [ev.id, param.ml]);
+      } else {
+        const batas = cfg.maks_volume_ph_hari_ml ?? 100;
+        if (ph + param.ml > batas) throw habis('pH', ph, batas);
+        ph += param.ml;
+      }
+      await client.query(
+        `UPDATE penampung_states SET volume_ab_hari_ml = $2, volume_ph_hari_ml = $3, kejadian_dosis_hari = $4,
+                reset_harian_pada = ${JAM_WITA}, updated_at = now() WHERE id_meja = $1`,
+        [param.penampung, ab, ph, kej]);
+    }
+
+    if (tipe === 'STOP_DARURAT') {
+      await client.query("UPDATE aktuator_state SET nilai = '1', diubah_pada = now() WHERE kunci = 'estop'");
+      await client.query(
+        "UPDATE perintah_aktuator SET status = 'batal', selesai_pada = now() WHERE perangkat_kode = $1 AND status = 'menunggu'", [perangkat]);
+    }
+
+    const row = (await client.query(
+      `INSERT INTO perintah_aktuator (perangkat_kode, tipe, parameter, sumber, dibuat_oleh, alasan, kedaluwarsa_pada, idempotency_key)
+       VALUES ($1,$2,$3,$4,$5,$6, now() + ($7 || ' seconds')::interval, $8)
+       RETURNING id, perangkat_kode, tipe, parameter, status, sumber, alasan, kedaluwarsa_pada, dibuat_pada`,
+      [perangkat, tipe, param, sumber, userId, alasan ? String(alasan).slice(0, 200) : null, String(ttl), idempotencyKey])).rows[0];
+    await client.query('COMMIT');
+    return row;
+  } catch (e) {
+    await client.query('ROLLBACK').catch(() => {});
+    if (e.kunci) {
+      client.release();
+      released = true;
+      // lock dicatat terpisah dari transaksi perintah yang dibatalkan; galatnya tidak boleh menutupi penolakan
+      await kunciPenampung(Number(parameter.penampung), e.kunci)
+        .catch((err) => console.error('[aktuator] gagal mengunci penampung:', err.message));
+    }
+    throw e;
+  } finally {
+    if (!released) client.release();
+  }
+}
+
+/**
+ * Bersihkan antrean: menunggu kedaluwarsa → 'kedaluwarsa'; dikirim >90 dtk tanpa hasil → 'gagal'.
+ * DOSIS yang timeout: volume tidak diketahui → jatah tidak dikembalikan + penampung dikunci.
+ */
+async function rapikanAntrean(perangkat) {
+  await q(
+    `UPDATE perintah_aktuator SET status = 'kedaluwarsa', selesai_pada = now()
+      WHERE perangkat_kode = $1 AND status = 'menunggu' AND tipe = ANY($2::text[]) AND kedaluwarsa_pada <= now()`, [perangkat, TIPE_DIKIRIM]);
+  const timeout = await q(
+    `UPDATE perintah_aktuator SET status = 'gagal', selesai_pada = now(), hasil = '{"error":"timeout_tanpa_laporan"}'
+      WHERE perangkat_kode = $1 AND status = 'dikirim' AND dikirim_pada <= now() - interval '90 seconds'
+      RETURNING id, tipe, parameter`, [perangkat]);
+  for (const p of timeout.filter((x) => x.tipe === 'DOSIS')) {
+    await kunciPenampung(Number(p.parameter.penampung), {
+      alasan: 'Dosis tanpa laporan hasil (timeout)', type: 'volume_tidak_pasti', value: `perintah ${p.id}: ${p.parameter.larutan} ${p.parameter.ml} mL`,
+    }).catch((e) => console.error('[aktuator] gagal mengunci penampung setelah timeout:', e.message));
+  }
+}
+
+/** Ambil perintah menunggu untuk perangkat (atomik, tiap perintah hanya terkirim sekali). */
+async function ambilPerintah(perangkat, maks = 5) {
+  await rapikanAntrean(perangkat);
+  const rows = await q(
+    `UPDATE perintah_aktuator SET status = 'dikirim', dikirim_pada = now()
+      WHERE id IN (
+        SELECT id FROM perintah_aktuator
+         WHERE perangkat_kode = $1 AND status = 'menunggu' AND tipe = ANY($3::text[]) AND kedaluwarsa_pada > now()
+         ORDER BY (tipe = 'STOP_DARURAT') DESC, (tipe = 'STOP') DESC, id
+         LIMIT $2 FOR UPDATE SKIP LOCKED)
+      RETURNING id, tipe, parameter, kedaluwarsa_pada`,
+    [perangkat, Math.min(10, Math.max(1, Number(maks) || 5)), TIPE_DIKIRIM]);
+  return rows.sort((a, b) => Number(a.id) - Number(b.id));
+}
+
+/** Laporan hasil dari perangkat. Hanya perintah miliknya & berstatus 'dikirim'. */
+/**
+ * Kategori volume dosis (Fase 3B.4) — empat hal yang TIDAK boleh disamakan:
+ *   DIPERINTAHKAN (parameter.ml) · ESTIMASI (ml_nyata dari waktu × laju firmware, belum terkalibrasi) ·
+ *   UKUR (sumber_volume 'ukur', mis. flow meter) · TIDAK_DIKETAHUI (ml_nyata tidak ada/tidak sah) ·
+ *   TIDAK_JALAN (ml_nyata = 0 tepat: perintah ditolak/dihentikan sebelum output nyala).
+ */
+function kategoriVolume(hasil, mlDiperintahkan) {
+  const nyata = hasil?.ml_nyata;
+  if (!(typeof nyata === 'number' && Number.isFinite(nyata) && nyata >= 0)) return { kategori: 'TIDAK_DIKETAHUI', ml: null, diperintahkan: mlDiperintahkan };
+  if (nyata === 0) return { kategori: 'TIDAK_JALAN', ml: 0, diperintahkan: mlDiperintahkan };
+  return { kategori: hasil.sumber_volume === 'ukur' ? 'UKUR' : 'ESTIMASI', ml: Math.min(nyata, mlDiperintahkan), diperintahkan: mlDiperintahkan };
+}
+
+/**
+ * Alat menyimpan satu titik kalibrasi pH/EC (KAL_SENSOR SIMPAN selesai): catat ke riwayat; setelah titik ke-2 tersimpan
+ * kalibrasi dianggap baru (jadwal "terlambat" mulai dihitung dari sini).
+ */
+async function catatKalibrasiAlat(row) {
+  const h = row.hasil || {};
+  const sensor = row.parameter.sensor;
+  const tegangan = Number.isFinite(Number(h.tegangan)) ? Number(h.tegangan) : null;
+  const acuan = Number.isFinite(Number(h.acuan)) ? Number(h.acuan) : null;
+  await q(
+    `INSERT INTO kalibrasi_log (sensor, nilai_ref, bacaan_sesudah, lulus, konstanta_baru, catatan, oleh_label)
+     VALUES ($1, $2, $3, true, $4, $5, 'alat')`,
+    [sensor, acuan, tegangan, JSON.stringify({ titik: row.parameter.titik, tegangan, acuan }),
+      `Titik ${row.parameter.titik} tersimpan di alat (acuan ${acuan ?? '-'}, ${tegangan ?? '-'} V)`]);
+  if (Number(h.titik_terisi) >= 2) {
+    await q('UPDATE kalibrasi_sensor SET terakhir_dikalibrasi = now(), hasil_ukur = coalesce($2, hasil_ukur) WHERE sensor = $1', [sensor, tegangan]);
+  }
+}
+
+async function laporHasil(perangkat, id, { status, hasil }) {
+  if (!['selesai', 'gagal'].includes(status)) throw new PerintahDitolak(422, 'Data tidak valid.', { status: ['status harus selesai atau gagal.'] });
+  const aman = hasil && typeof hasil === 'object' && !Array.isArray(hasil) && JSON.stringify(hasil).length <= 2000 ? hasil : null;
+  const row = await one(
+    `UPDATE perintah_aktuator SET status = $3, selesai_pada = now(), hasil = $4
+      WHERE id = $1 AND perangkat_kode = $2 AND status = 'dikirim'
+      RETURNING id, tipe, parameter, status, hasil`,
+    [id, perangkat, status, aman]);
+  if (!row) throw new PerintahDitolak(404, 'Perintah tidak ditemukan atau sudah dilaporkan.');
+  // Dosis GAGAL: jatah harian dikembalikan HANYA bila terbukti tidak/kurang keluar — TIDAK_JALAN (penuh) atau UKUR
+  // (sisa terukur). ESTIMASI (waktu × laju contoh firmware) dianggap keluar seluruhnya. TIDAK_DIKETAHUI → tanpa
+  // pengembalian + penampung dikunci (cegah dosis ulang yang bisa overdosis) sampai admin memeriksa.
+  if (row.tipe === 'DOSIS') {
+    const vol = kategoriVolume(aman, Number(row.parameter.ml));
+    await q("UPDATE perintah_aktuator SET hasil = coalesce(hasil, '{}'::jsonb) || jsonb_build_object('volume_server', $2::jsonb) WHERE id = $1", [row.id, vol]);
+    row.hasil = { ...(row.hasil || {}), volume_server: vol };
+  }
+  if (row.tipe === 'KAL_SENSOR' && status === 'selesai' && row.parameter?.aksi === 'SIMPAN') await catatKalibrasiAlat(row);
+  if (status === 'gagal' && row.tipe === 'DOSIS') {
+    const { penampung, larutan } = row.parameter;
+    const vol = row.hasil.volume_server;
+    if (vol.kategori === 'TIDAK_DIKETAHUI') {
+      await kunciPenampung(Number(penampung), {
+        alasan: 'Volume dosis gagal tidak diketahui', type: 'volume_tidak_pasti', value: `perintah ${row.id}: ${larutan} ${row.parameter.ml} mL, ml_nyata tidak dilaporkan`,
+      });
+      return row;
+    }
+    // ESTIMASI (waktu × laju contoh) bukan bukti: dianggap keluar seluruhnya → tidak ada pengembalian (aman dari overdosis)
+    if (vol.kategori === 'ESTIMASI') return row;
+    const keluar = vol.ml;
+    const ml = Math.round((Number(row.parameter.ml) - keluar) * 10) / 10;
+    const kol = larutan === 'AB' ? 'volume_ab_hari_ml' : 'volume_ph_hari_ml';
+    await q(`UPDATE penampung_states SET ${kol} = GREATEST(0, ${kol} - $2), updated_at = now() WHERE id_meja = $1`, [penampung, ml]);
+    if (larutan === 'AB') {
+      // suntikan yang tidak mengeluarkan apa pun bukan ronde; kejadian yang jadi kosong tidak memotong jatah harian.
+      // Suntikan yang sebagian keluar TETAP dihitung ronde — hanya volumenya dikoreksi.
+      const ev = await one(
+        `UPDATE dosing_events SET ronde_total = GREATEST(0, ronde_total - $3), volume_total_ml = GREATEST(0, volume_total_ml - $2), updated_at = now()
+          WHERE id = (SELECT id FROM dosing_events WHERE id_meja = $1 AND hasil = 'berjalan' AND status IS NULL ORDER BY id DESC LIMIT 1)
+          RETURNING id, ronde_total`, [penampung, ml, keluar > 0 ? 0 : 1]);
+      if (ev && ev.ronde_total === 0) {
+        await q('DELETE FROM dosing_events WHERE id = $1', [ev.id]);
+        await q('UPDATE penampung_states SET kejadian_dosis_hari = GREATEST(0, kejadian_dosis_hari - 1), updated_at = now() WHERE id_meja = $1', [penampung]);
+      }
+    }
+  }
+  return row;
+}
+
+async function resetEstop() {
+  await q("UPDATE aktuator_state SET nilai = '0', diubah_pada = now() WHERE kunci = 'estop'");
+}
+async function statusEstop() {
+  return (await one("SELECT nilai, diubah_pada FROM aktuator_state WHERE kunci = 'estop'")) || { nilai: '0' };
+}
+
+module.exports = {
+  TIPE, TIPE_DIKIRIM, LARUTAN, JADWAL_RENTANG, PERANGKAT_AKTUATOR, PerintahDitolak,
+  bacaKonfig, validasiPerintah, buatPerintah, ambilPerintah, laporHasil, kategoriVolume, rapikanAntrean, resetEstop, statusEstop,
+  kunciPenampung, bukaKunci, KEJADIAN_BASI_MENIT,
+};

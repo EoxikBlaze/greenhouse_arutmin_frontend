@@ -1,0 +1,18 @@
+node_modules/
+.env
+*.log
+.DS_Store
+
+# Backup database (jangan sampai ke-commit: berisi dump + salinan .env)
+database/backup/
+
+# Sampah instalasi skills (npx skills add)
+.agents/
+.claude/
+skills-lock.json
+
+# Cadangan sementara sebelum edit (simpan di git, bukan di samping source)
+*.bak-*
+
+# Berkas program alat untuk OTA (diunggah admin lewat web)
+firmware/
