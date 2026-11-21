@@ -55,6 +55,8 @@ export function AlatScreen() {
         </Card>
         <Button variant="secondary" label="Buka pengaturan saklar" onPress={() => router.navigate('/saklar')} />
         <Button variant="secondary" label="Lihat kalibrasi" onPress={() => router.navigate('/kalibrasi')} />
+        <Button variant="secondary" label="Uji lab" onPress={() => router.navigate('/uji-lab')} />
+        <Button variant="secondary" label="Laporan" onPress={() => router.navigate('/laporan')} />
       </Screen>
     </AdminOnly>
   );

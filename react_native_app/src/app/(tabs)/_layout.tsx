@@ -26,6 +26,9 @@ export default function TabsLayout() {
       <Tabs.Screen name="ganti-sandi" options={{ title: 'Ganti kata sandi' }} />
       <Tabs.Screen name="tentang" options={{ title: 'Tentang' }} />
       <Tabs.Screen name="asisten" options={{ title: 'Asisten' }} />
+      <Tabs.Screen name="uji-lab" options={{ title: 'Uji lab' }} />
+      <Tabs.Screen name="laporan" options={{ title: 'Laporan' }} />
+      <Tabs.Screen name="cctv" options={{ title: 'CCTV' }} />
     </Tabs>
   );
 }

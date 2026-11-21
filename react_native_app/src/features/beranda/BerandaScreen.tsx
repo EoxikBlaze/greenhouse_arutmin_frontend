@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { View } from 'react-native';
 import { router } from 'expo-router';
-import { Droplets, FlaskConical, Sprout, Thermometer, TriangleAlert, Wind, ChevronRight } from 'lucide-react-native';
+import { Droplets, FlaskConical, Sprout, Thermometer, TriangleAlert, Video, Wind, ChevronRight } from 'lucide-react-native';
 import { api } from '@/api/session';
 import { ApiError } from '@/api/client';
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -76,6 +76,13 @@ export function BerandaScreen() {
         <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <Sprout size={22} color={colors.accent} />
           <Text v="bodyStrong" style={{ flex: 1 }}>Lihat batch tanam</Text>
+          <ChevronRight size={20} color={colors.textPrimary} />
+        </Card>
+      </Pressable>
+      <Pressable accessibilityRole="button" onPress={() => router.navigate('/cctv')}>
+        <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <Video size={22} color={colors.accent} />
+          <Text v="bodyStrong" style={{ flex: 1 }}>Lihat kamera kebun (CCTV)</Text>
           <ChevronRight size={20} color={colors.textPrimary} />
         </Card>
       </Pressable>
