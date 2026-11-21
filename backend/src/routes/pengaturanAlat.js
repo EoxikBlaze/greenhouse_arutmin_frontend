@@ -81,6 +81,7 @@ router.put('/', async (req, res, next) => {
     req.audit = {
       aksi: 'config_change', tabel: 'pengaturan_alat', row_id: Object.keys(nilai).join(',').slice(0, 100),
       before: Object.fromEntries(Object.keys(nilai).map((k) => [k, sebelum[k] ?? PA.DEFAULT[k]])), after: nilai,
+      meta: { peristiwa: `Ubah pengaturan alat: ${Object.keys(nilai).map((k) => PA.PETA.get(k).label).join(', ')}`.slice(0, 200) },
     };
     res.json({
       status: true,
@@ -109,6 +110,7 @@ router.post('/bawaan', async (req, res, next) => {
     req.audit = {
       aksi: 'config_change', tabel: 'pengaturan_alat', row_id: kunci.length === 1 ? kunci[0] : 'semua',
       before: Object.fromEntries(kunci.filter((k) => sebelum[k] !== undefined).map((k) => [k, sebelum[k]])), after: { bawaan_firmware: true },
+      meta: { peristiwa: kunci.length === 1 ? `Kembalikan ke bawaan: ${PA.PETA.get(kunci[0]).label}` : 'Kembalikan semua pengaturan alat ke bawaan' },
     };
     res.json({
       status: true,

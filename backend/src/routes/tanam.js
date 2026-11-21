@@ -57,6 +57,19 @@ async function mulaiErrors(b) {
       errors[col] = [`Kolom ${col} harus berupa bilangan bulat.`];
     }
   }
+  // isi yang masuk akal (dulu lolos: tanpa tanaman, benih 0/negatif/99 juta, tanggal 2001 atau 2030)
+  if (b.id_tanaman === undefined || b.id_tanaman === null || b.id_tanaman === '') errors.id_tanaman = ['Pilih tanaman dulu.'];
+  if (!errors.jumlah_benih) {
+    const jb = b.jumlah_benih === undefined || b.jumlah_benih === null || b.jumlah_benih === '' ? null : Number(String(b.jumlah_benih).trim());
+    if (jb === null) errors.jumlah_benih = ['Jumlah benih wajib diisi.'];
+    else if (!Number.isInteger(jb) || jb < 1 || jb > 100_000) errors.jumlah_benih = ['Jumlah benih harus 1 sampai 100.000.'];
+  }
+  if (!errors.tgl_awal_semai && typeof b.tgl_awal_semai === 'string' && b.tgl_awal_semai) {
+    const hariIni = new Date(Date.now() + 8 * 3_600_000).toISOString().slice(0, 10); // hari ini menurut WITA
+    const terlama = new Date(Date.now() + 8 * 3_600_000 - 180 * 86_400_000).toISOString().slice(0, 10);
+    if (b.tgl_awal_semai > hariIni) errors.tgl_awal_semai = ['Tanggal mulai tidak boleh di masa depan.'];
+    else if (b.tgl_awal_semai < terlama) errors.tgl_awal_semai = ['Tanggal mulai terlalu lama (maksimal 180 hari ke belakang).'];
+  }
   return errors;
 }
 
@@ -217,6 +230,12 @@ router.post('/mulai', demoGuard('tanam.mulai'), async (req, res, next) => {
       await sinkronTarget().catch((e) => console.error('[tanam] sinkron target gagal:', e.message));
       alat = await S.diam(S.mulaiSemaiAlat, row.id_meja, Number(req.user.sub) || null);
     }
+    const namaTanaman = b.id_tanaman == null ? null : (await one('SELECT nama_tanaman FROM tanamen WHERE id_tanaman = $1', [b.id_tanaman]))?.nama_tanaman;
+    req.audit = {
+      aksi: 'create', tabel: 'semais', row_id: String(row.id_semai), before: null,
+      after: { id_tanaman: row.id_tanaman, id_meja: row.id_meja, jumlah_benih: row.jumlah_benih, tgl_awal_semai: row.tgl_awal_semai, kurva_cara: row.kurva_cara },
+      meta: { peristiwa: `Mulai semai ${namaTanaman ?? 'tanaman'}: ${row.jumlah_benih} benih${row.id_meja ? `, meja ${row.id_meja}` : ', tanpa meja'}` },
+    };
     res.status(201).json({ status: true, message: 'Tanam baru dimulai.', data: row, alat });
   } catch (e) { next(e); }
 });
@@ -316,6 +335,9 @@ router.post('/:tipe/:id/selesai', demoGuard('tanam.selesai'), async (req, res, n
                 ${t.akhir} = CASE WHEN ${t.akhir} IS NULL OR ${t.akhir} <= ${t.awal} THEN GREATEST(now()::date, ${t.awal}) ELSE ${t.akhir} END
           WHERE ${t.pk} = $1 RETURNING *`, [req.params.id]);
       if (!row) return notFound(res);
+      // tahap ditutup tanpa tahap berikutnya: bila ini batch terakhir di mejanya, alat harus berhenti mendosis (PANEN)
+      sinkronDiam();
+      if (!req.user.demo && row.id_meja != null) S.diam(S.panenBilaKosong, row.id_meja, Number(req.user.sub) || null);
       return res.json({ status: true, message: `Tahap ${req.params.tipe} diselesaikan.`, data: row });
     } catch (e) { return next(e); }
   }

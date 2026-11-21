@@ -139,6 +139,12 @@ router.put('/:id', async (req, res, next) => {
     }
     // sandi baru lewat edit wajib sama ketatnya dengan saat membuat user (dulu 1 karakter pun diterima)
     if (password && String(password).length < 8) errors.password = ['Password min 8 karakter.'];
+    // Jangan sampai sistem tanpa admin: akun sendiri tidak boleh diturunkan, dan admin terakhir tidak boleh diturunkan atau dijadikan demo.
+    const jadiBukanAdmin = (level && level !== 'admin') || is_demo === true || is_demo === 'true';
+    if (!errors.level && lama.level === 'admin' && !lama.is_demo && jadiBukanAdmin) {
+      if (Number(req.params.id) === Number(req.user.sub)) errors.level = ['Tidak bisa menurunkan level akun sendiri.'];
+      else if (!(await one("SELECT 1 AS x FROM users WHERE level = 'admin' AND NOT is_demo AND id <> $1 LIMIT 1", [req.params.id]))) errors.level = ['Harus ada minimal satu admin.'];
+    }
     if (Object.keys(errors).length) return json(res, 422, { message: 'Data tidak valid.', errors });
     const sets = [];
     const values = [];
@@ -180,6 +186,11 @@ router.delete('/:id', async (req, res, next) => {
     if (!idValid(req)) return notFound(res);
     if (Number(req.params.id) === Number(req.user.sub)) {
       return json(res, 422, { message: 'Tidak bisa hapus akun sendiri.', errors: { msg: ['Tidak bisa hapus akun sendiri.'] } });
+    }
+    const target = await one('SELECT level, is_demo FROM users WHERE id = $1', [req.params.id]);
+    if (target && target.level === 'admin' && !target.is_demo
+        && !(await one("SELECT 1 AS x FROM users WHERE level = 'admin' AND NOT is_demo AND id <> $1 LIMIT 1", [req.params.id]))) {
+      return json(res, 422, { message: 'Harus ada minimal satu admin.', errors: { msg: ['Harus ada minimal satu admin.'] } });
     }
     const row = await one(
       'DELETE FROM users WHERE id = $1 RETURNING id, username, email, level, is_demo',

@@ -1,8 +1,9 @@
 'use strict';
 /**
  * Pengaturan Alat: parameter firmware v6 yang bisa diubah dari web (perintah KONFIGURASI).
- * Rentang dan bawaan MENGIKUTI tabel parameter di firmware (Parameter.cpp); firmware menolak nilai di luar rentang itu,
- * jadi web memeriksa lebih dulu dan tidak pernah mengirim nilai yang pasti ditolak.
+ * Rentang web berada DI DALAM rentang firmware (Parameter.cpp) dan bawaannya sama; firmware menolak nilai di luar rentangnya,
+ * jadi web memeriksa lebih dulu dan tidak pernah mengirim nilai yang pasti ditolak. Beberapa rentang dipersempit agar tidak
+ * bentrok dengan asumsi sistem lain (lihat telemetri_dtk).
  * Yang diatur di menu lain tidak ada di sini: volume/monitoring/jeda (Master Meja), ppm per mL dan takaran pH (Uji Lab),
  * laju pompa dan faktor EC (Kalibrasi).
  * Sumber tunggal: nilai tersimpan di tabel pengaturan_alat; penilai peringatan dan batas efektif membacanya (efektif()).
@@ -49,10 +50,11 @@ const DEF = [
 
   { param: 'pemeliharaan_maks_menit', kelompok: 'sistem', label: 'Batas waktu mode pemeliharaan', satuan: 'menit', min: 10, max: 480, bawaan: 120, bulat: true,
     ket: 'Mode pemeliharaan berakhir sendiri setelah waktu ini supaya alat tidak lupa kembali ke normal.' },
-  { param: 'telemetri_dtk', kelompok: 'sistem', label: 'Interval kirim data sensor', satuan: 'detik', min: 2, max: 600, bawaan: 5, bulat: true,
-    ket: 'Seberapa sering alat mengirim bacaan ke server. Makin kecil makin rapat, tetapi lebih banyak data.' },
-  { param: 'tz_menit', kelompok: 'sistem', label: 'Zona waktu (selisih dari UTC)', satuan: 'menit', min: -720, max: 840, bawaan: 480, bulat: true,
-    ket: 'WITA = 480. Menentukan pergantian hari (reset hitungan harian pukul 00:00) di alat.' },
+  // Firmware menerima 2-600 dtk, tetapi web menganggap bacaan basi setelah 30 dtk (keadaanAlat.DATA_SEGAR_DETIK): di atas 15 dtk
+  // Dashboard dan Peringatan akan salah menyebut "data tidak masuk". Rentang web sengaja lebih sempit dari firmware.
+  { param: 'telemetri_dtk', kelompok: 'sistem', label: 'Interval kirim data sensor', satuan: 'detik', min: 2, max: 15, bawaan: 5, bulat: true,
+    ket: 'Seberapa sering alat mengirim bacaan ke server. Maksimum 15 detik supaya web tidak menganggap data basi (batasnya 30 detik).' },
+  // zona waktu alat (tz_menit, bawaan 480 = WITA) sengaja TIDAK bisa diubah: pergantian hari alat harus sama dengan reset harian di server.
 ];
 
 const PETA = new Map(DEF.map((d) => [d.param, d]));

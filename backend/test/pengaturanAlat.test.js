@@ -7,14 +7,16 @@ const { DEF, DEFAULT, validasi } = require('../src/pengaturanAlat');
 const { kondisiSekarang } = require('../src/peringatan');
 const { validasiPerintah } = require('../src/aktuator');
 
-test('rentang dan bawaan sama dengan tabel parameter firmware (Parameter.cpp)', () => {
+test('rentang web di dalam rentang firmware dan bawaan sama (Parameter.cpp)', () => {
   const sumber = path.join('C:/laragon/www/fw_hidro/hidroponik_firmware_v6_4/HidroponikV6/Parameter.cpp');
   if (!fs.existsSync(sumber)) return; // firmware tidak ada di mesin ini
   const teks = fs.readFileSync(sumber, 'utf8');
   for (const d of DEF) {
     const m = teks.match(new RegExp(`\\{\\s*"${d.param}",\\s*OFS\\(\\w+\\),\\s*(-?[\\d.]+)f,\\s*(-?[\\d.]+)f,\\s*(-?[\\d.]+)f`));
     assert.ok(m, `parameter ${d.param} tidak ada di firmware`);
-    assert.deepEqual([d.min, d.max, d.bawaan], [Number(m[1]), Number(m[2]), Number(m[3])], `rentang/bawaan ${d.param} berbeda dari firmware`);
+    const [fMin, fMaks, fBawaan] = [Number(m[1]), Number(m[2]), Number(m[3])];
+    assert.ok(d.min >= fMin && d.max <= fMaks, `rentang ${d.param} (${d.min}-${d.max}) keluar dari rentang firmware (${fMin}-${fMaks})`);
+    assert.equal(d.bawaan, fBawaan, `bawaan ${d.param} berbeda dari firmware`);
   }
 });
 
@@ -50,4 +52,18 @@ test('peringatan batas harian memakai Pengaturan Alat', () => {
   assert.ok(k1.some((k) => k.kunci === 'batas_dosing_ab_hari'), 'bawaan 6: penuh');
   const k2 = kondisiSekarang(alat({ alat: { dosing_ab_hari: 6 }, s: { pengaturan: { maks_ab_hari: 10 } } }));
   assert.ok(!k2.some((k) => k.kunci === 'batas_dosing_ab_hari'), 'batas 10: belum penuh');
+});
+
+test('Pengaturan Alat tidak tumpang tindih dengan parameter yang diatur di menu lain', () => {
+  const { RENTANG } = require('../src/konfigurasiAlat');
+  // menu lain: Master Meja (volume/monitoring/jeda), Uji Lab (ppm per mL, takaran pH), Kalibrasi (laju pompa, faktor EC), id meja
+  const dipakaiMenuLain = new Set([...Object.keys(RENTANG), 'ph_ml_per_100l', 'ec_faktor', 'id_meja', 'ppm_per_ml_ab']);
+  for (const d of DEF) assert.ok(!dipakaiMenuLain.has(d.param), `${d.param} diatur di dua tempat`);
+});
+
+test('interval kirim data tidak boleh melebihi batas data segar di web (30 dtk)', () => {
+  const { DATA_SEGAR_DETIK } = require('../src/keadaanAlat');
+  const t = DEF.find((d) => d.param === 'telemetri_dtk');
+  assert.ok(t.max * 2 <= DATA_SEGAR_DETIK, 'dua kali interval harus masih di bawah batas data segar');
+  assert.ok(!DEF.some((d) => d.param === 'tz_menit'), 'zona waktu alat harus tetap WITA (sama dengan server)');
 });

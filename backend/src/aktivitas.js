@@ -19,7 +19,7 @@ const SUMBER = `
     SELECT 'audit:' || a.id AS kunci, a.terjadi_pada AS waktu,
            CASE WHEN a.aksi = 'login' THEN 'login' WHEN a.aksi = 'config_change' THEN 'pengaturan' ELSE 'data' END AS jenis,
            a.aksi AS aksi, coalesce(a.actor_label, '-') AS pelaku, a.tabel AS objek, a.row_id::text AS ref,
-           NULL::text AS status, NULL::text AS ringkas,
+           NULL::text AS status, a.meta->>'peristiwa' AS ringkas,
            jsonb_build_object('sebelum', a.before_data, 'sesudah', a.after_data, 'meta', a.meta, 'ip', a.ip) AS detail
       FROM audit_logs a WHERE a.terjadi_pada >= $1::timestamp AND a.terjadi_pada < $2::timestamp
     UNION ALL

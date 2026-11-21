@@ -261,11 +261,13 @@ router.get('/state', async (_req, res, next) => {
       : _vol_ph_param;
     const hitPh = volPhHari > 0 ? Math.min(5, Math.ceil(volPhHari / Math.max(1, params.batas_ml_ph_efektif))) : 0;
 
+    const pengaturanAlat = await require('../pengaturanAlat').efektif();
     const pratinjau = hitungPratinjauDosis({
       ec_sekarang: ecSekarang ?? 0,
       ec_setpoint: targetEc,
-      persen_dosing: params.persen_dosing,
-      max_ppm_dosing: params.max_ppm_dosing,
+      // sumber tunggal: Pengaturan Alat (bukan salinan lama di konfigurasi_dosis)
+      persen_dosing: pengaturanAlat.persen_dosis,
+      max_ppm_dosing: pengaturanAlat.maks_ppm_sekali,
       volume_l: params.volume_l,
       ppm_per_ml: params.ppm_per_ml,
       laju_a: params.laju_a,
@@ -362,7 +364,7 @@ router.put('/saklar', ...writeGuard, async (req, res, next) => {
       if (r) { sebelum[kode] = r.sebelum.aktif; sesudah[kode] = r.sesudah.aktif; }
     }
     if (b.mode_isi !== undefined || b.mode_isi_otomatis !== undefined) await simpanParam(run, 'konfigurasi_dosis', 'mode_isi_otomatis', modeAngka, 'status', 'Mode pengisian air otomatis');
-    req.audit = { aksi: 'config_change', tabel: 'saklar_aktuator', row_id: 'semua', before: sebelum, after: { ...sesudah, mode_isi }, meta: { dari: sebelum, ke: sesudah } };
+    req.audit = { aksi: 'config_change', tabel: 'saklar_aktuator', row_id: 'semua', before: sebelum, after: { ...sesudah, mode_isi }, meta: { dari: sebelum, ke: sesudah, peristiwa: 'Ubah saklar otomasi alat' } };
     await client.query('COMMIT');
 
     const params = await muatKonfigV41(q);
@@ -473,6 +475,7 @@ router.post('/ujilab', ...writeGuard, async (req, res, next) => {
         [hasil.ppm_per_ml, hasil.awal, hasil.akhir, JSON.stringify({ PPM_PER_ML: hasil.ppm_per_ml }), catatan, Number(req.user.sub) || null, req.user.username || null],
       ).catch(() => {});
       await client.query('COMMIT');
+      require('../sinkronAlat').diam(require('../sinkronAlat').kirimUjiLabKeBatch, kategori, Number(req.user.sub) || null);
 
       return res.status(201).json({
         status: true,
@@ -502,6 +505,7 @@ router.post('/ujilab', ...writeGuard, async (req, res, next) => {
         [hasil.delta_ph, hasil.ml_per_ph_l, JSON.stringify({ [hasil.param.toUpperCase()]: hasil.ml_per_ph_l }), catatan, Number(req.user.sub) || null, req.user.username || null],
       ).catch(() => {});
       await client.query('COMMIT');
+      require('../sinkronAlat').diam(require('../sinkronAlat').kirimUjiLabKeBatch, kategori, Number(req.user.sub) || null);
 
       return res.status(201).json({
         status: true,

@@ -153,6 +153,46 @@ async function panenBilaKosong(idMeja, userId = null) {
   return { dikirim: true, tipe: 'PANEN', id: String(p.id), ket: `PANEN dikirim ke ${kode}` };
 }
 
+/**
+ * PANEN ke alat tertentu bila ia masih SEMAI. Dipakai saat alat dilepas dari meja atau meja dihapus: tanpa ini alat tetap
+ * berstatus SEMAI dan terus mendosis untuk meja yang tidak lagi punya hubungan dengannya.
+ * (shortcut: keadaan alat v6 masih satu untuk semua alat, jadi mode dibaca dari keadaan itu.)
+ */
+async function panenAlatKode(kode, userId = null) {
+  if (!kode) return { dikirim: false, ket: 'Tanpa alat.' };
+  const { keadaanAlat: a } = await bacaKeadaanAlat(null);
+  if (a.mode !== 'SEMAI' || await adaPerintahTertunda(kode, ['PANEN'])) return { dikirim: false, ket: 'Alat tidak sedang SEMAI.' };
+  const p = await A.buatPerintah({
+    tipe: 'PANEN', parameter: {}, sumber: userId ? 'pengguna' : 'otomasi', userId, perangkat: kode,
+    alasan: 'Alat dilepas dari meja atau meja dihapus', ttlDetik: 600,
+  });
+  return { dikirim: true, tipe: 'PANEN', id: String(p.id), ket: `PANEN dikirim ke ${kode}` };
+}
+
+/**
+ * Hasil Uji Lab kategori `kategori` berubah: alat yang sedang menjaga batch kategori itu langsung diberi takaran baru
+ * (KONFIGURASI ppm_per_ml_ab / ph_ml_per_100l), tidak menunggu Mulai Semai berikutnya.
+ */
+async function kirimUjiLabKeBatch(kategori, userId = null) {
+  const batch = await P.batchPerMeja();
+  const hasil = [];
+  for (const [idMeja, b] of batch) {
+    if ((b.kategori === 'buah' ? 'buah' : 'sayur') !== kategori) continue;
+    const alat = await alatMeja(idMeja);
+    if (!alat || await adaPerintahTertunda(alat.kode, ['KONFIGURASI'])) continue;
+    const { parameter } = await parameterKonfigurasi(idMeja, kategori);
+    const isi = {};
+    for (const k of ['ppm_per_ml_ab', 'ph_ml_per_100l']) if (parameter[k] != null) isi[k] = parameter[k];
+    if (!Object.keys(isi).length) continue;
+    const p = await A.buatPerintah({
+      tipe: 'KONFIGURASI', parameter: isi, sumber: userId ? 'pengguna' : 'otomasi', userId, perangkat: alat.kode, ttlDetik: 600,
+      alasan: `Uji Lab ${kategori} diperbarui`,
+    });
+    hasil.push({ kode: alat.kode, id: String(p.id) });
+  }
+  return { dikirim: hasil.length > 0, perintah: hasil };
+}
+
 /** Jalankan tanpa menggagalkan pemanggil (dipakai penjadwal & setelah aksi tanam). */
 function diam(fn, ...arg) {
   return fn(...arg).catch((e) => {
@@ -161,4 +201,4 @@ function diam(fn, ...arg) {
   });
 }
 
-module.exports = { kirimOtomasi, izinOtomasi, alatDiMeja, alatMeja, mejaBatchTerbaru, targetUntukMeja, mulaiSemaiAlat, sinkronKeAlat, panenBilaKosong, diam };
+module.exports = { panenAlatKode, kirimUjiLabKeBatch, kirimOtomasi, izinOtomasi, alatDiMeja, alatMeja, mejaBatchTerbaru, targetUntukMeja, mulaiSemaiAlat, sinkronKeAlat, panenBilaKosong, diam };

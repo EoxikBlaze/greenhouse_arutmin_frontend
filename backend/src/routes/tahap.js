@@ -31,6 +31,35 @@ function blokirHapusBerlanjut(anak, fk, pesan) {
   };
 }
 
+/**
+ * Tambah tahap lewat halaman Siklus Tanam harus mengikuti urutan: tahap induk sudah SELESAI (lewat tombol selesai) dan belum punya tahap
+ * berikutnya. Tanpa ini dua tahap bisa berjalan bersamaan untuk satu batch (dua target ke satu alat). Tahap berikutnya normalnya
+ * dibuat otomatis oleh tombol selesai; tambah manual hanya untuk melengkapi data. Setelah berhasil, target alat disamakan.
+ * @param {{induk: string, pkInduk: string, fk: string, nama: string, anak?: string, anakNama?: string}} o
+ */
+function cekUrutanTahap({ induk, pkInduk, fk, nama, anak, anakNama }) {
+  return async (req, res, next) => {
+    if (req.method !== 'POST' || req.path !== '/') return next();
+    try {
+      const id = String(req.body?.[fk] ?? '');
+      if (/^\d{1,18}$/.test(id)) {
+        const p = await one(`SELECT status FROM ${induk} WHERE ${pkInduk} = $1`, [id]);
+        if (p && p.status === 'proses') {
+          return res.status(409).json({ message: `Tidak bisa menambah ${nama}: tahap sebelumnya masih berjalan. Selesaikan dulu (isi jumlah yang berhasil), lalu ${nama} dibuat otomatis.`, errors: {} });
+        }
+        if (p && p.status === 'gagal') {
+          return res.status(409).json({ message: `Tidak bisa menambah ${nama}: tahap sebelumnya ditutup tanpa tanaman yang berhasil.`, errors: {} });
+        }
+        if (anak && await one(`SELECT 1 AS x FROM ${anak} WHERE ${fk} = $1 LIMIT 1`, [id])) {
+          return res.status(409).json({ message: `Batch ini sudah punya ${anakNama || nama}. Satu batch hanya punya satu ${nama} aktif.`, errors: {} });
+        }
+      }
+    } catch (e) { return next(e); }
+    res.on('finish', () => { if (res.statusCode === 201 && !req.user?.demo) S.diam(S.sinkronKeAlat); });
+    return next();
+  };
+}
+
 function sinkronAlatSetelahUbah(table, pk) {
   return async (req, res, next) => {
     if (!['PUT', 'PATCH', 'DELETE'].includes(req.method) || !/^\/\d{1,18}$/.test(req.path)) return next();
@@ -99,19 +128,25 @@ router.use('/semai', ...guard, sinkronAlatSetelahUbah('semais', 'id_semai'), dem
 
 router.use('/peremajaan', ...guard, sinkronAlatSetelahUbah('peremajaans', 'id_peremajaan'), demoGuard('peremajaan.store'),
   blokirHapusBerlanjut('pendewasaans', 'id_peremajaan', 'Tidak bisa menghapus peremajaan: batch ini sudah berlanjut ke pendewasaan. Hapus data tahap berikutnya dulu.'),
+  cekUrutanTahap({ induk: 'semais', pkInduk: 'id_semai', fk: 'id_semai', nama: 'peremajaan', anak: 'peremajaans' }),
   crudRouter({
   table: 'peremajaans', pk: 'id_peremajaan', orderBy: 'id_peremajaan', paginasi: true,
   columns: ['id_semai', 'id_meja', 'jumlah_masuk', 'benih_berhasil', 'benih_gagal', 'tgl_awal_peremajaan', 'tgl_akhir_peremajaan', 'keterangan'],
   readColumns: ['status'], // ditulis hanya oleh POST /tanam/:tipe/:id/selesai
 }));
 
-router.use('/pendewasaan', ...guard, sinkronAlatSetelahUbah('pendewasaans', 'id_pendewasaan'), demoGuard('pendewasaan.store'), crudRouter({
+router.use('/pendewasaan', ...guard, sinkronAlatSetelahUbah('pendewasaans', 'id_pendewasaan'), demoGuard('pendewasaan.store'),
+  cekUrutanTahap({ induk: 'peremajaans', pkInduk: 'id_peremajaan', fk: 'id_peremajaan', nama: 'pendewasaan', anak: 'pendewasaans' }),
+  crudRouter({
   table: 'pendewasaans', pk: 'id_pendewasaan', orderBy: 'id_pendewasaan', paginasi: true,
   columns: ['id_peremajaan', 'id_meja', 'jumlah_masuk', 'tanaman_berhasil', 'tanaman_gagal', 'tgl_awal_pendewasaan', 'tgl_akhir_pendewasaan', 'keterangan'],
   readColumns: ['status'], // ditulis hanya oleh POST /tanam/:tipe/:id/selesai
 }));
 
-router.use('/panen', ...guard, demoGuard('panen.store'), crudRouter({
+// panen: induk pendewasaan harus sudah selesai (baris panen dibuat otomatis saat selesai; panen susulan boleh lebih dari satu)
+router.use('/panen', ...guard, demoGuard('panen.store'),
+  cekUrutanTahap({ induk: 'pendewasaans', pkInduk: 'id_pendewasaan', fk: 'id_pendewasaan', nama: 'panen' }),
+  crudRouter({
   table: 'panens', pk: 'id_panen', orderBy: 'id_panen', paginasi: true,
   columns: ['id_pendewasaan', 'panen_berhasil', 'panen_gagal', 'tgl_panen', 'keterangan'],
 }));

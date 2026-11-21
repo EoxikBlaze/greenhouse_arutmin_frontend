@@ -175,7 +175,7 @@ const TABLE_SPECS = {
     //   ditolak 422 yang salah) dan jenis_talang bebas → lolos Zod lalu kena
     //   CHECK DB (500, bukan 422 terstruktur).
     jenis_talang: { tipe: 'enum', enum: ['NFT', 'DFT'] },            // CHECK live: IN ('NFT','DFT')
-    kapasitas_penampung_l: { tipe: 'number', min: 0, minInclusive: false, max: 999999.99 }, // CHECK > 0 · numeric(6,2)
+    kapasitas_penampung_l: { tipe: 'number', min: 5, max: 5000 }, // rentang volume_l firmware v6 (5-5000 L); KONFIGURASI di luar itu ditolak alat
     jumlah_talang: { tipe: 'integer', min: 0 },
     lubang_per_talang: { tipe: 'integer', min: 0 },
     panjang_talang_m: { tipe: 'number', min: 0, max: 99.99 },        // numeric(4,2)

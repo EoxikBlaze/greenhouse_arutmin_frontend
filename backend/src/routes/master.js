@@ -3,6 +3,8 @@
 const express = require('express');
 const { q, one } = require('../db');
 const { konfigurasiMeja } = require('../konfigurasiAlat');
+const S = require('../sinkronAlat');
+const P = require('../presetDosing');
 const { demoGuard, requireAuth, requireRole } = require('../auth');
 const { crudRouter } = require('./_crud');
 
@@ -49,15 +51,94 @@ router.put('/meja/:id/alat', ...guard, demoGuard('meja.alat'), async (req, res, 
     if (nama !== undefined && nama !== null && (typeof nama !== 'string' || nama.trim().length > 100)) {
       return res.status(422).json({ message: 'Data tidak valid.', errors: { nama: ['Nama alat maksimal 100 karakter.'] } });
     }
+    // alat yang tadinya di meja ini dan akan dilepas, serta meja asal alat yang dipindah (untuk menyamakan status alat sesudahnya)
+    const dilepas = (await q('SELECT kode FROM perangkat WHERE id_meja = $1 AND ($2::text IS NULL OR kode <> $2)', [req.params.id, kode])).map((r) => r.kode);
     await q('UPDATE perangkat SET id_meja = NULL, updated_at = now() WHERE id_meja = $1 AND ($2::text IS NULL OR kode <> $2)', [req.params.id, kode]);
     if (kode) await q('UPDATE perangkat SET id_meja = $1, updated_at = now() WHERE kode = $2', [req.params.id, kode]);
+    if (!req.user.demo) {
+      const uid = Number(req.user.sub) || null;
+      // alat yang dilepas tidak lagi punya meja: ia berhenti menjaga (PANEN) supaya tidak mendosis tanpa batch
+      for (const k of dilepas) S.diam(S.panenAlatKode, k, uid);
+      if (kode) {
+        // alat baru: bila meja ini punya batch berjalan ia mulai menjaganya, selainnya ia berhenti (mungkin masih SEMAI dari meja lamanya)
+        const adaBatch = (await P.batchPerMeja()).has(String(req.params.id));
+        S.diam(adaBatch ? S.mulaiSemaiAlat : S.panenAlatKode, adaBatch ? req.params.id : kode, uid);
+      }
+    }
     if (kode && typeof nama === 'string' && nama.trim()) await q('UPDATE perangkat SET nama = $1 WHERE kode = $2', [nama.trim(), kode]);
     req.audit = { aksi: 'update', tabel: 'perangkat', row_id: kode ?? String(req.params.id), after: { id_meja: kode ? Number(req.params.id) : null } };
     res.json({ status: true, message: kode ? `Alat ${kode} dipasang di meja ini.` : 'Alat dilepas dari meja ini.' });
   } catch (e) { next(e); }
 });
 
+/**
+ * Hapus data master yang masih dipakai ditolak (409). Di database relasinya SET NULL, jadi tanpa ini batch yang berjalan kehilangan
+ * tanaman (resep, kategori Uji Lab, durasi) atau meja (alat tetap SEMAI tanpa batch). `cek(id)` mengembalikan pesan atau null.
+ * `sesudah(id, req, awal)` jalan setelah hapus berhasil; `awal(id)` dibaca sebelum hapus.
+ */
+function pengamanHapus({ cek, awal, sesudah }) {
+  return async (req, res, next) => {
+    if (req.method !== 'DELETE' || !/^\/\d{1,18}$/.test(req.path)) return next();
+    const id = req.path.slice(1);
+    try {
+      const pesan = await cek(id);
+      if (pesan) return res.status(409).json({ message: pesan, errors: {} });
+      const bawaan = awal ? await awal(id) : null;
+      if (sesudah) res.on('finish', () => { if (res.statusCode < 300 && !req.user?.demo) sesudah(id, req, bawaan); });
+    } catch (e) { return next(e); }
+    return next();
+  };
+}
+
+const batchBerjalanDiMeja = `
+  SELECT 1 AS x FROM (
+    SELECT id_meja FROM semais WHERE status = 'proses'
+    UNION ALL SELECT id_meja FROM peremajaans WHERE status = 'proses'
+    UNION ALL SELECT id_meja FROM pendewasaans WHERE status = 'proses') b
+  WHERE b.id_meja = $1 LIMIT 1`;
+
+const hapusMeja = pengamanHapus({
+  cek: async (id) => ((await one(batchBerjalanDiMeja, [id])) ? 'Tidak bisa menghapus meja: masih ada batch berjalan di meja ini. Selesaikan atau hapus batchnya dulu.' : null),
+  awal: async (id) => (await q('SELECT kode FROM perangkat WHERE id_meja = $1', [id])).map((r) => r.kode),
+  // alat yang terpasang di meja yang dihapus berhenti menjaga (PANEN)
+  sesudah: (_id, req, kodeAlat) => { for (const k of kodeAlat ?? []) S.diam(S.panenAlatKode, k, Number(req.user?.sub) || null); },
+});
+
+const hapusTanaman = pengamanHapus({
+  cek: async (id) => {
+    const n = (await one('SELECT count(*)::int AS n FROM semais WHERE id_tanaman = $1', [id]))?.n ?? 0;
+    return n > 0 ? `Tidak bisa menghapus jenis tanaman: sudah dipakai ${n} batch (resep, kategori Uji Lab, dan nama di laporan ikut hilang). Ubah namanya bila perlu.` : null;
+  },
+});
+
+/** Rentang wajar tiap sensor untuk Ambang Sensor (di dalam batas wajar bacaan firmware). */
+const RENTANG_AMBANG = {
+  ph: [0, 14, 'pH'], tds: [0, 10000, 'ppm'], waterTemp: [-10, 60, '°C'], airTemp: [-20, 70, '°C'], humidity: [0, 100, '%'],
+};
+
+/** Ambang Sensor: min < max dan di dalam rentang wajar sensornya; PUT sebagian dilengkapi nilai lama. */
+async function cekAmbang(req, res, next) {
+  if (!['POST', 'PUT', 'PATCH'].includes(req.method)) return next();
+  try {
+    const b = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
+    if (b.min === undefined && b.max === undefined && b.sensor === undefined) return next();
+    let lama = {};
+    if (req.method !== 'POST' && /^\/\d{1,18}$/.test(req.path)) lama = (await one('SELECT sensor, min, max FROM sensor_thresholds WHERE id = $1', [req.path.slice(1)])) || {};
+    const angka = (v) => (v === null || v === undefined || v === '' ? null : Number(v));
+    const sensor = b.sensor ?? lama.sensor;
+    const [mn, mx] = [angka(b.min !== undefined ? b.min : lama.min), angka(b.max !== undefined ? b.max : lama.max)];
+    const errors = {};
+    const r = RENTANG_AMBANG[sensor];
+    if (r && mn != null && Number.isFinite(mn) && (mn < r[0] || mn > r[1])) errors.min = [`Batas bawah ${sensor} harus ${r[0]} sampai ${r[1]} ${r[2]}.`];
+    if (r && mx != null && Number.isFinite(mx) && (mx < r[0] || mx > r[1])) errors.max = [`Batas atas ${sensor} harus ${r[0]} sampai ${r[1]} ${r[2]}.`];
+    if (mn != null && mx != null && Number.isFinite(mn) && Number.isFinite(mx) && mx <= mn) errors.max = ['Batas atas harus lebih besar dari batas bawah.'];
+    if (Object.keys(errors).length) return res.status(422).json({ message: 'Data tidak valid.', errors });
+  } catch (e) { return next(e); }
+  return next();
+}
+
 router.use('/meja', ...guard,
+  hapusMeja,
   demoGuard('meja.store'),
   crudRouter({
     table: 'mejas', pk: 'id_meja',
@@ -108,6 +189,7 @@ async function cekPasanganTanaman(req, res, next) {
 }
 
 router.use('/tanaman', ...guard,
+  hapusTanaman,
   cekPasanganTanaman,
   demoGuard('tanaman.store'),
   crudRouter({
@@ -140,6 +222,7 @@ router.use('/siklus', ...guard,
   }));
 
 router.use('/ambang', ...guard,
+  cekAmbang,
   demoGuard('ambang.store'),
   crudRouter({ table: 'sensor_thresholds', pk: 'id', columns: ['sensor', 'min', 'max'], name: 'ambang', orderBy: 'id' }));
 

@@ -130,7 +130,7 @@ async function laporanDosing(r) {
 
 async function laporanPeringatan(r) {
   const baris = await q(
-    `SELECT type AS jenis, max(severity) AS tingkat, count(*)::int AS jumlah,
+    `SELECT type AS jenis, CASE WHEN bool_or(severity = 'critical') THEN 'critical' ELSE max(severity) END AS tingkat, count(*)::int AS jumlah,
             count(*) FILTER (WHERE selesai_pada IS NULL)::int AS masih_terbuka,
             round(avg(extract(epoch FROM selesai_pada - created_at) / 60) FILTER (WHERE selesai_pada IS NOT NULL))::int AS rata_menit,
             round(max(extract(epoch FROM selesai_pada - created_at) / 60) FILTER (WHERE selesai_pada IS NOT NULL))::int AS terlama_menit,
@@ -147,12 +147,15 @@ async function laporanPeringatan(r) {
 async function laporanKalibrasi(r) {
   const baris = await q(
     `SELECT k.sensor, k.terakhir_dikalibrasi, k.periode_hari_min, k.periode_hari_max,
-            (SELECT count(*)::int FROM kalibrasi_log l WHERE l.sensor = k.sensor AND l.dilakukan_pada >= $1::timestamp AND l.dilakukan_pada < $2::timestamp) AS jumlah
+            (SELECT count(*)::int FROM kalibrasi_log l WHERE l.sensor = k.sensor AND l.dilakukan_pada >= $1::timestamp AND l.dilakukan_pada < $2::timestamp
+               AND (CASE WHEN k.sensor = 'pulsa_peristaltik' THEN l.catatan LIKE '[KALIBRASI POMPA%'
+                         ELSE l.catatan ~ '^(Titik [0-9]|Kalibrasi )' END)) AS jumlah
        FROM kalibrasi_sensor k WHERE k.sensor IN ('ph', 'ec', 'pulsa_peristaltik') ORDER BY k.sensor`, [r.awal, r.akhir]);
   const nama = { ph: 'Sensor pH', ec: 'Sensor EC', pulsa_peristaltik: 'Laju pompa' };
   const label = { terlambat: 'Terlambat', segera: 'Segera', aman: 'Aman', belum: 'Belum pernah', tanpa_jadwal: 'Tanpa jadwal' };
   return {
     judul: 'Laporan kalibrasi',
+    catatan: 'Jumlah kalibrasi = titik kalibrasi yang tersimpan di alat (pH/EC) dan laju pompa yang disimpan. Uji Lab dan tes pompa tidak dihitung.',
     kolom: [['alat', 'Alat'], ['status', 'Status'], ['terakhir', 'Terakhir dikalibrasi'], ['jatuh_tempo', 'Jatuh tempo'], ['jumlah', 'Kalibrasi dalam periode']]
       .map(([kunci, l]) => ({ kunci, label: l })),
     baris: baris.map((b) => {

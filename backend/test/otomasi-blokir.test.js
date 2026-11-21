@@ -34,8 +34,8 @@ test('3B.3/3C: pemanggil buatPerintah di luar aktuator.js hanya rute admin (meno
   assert.ok(/router\.use\(requireAuth, adminSungguhan\)/.test(fw), 'firmware.js wajib admin sungguhan');
   // alur tanam → alat (Perancangan v5.0 §2.2): hanya KONFIGURASI / SEMAI / TARGET / PANEN, tidak pernah DOSIS (K3)
   const sinkron = fs.readFileSync(path.join(SRC, 'sinkronAlat.js'), 'utf8');
-  assert.equal((sinkron.match(/tipe: '([A-Z_]+)'/g) || []).join(), "tipe: 'KONFIGURASI',tipe: 'SEMAI',tipe: 'OTOMASI',tipe: 'OTOMASI',tipe: 'TARGET',tipe: 'TARGET',tipe: 'PANEN',tipe: 'PANEN'", 'sinkronAlat tanpa DOSIS (perintah + jawaban)');
-  assert.equal((sinkron.match(/buatPerintah\(/g) || []).length, 5);
+  assert.equal((sinkron.match(/tipe: '([A-Z_]+)'/g) || []).join(), "tipe: 'KONFIGURASI',tipe: 'SEMAI',tipe: 'OTOMASI',tipe: 'OTOMASI',tipe: 'TARGET',tipe: 'TARGET',tipe: 'PANEN',tipe: 'PANEN',tipe: 'PANEN',tipe: 'PANEN',tipe: 'KONFIGURASI'", 'sinkronAlat tanpa DOSIS (perintah + jawaban; PANEN juga untuk alat yang dilepas, KONFIGURASI juga untuk Uji Lab baru)');
+  assert.equal((sinkron.match(/buatPerintah\(/g) || []).length, 7);
   // modul v4.1: uji pompa (terkunci bawaan), kiriman laju pompa, jadwal NVS (bukan aktuasi), dan STOP. Tidak ada jalur DOSIS.
   const v41 = fs.readFileSync(path.join(SRC, 'routes', 'iotV41.js'), 'utf8');
   assert.equal((v41.match(/tipe: '([A-Z_]+)'/g) || []).join(), "tipe: 'PEMELIHARAAN',tipe: 'KAL_SENSOR',tipe: 'UJI_POMPA',tipe: 'KALIBRASI',tipe: 'BALIK_KALIBRASI',tipe: 'KALIBRASI',tipe: 'JADWAL',tipe: 'STOP'", 'iotV41 tanpa DOSIS');

@@ -11,11 +11,18 @@ const router = express.Router();
 async function matrix(dari, sampai) {
   // CTE per-bulan — bebas masalah GROUP BY dengan subquery korelasi.
   return q(`
-    WITH bulan AS (
-      SELECT DISTINCT date_trunc('month', tgl_awal_semai) AS bln
-      FROM semais
-      WHERE ($1::timestamptz IS NULL OR tgl_awal_semai >= $1::date)
-        AND ($2::timestamptz IS NULL OR tgl_awal_semai <= $2::date)
+    -- bulan = semua bulan yang ada kegiatannya (semai, peremajaan, pendewasaan, ATAU panen). Dulu hanya bulan mulai semai,
+    -- sehingga panen di bulan tanpa semai baru (mis. semai Oktober, panen Desember) hilang dari laporan.
+    WITH kegiatan AS (
+      SELECT tgl_awal_semai::date AS d FROM semais
+      UNION ALL SELECT tgl_awal_peremajaan::date FROM peremajaans
+      UNION ALL SELECT tgl_awal_pendewasaan::date FROM pendewasaans
+      UNION ALL SELECT tgl_panen::date FROM panens
+    ), bulan AS (
+      SELECT DISTINCT date_trunc('month', d) AS bln
+      FROM kegiatan
+      WHERE d IS NOT NULL AND ($1::timestamptz IS NULL OR d >= $1::date)
+        AND ($2::timestamptz IS NULL OR d <= $2::date)
     )
     SELECT to_char(bln, 'YYYY-MM') AS periode,
            (SELECT count(*)::int FROM semais s WHERE date_trunc('month', s.tgl_awal_semai) = bln) AS semai,

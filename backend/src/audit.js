@@ -205,11 +205,68 @@ async function tulisAudit(req, res, entri) {
 }
 
 /**
+ * Aturan pencatatan untuk rute tulis yang BUKAN CRUD dan tidak menyiapkan req.audit sendiri. Tanpa ini segmen URL-nya tidak ada di
+ * PATH_KE_TABEL sehingga aksinya hilang dari Catatan Aktivitas (Kebun Saya, kunci API, kamera, berkas program alat, E-STOP, dan lainnya).
+ * Bentuk: [metode, pola URL, aksi, tabel, peristiwa (kalimat untuk petugas), row_id (angka = grup pola; teks = tetap), isi (simpan body?)].
+ * `isi` hanya true bila body tidak memuat rahasia (kamera dan kunci API: body TIDAK pernah disimpan; alamat RTSP bisa memuat sandi).
+ * Perintah ke alat (DOSIS/OTA/KONSOL/STOP/E-STOP/KONFIGURASI/...) sudah tercatat dari perintah_aktuator, kalibrasi dari kalibrasi_log,
+ * peringatan dari alert_logs, dosing oleh alat dari dosing_kejadian: tidak diulang di sini.
+ */
+const ATURAN = [
+  ['PUT', /^\/tanam\/durasi\/(\d+)$/, 'update', 'sikluses', 'Ubah lama tiap tahap (Jenis Tanaman)', 1, true],
+  ['PUT', /^\/tanam\/semai\/(\d+)\/durasi$/, 'update', 'semais', 'Ubah durasi tahap batch', 1, true],
+  ['POST', /^\/tanam\/(semai|peremajaan|pendewasaan)\/(\d+)\/selesai$/, 'update', null, 'Selesaikan tahap', 2, true],
+  ['POST', /^\/tanam\/(\d+)\/hapus$/, 'delete', 'semais', 'Hapus batch semai', 1, false],
+  ['POST', /^\/api\/firmware\/unggah$/, 'create', 'firmware', 'Unggah berkas program alat', 'unggah', false],
+  ['DELETE', /^\/api\/firmware\/([^/]+)$/, 'delete', 'firmware', 'Hapus berkas program alat', 1, false],
+  ['POST', /^\/api\/kunci$/, 'create', 'api_keys', 'Buat kunci API alat', 'baru', false],
+  ['DELETE', /^\/api\/kunci\/(\d+)$/, 'delete', 'api_keys', 'Cabut kunci API alat', 1, false],
+  ['POST', /^\/api\/kunci\/(\d+)\/rotasi$/, 'update', 'api_keys', 'Ganti kunci API alat (rotasi)', 1, false],
+  ['POST', /^\/api\/aktuator\/estop\/reset$/, 'config_change', null, 'Reset E-STOP dari web', null, false],
+  ['POST', /^\/cctv$/, 'create', 'cctv_kameras', 'Tambah kamera CCTV', 'baru', false],
+  ['PUT', /^\/cctv\/(\d+)$/, 'update', 'cctv_kameras', 'Ubah kamera CCTV', 1, false],
+  ['DELETE', /^\/cctv\/(\d+)$/, 'delete', 'cctv_kameras', 'Hapus kamera CCTV', 1, false],
+  ['PUT', /^\/iot-v41\/pengaturan$/, 'config_change', null, 'Ubah pengaturan penampung (versi lama)', null, true],
+  ['PUT', /^\/iot-v41\/setup-status$/, 'config_change', null, 'Ubah status setup alat', null, true],
+  ['POST', /^\/dosing\/preset$/, 'create', 'target_nutrisi', 'Tambah preset target nutrisi', 'baru', true],
+  ['PUT', /^\/dosing\/preset\/(\d+)$/, 'update', 'target_nutrisi', 'Ubah preset target nutrisi', 1, true],
+  ['DELETE', /^\/dosing\/preset\/(\d+)$/, 'delete', 'target_nutrisi', 'Hapus preset target nutrisi', 1, false],
+  ['PUT', /^\/dosing\/target\/(\d+)$/, 'update', 'penampung_states', 'Ubah target penampung', 1, true],
+];
+
+/** Tabel tahap menurut jenis pada URL .../selesai. */
+const TABEL_TAHAP = { semai: 'semais', peremajaan: 'peremajaans', pendewasaan: 'pendewasaans' };
+
+/** Entri dari ATURAN untuk request ini, atau null. */
+function entriDariAturan(req) {
+  const url = ruteAsli(req);
+  for (const [metode, pola, aksi, tabel, peristiwa, id, isi] of ATURAN) {
+    if (req.method !== metode) continue;
+    const m = url.match(pola);
+    if (!m) continue;
+    const tahap = /\/selesai$/.test(url) ? m[1] : null; // hanya rute selesai yang membawa jenis tahap
+    const rowId = typeof id === 'number' ? m[id] : id === 'unggah' ? String(req.query?.nama ?? 'berkas') : id;
+    const badan = isi && req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? ringkas(req.body) : null;
+    return {
+      aksi,
+      tabel: tabel ?? (tahap ? TABEL_TAHAP[tahap] : null),
+      row_id: rowId === null || rowId === undefined ? null : String(rowId),
+      before: null,
+      after: badan,
+      meta: { sumber: 'aturan-rute', peristiwa: tahap ? `Selesaikan tahap ${tahap}` : peristiwa },
+    };
+  }
+  return null;
+}
+
+/**
  * Entri cadangan bila rute tidak menyiapkan `req.audit`: petakan segmen
  * pertama URL ke tabel + terjemahkan metode ke aksi. Mengembalikan null bila
  * segmen tidak dikenal (mis. rute ESP32/monitoring) → tidak dicatat.
  */
 function entriDariRute(req) {
+  const khusus = entriDariAturan(req);
+  if (khusus) return khusus;
   const seg = ruteAsli(req).split('/').filter(Boolean)[0] || '';
   const tabel = PATH_KE_TABEL[seg];
   const aksi = AKSI_METODE[req.method];
@@ -250,4 +307,4 @@ function auditTrail(req, res, next) {
   next();
 }
 
-module.exports = { auditTrail, tulisAudit, ringkas, PATH_KE_TABEL };
+module.exports = { auditTrail, tulisAudit, ringkas, PATH_KE_TABEL, entriDariRute, ATURAN };
