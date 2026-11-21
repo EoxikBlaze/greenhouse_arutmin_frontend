@@ -5,7 +5,6 @@ import LoginPage from './pages/LoginPage'
 import {
   DashboardPage,
   SensorRealtimePage,
-  AnalisisPage,
   KebunSayaPage,
   CctvPage,
   AsistenAiPage,
@@ -54,7 +53,7 @@ export const router = createBrowserRouter([
           { path: '/sensor', element: <Navigate to="/sensor-realtime" replace /> },
           { path: '/telemetri', element: <Navigate to="/sensor-realtime" replace /> },
           { path: '/sensor-realtime', element: <RequireAuth allow={ALL} element={<SensorRealtimePage />} /> },
-          { path: '/analisis', element: <RequireAuth allow={ALL} element={<AnalisisPage />} /> },
+          { path: '/analisis', element: <Navigate to="/asisten-ai?tab=analisis-data" replace /> },
           { path: '/peringatan', element: <RequireAuth allow={ALL} element={<PeringatanPage />} /> },
           { path: '/tanam', element: <RequireAuth allow={ALL} element={<KebunSayaPage />} /> },
           { path: '/cctv', element: <RequireAuth allow={ALL} element={<CctvPage />} /> },

@@ -8,6 +8,7 @@ import { muatChat, riwayatUntukServer, simpanChat, tautanAman, type Pesan, type 
 import { bacaAliran, teksDiterima } from '../lib/aliranChat'
 import { useAuth } from '../lib/authContext'
 import { AnalisisHarian, type Laporan } from './asisten/AnalisisHarian'
+import { AnalisisData } from './asisten/AnalisisData'
 
 /**
  * Chat bebas dengan asisten AI — POST /api/ai/chat
@@ -456,8 +457,10 @@ function bacaDilihat(u: string): number {
 /** Asisten: tab Percakapan + Analisis Harian (laporan 07.00 WIB). Titik merah = laporan baru yang belum dibuka. */
 export function ChatAsisten({ saran }: { saran: string[] }) {
   const { username, role } = useAuth()
-  const [tab, setTab] = useState<'chat' | 'analisis'>(() =>
-    typeof location !== 'undefined' && new URLSearchParams(location.search).get('tab') === 'analisis-harian' ? 'analisis' : 'chat')
+  const [tab, setTab] = useState<'chat' | 'analisis' | 'data'>(() => {
+    const t = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('tab') : null
+    return t === 'analisis-harian' ? 'analisis' : t === 'analisis-data' ? 'data' : 'chat'
+  })
   const [baru, setBaru] = useState(false)
 
   useEffect(() => {
@@ -473,7 +476,7 @@ export function ChatAsisten({ saran }: { saran: string[] }) {
     setBaru(false)
   }, [username])
 
-  const tombol = (id: 'chat' | 'analisis', label: string) => (
+  const tombol = (id: 'chat' | 'analisis' | 'data', label: string) => (
     <button
       type="button"
       role="tab"
@@ -494,10 +497,11 @@ export function ChatAsisten({ saran }: { saran: string[] }) {
       <div role="tablist" aria-label="Asisten" className="vsf-card flex w-fit gap-1 p-1">
         {tombol('chat', 'Percakapan')}
         {tombol('analisis', 'Analisis Harian')}
+        {tombol('data', 'Analisis Data')}
       </div>
-      {tab === 'chat'
-        ? <Percakapan saran={saran} />
-        : <AnalisisHarian admin={role === 'admin'} onDilihat={onDilihat} />}
+      {tab === 'chat' && <div className="max-w-[780px]"><Percakapan saran={saran} /></div>}
+      {tab === 'analisis' && <div className="max-w-[780px]"><AnalisisHarian admin={role === 'admin'} onDilihat={onDilihat} /></div>}
+      {tab === 'data' && <AnalisisData />}
     </div>
   )
 }

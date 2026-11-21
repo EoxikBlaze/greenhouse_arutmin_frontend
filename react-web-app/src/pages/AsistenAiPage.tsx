@@ -126,7 +126,7 @@ export default function AsistenAiPage() {
   }, [galat])
 
   return (
-    <div className="mx-auto flex w-full max-w-[780px] flex-col gap-4 vsf-stagger">
+    <div className="mx-auto flex w-full max-w-[1040px] flex-col gap-4 vsf-stagger">
       <StripKonteks data={konteks} memuat={memuatKonteks} />
 
       {/* Langkah berikutnya: satu rekomendasi prioritas, ringkas */}

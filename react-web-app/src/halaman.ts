@@ -5,7 +5,6 @@ import { lazy, type ComponentType } from 'react'
 const satu = <M,>(muat: () => Promise<M>, ambil: (m: M) => ComponentType) => lazy(() => muat().then((m) => ({ default: ambil(m) })))
 export const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 export const SensorRealtimePage = lazy(() => import('./pages/SensorRealtimePage'))
-export const AnalisisPage = lazy(() => import('./pages/AnalisisPage'))
 export const KebunSayaPage = lazy(() => import('./pages/KebunSayaPage'))
 export const CctvPage = lazy(() => import('./pages/CctvPage'))
 export const AsistenAiPage = lazy(() => import('./pages/AsistenAiPage'))

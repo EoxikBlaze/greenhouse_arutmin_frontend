@@ -335,7 +335,7 @@ export default function SensorRealtimePage() {
 
       <p className="text-[13px] text-abu">
         Ingin tahu seberapa stabil kondisi, respons dosing, atau pola harian?{' '}
-        <Link to="/analisis" className="font-semibold text-arutmin-forest underline underline-offset-2">Buka Analisis →</Link>
+        <Link to="/asisten-ai?tab=analisis-data" className="font-semibold text-arutmin-forest underline underline-offset-2">Buka Analisis di Asisten AI →</Link>
       </p>
 
       <KartuSaranDosis />

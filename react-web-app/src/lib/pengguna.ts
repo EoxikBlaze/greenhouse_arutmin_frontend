@@ -27,12 +27,12 @@ export const LEVEL_INFO: Record<Level, { label: string; ringkas: string; akses: 
   user: {
     label: 'User',
     ringkas: 'Memantau kebun, tanpa menu kelola',
-    akses: ['Dashboard, Sensor, Analisis, Peringatan', 'Kebun Saya, CCTV & Asisten AI', 'Profile sendiri'],
+    akses: ['Dashboard, Sensor, Peringatan', 'Kebun Saya, CCTV & Asisten AI (termasuk Analisis Data)', 'Profile sendiri'],
   },
   petani: {
     label: 'Petani',
     ringkas: 'Fokus pada kebun harian',
-    akses: ['Dashboard, Sensor, Analisis, Peringatan', 'Kebun Saya, CCTV & Asisten AI', 'Profile sendiri'],
+    akses: ['Dashboard, Sensor, Peringatan', 'Kebun Saya, CCTV & Asisten AI (termasuk Analisis Data)', 'Profile sendiri'],
   },
 }
 

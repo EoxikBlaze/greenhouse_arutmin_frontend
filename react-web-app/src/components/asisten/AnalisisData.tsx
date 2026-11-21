@@ -1,28 +1,27 @@
 import { useState } from 'react'
-import { useAuth } from '../lib/authContext'
-import { PageHeader } from '../components/PageHeader'
-import { Segmen } from '../components/sensor/FilterBar'
-import { RentangRiwayat } from '../components/sensor/RentangRiwayat'
-import { PanelKestabilan } from '../components/analisis/PanelKestabilan'
-import { PanelDosing } from '../components/analisis/PanelDosing'
-import { PanelPola } from '../components/analisis/PanelPola'
-import { PanelBatch } from '../components/analisis/PanelBatch'
-import { PanelHubungan } from '../components/analisis/PanelHubungan'
-import { PanelKualitas } from '../components/analisis/PanelKualitas'
-import { PanelMetode } from '../components/analisis/PanelMetode'
-import { PanelDataRiset } from '../components/analisis/PanelDataRiset'
-import { useAnalisis, type ResponKestabilan, type ResponKonsumsi, type ResponKorelasi, type ResponKualitas, type ResponPola, type ResponRespons } from '../lib/analisis'
-import { useRentangWaktu } from '../lib/useRentangWaktu'
-import { tglJamPendek } from '../lib/riwayatSensor'
+import { useAuth } from '../../lib/authContext'
+import { Segmen } from '../sensor/FilterBar'
+import { RentangRiwayat } from '../sensor/RentangRiwayat'
+import { PanelKestabilan } from '../analisis/PanelKestabilan'
+import { PanelDosing } from '../analisis/PanelDosing'
+import { PanelPola } from '../analisis/PanelPola'
+import { PanelBatch } from '../analisis/PanelBatch'
+import { PanelHubungan } from '../analisis/PanelHubungan'
+import { PanelKualitas } from '../analisis/PanelKualitas'
+import { PanelMetode } from '../analisis/PanelMetode'
+import { PanelDataRiset } from '../analisis/PanelDataRiset'
+import { useAnalisis, type ResponKestabilan, type ResponKonsumsi, type ResponKorelasi, type ResponKualitas, type ResponPola, type ResponRespons } from '../../lib/analisis'
+import { useRentangWaktu } from '../../lib/useRentangWaktu'
+import { tglJamPendek } from '../../lib/riwayatSensor'
 
 const TAB = ['Kestabilan', 'Dosing', 'Pola harian', 'Hubungan', 'Kualitas data', 'Bandingkan batch', 'Metode', 'Data riset'] as const
 type Tab = (typeof TAB)[number]
 
 /**
- * Analisis (menu Pantau): kestabilan tiap sensor, respons dosing dan konsumsi nutrisi, pola harian + VPD,
- * perbandingan batch, dan paket data riset. Semua dihitung server dari bacaan yang sudah tersimpan; tidak mengirim perintah ke alat.
+ * Analisis data (tab Asisten AI): kestabilan sensor, respons dosing, konsumsi nutrisi, pola harian + VPD,
+ * perbandingan batch, dan paket data riset. Dihitung server dari bacaan tersimpan; tidak mengirim perintah ke alat.
  */
-export default function AnalisisPage() {
+export function AnalisisData() {
   const { role } = useAuth()
   const pengelola = role !== 'petani'
   const w = useRentangWaktu('7 Hari')
@@ -38,12 +37,10 @@ export default function AnalisisPage() {
   const kualitas = useAnalisis<ResponKualitas>('kualitas-data', tab === 'Kualitas data' ? r : null)
 
   return (
-    <div className="vsf-halaman vsf-stagger">
-      <PageHeader
-        judul="Analisis"
-        deskripsi="Kestabilan, respons dosing, konsumsi nutrisi, pola harian, hubungan antar sensor, kualitas data, dan perbandingan batch, dihitung dari data yang sudah tersimpan, lengkap dengan metode dan keterbatasannya."
-      />
-
+    <div className="grid gap-4">
+      <p className="text-[13px] leading-relaxed text-abu">
+        Kestabilan, respons dosing, konsumsi nutrisi, pola harian, hubungan antar sensor, kualitas data, dan perbandingan batch, dihitung dari data yang sudah tersimpan, lengkap dengan metode dan keterbatasannya.
+      </p>
       <RentangRiwayat
         rentang={w.rentang}
         onRentang={w.pilih}
@@ -60,12 +57,10 @@ export default function AnalisisPage() {
             ? 'Perbandingan batch memakai seluruh masa batch, bukan rentang ini.'
             : tab === 'Metode'
               ? 'Dokumentasi metode tidak bergantung pada rentang.'
-            : r ? `${tglJamPendek(r.dari)} – ${tglJamPendek(r.sampai)}${r.live ? ' · diperbarui otomatis' : ''}` : 'Pilih tanggal lalu tekan Terapkan.'
+              : r ? `${tglJamPendek(r.dari)} – ${tglJamPendek(r.sampai)}${r.live ? ' · diperbarui otomatis' : ''}` : 'Pilih tanggal lalu tekan Terapkan.'
         }
       />
-
       <Segmen label="Jenis analisis" pilihan={TAB} nilai={tab} onPilih={setTab} />
-
       {tab === 'Kestabilan' && <PanelKestabilan data={kestabilan.data} galat={kestabilan.galat} memuat={kestabilan.memuat} />}
       {tab === 'Dosing' && <PanelDosing respons={respons.data} konsumsi={konsumsi.data} galat={respons.galat ?? konsumsi.galat} memuat={respons.memuat || konsumsi.memuat} />}
       {tab === 'Pola harian' && <PanelPola data={pola.data} galat={pola.galat} memuat={pola.memuat} />}

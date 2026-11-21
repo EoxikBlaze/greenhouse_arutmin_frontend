@@ -36,7 +36,6 @@ const TITLES: Record<string, string> = {
   '/pendewasaan': 'Pendewasaan',
   '/panen': 'Panen',
   '/siklus': 'Durasi Siklus',
-  '/analisis': 'Analisis',
   '/tanaman': 'Jenis Tanaman',
   '/ambang': 'Ambang Sensor',
   '/laporan': 'Laporan',
@@ -68,7 +67,6 @@ const NAV: NavGroup[] = [
     items: [
       { to: '/dashboard', label: 'Dashboard', ikon: 'dashboard' },
       { to: '/sensor-realtime', label: 'Sensor', ikon: 'sensor' },
-      { to: '/analisis', label: 'Analisis', ikon: 'ai' },
       { to: '/peringatan', label: 'Peringatan', ikon: 'peringatan' },
       { to: '/cctv', label: 'CCTV', ikon: 'cctv' },
       { to: '/asisten-ai', label: 'Asisten AI', ikon: 'ai' },
