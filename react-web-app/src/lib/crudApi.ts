@@ -31,6 +31,7 @@ type ErrShape = {
     data?: { message?: unknown; errors?: unknown }
   }
   request?: unknown
+  code?: string
 }
 
 /** Terjemahkan AxiosError → ApiFailure (tanpa efek samping — aman dipanggil di mana pun). */
@@ -54,6 +55,8 @@ export function parseApiFailure(err: unknown): ApiFailure {
     if (status === 404) message = 'Data tidak ditemukan.'
     else if (status === 401) message = 'Tidak terautentikasi.'
     else if (status === 403) message = 'Akses ditolak.'
+    else if (status === 0 && (e?.code === 'ECONNABORTED' || e?.code === 'ETIMEDOUT'))
+      message = 'Sistem butuh waktu terlalu lama untuk menjawab. Coba lagi sebentar.'
     else if (status === 0) message = 'Tidak dapat terhubung ke sistem. Periksa koneksi lalu coba lagi.'
     else if (status >= 500) message = 'Terjadi kesalahan pada sistem. Coba lagi sebentar.'
     else message = 'Permintaan gagal diproses.'

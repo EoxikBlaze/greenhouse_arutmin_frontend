@@ -149,6 +149,7 @@ function Percakapan({ saran }: { saran: string[] }) {
         {
           headers: { Accept: 'application/x-ndjson' },
           responseType: 'text',
+          timeout: 90_000, // jawaban AI bisa >15 dtk (batas global api.ts)
           onDownloadProgress: (e) => {
             if (sesi !== sesiRef.current) return
             const { kalimat } = bacaAliran(teksDiterima(e))
