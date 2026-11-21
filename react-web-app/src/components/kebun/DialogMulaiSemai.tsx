@@ -54,7 +54,7 @@ const LANGKAH = 10
 type SiapSemai = {
   kategori: string
   alat: { kode: string; nama: string; online: boolean; siap: boolean | null; kurang: string | null } | null
-  semai: { siap: boolean; kurang: string[] }
+  semai: { siap: boolean; kurang: string[]; catatan_saja?: boolean }
 }
 
 export function DialogMulaiSemai({ onClose, onSukses, batchBerjalan = [] }: { onClose: () => void; onSukses: (pesan: string) => void; batchBerjalan?: TanamRow[] }) {
@@ -261,8 +261,12 @@ export function DialogMulaiSemai({ onClose, onSukses, batchBerjalan = [] }: { on
             {!loading && mejaList.length === 0 && (
               <KosongMaster teks="Belum ada meja." ke="/meja" tautan="Isi di Master Data → Meja Tanaman" admin={admin} />
             )}
-            {siap && (
-              <div role="status" className={`mt-1 rounded-input px-3 py-2 text-[12px] leading-relaxed ${siap.alat && siap.alat.siap !== false && siap.semai.siap ? 'border border-arutmin-moss bg-arutmin-mint/50 text-arutmin-forest' : 'vsf-tone-warn'}`}>
+            {siap?.semai.catatan_saja ? (
+              <div role="status" className="mt-1 rounded-input border border-arutmin-moss bg-arutmin-mint/50 px-3 py-2 text-[12px] leading-relaxed text-arutmin-forest">
+                <b>Meja ini hanya pencatatan.</b> Tidak ada alat terpasang, jadi tidak ada dosing atau pemantauan sensor. Batch, tahap, dan panen tetap dicatat.
+              </div>
+            ) : siap && (
+              <div role="status" className={`mt-1 rounded-input px-3 py-2 text-[12px] leading-relaxed ${(siap.semai.catatan_saja || (siap.alat && siap.alat.siap !== false && siap.semai.siap)) ? 'border border-arutmin-moss bg-arutmin-mint/50 text-arutmin-forest' : 'vsf-tone-warn'}`}>
                 <div>
                   <b>Alat:</b>{' '}
                   {!siap.alat ? 'belum terpasang di meja ini'

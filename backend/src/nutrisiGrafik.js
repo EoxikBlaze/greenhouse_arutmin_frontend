@@ -92,7 +92,7 @@ async function dataNutrisi({ hari = 7, maju = null, idMeja = null } = {}) {
   // rencana ke depan proporsional: rentang 24 jam → 1 hari ke depan (supaya riwayat tidak terjepit), selainnya 2 hari
   if (maju == null) maju = h <= 1 ? 1 : 2;
   const sekarang = Date.now();
-  const mejaId = idMeja ?? (await S.mejaBatchTerbaru());
+  const mejaId = idMeja ?? (await S.mejaBatchTerbaru({ semua: true }));
   const batchMap = await P.batchPerMeja();
   const batch = mejaId == null ? null : batchMap.get(String(mejaId)) ?? null;
   const alat = mejaId == null ? null : await S.alatMeja(mejaId);

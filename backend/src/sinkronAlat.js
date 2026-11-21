@@ -28,9 +28,16 @@ async function alatMeja(idMeja) {
 }
 const alatDiMeja = async (idMeja) => (await alatMeja(idMeja))?.kode ?? null;
 
-async function mejaBatchTerbaru() {
+/**
+ * Meja dengan batch berjalan terbaru. Meja tanpa alat hanya pencatatan, jadi yang dipilih lebih dulu adalah meja BERALAT;
+ * `semua: true` (tampilan grafik) boleh jatuh ke meja pencatatan bila tidak ada meja beralat yang punya batch.
+ */
+async function mejaBatchTerbaru({ semua = false } = {}) {
   const batch = await P.batchPerMeja();
-  const terbaru = [...batch.values()].sort((a, b) => new Date(b.mulai) - new Date(a.mulai) || Number(b.id) - Number(a.id))[0];
+  const beralat = new Set((await q("SELECT id_meja FROM perangkat WHERE id_meja IS NOT NULL AND peran IN ('gabungan', 'aktuator') AND aktif")).map((r) => String(r.id_meja)));
+  let daftar = [...batch.values()].filter((b) => beralat.has(String(b.id_meja)));
+  if (!daftar.length && semua) daftar = [...batch.values()];
+  const terbaru = daftar.sort((a, b) => new Date(b.mulai) - new Date(a.mulai) || Number(b.id) - Number(a.id))[0];
   return terbaru?.id_meja ?? null;
 }
 

@@ -474,7 +474,7 @@ router.get('/siap-semai', async (req, res, next) => {
     res.json({
       status: true, kategori,
       alat: alat ? { kode: alat.kode, nama: alat.nama, online: !!iotStatus.online, siap: a.siap, kurang: a.kurang } : null,
-      semai: { siap: Boolean(alat) && kurang.length === 0, kurang: alat ? kurang : ['alat terpasang di meja (Master Data → Meja Tanaman)', ...kurang] },
+      semai: { siap: Boolean(alat) && kurang.length === 0, kurang: alat ? kurang : [], catatan_saja: !alat },
     });
   } catch (e) { next(e); }
 });
@@ -484,7 +484,7 @@ router.post('/kirim-alat', demoGuard('tanam.kirim-alat'), async (req, res, next)
   try {
     // meja batch berjalan terbaru (atau ?id_meja=) — alat di meja itu diberi KONFIGURASI lalu SEMAI
     const idMeja = /^\d{1,18}$/.test(String(req.query.id_meja ?? '')) ? req.query.id_meja : await S.mejaBatchTerbaru();
-    if (!idMeja) return res.json({ status: true, alat: { dikirim: false, ket: 'Tidak ada batch berjalan.' }, message: 'Tidak ada batch berjalan.' });
+    if (!idMeja) return res.json({ status: true, alat: { dikirim: false, ket: 'Tidak ada batch berjalan di meja yang punya alat.' }, message: 'Tidak ada batch berjalan di meja yang punya alat.' });
     await sinkronTarget();
     const alat = await S.mulaiSemaiAlat(idMeja, Number(req.user.sub) || null);
     res.status(alat.dikirim ? 202 : 200).json({ status: true, alat, message: alat.ket });
