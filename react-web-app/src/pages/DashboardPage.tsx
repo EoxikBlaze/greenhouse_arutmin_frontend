@@ -130,7 +130,7 @@ function statusAlat(a: KeadaanAlat | null): { nilai: string; target: string } {
   if (a.mode === 'SEMAI') return { nilai: a.hari_semai != null ? `Semai · hari ${a.hari_semai}` : 'Semai', target: jaga || 'Menjaga nutrisi & pH' }
   if (a.mode === 'PANEN') return { nilai: 'Panen', target: 'Dosing & isi otomatis berhenti' }
   if (a.siap === false) return { nilai: 'Belum siap', target: `Kurang: ${a.kurang || 'konfigurasi'} (${petunjukKurang(a.kurang)})` }
-  return { nilai: 'Siap semai', target: 'Konfigurasi lengkap, tinggal mulai semai' }
+  return { nilai: 'Alat siap', target: 'Kalibrasi lengkap; Uji Lab dan volume dicek saat Mulai Semai' }
 }
 
 function IkonMetrik({ kind }: { kind: string }) {

@@ -146,7 +146,7 @@ export function kurvaNaikHarian(
 export function petunjukKurang(kurang: string | null | undefined): string {
   const k = (kurang || '').toLowerCase()
   if (k.startsWith('kal') || k.startsWith('laju')) return 'menu Kalibrasi'
-  if (k.startsWith('uji lab')) return 'menu Uji Lab'
+  if (k.startsWith('uji lab')) return 'Master Data → Uji Lab'
   if (k.startsWith('volume') || k.startsWith('monitoring') || k.startsWith('jeda')) return 'Master Data → Meja Tanaman'
   if (k.startsWith('ads')) return 'cek sensor ADS1115 di alat'
   return 'menu Kalibrasi, Uji Lab, atau Meja Tanaman'

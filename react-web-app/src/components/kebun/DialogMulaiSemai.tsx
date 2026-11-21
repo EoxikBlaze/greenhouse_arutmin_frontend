@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import { api } from '../../lib/api'
 import { fieldError, useApiError } from '../../lib/crudApi'
@@ -51,6 +51,12 @@ const LANGKAH = 10
  * · cara_naik (per hari / per siklus, DIPILIH di sini) · angka resep bila diubah untuk batch ini.
  * Server menyalin resep ke batch lalu mengirim KONFIGURASI + SEMAI ke alat di meja; `alat.ket` ditampilkan ke petani.
  */
+type SiapSemai = {
+  kategori: string
+  alat: { kode: string; nama: string; online: boolean; siap: boolean | null; kurang: string | null } | null
+  semai: { siap: boolean; kurang: string[] }
+}
+
 export function DialogMulaiSemai({ onClose, onSukses, batchBerjalan = [] }: { onClose: () => void; onSukses: (pesan: string) => void; batchBerjalan?: TanamRow[] }) {
   const handleApiError = useApiError()
   const { data, loading, error } = useApiObject<Pilihan>('/tanam/pilihan')
@@ -79,6 +85,16 @@ export function DialogMulaiSemai({ onClose, onSukses, batchBerjalan = [] }: { on
 
   const terpilih = tanamanList.find((t) => String(t.id) === idTanaman) ?? null
   const mejaTerpilih = mejaList.find((m) => String(m.id) === idMeja) ?? null
+  // kesiapan sebelum mulai: alat (kalibrasi) dan semai (volume penampung, uji lab sesuai kategori, dll.). Hanya informasi.
+  const [siap, setSiap] = useState<SiapSemai | null>(null)
+  useEffect(() => {
+    if (!idMeja) { setSiap(null); return }
+    let batal = false
+    void api.get('/tanam/siap-semai', { params: { id_meja: idMeja, id_tanaman: idTanaman || undefined } })
+      .then((r) => { if (!batal) setSiap(r.data as SiapSemai) })
+      .catch(() => { if (!batal) setSiap(null) })
+    return () => { batal = true }
+  }, [idMeja, idTanaman])
   // batch yang sudah berjalan di meja terpilih: alat hanya menjaga SATU target per penampung (mengikuti batch yang dimulai paling baru)
   const batchDiMeja = idMeja ? batchBerjalan.filter((b) => b.id_meja != null && String(b.id_meja) === idMeja) : []
   const tahap = cara === 'tahap'
@@ -244,6 +260,22 @@ export function DialogMulaiSemai({ onClose, onSukses, batchBerjalan = [] }: { on
             </select>
             {!loading && mejaList.length === 0 && (
               <KosongMaster teks="Belum ada meja." ke="/meja" tautan="Isi di Master Data → Meja Tanaman" admin={admin} />
+            )}
+            {siap && (
+              <div role="status" className={`mt-1 rounded-input px-3 py-2 text-[12px] leading-relaxed ${siap.alat && siap.alat.siap !== false && siap.semai.siap ? 'border border-arutmin-moss bg-arutmin-mint/50 text-arutmin-forest' : 'vsf-tone-warn'}`}>
+                <div>
+                  <b>Alat:</b>{' '}
+                  {!siap.alat ? 'belum terpasang di meja ini'
+                    : siap.alat.siap === true ? 'siap (kalibrasi lengkap)'
+                    : siap.alat.siap === false ? `belum siap, kurang ${siap.alat.kurang || 'kalibrasi'}`
+                    : 'belum melapor ke server'}
+                </div>
+                <div>
+                  <b>Siap semai ({siap.kategori}):</b>{' '}
+                  {siap.semai.siap ? 'lengkap' : `belum lengkap, kurang: ${siap.semai.kurang.join('; ')}`}
+                </div>
+                {!siap.semai.siap && <div className="opacity-80">Mulai Semai tetap bisa; alat memakai nilai yang sudah tersimpan di dalamnya.</div>}
+              </div>
             )}
             {batchDiMeja.length > 0 && (
               <p role="status" className="mt-1 text-[12px] text-amber-800">

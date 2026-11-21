@@ -94,6 +94,7 @@ function inputFor(
 type TanamanRow = Record<string, unknown> & {
   id_tanaman: string | number
   nama_tanaman: string
+  kategori?: string | null
   id_meja: string | number | null
   ppm_awal?: string | number | null
   ppm_target?: string | number | null
@@ -153,7 +154,7 @@ function validateTanaman(form: FormState): Record<string, string[]> {
 
 /** Body PUT/POST /tanaman: kolom kosong dikirim null (resep boleh dikosongkan). */
 function payloadTanaman(form: FormState): Record<string, unknown> {
-  const payload: Record<string, unknown> = { nama_tanaman: (form.nama_tanaman ?? '').trim() }
+  const payload: Record<string, unknown> = { nama_tanaman: (form.nama_tanaman ?? '').trim(), kategori: form.kategori === 'buah' ? 'buah' : 'sayur' }
   for (const k of KOLOM_RESEP) payload[k] = angkaForm(form[k])
   return payload
 }
@@ -170,9 +171,6 @@ function ringkasSiklus(r: TanamanRow): string | null {
 export function JenisTanamanPage() {
   const handleApiError = useApiError()
   const { rows, loading, error, reload } = useApiList<TanamanRow>('/tanaman')
-  // batas alert TDS (Ambang Sensor) — hanya untuk peringatan di form
-  const { data: naik } = useApiObject<{ ambang_tds: { min: number; max: number } | null }>('/dosing/naik-harian')
-  const maksAmbang = naik?.ambang_tds?.max ?? null
   // durasi tahap per tanaman (master) — dari /tanam/pilihan, boleh dibaca semua peran
   const { data: pilihan, reload: reloadDurasi } = useApiObject<{ tanaman: DurasiTanaman[] }>('/tanam/pilihan')
   const durasiDari = (id: string | number | null | undefined) => (pilihan?.tanaman ?? []).find((t) => String(t.id) === String(id)) ?? null
@@ -205,6 +203,7 @@ export function JenisTanamanPage() {
   function buka(row: TanamanRow | null) {
     setForm({
       nama_tanaman: isi(row?.nama_tanaman),
+      kategori: row?.kategori === 'buah' ? 'buah' : 'sayur',
       ...Object.fromEntries(KOLOM_RESEP.map((k) => [k, k.startsWith('ph_') && row?.[k] != null ? isi(Number(row[k])).replace('.', ',') : isi(row?.[k])])),
       ...isianDurasi(durasiTersimpan(durasiDari(row?.id_tanaman))),
     })
@@ -274,7 +273,7 @@ export function JenisTanamanPage() {
       render: (r) => (
         <>
           <b className="text-tinta">{cell(r.nama_tanaman)}</b>
-          <small className="vsf-master-id">ID {String(r.id_tanaman)}</small>
+          <small className="vsf-master-id">ID {String(r.id_tanaman)} · {r.kategori === 'buah' ? 'Buah' : 'Sayur'}</small>
         </>
       ),
     },
@@ -326,7 +325,6 @@ export function JenisTanamanPage() {
       <FieldError message={fieldError(fieldErrors, k)} />
     </Field>
   )
-  const ppmTertinggi = Math.max(...[...KOLOM_TAHAP, 'ppm_target'].map((k) => angkaForm(form[k]) ?? 0))
 
   return (
     <>
@@ -374,6 +372,14 @@ export function JenisTanamanPage() {
             <FieldError message={fieldError(fieldErrors, 'nama_tanaman')} />
           </Field>
 
+          <Field label="Kategori">
+            <select className="vsf-input w-full" value={form.kategori === 'buah' ? 'buah' : 'sayur'} onChange={ubah('kategori')}>
+              <option value="sayur">Sayur</option>
+              <option value="buah">Buah</option>
+            </select>
+            <p className="mt-1 text-[12px] text-abu">Menentukan set Uji Lab (takaran nutrisi A+B dan pH) yang dikirim ke alat saat Mulai Semai.</p>
+          </Field>
+
           <fieldset className="mt-4 border-t border-black/10 pt-3">
             <legend className="text-[12px] font-bold text-slate-700">Resep naik per hari</legend>
             <p className="mt-1 text-[12px] leading-relaxed text-slate-600">
@@ -391,11 +397,6 @@ export function JenisTanamanPage() {
               {[kotak('ppm_semai', 'Semai (ppm)', '300'), kotak('ppm_peremajaan', 'Peremajaan (ppm)', '700'), kotak('ppm_pendewasaan', 'Pendewasaan (ppm)', '1100')]}
             </div>
             <p className="mt-2 text-[12px] text-slate-600">Isi salah satu atau keduanya. Petani memilih cara yang dipakai saat Mulai Semai.</p>
-            {maksAmbang != null && ppmTertinggi > maksAmbang && (
-              <p role="alert" className="mt-2 text-[12px] text-amber-800">
-                Melewati batas aman nutrisi di Ambang Sensor ({angkaMaks(maksAmbang, 0)} ppm); peringatan akan menyala saat target tercapai.
-              </p>
-            )}
           </fieldset>
 
           <fieldset className="mt-4 border-t border-black/10 pt-3">
@@ -751,23 +752,37 @@ export function MejaTanamanPage() {
               <FieldError message={fieldError(fieldErrors, 'meja')} />
             </Field>
           )}
-          {'jumlah_lubang' in form && (
-            <Field label="Jumlah lubang">
-              {inputFor(MEJA_FIELDS[1], form.jumlah_lubang ?? '', (v) => setForm((s) => ({ ...s, jumlah_lubang: v })))}
-              <FieldError message={fieldError(fieldErrors, 'jumlah_lubang')} />
-            </Field>
-          )}
-          {MEJA_FIELDS.filter((f) => !f.core && f.key in form).map((f) => (
-            <Field key={f.key} label={f.label}>
-              {inputFor(
-                f,
-                form[f.key] ?? '',
-                (v) => setForm((s) => ({ ...s, [f.key]: v })),
-                rows.map((r) => String(r[f.key] ?? '')).filter(Boolean),
-              )}
-              <FieldError message={fieldError(fieldErrors, f.key)} />
-            </Field>
-          ))}
+          {(() => {
+            // Hanya volume penampung yang wajib untuk alat. Waktu operasi otomatis bila kosong; detail fisik talang hanya catatan.
+            const kolom = (keys: string[]) =>
+              MEJA_FIELDS.filter((f) => keys.includes(f.key) && f.key in form).map((f) => (
+                <Field key={f.key} label={f.label}>
+                  {inputFor(
+                    f,
+                    form[f.key] ?? '',
+                    (v) => setForm((s) => ({ ...s, [f.key]: v })),
+                    rows.map((r) => String(r[f.key] ?? '')).filter(Boolean),
+                  )}
+                  <FieldError message={fieldError(fieldErrors, f.key)} />
+                </Field>
+              ));
+            const WAKTU = ['jumlah_talang', 'laju_per_talang_lpm', 'monitoring_menit', 'jeda_ab_dtk'];
+            const FISIK = ['jumlah_lubang', 'jenis_talang', 'lubang_per_talang', 'panjang_talang_m', 'kenaikan_air_cm'];
+            const adaGalat = (keys: string[]) => keys.some((k) => (fieldErrors[k] ?? []).length > 0);
+            return (
+              <>
+                {kolom(['kapasitas_penampung_l'])}
+                <details className="mt-3" open={adaGalat(WAKTU) || !!form.monitoring_menit || !!form.jeda_ab_dtk}>
+                  <summary className="cursor-pointer text-[12.5px] font-bold text-slate-700">Waktu monitoring &amp; jeda A→B (opsional, otomatis bila kosong)</summary>
+                  <div className="mt-2">{kolom(WAKTU)}</div>
+                </details>
+                <details className="mt-3" open={adaGalat(FISIK)}>
+                  <summary className="cursor-pointer text-[12.5px] font-bold text-slate-700">Detail fisik meja &amp; talang (catatan, tidak dipakai alat)</summary>
+                  <div className="mt-2">{kolom(FISIK)}</div>
+                </details>
+              </>
+            );
+          })()}
           <Field label="Alat terpasang di penampung meja ini">
             <select
               className="vsf-input w-full"

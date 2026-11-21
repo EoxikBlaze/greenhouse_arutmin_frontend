@@ -26,6 +26,7 @@ import {
   ProfilePage,
 } from './halaman'
 import TentangPage from './pages/TentangPage'
+import PengaturanAlatPage from './pages/PengaturanAlatPage'
 import { GalatHalaman } from './components/GalatHalaman'
 
 /** Guard gaya .pen — semua role yang boleh masuk */
@@ -67,7 +68,7 @@ export const router = createBrowserRouter([
           { path: '/saklar', element: <RequireAuth allow={ADMIN_DEMO} element={<SaklarModePage />} /> },
           { path: '/dosing-manual', element: <Navigate to="/dashboard" replace /> },
           // menu yang sudah dihapus: tautan/bookmark lama diarahkan ke penggantinya, bukan 404
-          { path: '/pengaturan-alat', element: <Navigate to="/meja" replace /> },
+          { path: '/pengaturan-alat', element: <RequireAuth allow={['admin']} element={<PengaturanAlatPage />} /> },
           { path: '/pengaturan', element: <Navigate to="/meja" replace /> },
           { path: '/parameter', element: <Navigate to="/dashboard" replace /> },
           { path: '/watercontrol', element: <Navigate to="/saklar" replace /> },
@@ -100,7 +101,7 @@ export const router = createBrowserRouter([
           { path: '/laporan', element: <RequireAuth allow={ADMIN_DEMO} element={<LaporanPage />} /> },
 
           // 06 · Sistem — Manajemen User [admin] + [demo] (demo = admin read-only)
-          { path: '/user', element: <RequireAuth allow={ADMIN_DEMO} element={<ManajemenUserPage />} /> },
+          { path: '/user', element: <RequireAuth allow={['admin']} element={<ManajemenUserPage />} /> },
           // 07 · Riwayat Audit — admin + demo (baca saja; backend: requireRole admin)
           { path: '/audit', element: <RequireAuth allow={ADMIN_DEMO} element={<AuditPage />} /> },
 

@@ -11,7 +11,7 @@ const AKHIR = ['selesai', 'gagal', 'batal', 'kedaluwarsa']
 const kb = (n: number) => `${Math.round(n / 1024).toLocaleString('id-ID')} KB`
 
 /** Pantau satu perintah (OTA / KONSOL) sampai alat melapor. */
-function usePerintah(id: number | string | null): { status: string; alasan: string | null; keluaran: string | null } | null {
+export function usePerintah(id: number | string | null): { status: string; alasan: string | null; keluaran: string | null } | null {
   const [h, setH] = useState<{ id: string; status: string; alasan: string | null; keluaran: string | null } | null>(null)
   useEffect(() => {
     if (id === null) return
@@ -142,7 +142,7 @@ export function PanelFirmwareAlat({ pemeliharaanAktif }: { pemeliharaanAktif: bo
 
   return (
     <section className="vsf-card w-full min-w-0 p-4 sm:p-5" aria-label="Update program alat">
-      <div className="vsf-judul-bagian">Update program alat (OTA) &amp; konsol</div>
+      <div className="vsf-judul-bagian">Program alat: update lewat WiFi (OTA) &amp; konsol jarak jauh</div>
       <p className="mt-0.5 text-[12.5px] text-abu">
         Program di alat: <span className="font-mono">{versi ?? '—'}</span>. Aktifkan mode pemeliharaan dulu. Gunakan berkas .bin hasil
         &quot;Export Compiled Binary&quot; (tanpa bootloader) dengan partisi Minimal SPIFFS.

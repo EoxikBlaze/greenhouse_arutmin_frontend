@@ -11,7 +11,7 @@ const angka = (v: unknown, d = 2) => (v == null || v === '' || !Number.isFinite(
 type Titik = { titik: number; tegangan: number | null; acuan: number | null }
 const titikDari = (r: ArsipKalibrasiRow): Titik | null => {
   const k = r.konstanta_baru as { titik?: number; tegangan?: number; acuan?: number } | null
-  return k?.titik ? { titik: k.titik, tegangan: k.tegangan ?? null, acuan: k.acuan ?? null } : null
+  return typeof k?.titik === 'number' ? { titik: k.titik, tegangan: k.tegangan ?? null, acuan: k.acuan ?? null } : null
 }
 
 /** Hasil terakhir per titik (catatan web dari laporan alat). Baris diurut terbaru dulu. */
@@ -23,7 +23,10 @@ export function kalibrasiTerpakai(baris: ArsipKalibrasiRow[], sensor: 'ph' | 'ec
     const t = titikDari(r)
     if (t && !hasil.some((h) => h.titik.titik === t.titik)) hasil.push({ titik: t, pada: r.dilakukan_pada })
   }
-  return { titik: hasil.sort((a, b) => a.titik.titik - b.titik.titik), dikembalikan }
+  // Firmware menghapus titik 0 EC bila titik 1 disimpan ulang setelahnya: titik 0 yang lebih lama tidak berlaku lagi.
+  const t1 = hasil.find((h) => h.titik.titik === 1)
+  const berlaku = sensor === 'ec' && t1 ? hasil.filter((h) => h.titik.titik !== 0 || new Date(h.pada) > new Date(t1.pada)) : hasil
+  return { titik: berlaku.sort((a, b) => a.titik.titik - b.titik.titik), dikembalikan }
 }
 
 /** Riwayat lengkap kalibrasi + ringkasan "yang dipakai sekarang" (hasil terakhir yang tercatat di server). */

@@ -27,6 +27,7 @@ const TITLES: Record<string, string> = {
   '/peringatan': 'Peringatan',
   '/tanam': 'Kebun Saya',
   '/saklar': 'Otomasi Alat',
+  '/pengaturan-alat': 'Pengaturan Alat',
   '/kalibrasi': 'Kalibrasi',
   '/data': 'Uji Lab',
   '/audit': 'Catatan Aktivitas & Audit',
@@ -79,16 +80,7 @@ const NAV: NavGroup[] = [
     items: [
       { to: '/tanam', label: 'Kebun Saya', ikon: 'tanam' },
       { to: '/saklar', label: 'Otomasi Alat', ikon: 'ambang', allow: ADMIN_DEMO },
-    ],
-  },
-  {
-    label: 'DATA',
-    ikon: 'kalibrasi',
-    items: [
-      { to: '/kalibrasi', label: 'Kalibrasi', ikon: 'kalibrasi', allow: ADMIN_DEMO },
-      { to: '/data', label: 'Uji Lab', ikon: 'laporan', allow: ADMIN_DEMO },
-      { to: '/audit', label: 'Catatan Aktivitas', ikon: 'audit', allow: ADMIN_DEMO },
-      { to: '/laporan', label: 'Laporan', ikon: 'laporan', allow: ADMIN_DEMO },
+      { to: '/pengaturan-alat', label: 'Pengaturan Alat', ikon: 'ambang', allow: ['admin'] },
     ],
   },
   {
@@ -102,13 +94,23 @@ const NAV: NavGroup[] = [
     ],
   },
   {
+    label: 'DATA',
+    ikon: 'kalibrasi',
+    items: [
+      { to: '/kalibrasi', label: 'Kalibrasi', ikon: 'kalibrasi', allow: ADMIN_DEMO },
+      { to: '/audit', label: 'Catatan Aktivitas', ikon: 'audit', allow: ADMIN_DEMO },
+      { to: '/laporan', label: 'Laporan', ikon: 'laporan', allow: ADMIN_DEMO },
+    ],
+  },
+  {
     label: 'MASTER DATA',
     ikon: 'meja',
     items: [
       { to: '/tanaman', label: 'Jenis Tanaman', ikon: 'daun', allow: ADMIN_DEMO },
       { to: '/meja', label: 'Meja Tanaman', ikon: 'meja', allow: ADMIN_DEMO },
+      { to: '/data', label: 'Uji Lab', ikon: 'laporan', allow: ADMIN_DEMO },
       { to: '/ambang', label: 'Ambang Sensor', ikon: 'ambang', allow: ADMIN_DEMO },
-      { to: '/user', label: 'Manajemen User', ikon: 'user', allow: ADMIN_DEMO },
+      { to: '/user', label: 'Manajemen User', ikon: 'user', allow: ['admin'] },
     ],
   },
 ]

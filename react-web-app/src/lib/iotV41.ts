@@ -34,6 +34,8 @@ export type IotV41Params = {
   ppm_per_ml: number
   ph_up_ml: number
   ph_down_ml: number
+  /** Set kedua Uji Lab (kategori buah); null = belum ada hasil ukur nyata. Set sayur = ppm_per_ml/ph_up_ml/ph_down_ml di atas. */
+  buah?: { ppm_per_ml: number | null; ph_up_ml: number | null; ph_down_ml: number | null }
   laju_a: number
   laju_b: number
   laju_ph_up: number
