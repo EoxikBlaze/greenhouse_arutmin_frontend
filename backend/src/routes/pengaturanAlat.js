@@ -120,4 +120,23 @@ router.post('/bawaan', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+/** Kirim ulang SEMUA nilai yang berlaku di web ke alat (dipakai saat "Baca dari alat" menemukan nilai berbeda). Tidak mengubah simpanan. */
+router.post('/kirim-ulang', async (req, res, next) => {
+  try {
+    const nilai = await PA.efektif();
+    const kirim = await kirimKeAlat(nilai, Number(req.user.sub) || null, 'Samakan pengaturan alat dengan web');
+    req.audit = {
+      aksi: 'config_change', tabel: 'pengaturan_alat', row_id: 'semua', after: nilai,
+      meta: { peristiwa: 'Kirim ulang semua pengaturan alat dari web' },
+    };
+    res.status(kirim.ids.length ? 202 : 200).json({
+      status: true,
+      id_perintah: kirim.ids[0] ?? null,
+      message: kirim.ids.length
+        ? `Semua ${Object.keys(nilai).length} pengaturan dikirim ke alat; tunggu alat menjawab, lalu baca lagi.`
+        : `Belum bisa dikirim ke alat (${kirim.ket || 'perintah sebelumnya masih menunggu'}).`,
+    });
+  } catch (e) { next(e); }
+});
+
 module.exports = router;

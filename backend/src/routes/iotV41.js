@@ -878,53 +878,12 @@ router.post('/pulihkan', ...writeGuard, async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-/** Sumber jadwal di timing_operasi → kunci perintah JADWAL (detik). interval sensor belum punya baris di timing_operasi. */
-const SUMBER_JADWAL = [
-  { param: 'jeda_ab_menit', kunci: 'jeda_ab_detik', kali: 60 },
-  { param: 'isi_air_timeout_menit', kunci: 'isi_air_maks_detik', kali: 60 },
-];
-
-/**
- * POST /iot-v41/jadwal-alat — kirim jadwal operasi (timing_operasi) ke ESP32 untuk disimpan PERMANEN di NVS.
- * Bukan aktuasi: tidak menyalakan pompa dan tidak menyentuh gerbang dosing. Nilai di luar batas keras
- * firmware tidak dikirim diam-diam: dijepit ke batas itu dan dilaporkan di `dijepit`.
- */
-router.post('/jadwal-alat', ...writeGuard, async (req, res, next) => {
-  try {
-    const rows = await q('SELECT param, nilai FROM timing_operasi WHERE param = ANY($1::text[])', [SUMBER_JADWAL.map((x) => x.param)]);
-    const peta = Object.fromEntries(rows.map((r) => [r.param, r.nilai === null ? null : Number(r.nilai)]));
-    const parameter = {};
-    const dijepit = [];
-    const belum = [];
-    for (const { param, kunci, kali } of SUMBER_JADWAL) {
-      const v = peta[param];
-      if (!Number.isFinite(v)) { belum.push(param); continue; }
-      const [min, maks] = aktuator.JADWAL_RENTANG[kunci];
-      const detik = Math.round(v * kali);
-      const pakai = Math.min(maks, Math.max(min, detik));
-      if (pakai !== detik) dijepit.push({ param, diminta_detik: detik, dikirim_detik: pakai });
-      parameter[kunci] = pakai;
-    }
-    if (!Object.keys(parameter).length) {
-      return json(res, 422, { kode: 'jadwal_belum_diatur', message: `Jadwal belum diatur: isi ${belum.join(', ')} di Parameter & Keamanan → Jadwal operasi.` });
-    }
-    let perintah;
-    try {
-      perintah = await aktuator.buatPerintah({
-        tipe: 'JADWAL', parameter, sumber: 'pengguna', userId: Number(req.user.sub) || null,
-        alasan: 'Simpan jadwal operasi ke NVS ESP32', ttlDetik: 300,
-      });
-    } catch (e) {
-      if (e && e.status) return json(res, e.status, { message: e.message, ...(e.errors ? { errors: e.errors } : {}) });
-      throw e;
-    }
-    req.audit = { aksi: 'config_change', tabel: 'perintah_aktuator', row_id: String(perintah.id), after: parameter, meta: { dijepit, belum } };
-    return res.status(202).json({
-      status: true, antre: true, dikonfirmasi: false, id_perintah: perintah.id, parameter, dijepit, belum_diatur: belum,
-      message: 'Jadwal masuk antrean. BELUM tersimpan di alat sampai ESP32 melapor "jadwal_disimpan_nvs".',
-    });
-  } catch (e) { next(e); }
-});
+/** POST /iot-v41/jadwal-alat — ditutup (410): perintah JADWAL milik firmware lama, tidak dikenal firmware v6. */
+router.post('/jadwal-alat', ...writeGuard, (_req, res) => json(res, 410, {
+  kode: 'jadwal_tidak_dipakai',
+  // firmware v6.x tidak mengenal perintah JADWAL (sisa firmware gabungan-0.7); monitoring & jeda A->B kini lewat KONFIGURASI dari Master Meja
+  message: 'Jadwal alat tidak dipakai lagi. Waktu monitoring dan jeda A→B diatur di Master Data → Meja Tanaman dan dikirim saat Mulai Semai.',
+}));
 
 /**
  * STOP semua pompa dari aplikasi: mengantre perintah STOP lewat jalur aktuator (STOP lolos containment).

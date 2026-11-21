@@ -103,6 +103,8 @@ function readEnv() {
     const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
     if (m) out[m[1]] = m[2];
   }
+  // DB uji terpisah (garap_uji) boleh memakai sandi admin uji dari lingkungan proses, tanpa menulis ke .env
+  if (!out.ADMIN_PASSWORD && process.env.ADMIN_PASSWORD) out.ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
   return out;
 }
 

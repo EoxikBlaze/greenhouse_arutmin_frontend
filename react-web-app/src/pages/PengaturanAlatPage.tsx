@@ -5,6 +5,7 @@ import { tglJamPendek } from '../lib/riwayatSensor'
 import { PageHeader } from '../components/PageHeader'
 import { DialogKonfirmasi, Pesan, Rangka } from '../components/kaca/DialogKaca'
 import { usePerintah } from '../components/kalibrasi/PanelFirmwareAlat'
+import { bacaKeluaranParam, bandingkanParam } from '../lib/konsolParam'
 
 type Parameter = {
   param: string
@@ -121,6 +122,21 @@ export default function PengaturanAlatPage() {
     }
   }
 
+  async function kirimUlang() {
+    setSibuk(true)
+    setGalat(null)
+    try {
+      const r = await api.post('/pengaturan-alat/kirim-ulang', {})
+      setPesan((r.data as { message?: string }).message ?? 'Dikirim ke alat.')
+      setIdKonsol(null)
+      await muat()
+    } catch (e) {
+      setGalat(handleApiError(e).message)
+    } finally {
+      setSibuk(false)
+    }
+  }
+
   async function bacaDariAlat() {
     setGalat(null)
     try {
@@ -204,11 +220,55 @@ export default function PengaturanAlatPage() {
         <div className="vsf-judul-bagian">Nilai yang sedang dipegang alat</div>
         <p className="mt-0.5 text-[12.5px] text-abu">Alat belum melaporkan parameternya otomatis, jadi dibaca lewat konsol alat (perintah param). Berguna untuk memastikan angka di alat sama dengan di web.</p>
         <button type="button" className="vsf-btn-secondary mt-3" onClick={() => void bacaDariAlat()}>Baca dari alat</button>
-        {idKonsol !== null && (
-          <pre className="mt-3 max-h-80 overflow-auto rounded-card bg-white/55 p-3 font-mono text-[11.5px] leading-snug text-tinta">
-            {hasilKonsol ? (hasilKonsol.keluaran ?? `(${hasilKonsol.status}${hasilKonsol.alasan ? `: ${hasilKonsol.alasan}` : ''})`) : 'Menunggu jawaban alat…'}
-          </pre>
+        {idKonsol !== null && !hasilKonsol?.keluaran && (
+          <p className="mt-3 text-[12.5px] text-abu">
+            {hasilKonsol ? `(${hasilKonsol.status}${hasilKonsol.alasan ? `: ${hasilKonsol.alasan}` : ''})` : 'Menunggu jawaban alat…'}
+          </p>
         )}
+        {hasilKonsol?.keluaran && (() => {
+          const banding = bandingkanParam(daftar.data, bacaKeluaranParam(hasilKonsol.keluaran))
+          const beda = banding.filter((b) => b.status === 'beda').length
+          const hilang = banding.filter((b) => b.status === 'tidak_terbaca').length
+          const label = Object.fromEntries(daftar.data.map((p) => [p.param, p]))
+          return (
+            <div className="mt-3 grid gap-2">
+              <Pesan jenis={beda ? 'galat' : 'ok'}>
+                {beda
+                  ? `${beda} nilai di alat berbeda dengan web. Tekan "Kirim nilai web ke alat" supaya alat memakai angka web, lalu baca lagi.`
+                  : 'Semua nilai yang terbaca sama dengan web.'}
+                {hilang ? ` ${hilang} tidak terbaca (keluaran konsol alat terpotong, biasanya karena nilai wajib alat belum diisi).` : ''}
+              </Pesan>
+              {beda > 0 && (
+                <button type="button" className="vsf-btn-primary w-fit" disabled={sibuk} onClick={() => void kirimUlang()}>
+                  Kirim nilai web ke alat
+                </button>
+              )}
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[420px] text-left text-[12.5px]">
+                  <thead className="text-abu">
+                    <tr><th className="py-1 pr-2 font-semibold">Pengaturan</th><th className="py-1 pr-2 font-semibold">Web</th><th className="py-1 pr-2 font-semibold">Alat</th><th className="py-1 font-semibold">Status</th></tr>
+                  </thead>
+                  <tbody>
+                    {banding.map((b) => (
+                      <tr key={b.param} className="border-t border-white/50">
+                        <td className="py-1 pr-2 text-tinta">{label[b.param]?.label ?? b.param}</td>
+                        <td className="py-1 pr-2 tabular-nums">{koma(b.web)}</td>
+                        <td className="py-1 pr-2 tabular-nums">{b.alat == null ? '–' : koma(b.alat)}</td>
+                        <td className={`py-1 font-semibold ${b.status === 'beda' ? 'text-red-700' : b.status === 'cocok' ? 'text-arutmin-forest' : 'text-abu'}`}>
+                          {b.status === 'cocok' ? 'sama' : b.status === 'beda' ? 'berbeda' : 'tidak terbaca'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <details>
+                <summary className="cursor-pointer text-[12px] font-semibold text-abu">Lihat keluaran mentah alat (semua parameter)</summary>
+                <pre className="mt-2 max-h-80 overflow-auto rounded-card bg-white/55 p-3 font-mono text-[11.5px] leading-snug text-tinta">{hasilKonsol.keluaran}</pre>
+              </details>
+            </div>
+          )
+        })()}
       </section>
 
       {tanya === 'simpan' && (
