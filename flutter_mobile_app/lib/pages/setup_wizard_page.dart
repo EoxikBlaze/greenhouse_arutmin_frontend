@@ -6,8 +6,10 @@ import '../services/api_service.dart';
 import '../services/setup_service.dart';
 import '../theme/tokens.dart';
 import '../widgets/ikon.dart';
-import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
+import '../util/format.dart';
+import '../widgets/wizard_baru/kartu_langkah.dart';
+import '../widgets/wizard_baru/kepala_wizard.dart';
 
 /// Wizard Setup bertahap untuk pengguna baru atau penampung yang belum siap,
 /// serta dapat dibuka ulang dari Pengaturan tanpa menghapus riwayat lama.
@@ -20,6 +22,7 @@ class SetupWizardPage extends StatefulWidget {
     this.langkahAwal,
     this.modeUlang = false,
     this.onKeluar,
+    this.onLewati,
     this.tanpaAppBar = false,
     this.setupService,
   });
@@ -30,6 +33,10 @@ class SetupWizardPage extends StatefulWidget {
   final int? langkahAwal;
   final bool modeUlang;
   final VoidCallback? onKeluar;
+
+  /// Bila diisi, header menampilkan tombol "Lewati setup". Melewati TIDAK menandai
+  /// setup selesai di server; hanya menutup wizard untuk sesi ini.
+  final VoidCallback? onLewati;
   final bool tanpaAppBar;
   final SetupService? setupService;
 
@@ -94,6 +101,24 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
     'Selesai Setup',
   ];
 
+  /// Nama setup di kartu header dan satu kalimat petunjuk di bawah judul.
+  static const _subjudulHeader = [
+    'Setup Kalibrasi',
+    'Setup Penampung',
+    'Setup Uji Lab',
+    'Tutorial Semai',
+    'Jumlah Semai',
+    'Selesai Setup',
+  ];
+  static const _petunjuk = [
+    'Kalibrasi alat sebelum mulai menanam.',
+    'Atur volume dan isi air penampung.',
+    'Catat hasil uji lab nutrisi.',
+    'Pelajari alur semai sebelum mulai.',
+    'Catat jumlah benih yang disemai.',
+    'Periksa semua langkah, lalu selesaikan.',
+  ];
+
   bool get _bolehUbah => widget.api.role == 'admin';
 
   @override
@@ -131,7 +156,7 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
       if (r != null) _jumlahRencanaCtrl.text = '$r';
       if (d != null) _jumlahDisemaiCtrl.text = '$d';
       if (p.catatanSemai['id_tanaman'] is num) {
-        _idTanamanDipilih = (p.catatanSemai['id_tanaman'] as num).toInt();
+        _idTanamanDipilih = keIntWajib(p.catatanSemai['id_tanaman']);
       }
     }
   }
@@ -206,7 +231,7 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
               (t) => '${t['nama']}'.toLowerCase().contains('melon'),
               orElse: () => _daftarTanaman.first,
             );
-            _idTanamanDipilih = (melon['id'] as num?)?.toInt();
+            _idTanamanDipilih = keInt(melon['id']);
           }
         }
         if (hasil[4] is Map && hasil[4]['list'] is List) {
@@ -472,7 +497,7 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
       if (!mounted) return;
       setState(() {
         _idPerintahUjiPompa = res is Map && res['id_perintah'] is num
-            ? (res['id_perintah'] as num).toInt()
+            ? keIntWajib(res['id_perintah'])
             : null;
         _pesan = res is Map ? res['message']?.toString() : 'Uji pompa masuk antrean.';
       });
@@ -549,7 +574,7 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
           'alasan': 'Setup wizard: volume tandon',
         });
         if (cfg is Map && cfg['perintah'] is Map && cfg['perintah']['id'] is num) {
-          idPerintah = (cfg['perintah']['id'] as num).toInt();
+          idPerintah = keIntWajib(cfg['perintah']['id']);
         }
       } catch (_) {}
       final tandon = Map<String, dynamic>.from(_progres.tandon);
@@ -612,7 +637,7 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
       });
       if (!mounted) return;
       final id = res is Map && res['perintah'] is Map && res['perintah']['id'] is num
-          ? (res['perintah']['id'] as num).toInt()
+          ? keIntWajib(res['perintah']['id'])
           : null;
       setState(() {
         _idPerintahIsiAir = id;
@@ -675,7 +700,7 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
           'alasan': 'Setup wizard: hasil uji lab nutrisi',
         });
         if (cfg is Map && cfg['perintah'] is Map && cfg['perintah']['id'] is num) {
-          idPerintah = (cfg['perintah']['id'] as num).toInt();
+          idPerintah = keIntWajib(cfg['perintah']['id']);
         }
       } catch (_) {}
 
@@ -727,7 +752,7 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
       String? namaTanaman;
       if (_idTanamanDipilih != null) {
         final t = _daftarTanaman.firstWhere(
-          (e) => (e['id'] as num?)?.toInt() == _idTanamanDipilih,
+          (e) => keInt(e['id']) == _idTanamanDipilih,
           orElse: () => const {},
         );
         namaTanaman = t['nama']?.toString();
@@ -739,7 +764,7 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
         if (rencana != null) 'keterangan': 'Rencana: $rencana benih, disemai: $disemai benih (Setup Wizard)',
       });
       if (res is Map && res['data'] is Map && res['data']['id_semai'] is num) {
-        idSemai = (res['data']['id_semai'] as num).toInt();
+        idSemai = keIntWajib(res['data']['id_semai']);
       }
       final catatan = {
         'id_tanaman': _idTanamanDipilih,
@@ -784,7 +809,14 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
   Widget build(BuildContext context) {
     final body = Stack(
       children: [
-        const Positioned.fill(child: LatarCair()),
+        Positioned.fill(
+          child: Image.asset(
+            'assets/latar/beranda-melon.png',
+            fit: BoxFit.cover,
+            excludeFromSemantics: true,
+          ),
+        ),
+        const Positioned.fill(child: ColoredBox(color: Color(0x40FFFFFF))),
         SafeArea(
           child: Align(
             alignment: Alignment.topCenter,
@@ -793,16 +825,50 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
               child: Column(
                 children: [
                   if (!widget.tanpaAppBar)
-                    _HeaderWizard(
-                      judul: widget.modeUlang ? 'Panduan & Setup Alat' : 'Setup Awal GARAP',
-                      subjudul: 'Langkah ${_langkah + 1} dari 6 · ${_judulLangkah[_langkah]}',
-                      onKeluar: widget.onKeluar,
-                      role: widget.api.role,
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      child: HeaderWizardKartu(
+                        subjudul: widget.modeUlang
+                            ? 'Panduan & Setup Alat'
+                            : _subjudulHeader[_langkah],
+                        onKeluar: widget.onKeluar,
+                      ),
                     ),
-                  _PitaLangkah(
-                    langkahAktif: _langkah,
-                    judul: _judulLangkah,
-                    onPilih: _pindahLangkah,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
+                    child: JudulWizard(petunjuk: _petunjuk[_langkah]),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: StepperBulat(
+                      judul: _judulLangkah,
+                      aktif: _langkah,
+                      onPilih: _pindahLangkah,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 6, 20, 4),
+                    child: ChipLangkah(
+                      nomor: _langkah + 1,
+                      jumlah: _judulLangkah.length,
+                      judul: _judulLangkah[_langkah],
+                      trailing: widget.onLewati == null
+                          ? null
+                          : TextButton(
+                              onPressed: widget.onLewati,
+                              style: TextButton.styleFrom(
+                                minimumSize: const Size(48, 48),
+                                foregroundColor: const Color(0xFF42662B),
+                              ),
+                              child: const Text(
+                                'Lewati setup',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13.5,
+                                ),
+                              ),
+                            ),
+                    ),
                   ),
                   Expanded(
                     child: _memuat
@@ -885,18 +951,13 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
           umurDetik: _kondisi['umur_detik'],
         ),
         const SizedBox(height: 12),
-        KacaCair(
-          padding: const EdgeInsets.all(16),
+        KartuLangkah(
+          nomor: '1',
+          judul: 'Kalibrasi sensor pH',
+          petunjuk: 'Persiapan: Bilas probe pH dengan air bersih, keringkan perlahan dengan tisu, lalu celupkan ke larutan buffer pertama. Tunggu angka stabil sebelum mencatat.',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('1. Kalibrasi Sensor pH', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 6),
-              Text(
-                'Persiapan: Bilas probe pH dengan air bersih, keringkan perlahan dengan tisu, lalu celupkan ke larutan buffer pertama. Tunggu angka stabil sebelum mencatat.',
-                style: TextStyle(fontSize: 13, color: Tok.abuTeks),
-              ),
-              const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
@@ -967,18 +1028,13 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
           ),
         ),
         const SizedBox(height: 12),
-        KacaCair(
-          padding: const EdgeInsets.all(16),
+        KartuLangkah(
+          nomor: '2',
+          judul: 'Kalibrasi sensor EC',
+          petunjuk: 'Persiapan: Celupkan probe EC ke larutan standar 1.413 µS/cm dan 12.880 µS/cm secara bergantian, bilas di antaranya.',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('2. Kalibrasi Sensor EC', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 6),
-              Text(
-                'Persiapan: Celupkan probe EC ke larutan standar 1.413 µS/cm dan 12.880 µS/cm secara bergantian, bilas di antaranya.',
-                style: TextStyle(fontSize: 13, color: Tok.abuTeks),
-              ),
-              const SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
@@ -1008,18 +1064,13 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
           ),
         ),
         const SizedBox(height: 12),
-        KacaCair(
-          padding: const EdgeInsets.all(16),
+        KartuLangkah(
+          nomor: '3–6',
+          judul: 'Uji & Kalibrasi Laju 4 Pompa',
+          petunjuk: 'Satu pompa pada satu waktu. Wajib aktifkan Mode Pemeliharaan di alat dan siapkan gelas ukur sebelum menyalakan pompa uji.',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('3–6. Uji & Kalibrasi Laju 4 Pompa', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 6),
-              Text(
-                'Satu pompa pada satu waktu. Wajib aktifkan Mode Pemeliharaan di alat dan siapkan gelas ukur sebelum menyalakan pompa uji.',
-                style: TextStyle(fontSize: 13, color: Tok.abuTeks),
-              ),
-              const SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
@@ -1144,7 +1195,7 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
           ),
         ),
         const SizedBox(height: 12),
-        KacaCair(
+        KartuLangkah(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1177,7 +1228,7 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
           ),
         ),
         const SizedBox(height: 12),
-        KacaCair(
+        KartuLangkah(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1232,7 +1283,7 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        KacaCair(
+        KartuLangkah(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1337,7 +1388,7 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final s in sopSemaiMelonResmi) ...[
-          KacaCair(
+          KartuLangkah(
             padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1387,9 +1438,9 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
   Widget _bangunLangkah5JumlahSemai() {
     final totalDisemaiServer = _daftarTanam
         .where((e) => e['tipe'] == 'semai')
-        .fold<int>(0, (acc, e) => acc + ((e['jumlah_benih'] as num?)?.toInt() ?? 0));
+        .fold<int>(0, (acc, e) => acc + (keInt(e['jumlah_benih']) ?? 0));
 
-    return KacaCair(
+    return KartuLangkah(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1408,7 +1459,7 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
               items: [
                 for (final t in _daftarTanaman)
                   DropdownMenuItem(
-                    value: (t['id'] as num).toInt(),
+                    value: keIntWajib(t['id']),
                     child: Text('${t['nama']}'),
                   ),
               ],
@@ -1456,7 +1507,7 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
 
   Widget _bangunLangkah6Penyelesaian() {
     final cek = cekPrasyaratSelesai(_progres);
-    return KacaCair(
+    return KartuLangkah(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1499,86 +1550,6 @@ class _SetupWizardPageState extends State<SetupWizardPage> {
   }
 }
 
-class _HeaderWizard extends StatelessWidget {
-  const _HeaderWizard({
-    required this.judul,
-    required this.subjudul,
-    required this.role,
-    this.onKeluar,
-  });
-
-  final String judul;
-  final String subjudul;
-  final String role;
-  final VoidCallback? onKeluar;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        gradient: Tok.brandPanel,
-        borderRadius: BorderRadius.circular(Tok.rLg),
-      ),
-      child: Row(
-        children: [
-          const Icon(Ikon.tanam, color: Tok.emas, size: 22),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(judul, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
-                Text(subjudul, style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12)),
-              ],
-            ),
-          ),
-          if (onKeluar != null)
-            TextButton(
-              onPressed: onKeluar,
-              child: const Text('Keluar', style: TextStyle(color: Tok.emas)),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PitaLangkah extends StatelessWidget {
-  const _PitaLangkah({
-    required this.langkahAktif,
-    required this.judul,
-    required this.onPilih,
-  });
-
-  final int langkahAktif;
-  final List<String> judul;
-  final ValueChanged<int> onPilih;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 44,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: judul.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (_, i) {
-          final aktif = i == langkahAktif;
-          return ChoiceChip(
-            selected: aktif,
-            label: Text('${i + 1}. ${judul[i]}', style: TextStyle(fontSize: 12.5, color: aktif ? Colors.white : Tok.tinta)),
-            selectedColor: Tok.mossGelap,
-            onSelected: (_) => onPilih(i),
-          );
-        },
-      ),
-    );
-  }
-}
-
 class _KartuStatusAlatRingkas extends StatelessWidget {
   const _KartuStatusAlatRingkas({
     required this.online,
@@ -1600,32 +1571,152 @@ class _KartuStatusAlatRingkas extends StatelessWidget {
   final dynamic ecUs;
   final dynamic umurDetik;
 
+  /// Angka dari backend bisa teks; stempel basi tidak boleh tampil sebagai nilai.
+  String _angka(dynamic v, int desimal) {
+    final d = keDouble(v);
+    if (!segar || d == null) return '—';
+    return d.toStringAsFixed(desimal).replaceAll('.', ',');
+  }
+
   @override
   Widget build(BuildContext context) {
-    return KacaCair(
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    final warnaTitik = online ? const Color(0xFF4E7733) : Tok.error;
+    final garis = Container(
+      width: 1,
+      height: 40,
+      margin: const EdgeInsets.symmetric(horizontal: 12),
+      color: const Color(0xFFC9D2DC),
+    );
+    Widget kolom(String label, String nilai, {String? satuan, String? kecil}) =>
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(label, style: TextStyle(fontSize: 13, color: Tok.abuTeks)),
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: nilai,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0B1A2B),
+                    ),
+                  ),
+                  if (satuan != null && nilai != '—')
+                    TextSpan(
+                      text: ' $satuan',
+                      style: TextStyle(fontSize: 13, color: Tok.abuTeks),
+                    ),
+                ],
+              ),
+            ),
+            if (kecil != null)
+              Text(kecil, style: TextStyle(fontSize: 11.5, color: Tok.abuTeks)),
+          ],
+        );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.78),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
+          ),
+          child: Row(
             children: [
-              Icon(online ? Ikon.online : Ikon.offline, size: 18, color: online ? Tok.hijauTeks : Tok.errorTeks),
-              const SizedBox(width: 6),
-              Text(online ? 'Perangkat Online' : 'Perangkat Offline', style: const TextStyle(fontWeight: FontWeight.w700)),
-              const Spacer(),
-              if (estop)
-                Text('E-STOP AKTIF', style: TextStyle(color: Tok.errorTeks, fontWeight: FontWeight.w700, fontSize: 12)),
+              Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(color: warnaTitik, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 7,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      online ? 'Perangkat Online' : 'Perangkat Offline',
+                      style: const TextStyle(
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0B1A2B),
+                      ),
+                    ),
+                    Text(
+                      segar
+                          ? 'Bacaan langsung • ${umurDetik ?? 0} dtk lalu'
+                          : 'Bacaan belum tersedia atau basi',
+                      style: TextStyle(fontSize: 12.5, color: Tok.abuTeks),
+                    ),
+                  ],
+                ),
+              ),
+              garis,
+              Expanded(
+                flex: 3,
+                child: kolom(
+                  'pH',
+                  _angka(ph, 2),
+                  kecil: segar && phVolt != null ? '$phVolt V' : null,
+                ),
+              ),
+              garis,
+              Expanded(
+                flex: 3,
+                child: kolom(
+                  'EC',
+                  _angka(ecUs, 0),
+                  kecil: segar && keDouble(ecUs) != null ? 'µS/cm' : null,
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            segar
-                ? 'Bacaan segar (${umurDetik ?? 0} dtk lalu): pH ${ph ?? '-'} (V: ${phVolt ?? '-'}) · EC ${ecUs ?? '-'} µS/cm'
-                : 'Bacaan sensor belum tersedia atau basi — jangan gunakan angka lama untuk kalibrasi.',
-            style: TextStyle(fontSize: 12.5, color: segar ? Tok.abuTeks : Tok.warningTeks),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                segar ? Ikon.info : Ikon.peringatan,
+                size: 16,
+                color: segar ? Tok.abuTeks : Tok.warningTeks,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  segar
+                      ? 'Angka di atas adalah bacaan langsung alat, bukan hasil akhir kalibrasi.'
+                      : 'Jangan gunakan angka lama untuk kalibrasi. Tunggu bacaan segar.',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontStyle: FontStyle.italic,
+                    color: segar ? Tok.abuTeks : Tok.warningTeks,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+        if (estop)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 6),
+            child: Text(
+              'E-STOP AKTIF',
+              style: TextStyle(
+                color: Tok.errorTeks,
+                fontWeight: FontWeight.w700,
+                fontSize: 12.5,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

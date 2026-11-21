@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'api_service.dart';
+import '../util/format.dart';
 
 /// Penyimpan lokal cadangan untuk progres setup (agar bisa dilanjutkan bila aplikasi
 /// ditutup saat offline atau sebelum migrasi backend tersedia).
@@ -48,7 +49,8 @@ const List<SopSemaiLangkah> sopSemaiMelonResmi = [
     kode: 'rendam_bawang',
     judul: '1. Perendaman & Seleksi Uji Apung',
     durasi: '1 Hari (24 Jam)',
-    ringkasan: 'Rendam benih di air ekstrak bawang merah segar & seleksi uji apung.',
+    ringkasan:
+        'Rendam benih di air ekstrak bawang merah segar & seleksi uji apung.',
     detail: [
       'Rendam benih melon dalam larutan ekstrak bawang merah segar (~4–6 siung per ±150–250 mL air bersih, saring) selama 1 hari (24 jam) di wadah terbuka agar benih tetap mendapat oksigen.',
       'Uji Seleksi: Benih yang tenggelam = bernas (layak semai). Benih yang mengambang = hampa/kopong (pisahkan).',
@@ -59,7 +61,8 @@ const List<SopSemaiLangkah> sopSemaiMelonResmi = [
     kode: 'peram_kain',
     judul: '2. Pemeraman di Kain Hitam Lembap',
     durasi: '2 Hari (48 Jam)',
-    ringkasan: 'Peram benih di lipatan kain hitam lembap di tempat teduh/gelap.',
+    ringkasan:
+        'Peram benih di lipatan kain hitam lembap di tempat teduh/gelap.',
     detail: [
       'Letakkan benih terpilih di lipatan kain hitam bersih yang lembap (diperas, tidak tergenang becek).',
       'Simpan di tempat teduh/gelap selama 2 hari hingga cangkang pecah dan muncul calon akar putih (radikula).',
@@ -80,7 +83,8 @@ const List<SopSemaiLangkah> sopSemaiMelonResmi = [
     kode: 'pindah_rockwool',
     judul: '4. Pemindahan ke Rockwool & Nutrisi Awal',
     durasi: '10–14 HSS',
-    ringkasan: 'Tanam kecambah ke dadu rockwool lembap, nutrisi awal 400–600 PPM.',
+    ringkasan:
+        'Tanam kecambah ke dadu rockwool lembap, nutrisi awal 400–600 PPM.',
     detail: [
       'Potong dadu rockwool ±2,5 × 2,5 × 2,5 cm dan basahi air bersih hingga lembap (tidak tergenang).',
       'Buat lubang ±0,5–1 cm, taruh kecambah dengan ujung akar putih menghadap ke bawah.',
@@ -128,7 +132,8 @@ HasilUjiLabNutrisi? hitungUjiLabNutrisi({
   required double mlB,
   required double ppmAkhir,
 }) {
-  if (volumeSampel < 0.1 ||
+  if (![volumeSampel, ppmAwal, mlA, mlB, ppmAkhir].every((v) => v.isFinite) ||
+      volumeSampel < 0.1 ||
       volumeSampel > 1000 ||
       ppmAwal < 0 ||
       ppmAkhir <= ppmAwal ||
@@ -151,6 +156,16 @@ HasilUjiLabNutrisi? hitungUjiLabNutrisi({
   final serverPpmPerMl = (naik * volumeSampel) / totalMl;
   final v6PpmPerMlAb = (naik * volumeSampel) / rataMlPerPompa;
 
+  if (![
+    naik,
+    persen,
+    totalMl,
+    serverPpmPerMl,
+    v6PpmPerMlAb,
+  ].every((v) => (v * 100).isFinite)) {
+    return null;
+  }
+
   return HasilUjiLabNutrisi(
     volumeSampel: bulat(volumeSampel, 2),
     ppmAwal: bulat(ppmAwal, 1),
@@ -166,8 +181,10 @@ HasilUjiLabNutrisi? hitungUjiLabNutrisi({
 
 /// Hitung laju pompa (mL/detik). Mengembalikan `null` bila tidak valid.
 double? hitungLajuPompa({required double ml, required double detik}) {
-  if (ml <= 0 || detik <= 0) return null;
-  return ((ml / detik) * 100).roundToDouble() / 100;
+  if (!ml.isFinite || !detik.isFinite || ml <= 0 || detik <= 0) return null;
+  final laju = (ml / detik) * 100;
+  if (!laju.isFinite) return null;
+  return laju.roundToDouble() / 100;
 }
 
 /// Status prasyarat penyelesaian wizard setup.
@@ -277,10 +294,10 @@ class SetupProgress {
       }
     }
     return SetupProgress(
-      idMeja: (json['id_meja'] as num?)?.toInt() ?? 1,
+      idMeja: keInt(json['id_meja']) ?? 1,
       setupSelesai: json['setup_selesai'] == true,
       setupSelesaiPada: json['setup_selesai_pada']?.toString(),
-      langkahAktif: ((p['langkah_aktif'] as num?)?.toInt() ?? 0).clamp(0, 5),
+      langkahAktif: (keInt(p['langkah_aktif']) ?? 0).clamp(0, 5),
       kalibrasi: p['kalibrasi'] is Map
           ? Map<String, dynamic>.from(p['kalibrasi'] as Map)
           : const {},
@@ -305,13 +322,20 @@ StatusPrasyaratSetup cekPrasyaratSelesai(SetupProgress p) {
   final belumAlat = <String>[];
 
   final vol = p.volumeTandonL;
-  if (vol == null || vol < 5 || vol > 5000) {
+  if (vol == null || !vol.isFinite || vol < 5 || vol > 5000) {
     kurang.add('Volume efektif tandon (5–5000 L) belum diisi.');
   } else if (p.tandon['konfigurasi_dikonfirmasi'] != true) {
     belumAlat.add('Volume tandon belum dikonfirmasi perangkat ESP32.');
   }
 
-  for (final k in ['ph', 'ec', 'pompa_a', 'pompa_b', 'pompa_ph_up', 'pompa_ph_down']) {
+  for (final k in [
+    'ph',
+    'ec',
+    'pompa_a',
+    'pompa_b',
+    'pompa_ph_up',
+    'pompa_ph_down',
+  ]) {
     final item = p.kalibrasi[k];
     if (item is! Map || item['tersimpan_server'] != true) {
       belumAlat.add('Kalibrasi $k belum tercatat.');
@@ -323,7 +347,9 @@ StatusPrasyaratSetup cekPrasyaratSelesai(SetupProgress p) {
   if (p.ujiLab['tersimpan_server'] != true) {
     kurang.add('Hasil uji lab nutrisi belum dihitung & disimpan.');
   } else if (p.ujiLab['dikonfirmasi_alat'] != true) {
-    belumAlat.add('Parameter uji lab (ppm_per_ml_ab) belum dikonfirmasi ESP32.');
+    belumAlat.add(
+      'Parameter uji lab (ppm_per_ml_ab) belum dikonfirmasi ESP32.',
+    );
   }
 
   if (!p.tutorialLengkap) {
@@ -395,10 +421,7 @@ class SetupService {
     return progres.copyWith(sinkronServer: false);
   }
 
-  Future<SetupProgress> tandaiSelesai(
-    ApiService api,
-    SetupProgress progres,
-  ) {
+  Future<SetupProgress> tandaiSelesai(ApiService api, SetupProgress progres) {
     return simpanProgres(
       api,
       progres.copyWith(

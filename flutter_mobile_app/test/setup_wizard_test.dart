@@ -10,6 +10,7 @@ import 'package:flutter_mobile_app/pages/pengaturan_page.dart';
 import 'package:flutter_mobile_app/pages/setup_wizard_page.dart';
 import 'package:flutter_mobile_app/services/api_service.dart';
 import 'package:flutter_mobile_app/services/setup_service.dart';
+import 'package:flutter_mobile_app/widgets/wizard_baru/kepala_wizard.dart';
 
 class _MemoriSetup implements PenyimpanSetup {
   final Map<String, String> data = {};
@@ -191,9 +192,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Perbedaan Acuan Buffer'), findsOneWidget);
-    expect(find.textContaining('1. Kalibrasi Sensor pH'), findsOneWidget);
+    expect(find.text('Kalibrasi sensor pH'), findsOneWidget);
 
-    await tester.tap(find.text('2. Volume & Isi Air'));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(StepperBulat),
+        matching: find.text('2'),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(
       find.textContaining('Pengisian air wajib dipantau. Tetap berada di dekat tandon'),

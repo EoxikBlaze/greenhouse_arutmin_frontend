@@ -165,6 +165,10 @@ class _GarapRootState extends State<_GarapRoot> {
   SetupProgress? _setupProgres;
   bool _sedangCekSetup = false;
 
+  /// Pengguna menekan "Lewati setup": wizard tidak ditampilkan lagi selama sesi
+  /// ini. Status setup di server TIDAK diubah (belum dianggap selesai).
+  bool _setupDilewati = false;
+
   @override
   void initState() {
     super.initState();
@@ -201,6 +205,7 @@ class _GarapRootState extends State<_GarapRoot> {
   void _keluar() {
     apiService.clearSession();
     _pesanSesi = null;
+    _setupDilewati = false;
     _setupProgres = null;
     _sedangCekSetup = false;
     if (mounted) setState(() {});
@@ -222,6 +227,7 @@ class _GarapRootState extends State<_GarapRoot> {
         pesanSesi: _pesanSesi,
         onLoggedIn: () {
           _pesanSesi = null;
+          _setupDilewati = false;
           _periksaSetup();
         },
       );
@@ -237,12 +243,16 @@ class _GarapRootState extends State<_GarapRoot> {
       );
     } else if (apiService.role == 'admin' &&
         _setupProgres != null &&
-        !_setupProgres!.setupSelesai) {
+        !_setupProgres!.setupSelesai &&
+        !_setupDilewati) {
       isi = SetupWizardPage(
         key: const ValueKey('wizard'),
         api: apiService,
         progresAwal: _setupProgres,
         onKeluar: _keluar,
+        onLewati: () {
+          if (mounted) setState(() => _setupDilewati = true);
+        },
         onSelesai: (baru) {
           if (mounted) setState(() => _setupProgres = baru);
         },
@@ -303,8 +313,16 @@ class _MainShellState extends State<_MainShell> {
             ? BerandaPetani(api: apiService, aktif: a, onBukaTab: _bukaTab)
             : DashboardPage(api: apiService, aktif: a, onBukaTab: _bukaTab),
       ),
-      _Tab('Pantau Semai', Ikon.tanam, (a) => PantauSemaiPage(api: apiService, aktif: a)),
-      _Tab('Pengaturan', Ikon.ambang, (a) => PengaturanPage(api: apiService, aktif: a)),
+      _Tab(
+        'Pantau Semai',
+        Ikon.tanam,
+        (a) => PantauSemaiPage(api: apiService, aktif: a),
+      ),
+      _Tab(
+        'Pengaturan',
+        Ikon.ambang,
+        (a) => PengaturanPage(api: apiService, aktif: a),
+      ),
       _Tab(
         'Profil',
         Ikon.profil,
