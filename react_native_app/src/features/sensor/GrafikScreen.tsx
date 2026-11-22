@@ -4,7 +4,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { CircleHelp, LineChart } from 'lucide-react-native';
 import { api } from '@/api/session';
 import { useAuth } from '@/features/auth/AuthProvider';
-import { useColors } from '@/theme/useColors';
 import { Banner } from '@/ui/Banner';
 import { Button } from '@/ui/Button';
 import { Panel } from '@/ui/Panel';
@@ -26,7 +25,6 @@ const CHIPS: { key: Chip; label: string; title: string }[] = [
 ];
 
 export function GrafikScreen() {
-  const c = useColors();
   const { user, role } = useAuth();
   const fromParam = parseParam(useLocalSearchParams<{ param?: string }>().param);
   const [chip, setChip] = useState<Chip>(CHIPS.some((c) => c.key === fromParam) ? (fromParam as Chip) : 'ph');

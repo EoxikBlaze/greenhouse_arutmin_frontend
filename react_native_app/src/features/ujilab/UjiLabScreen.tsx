@@ -1,11 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { View } from 'react-native';
 import { api } from '@/api/session';
 import { ApiError } from '@/api/client';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { AdminOnly } from '@/features/alat/AdminOnly';
-import { useColors } from '@/theme/useColors';
 import { Banner } from '@/ui/Banner';
 import { Button } from '@/ui/Button';
 import { Panel } from '@/ui/Panel';
@@ -23,7 +21,6 @@ const KATS: { key: Kat; label: string }[] = [{ key: 'buah', label: 'Buah' }, { k
 const msgOf = (e: unknown) => (e instanceof ApiError && e.status === 404 ? 'Uji lab belum tersedia di server ini.' : (e as Error).message);
 
 export function UjiLabScreen() {
-  const c = useColors();
   const { user } = useAuth();
   const qc = useQueryClient();
   const [kat, setKat] = useState<Kat>('buah');

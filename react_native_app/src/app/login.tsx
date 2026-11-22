@@ -40,8 +40,8 @@ export default function Login() {
         <Text v="value" style={{ color: c.accent }}>Vertonik · GARAP</Text>
         <Text v="title">Masuk ke GARAP</Text>
         <Text v="body">Pantau greenhouse Vertonik dari ponsel.</Text>
-        <Field label="Nama pengguna" value={username} onChangeText={setUsername} autoCapitalize="none" autoCorrect={false} textContentType="username" />
-        <Field label="Kata sandi" value={password} onChangeText={setPassword} secureTextEntry textContentType="password" onSubmitEditing={submit} />
+        <Field label="Nama pengguna" value={username} onChangeText={setUsername} autoCapitalize="none" autoCorrect={false} textContentType="username" autoComplete="username" returnKeyType="next" />
+        <Field label="Kata sandi" value={password} onChangeText={setPassword} secureTextEntry textContentType="password" autoComplete="current-password" returnKeyType="go" onSubmitEditing={submit} />
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 48 }}>
           <Toggle value={remember} onChange={setRemember} label="Ingat saya" />
           <Text v="body" style={{ color: c.textPrimary, flex: 1 }}>Ingat saya</Text>

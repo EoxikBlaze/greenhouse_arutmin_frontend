@@ -1,12 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Platform, Share, View } from 'react-native';
+import { Platform, Share } from 'react-native';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { api } from '@/api/session';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { AdminOnly } from '@/features/alat/AdminOnly';
-import { useColors } from '@/theme/useColors';
 import { Banner } from '@/ui/Banner';
 import { Button } from '@/ui/Button';
 import { Panel } from '@/ui/Panel';
@@ -22,7 +21,6 @@ const OPSI: { key: RentangKey; label: string }[] = [{ key: '7', label: '7 hari' 
 const fmt = (n: number, d = 1) => n.toFixed(d).replace('.', ',');
 
 export function LaporanScreen() {
-  const c = useColors();
   const { user } = useAuth();
   const [key, setKey] = useState<RentangKey>('30');
   const [msg, setMsg] = useState<string | null>(null);
