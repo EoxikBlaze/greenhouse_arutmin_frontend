@@ -1,6 +1,8 @@
 import { View, ViewProps } from 'react-native';
-import { colors, radius, shadowCard } from '@/theme/tokens';
+import { radius, shadowCard } from '@/theme/tokens';
+import { useColors } from '@/theme/useColors';
 
 export function Card({ style, ...p }: ViewProps) {
-  return <View {...p} style={[{ backgroundColor: colors.surface, borderRadius: radius.card, padding: 14 }, shadowCard, style]} />;
+  const c = useColors();
+  return <View {...p} style={[{ backgroundColor: c.surface, borderRadius: radius.card, padding: 16 }, shadowCard, style]} />;
 }
