@@ -5,9 +5,8 @@ import { router } from 'expo-router';
 import { Check, Timer, TimerOff, X } from 'lucide-react-native';
 import { api } from '@/api/session';
 import { useAuth } from '@/features/auth/AuthProvider';
-import { shadowDock } from '@/theme/tokens';
 import { Button } from '@/ui/Button';
-import { Card } from '@/ui/Card';
+import { Panel } from '@/ui/Panel';
 import { Header } from '@/ui/Header';
 import { Screen } from '@/ui/Screen';
 import { StatusChip } from '@/ui/StatusChip';
@@ -42,28 +41,28 @@ export function KonfirmasiPerangkatScreen() {
   return (
     <AdminOnly>
       <Screen>
-        <Header title="Konfirmasi perintah" subtitle="STOP pompa" initials={initials} />
-        <Card style={[shadowDock, { padding: 20, gap: 12 }]}>
+        <Header back="/alat" title="Konfirmasi perintah" subtitle="STOP pompa" initials={initials} />
+        <Panel gap={12}>
           <Text v="value">Hentikan pompa sekarang?</Text>
           <Text v="body">Permintaan STOP pompa dikirim. Tunggu konfirmasi perangkat; jika pompa tidak berhenti, gunakan E-STOP fisik.</Text>
           <Button label="Kirim ke antrean" loading={send.isPending} disabled={sentAt !== null && !done} onPress={() => send.mutate()} />
           <Button variant="secondary" label={sentAt === null ? 'Batal' : 'Kembali ke Alat'} onPress={() => router.navigate('/alat')} />
-        </Card>
-        <Card style={[shadowDock, { padding: 16, gap: 8 }]}>
+        </Panel>
+        <Panel gap={8}>
           <Text v="section">Status perintah</Text>
           <Text v="body">Alur: Menunggu → Selesai / Ditolak / Kedaluwarsa. Menunggu bukan berarti pompa sudah berhenti.</Text>
           {send.isError ? (
-            <View style={{ gap: 6 }}>
+            <View style={{ gap: 8 }}>
               <StatusChip label="Ditolak" tone="danger" Icon={X} />
               <Text v="meta">{(send.error as Error).message}</Text>
             </View>
           ) : cur ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 48 }}>
               <StatusChip {...CHIP[cur]} />
               <Text v="meta">{cur === 'menunggu' ? 'Dipantau tiap 3 detik' : 'Pantauan berhenti'}</Text>
             </View>
           ) : <Text v="meta">Belum ada perintah dikirim.</Text>}
-        </Card>
+        </Panel>
       </Screen>
     </AdminOnly>
   );

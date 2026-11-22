@@ -4,9 +4,10 @@ import { Send } from 'lucide-react-native';
 import { ApiError } from '@/api/client';
 import { api } from '@/api/session';
 import { useAuth } from '@/features/auth/AuthProvider';
-import { colors, fonts, radius, shadowDock } from '@/theme/tokens';
+import { fonts, radius, icon } from '@/theme/tokens';
+import { useColors } from '@/theme/useColors';
 import { Banner } from '@/ui/Banner';
-import { Card } from '@/ui/Card';
+import { Panel } from '@/ui/Panel';
 import { Header } from '@/ui/Header';
 import { Screen } from '@/ui/Screen';
 import { Text } from '@/ui/Text';
@@ -17,16 +18,18 @@ const GREETING: Msg = { dariUser: false, teks: 'Halo, saya Asisten GARAP. Tanyak
 const MAX = 500;
 
 function Bubble({ m }: { m: Msg }) {
+  const c = useColors();
   return (
     <View style={{ flexDirection: 'row', justifyContent: m.dariUser ? 'flex-end' : 'flex-start' }}>
-      <View style={{ maxWidth: '85%', padding: 14, borderRadius: radius.input, backgroundColor: m.dariUser ? colors.accentSoft : colors.surface, borderWidth: m.dariUser ? 0 : 1, borderColor: colors.border }}>
-        <Text v="body" style={{ color: colors.textPrimary }}>{m.teks}</Text>
+      <View style={{ maxWidth: '85%', padding: 16, borderRadius: radius.input, backgroundColor: m.dariUser ? c.accentSoft : c.surface, borderWidth: m.dariUser ? 0 : 1, borderColor: c.border }}>
+        <Text v="body" style={{ color: c.textPrimary }}>{m.teks}</Text>
       </View>
     </View>
   );
 }
 
 export function AsistenScreen() {
+  const c = useColors();
   const { user, role } = useAuth();
   const demo = role === 'demo';
   const [msgs, setMsgs] = useState<Msg[]>(demo ? [{ dariUser: false, teks: 'Asisten belum tersedia untuk akun demo.' }] : [GREETING]);
@@ -54,21 +57,21 @@ export function AsistenScreen() {
   const off = demo || busy || !text.trim();
   return (
     <Screen>
-      <Header title="Asisten GARAP" subtitle={demo ? 'Demo · ditolak' : 'Tanya seputar kebun'} initials={initials} />
+      <Header back="/" title="Asisten GARAP" subtitle={demo ? 'Demo · ditolak' : 'Tanya seputar kebun'} initials={initials} />
       {demo ? <Banner tone="danger" title="Asisten tidak tersedia" body="Akun demo belum bisa memakai asisten." /> : null}
-      <Card style={[shadowDock, { padding: 16, gap: 12 }]}>
+      <Panel gap={12}>
         {msgs.map((m, i) => <Bubble key={i} m={m} />)}
         {busy ? <Bubble m={{ dariUser: false, teks: 'Menulis jawaban…' }} /> : null}
-      </Card>
+      </Panel>
       {error ? <Banner tone="danger" title="Asisten belum menjawab" body={error} /> : null}
-      {demo ? null : <Text v="meta">Asisten hanya menjawab berdasarkan data kebun. Tidak ada kontrol perangkat dari sini.</Text>}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, opacity: demo ? 0.5 : 1 }}>
+      {demo ? null : <Text v="metaOnBg">Asisten hanya menjawab berdasarkan data kebun. Tidak ada kontrol perangkat dari sini.</Text>}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, opacity: demo ? 0.5 : 1 }}>
         <TextInput accessibilityLabel="Tulis pertanyaan" value={text} onChangeText={setText} editable={!demo} maxLength={MAX}
-          placeholder="Tulis pertanyaan…" placeholderTextColor={colors.textSecondary} onSubmitEditing={send} returnKeyType="send"
-          style={{ flex: 1, height: 48, borderRadius: radius.input, paddingHorizontal: 14, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, fontFamily: fonts.body, fontSize: 16, color: colors.textPrimary }} />
+          placeholder="Tulis pertanyaan…" placeholderTextColor={c.textSecondary} onSubmitEditing={send} returnKeyType="send"
+          style={{ flex: 1, height: 48, borderRadius: radius.input, paddingHorizontal: 16, backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, fontFamily: fonts.body, fontSize: 16, color: c.textPrimary }} />
         <Pressable accessibilityRole="button" accessibilityLabel="Kirim" disabled={off} onPress={send}
-          style={{ width: 48, height: 48, borderRadius: radius.input, alignItems: 'center', justifyContent: 'center', backgroundColor: off ? colors.border : colors.accent }}>
-          <Send size={22} color={off ? colors.textSecondary : colors.onAccent} />
+          style={{ width: 48, height: 48, borderRadius: radius.input, alignItems: 'center', justifyContent: 'center', backgroundColor: off ? c.border : c.accent }}>
+          <Send size={icon.lg} color={off ? c.textSecondary : c.onAccent} />
         </Pressable>
       </View>
     </Screen>

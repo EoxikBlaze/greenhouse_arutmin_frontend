@@ -1,7 +1,6 @@
 import { useAuth } from '@/features/auth/AuthProvider';
-import { shadowDock } from '@/theme/tokens';
 import { Banner } from '@/ui/Banner';
-import { Card } from '@/ui/Card';
+import { Panel } from '@/ui/Panel';
 import { DataRow } from '@/ui/DataRow';
 import { Header } from '@/ui/Header';
 import { Screen } from '@/ui/Screen';
@@ -15,14 +14,14 @@ export function KalibrasiScreen() {
   return (
     <AdminOnly>
       <Screen>
-        <Header title="Kalibrasi" subtitle="Versi 1 · hanya tampilan" initials={initials} />
-        <Card style={[shadowDock, { padding: 16, gap: 10 }]}>
+        <Header back="/alat" title="Kalibrasi" subtitle="Versi 1 · hanya tampilan" initials={initials} />
+        <Panel gap={12}>
           <Text v="section">Data kalibrasi (baca saja)</Text>
           <Text v="body">Kalibrasi hanya menampilkan data terakhir. Pengaturan ulang dilakukan petugas di perangkat.</Text>
           <DataRow label="Acuan pH 4,01" value="Belum ada data" />
           <DataRow label="Acuan pH 6,86" value="Belum ada data" />
-          <DataRow label="Terakhir kalibrasi" value="Belum pernah" />
-        </Card>
+          <DataRow label="Terakhir kalibrasi" value="Belum pernah" last />
+        </Panel>
         <Banner tone="warn" title="Hanya untuk dilihat" body="Tidak ada tombol jalankan kalibrasi. Data hanya ditampilkan." />
       </Screen>
     </AdminOnly>

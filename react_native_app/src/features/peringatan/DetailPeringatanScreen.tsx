@@ -3,10 +3,9 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { BellOff, Send } from 'lucide-react-native';
 import { api } from '@/api/session';
 import { useAuth } from '@/features/auth/AuthProvider';
-import { shadowDock } from '@/theme/tokens';
 import { Banner } from '@/ui/Banner';
 import { Button } from '@/ui/Button';
-import { Card } from '@/ui/Card';
+import { Panel } from '@/ui/Panel';
 import { DataRow } from '@/ui/DataRow';
 import { EmptyState } from '@/ui/EmptyState';
 import { Header } from '@/ui/Header';
@@ -33,20 +32,20 @@ export function DetailPeringatanScreen() {
 
   return (
     <Screen onRefresh={() => q.refetch()} refreshing={q.isRefetching}>
-      <Header title="Detail peringatan" subtitle={admin ? 'Admin · dapat konfirmasi' : `${role === 'demo' ? 'Demo' : 'Petani'} · baca saja`} initials={initials} />
+      <Header back="/peringatan" title="Detail peringatan" subtitle={admin ? 'Admin · dapat konfirmasi' : `${role === 'demo' ? 'Demo' : 'Petani'} · baca saja`} initials={initials} />
       {q.isError ? <Banner tone="danger" title="Gagal memuat peringatan" body={(q.error as Error).message} /> : null}
       {ack.isError ? <Banner tone="danger" title="Konfirmasi gagal" body={(ack.error as Error).message} /> : null}
       {q.isPending ? <Skeleton /> : !v ? (
         <EmptyState Icon={BellOff} title="Peringatan tidak ditemukan" body="Peringatan ini sudah tidak ada di log. Kembali ke Peringatan untuk daftar terbaru." />
       ) : (
         <>
-          <Card style={[shadowDock, { padding: 16, gap: 10 }]}>
+          <Panel gap={12}>
             <Text v="value">{v.judul}</Text>
             <DataRow label="Level" value={v.levelLabel} />
             <DataRow label="Sumber" value={v.sumber} />
-            <DataRow label="Waktu" value={v.waktu} />
-            {admin && v.acked !== null ? <DataRow label="Status konfirmasi" value={v.acked ? 'Sudah dikonfirmasi' : 'Belum dikonfirmasi'} /> : null}
-          </Card>
+            <DataRow label="Waktu" value={v.waktu} last={!(admin && v.acked !== null)} />
+            {admin && v.acked !== null ? <DataRow label="Status konfirmasi" value={v.acked ? 'Sudah dikonfirmasi' : 'Belum dikonfirmasi'} last /> : null}
+          </Panel>
           {admin ? (
             q.data?.canAck && v.acked !== true ? <Button label="Konfirmasi (ack)" loading={ack.isPending} onPress={() => ack.mutate()} /> : null
           ) : (

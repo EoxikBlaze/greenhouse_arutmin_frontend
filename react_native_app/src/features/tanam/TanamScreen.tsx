@@ -1,17 +1,19 @@
 import { Fragment } from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import { router } from 'expo-router';
 import { ChevronRight, Sprout } from 'lucide-react-native';
 import { useAuth } from '@/features/auth/AuthProvider';
-import { colors } from '@/theme/tokens';
+import { icon } from '@/theme/tokens';
+import { useColors } from '@/theme/useColors';
 import { Banner } from '@/ui/Banner';
 import { Button } from '@/ui/Button';
-import { Card } from '@/ui/Card';
+import { Panel } from '@/ui/Panel';
 import { EmptyState } from '@/ui/EmptyState';
 import { Header } from '@/ui/Header';
 import { Screen } from '@/ui/Screen';
 import { SectionTitle } from '@/ui/SectionTitle';
 import { Skeleton } from '@/ui/Skeleton';
+import { Tap } from '@/ui/Tap';
 import { Text } from '@/ui/Text';
 import { groupByTahap } from './tanamView';
 import { useTanam } from './useTanam';
@@ -19,6 +21,7 @@ import { useTanam } from './useTanam';
 const EMPTY_BODY = 'Belum ada batch pada tahap ini. Batch dibuat lewat Mulai semai dan disimpan sebagai catatan.';
 
 export function TanamScreen() {
+  const c = useColors();
   const { user, role } = useAuth();
   const q = useTanam();
   const groups = groupByTahap(q.data ?? []);
@@ -37,17 +40,17 @@ export function TanamScreen() {
           {g.batches.length === 0 ? (
             <EmptyState Icon={Sprout} title={`${g.judul}: belum ada batch`} body={EMPTY_BODY} />
           ) : g.batches.map((b) => (
-            <Pressable key={`${b.tipe}-${b.id}`} accessibilityRole="button" accessibilityLabel={b.nama}
+            <Tap key={`${b.tipe}-${b.id}`} accessibilityRole="button" accessibilityLabel={b.nama}
               onPress={() => router.navigate({ pathname: '/batch', params: { tipe: b.tipe, id: String(b.id) } })}>
-              <Card style={{ padding: 16, gap: 8 }}>
+              <Panel soft gap={8}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Text v="section" style={{ flex: 1 }}>{b.nama}</Text>
-                  <ChevronRight size={20} color={colors.textSecondary} />
+                  <ChevronRight size={icon.md} color={c.textSecondary} />
                 </View>
                 <Text v="body">{b.tahapLabel}</Text>
                 <Text v="meta">{b.tanggal}</Text>
-              </Card>
-            </Pressable>
+              </Panel>
+            </Tap>
           ))}
         </Fragment>
       ))}

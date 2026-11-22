@@ -6,20 +6,23 @@ import { api } from '@/api/session';
 import { ApiError } from '@/api/client';
 import { useAuth } from '@/features/auth/AuthProvider';
 import type { LatestSensor } from '@/features/beranda/sensorView';
-import { colors, fonts, shadowDock } from '@/theme/tokens';
+import { icon } from '@/theme/tokens';
+import { useColors } from '@/theme/useColors';
 import { Banner } from '@/ui/Banner';
 import { Button } from '@/ui/Button';
-import { Card } from '@/ui/Card';
+import { Panel } from '@/ui/Panel';
+import { DataRow } from '@/ui/DataRow';
 import { Header } from '@/ui/Header';
 import { Screen } from '@/ui/Screen';
 import { Skeleton } from '@/ui/Skeleton';
+import { StatusChip } from '@/ui/StatusChip';
 import { Text } from '@/ui/Text';
 import { parseParam, sensorDetailView } from './sensorDetailView';
 
 // Kartu S11 memakai bayangan lebih kuat (y6 blur18) daripada kartu Beranda.
-const card = [shadowDock, { padding: 16, gap: 8 }];
 
 export function SensorDetailScreen() {
+  const c = useColors();
   const { user, role } = useAuth();
   const param = parseParam(useLocalSearchParams<{ param?: string }>().param);
   const q = useQuery({
@@ -35,50 +38,42 @@ export function SensorDetailScreen() {
 
   return (
     <Screen onRefresh={() => q.refetch()} refreshing={q.isRefetching}>
-      <Header title="Detail sensor" subtitle={subtitle} initials={initials} />
+      <Header back="/" title="Detail sensor" subtitle={subtitle} initials={initials} />
 
       {q.isError ? <Banner tone={unreachable ? 'warn' : 'danger'} title={unreachable ? 'HP offline' : 'Gagal memuat sensor'} body={(q.error as Error).message} /> : null}
 
       {q.isPending && role !== 'demo' ? <Skeleton /> : (
-        <Card style={card}>
+        <Panel gap={8}>
           <Text v="section">{v.title}</Text>
-          <Text v="title" style={{ fontSize: 38, opacity: v.dim ? 0.5 : 1 }} accessibilityLabel={`${v.title} ${v.value}${v.unit ? ` ${v.unit}` : ''}`}>
+          <Text v="display" style={{ opacity: v.dim ? 0.5 : 1 }} accessibilityLabel={`${v.title} ${v.value}${v.unit ? ` ${v.unit}` : ''}`}>
             {v.value}
             {v.unit && v.state !== 'kosong' ? <Text v="meta">{` ${v.unit}`}</Text> : null}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             {v.chip ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.warnSoft, borderRadius: 999, paddingVertical: 4, paddingHorizontal: 10 }}>
-                {v.chip.label === 'Data basi' ? <Timer size={16} color={colors.warn} /> : <TriangleAlert size={16} color={colors.warn} />}
-                <Text v="status" style={{ fontFamily: fonts.bodyBold }}>{v.chip.label}</Text>
-              </View>
+              <StatusChip label={v.chip.label} tone="warn" Icon={v.chip.label === 'Data basi' ? Timer : TriangleAlert} />
             ) : null}
             <Text v="meta" style={{ flexShrink: 1 }}>{v.meta}</Text>
           </View>
-        </Card>
+        </Panel>
       )}
 
       <Button variant="secondary" label="Riwayat & grafik" onPress={() => router.navigate({ pathname: '/grafik', params: { param } })} />
 
       {v.state === 'anomali' ? <Banner tone="warn" title="Anomali terbaca" body="Nilai ini ditandai di luar rentang wajar. Bukan contoh ambang aman." /> : null}
 
-      <Card style={card}>
+      <Panel gap={8}>
         <Text v="section">Parameter lain</Text>
-        {v.rows.map((r) => (
-          <View key={r.label} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-            <Text v="body" style={{ flex: 1 }}>{r.label}</Text>
-            <Text v="bodyStrong" style={{ fontFamily: fonts.bodySemi }}>{r.value}</Text>
-          </View>
-        ))}
-      </Card>
+        {v.rows.map((r, i) => <DataRow key={r.label} label={r.label} value={r.value} last={i === v.rows.length - 1} />)}
+      </Panel>
 
-      <Card style={card}>
+      <Panel gap={8}>
         <Text v="section">Status dosing otomatis</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Lock size={20} color={colors.danger} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <Lock size={icon.md} color={c.danger} />
           <Text v="body" style={{ flex: 1 }}>Terkunci · hanya informasi. Dosis tidak dijalankan dari aplikasi.</Text>
         </View>
-      </Card>
+      </Panel>
     </Screen>
   );
 }

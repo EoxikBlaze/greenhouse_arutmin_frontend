@@ -7,12 +7,13 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
 import { fontAssets } from '@/theme/fonts';
-import { colors } from '@/theme/tokens';
+import { useColors } from '@/theme/useColors';
 
 function Gate() {
+  const c = useColors();
   const { ready } = useAuth();
   if (!ready) {
-    return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bgScreen }}><ActivityIndicator color={colors.accent} /></View>;
+    return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: c.bgScreen }}><ActivityIndicator color={c.accent} /></View>;
   }
   return <Slot />;
 }
@@ -25,7 +26,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <QueryClientProvider client={qc}>
         <AuthProvider>
-          <StatusBar style="dark" />
+          <StatusBar style="auto" />
           <Gate />
         </AuthProvider>
       </QueryClientProvider>

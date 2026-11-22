@@ -3,10 +3,9 @@ import { useState } from 'react';
 import { router } from 'expo-router';
 import { api } from '@/api/session';
 import { useAuth } from '@/features/auth/AuthProvider';
-import { shadowDock } from '@/theme/tokens';
 import { Banner } from '@/ui/Banner';
 import { Button } from '@/ui/Button';
-import { Card } from '@/ui/Card';
+import { Panel } from '@/ui/Panel';
 import { Header } from '@/ui/Header';
 import { Screen } from '@/ui/Screen';
 import { Text } from '@/ui/Text';
@@ -35,17 +34,17 @@ export function SemaiFormScreen() {
 
   return (
     <Screen>
-      <Header title="Mulai semai" subtitle="Pencatatan batch baru" initials={initials} />
+      <Header back="/tanam" title="Mulai semai" subtitle="Pencatatan batch baru" initials={initials} />
       {loadError ? <Banner tone="danger" title="Daftar meja dan tanaman gagal dimuat" body={loadError.message} /> : null}
       {opsi.data?.tanpaId ? <Banner tone="warn" title="Pilihan belum bisa dipakai" body="Server belum mengirim ID meja dan tanaman, jadi semai baru belum bisa dicatat dari aplikasi." /> : null}
       {m.isError ? <Banner tone="danger" title="Catatan belum tersimpan" body={(m.error as Error).message} /> : null}
-      <Card style={[shadowDock, { padding: 16, gap: 12 }]}>
+      <Panel gap={12}>
         <Text v="section">Data semai</Text>
         <OptionPicker label="Meja" placeholder="Pilih meja" emptyText="Belum ada meja."
           options={opsi.data?.meja ?? []} value={meja} onChange={setMeja} />
         <OptionPicker label="Tanaman" placeholder="Pilih tanaman" emptyText="Belum ada tanaman."
           options={opsi.data?.tanaman ?? []} value={tanaman} onChange={setTanaman} />
-      </Card>
+      </Panel>
       <Button label="Simpan catatan" disabled={!ready} loading={m.isPending} onPress={() => m.mutate()} />
       <Button variant="secondary" label="Batal" disabled={m.isPending} onPress={() => router.back()} />
     </Screen>

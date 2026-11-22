@@ -1,15 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
-import { Pressable, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { CircleHelp, LineChart } from 'lucide-react-native';
 import { api } from '@/api/session';
 import { useAuth } from '@/features/auth/AuthProvider';
-import { colors, fonts, radius, shadowDock } from '@/theme/tokens';
+import { useColors } from '@/theme/useColors';
 import { Banner } from '@/ui/Banner';
 import { Button } from '@/ui/Button';
-import { Card } from '@/ui/Card';
+import { Panel } from '@/ui/Panel';
 import { EmptyState } from '@/ui/EmptyState';
+import { Chips } from '@/ui/Chips';
 import { Header } from '@/ui/Header';
 import { Screen } from '@/ui/Screen';
 import { Skeleton } from '@/ui/Skeleton';
@@ -26,6 +26,7 @@ const CHIPS: { key: Chip; label: string; title: string }[] = [
 ];
 
 export function GrafikScreen() {
+  const c = useColors();
   const { user, role } = useAuth();
   const fromParam = parseParam(useLocalSearchParams<{ param?: string }>().param);
   const [chip, setChip] = useState<Chip>(CHIPS.some((c) => c.key === fromParam) ? (fromParam as Chip) : 'ph');
@@ -49,35 +50,25 @@ export function GrafikScreen() {
 
   return (
     <Screen onRefresh={() => q.refetch()} refreshing={q.isRefetching}>
-      <Header title="Grafik & riwayat" subtitle={chip === 'tds' ? 'Nutrisi TDS ppm' : 'Node utama'} initials={initials} />
+      <Header back="/sensor" title="Grafik & riwayat" subtitle={chip === 'tds' ? 'Nutrisi TDS ppm' : 'Node utama'} initials={initials} />
 
-      <View style={{ flexDirection: 'row', gap: 8 }}>
-        {CHIPS.map((c) => {
-          const on = c.key === chip;
-          return (
-            <Pressable key={c.key} accessibilityRole="tab" accessibilityState={{ selected: on }} onPress={() => setChip(c.key)}
-              style={{ height: 44, paddingHorizontal: 14, borderRadius: radius.input, justifyContent: 'center', backgroundColor: on ? colors.accent : colors.surface, borderWidth: on ? 0 : 1, borderColor: colors.border }}>
-              <Text v="label" style={{ color: on ? colors.onAccent : colors.textSecondary, fontFamily: fonts.bodySemi }}>{c.label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      <Chips options={CHIPS} value={chip} onChange={setChip} />
 
       {q.isError ? <Banner tone="danger" title="Gagal memuat riwayat" body={(q.error as Error).message} /> : null}
 
       {q.isPending && q.fetchStatus !== 'idle' ? <Skeleton /> : (
-        <Card style={[shadowDock, { padding: 16, gap: 12 }]}>
+        <Panel gap={12}>
           <Text v="section">{current.title}</Text>
-          {demo ? <EmptyState Icon={LineChart} title="Riwayat disembunyikan" body="Akun demo tidak menampilkan nilai sensor." />
-            : chip === 'tds' ? <EmptyState Icon={CircleHelp} title="Grafik nutrisi belum tersedia" body="Grafik nutrisi belum tersedia." />
-            : !view || view.empty ? <EmptyState Icon={LineChart} title="Belum ada riwayat" body="Grafik muncul setelah ada data riwayat dari perangkat." />
+          {demo ? <EmptyState flat Icon={LineChart} title="Riwayat disembunyikan" body="Akun demo tidak menampilkan nilai sensor." />
+            : chip === 'tds' ? <EmptyState flat Icon={CircleHelp} title="Grafik nutrisi belum tersedia" body="Grafik nutrisi belum tersedia." />
+            : !view || view.empty ? <EmptyState flat Icon={LineChart} title="Belum ada riwayat" body="Grafik muncul setelah ada data riwayat dari perangkat." />
             : (
               <>
                 <BarChart bars={view.bars} summary={`${current.title}, 12 jam terakhir`} />
                 <Text v="meta">Riwayat 12 jam.</Text>
               </>
             )}
-        </Card>
+        </Panel>
       )}
 
       <Button variant="secondary" label="Kembali ke detail sensor" onPress={() => router.navigate({ pathname: '/sensor', params: { param: back } })} />

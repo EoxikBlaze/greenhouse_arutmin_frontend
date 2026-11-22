@@ -1,16 +1,19 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Switch, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { ApiError } from '@/api/client';
-import { colors, space } from '@/theme/tokens';
+import { space } from '@/theme/tokens';
+import { useColors } from '@/theme/useColors';
 import { Banner } from '@/ui/Banner';
 import { Button } from '@/ui/Button';
 import { Field } from '@/ui/Field';
 import { Text } from '@/ui/Text';
+import { Toggle } from '@/ui/Toggle';
 
 export default function Login() {
+  const c = useColors();
   const { user, login } = useAuth();
   const { top, bottom } = useSafeAreaInsets();
   const [username, setUsername] = useState('');
@@ -32,16 +35,16 @@ export default function Login() {
   }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bgScreen }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.bgScreen }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: top + 20, paddingBottom: bottom + 24, paddingHorizontal: space.screen, gap: 16 }}>
-        <Text v="wordmark" style={{ fontSize: 20 }}>Vertonik · GARAP</Text>
+        <Text v="value" style={{ color: c.accent }}>Vertonik · GARAP</Text>
         <Text v="title">Masuk ke GARAP</Text>
         <Text v="body">Pantau greenhouse Vertonik dari ponsel.</Text>
         <Field label="Nama pengguna" value={username} onChangeText={setUsername} autoCapitalize="none" autoCorrect={false} textContentType="username" />
         <Field label="Kata sandi" value={password} onChangeText={setPassword} secureTextEntry textContentType="password" onSubmitEditing={submit} />
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 48 }}>
-          <Switch value={remember} onValueChange={setRemember} trackColor={{ true: colors.accent, false: colors.border }} thumbColor="#FFFFFF" accessibilityLabel="Ingat saya" />
-          <Text v="body" style={{ color: colors.textPrimary, flex: 1 }}>Ingat saya</Text>
+          <Toggle value={remember} onChange={setRemember} label="Ingat saya" />
+          <Text v="body" style={{ color: c.textPrimary, flex: 1 }}>Ingat saya</Text>
         </View>
         {error ? <Banner tone="danger" title="Gagal masuk" body={error} /> : null}
         <Button label="Masuk" onPress={submit} loading={busy} disabled={!username.trim() || !password} />

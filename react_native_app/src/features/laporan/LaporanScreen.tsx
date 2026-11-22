@@ -1,16 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Platform, Pressable, Share, View } from 'react-native';
+import { Platform, Share, View } from 'react-native';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { api } from '@/api/session';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { AdminOnly } from '@/features/alat/AdminOnly';
-import { colors, fonts, radius, shadowDock } from '@/theme/tokens';
+import { useColors } from '@/theme/useColors';
 import { Banner } from '@/ui/Banner';
 import { Button } from '@/ui/Button';
-import { Card } from '@/ui/Card';
+import { Panel } from '@/ui/Panel';
 import { DataRow } from '@/ui/DataRow';
+import { Chips } from '@/ui/Chips';
 import { Header } from '@/ui/Header';
 import { Screen } from '@/ui/Screen';
 import { Skeleton } from '@/ui/Skeleton';
@@ -21,6 +22,7 @@ const OPSI: { key: RentangKey; label: string }[] = [{ key: '7', label: '7 hari' 
 const fmt = (n: number, d = 1) => n.toFixed(d).replace('.', ',');
 
 export function LaporanScreen() {
+  const c = useColors();
   const { user } = useAuth();
   const [key, setKey] = useState<RentangKey>('30');
   const [msg, setMsg] = useState<string | null>(null);
@@ -60,37 +62,27 @@ export function LaporanScreen() {
   return (
     <AdminOnly>
       <Screen onRefresh={() => q.refetch()} refreshing={q.isRefetching}>
-        <Header title="Laporan" subtitle="Admin · ringkasan kebun" initials={initials} />
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          {OPSI.map((o) => {
-            const on = o.key === key;
-            return (
-              <Pressable key={o.key} accessibilityRole="tab" accessibilityState={{ selected: on }} onPress={() => setKey(o.key)}
-                style={{ height: 44, paddingHorizontal: 14, borderRadius: radius.input, justifyContent: 'center', backgroundColor: on ? colors.accent : colors.surface, borderWidth: on ? 0 : 1, borderColor: colors.border }}>
-                <Text v="label" style={{ color: on ? colors.onAccent : colors.textSecondary, fontFamily: fonts.bodySemi }}>{o.label}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <Header back="/alat" title="Laporan" subtitle="Admin · ringkasan kebun" initials={initials} />
+        <Chips options={OPSI} value={key} onChange={setKey} />
         {q.isError ? <Banner tone="danger" title="Laporan belum bisa dimuat" body={(q.error as Error).message} /> : null}
         {msg ? <Banner tone="danger" title="Gagal" body={msg} /> : null}
         {q.isPending ? <Skeleton /> : (
           <>
-            <Card style={[shadowDock, { padding: 16, gap: 8 }]}>
+            <Panel gap={8}>
               <Text v="section">Ringkasan</Text>
               {rows.length === 0 ? <Text v="meta">Belum ada data pada periode ini.</Text> : (
                 <>
                   <DataRow label="Semai dimulai" value={String(rows.reduce((a, r) => a + r.semai, 0))} />
                   <DataRow label="Panen (kg)" value={fmt(rows.reduce((a, r) => a + r.panenKg, 0))} />
-                  <DataRow label="Rata-rata pH" value={phs.length ? fmt(phs.reduce((a, b) => a + b, 0) / phs.length, 2) : '—'} />
+                  <DataRow label="Rata-rata pH" value={phs.length ? fmt(phs.reduce((a, b) => a + b, 0) / phs.length, 2) : '—'} last />
                 </>
               )}
-            </Card>
+            </Panel>
             {rows.length ? (
-              <Card style={[shadowDock, { padding: 16, gap: 8 }]}>
+              <Panel gap={8}>
                 <Text v="section">Per bulan</Text>
-                {rows.map((r) => <DataRow key={r.periode} label={r.periode} value={`Panen ${fmt(r.panenKg)} kg · pH ${r.rataPh == null ? '—' : fmt(r.rataPh, 2)}`} />)}
-              </Card>
+                {rows.map((r, i) => <DataRow key={r.periode} last={i === rows.length - 1} label={r.periode} value={`Panen ${fmt(r.panenKg)} kg · pH ${r.rataPh == null ? '—' : fmt(r.rataPh, 2)}`} />)}
+              </Panel>
             ) : null}
           </>
         )}
