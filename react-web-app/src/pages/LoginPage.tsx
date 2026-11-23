@@ -104,6 +104,22 @@ export default function LoginPage() {
     }
   }
 
+  /** Akun demo (hanya baca): satu klik langsung masuk, tanpa mengisi form. */
+  async function masukDemo() {
+    setErrors({})
+    setServerError('')
+    setPesanSesi('')
+    setSubmitting(true)
+    try {
+      const redirect = await login('demo', 'demo123', false)
+      navigate(redirect || '/dashboard', { replace: true })
+    } catch {
+      setServerError('Akun demo belum tersedia — hubungi admin greenhouse.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <div className="relative isolate flex min-h-dvh w-full flex-col text-tinta">
       {/* latar lukisan gunung yang sama dengan halaman Tentang + gelap di kiri agar teks terbaca */}
@@ -209,6 +225,23 @@ export default function LoginPage() {
               <span>{serverError}</span>
             </div>
           )}
+
+          <div className="mt-5">
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={masukDemo}
+              className="flex w-full items-center justify-between rounded-[14px] border border-slate-200/80 bg-white/70 px-4 py-2.5 text-left transition hover:border-arutmin-forest hover:bg-arutmin-mint/20 disabled:opacity-60"
+            >
+              <div>
+                <span className="block text-[13px] font-bold text-navy">Coba Akun Demo</span>
+                <span className="block text-[11.5px] text-slate-500">Masuk satu klik · hanya lihat, tanpa kendali alat</span>
+              </div>
+              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                demo
+              </span>
+            </button>
+          </div>
 
           <label className="mt-5 block text-[13px] font-semibold text-tinta" htmlFor="login-username">
             Nama pengguna
