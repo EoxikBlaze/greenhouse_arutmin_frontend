@@ -57,27 +57,9 @@ type Pembimbing = {
   peran: string
   foto: string
   gayaFoto: string
-  latarPutih?: boolean
 }
 
 const PEMBIMBING: Pembimbing[] = [
-  {
-    nama: 'I Made Candra Girinata',
-    label: 'Dosen Pembimbing',
-    instansi: 'Politeknik Negeri Tanah Laut',
-    peran: 'Membimbing pelaksanaan kegiatan KKN Industri serta pengembangan sistem Vertonik Smart Farm (GARAP).',
-    foto: '/pembimbing/i-made-candra-girinata.png',
-    gayaFoto: 'absolute bottom-0 left-1/2 h-[20rem] w-auto max-w-none -translate-x-1/2 object-contain object-bottom',
-  },
-  {
-    nama: 'Raka Pradvia Permadi',
-    label: 'Pembimbing Lapangan',
-    instansi: 'PT Arutmin Indonesia',
-    peran: 'Mendampingi kegiatan KKN di lapangan serta penerapan Vertonik Smart Farm pada greenhouse PT Arutmin Indonesia.',
-    foto: '/pembimbing/raka-pradvia-permadi.jpg',
-    gayaFoto: 'absolute bottom-0 left-1/2 h-[21rem] w-auto max-w-none -translate-x-1/2 object-contain object-bottom',
-    latarPutih: true,
-  },
   {
     nama: 'Nurul Yakin',
     label: 'Pembimbing Lapangan',
@@ -87,12 +69,28 @@ const PEMBIMBING: Pembimbing[] = [
     gayaFoto: 'absolute bottom-0 left-1/2 h-[20.5rem] w-auto max-w-none -translate-x-1/2 object-contain object-bottom',
   },
   {
+    nama: 'Raka Pradipta Permadi',
+    label: 'Pembimbing Lapangan',
+    instansi: 'PT Arutmin Indonesia',
+    peran: 'Mendampingi kegiatan KKN di lapangan serta penerapan Vertonik Smart Farm pada greenhouse PT Arutmin Indonesia.',
+    foto: '/pembimbing/raka-pradipta-permadi.png',
+    gayaFoto: 'absolute bottom-0 left-1/2 h-[21rem] w-auto max-w-none -translate-x-1/2 object-contain object-bottom',
+  },
+  {
     nama: 'Abdulmajid',
     label: 'Pembimbing Lapangan',
     instansi: 'PT Arutmin Indonesia',
     peran: 'Mendampingi kegiatan KKN di lapangan serta penerapan Vertonik Smart Farm pada greenhouse PT Arutmin Indonesia.',
     foto: '/pembimbing/abdulmajid.png',
     gayaFoto: 'absolute top-3 left-1/2 h-[30rem] w-auto max-w-none -translate-x-1/2 object-contain object-top',
+  },
+  {
+    nama: 'I Made Candra Girinata',
+    label: 'Dosen Pembimbing',
+    instansi: 'Politeknik Negeri Tanah Laut',
+    peran: 'Membimbing pelaksanaan kegiatan KKN Industri serta pengembangan sistem Vertonik Smart Farm (GARAP).',
+    foto: '/pembimbing/i-made-candra-girinata.png',
+    gayaFoto: 'absolute bottom-0 left-1/2 h-[20rem] w-auto max-w-none -translate-x-1/2 object-contain object-bottom',
   },
 ]
 
@@ -372,9 +370,7 @@ export function TentangPage() {
                 >
                   <div
                     className={
-                      p.latarPutih
-                        ? 'relative h-[21rem] overflow-hidden bg-white'
-                        : 'vsf-foto-tim relative h-[21rem] overflow-hidden bg-gradient-to-b from-[#CFE2CE] to-[#F4F7F2]'
+                      'vsf-foto-tim relative h-[21rem] overflow-hidden bg-gradient-to-b from-[#CFE2CE] to-[#F4F7F2]'
                     }
                   >
                     <img
