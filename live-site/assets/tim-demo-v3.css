@@ -1,0 +1,12 @@
+/* Baris foto tim rata tengah (4 + 3) */
+.vsf-tim-baris{display:flex;flex-wrap:wrap;justify-content:center;gap:1rem}
+.vsf-tim-baris>article{width:100%}
+@media (min-width:640px){.vsf-tim-baris>article{width:calc((100% - 1rem)/2)}}
+@media (min-width:1024px){.vsf-tim-baris>article{width:calc((100% - 3rem)/4)}}
+/* Tombol Coba Akun Demo */
+.vsf-demo-btn{display:flex;width:100%;align-items:center;justify-content:space-between;gap:.75rem;border:1px solid rgba(203,213,225,.85);border-radius:14px;background:rgba(255,255,255,.7);padding:.625rem 1rem;text-align:left;cursor:pointer;transition:border-color .15s,background-color .15s}
+.vsf-demo-btn:hover:not(:disabled){border-color:#3b5a24;background:rgba(220,236,214,.45)}
+.vsf-demo-btn:disabled{opacity:.6;cursor:not-allowed}
+.vsf-demo-btn .t{display:block;font-size:13px;font-weight:700;color:#0b1f3a}
+.vsf-demo-btn .d{display:block;font-size:11.5px;color:#64748b}
+.vsf-demo-btn .b{border-radius:999px;background:#f1f5f9;padding:.25rem .625rem;font-size:11px;font-weight:600;color:#475569}
