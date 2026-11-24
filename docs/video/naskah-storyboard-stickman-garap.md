@@ -1,156 +1,164 @@
 # Naskah & Storyboard — Video Stickman Edukatif GARAP (2 menit, landscape)
 
-Status: **rencana produksi, belum ada audio, belum ada render.** Dokumen ini bukan MP4 dan bukan hasil sinkronisasi final.
-Tanggal susun: 25 Nov 2026.
+Status: **rencana produksi v2, belum ada audio, belum ada render.** Dokumen ini bukan MP4 dan bukan hasil sinkronisasi final.
+Revisi: 25 Nov 2026 — memakai jawaban pemilik, *Buku Pedoman Sistem GARAP v1.0* (24 Nov 2026, firmware v6.4.0), gambar panel, dan tampilan garap.net (dibaca saja).
+
+Sumber utama per topik:
+| Topik | Sumber |
+|---|---|
+| Prinsip kerja, mode alat, logika dosing, keselamatan, lampu, kalibrasi, perpipaan, rutinitas | Buku Pedoman v1.0 (Bab 4, 7.5, 8, 11, 13–16, 36–40, 43) |
+| Nama menu & tombol | garap.net: Dashboard, Kalibrasi, Otomasi Alat; Buku Pedoman Bab 30–32 |
+| SOP semai melon | `backend-nodejs/src/aiMelonModul.js` (tidak ada di Buku Pedoman) |
+| Palet & font | `DESIGN.md` |
+| Bentuk panel | Gambar 3D panel + tata letak isi box (lampiran pemilik) |
 
 ---
 
 ## 1. Analisis skill & pendekatan
 
-### Skill yang benar-benar tersedia
 | Hal | Temuan |
 |---|---|
-| Nama | `stick-figure` (lokal: `~/.claude/skills/stick-figure`), mesin di `engine/`, kit suara di `~/.claude/animation-skills/kit` (model Kokoro + Parakeet sudah terpasang). |
-| Keluaran | **MP4 sungguhan**: adegan digambar di Canvas (`web/shots.js`, `chars.js`, `env.js`), dirender headless lewat `tools/render.js` (Playwright), dirakit `make.sh` + ffmpeg. Ada juga `stills` untuk cek bingkai. |
-| Orientasi | **Vertikal 9:16 terkunci di kode**: viewport 1080×1920 di `render.js`, vinyet berpusat (540,960) di `main.js`, pita caption y 1250–1420, area aman gaya Instagram. Landscape **perlu modifikasi** `render.js`, `main.js` (W/H, vinyet, caption), dan semua koordinat `shots.js`. |
-| Durasi | Dirancang 30–45 dtk (±110–120 kata, 10–12 setup). 120 dtk butuh ±35–40 setup; mesin render paralel jadi tidak ada batas teknis, tapi beban gambar ±3× contoh. |
-| Frame rate | Belum diverifikasi di kode (`make.sh` tidak menyebut fps secara eksplisit). [PERLU KONFIRMASI: cek fps render; target 30 fps.] |
-| Karakter & gerak | Rig `drawStick` (kepala putih besar, wajah ekspresif, IK lengan, topi). Cocok untuk operator & pemandu. Properti bawaan bertema bajak laut → semua properti GARAP harus dibuat baru di `env2.js`. |
-| Suara (TTS) | Kokoro dipanggil dengan `lang="en-us"`; **tidak ada suara bahasa Indonesia**. ElevenLabs didukung (multibahasa) tetapi butuh `ELEVENLABS_API_KEY` berbayar & mengirim teks ke layanan luar. |
-| Penyelarasan kata | `align.py` memakai Parakeet TDT 0.6B **v2 (model ASR bahasa Inggris)** → stempel waktu kata Indonesia tidak bisa diandalkan. Perlu aligner lain atau penandaan waktu per kalimat secara manual. |
-| Subtitle | `capText()` membuat caption 1–2 kata huruf kecil Poppins di tengah. **Tidak sesuai** permintaan subtitle 2 baris → harus ditulis ulang. |
-| Musik & SFX | Disintesis dalam kode (`audio.py`), dengan ducking di bawah narasi. Sesuai kebutuhan. |
-| Alat tambahan | ffmpeg, Node, Python 3.9+ (kit sudah ada). Tidak ada dependensi yang dipasang pada tahap ini. |
+| Nama | `stick-figure` (lokal: `~/.claude/skills/stick-figure`), kit suara di `~/.claude/animation-skills/kit`. |
+| Keluaran | **MP4 sungguhan**: Canvas (`shots.js`, `chars.js`, `env.js`) → render headless (`tools/render.js`) → `make.sh` + ffmpeg. Ada mode `stills` untuk cek bingkai. |
+| Orientasi | **Vertikal 1080×1920 terkunci di kode** (`render.js`, vinyet `main.js`, pita caption y 1250–1420). Landscape perlu modifikasi pada salinan reel. |
+| Durasi | Dirancang 30–45 dtk. 120 dtk = ±37 shot; bisa, tapi beban gambar ±3× contoh. |
+| Frame rate | Belum diverifikasi di kode. Target 30 fps. |
+| Karakter | Rig `drawStick` (kepala putih besar, wajah, IK lengan, topi) cocok. Properti bawaan bertema bajak laut → semua properti GARAP dibuat baru (`env2.js`). |
+| Suara | Kokoro `lang="en-us"`, **tidak ada suara Indonesia**. ElevenLabs multibahasa perlu kunci API berbayar. |
+| Penyelarasan kata | Parakeet TDT 0.6B v2 = ASR bahasa Inggris → tidak andal untuk Indonesia. |
+| Subtitle | `capText()` = 1–2 kata huruf kecil → harus diganti subtitle 2 baris. |
+| Musik & SFX | Disintesis di `audio.py`, dengan ducking. Sesuai. |
 
-### Referensi luar
-Tiga repo GitHub yang disebut **tidak dibuka/dibandingkan** pada sesi ini. Pilihan dibuat karena `stick-figure` sudah terpasang dan menghasilkan MP4 nyata.
+Tiga repo GitHub pembanding **tidak dibuka**.
 
-### Pendekatan utama yang diusulkan
-1. Pakai mesin `stick-figure` sebagai dasar, buat **salinan reel landscape** (bukan mengubah template asli): ubah viewport ke 1920×1080, caption 2 baris di pita bawah.
-2. **Narasi direkam manusia** (penutur Indonesia, tenang) → paling aman untuk pelafalan "pH", "EC", "rockwool", "E-STOP". Alternatif: ElevenLabs multilingual (butuh izin & kunci API).
-3. **Sinkronisasi per kalimat**: tandai awal/akhir tiap kalimat dari rekaman (manual di editor audio, atau aligner yang mendukung Indonesia — dipasang nanti, setelah disetujui). Fitur warp otomatis `make.sh` baru bisa dipakai bila ada `words_*.json` yang valid.
-4. Render di laptop/PC produksi, **bukan** di Raspberry Pi GARAP.
+**Pendekatan**: salin template `stick-figure` ke folder reel baru → ubah ke 1920×1080 → **narasi direkam penutur Indonesia** → tandai waktu per kalimat dari rekaman → timing ulang `shots.js` → render di komputer produksi (bukan Raspberry Pi GARAP).
 
 ---
 
-## 2. Konsep visual singkat
+## 2. Konsep visual
 
-- **Dunia**: greenhouse melon terang, garis tinta tebal (`#221c22`), bayangan kontak lembut. Instalasi GARAP selalu di posisi tetap: **panel di kiri tengah, tandon di kanan panel, talang melon di latar belakang kanan, meja semai di kiri jauh** (posisi ini konvensi video, bukan denah nyata — [PERLU KONFIRMASI dari foto alat]).
-- **Operator (Pak/Bu Tani)**: topi caping, kaus hijau hutan `#2D452F`, handuk kecil di bahu. Peran: belajar & memperagakan.
-- **Pemandu**: rompi navy `#0A1F38` dengan strip emas `#E9CD53` (emas hanya di atas navy, sesuai DESIGN.md), memegang tablet. Peran: menunjuk & menjelaskan.
-- **Palet**: diambil dari **DESIGN.md website GARAP** (navy `#0A1F38`, hijau pucat `#F4F7F2`, hijau hutan `#2D452F`→`#4C6A4B`, moss `#6B9D4A`, emas `#E9CD53`, merah kritis `#C0392B`, kuning waspada `#E0A42B`). Ini palet website, dipakai sebagai usulan identitas video — [PERLU KONFIRMASI: boleh dipakai untuk video?].
-- **Tipografi layar**: Space Grotesk (judul/angka) + Inter (subtitle), sesuai DESIGN.md. File font perlu disiapkan (mesin hanya membawa Poppins & Lora).
-- **Logo**: tidak ditemukan berkas logo resmi di repo. Gunakan **wordmark teks "GARAP"** saja sampai logo resmi diberikan. Tidak membuat logo rekaan.
-- **Tata letak 1920×1080**: margin aman 5% (x 96–1824, y 54–1026). Zona aksi y 54–840. **Pita subtitle y 880–1010**, kotak navy 80% opasitas, Inter SemiBold 44 px putih, maks 2 baris × ±42 karakter. Teks utama/label di atas zona subtitle, maks 6–8 kata.
+- **Dunia**: greenhouse melon terang, garis tinta tebal, bayangan kontak lembut.
+- **Tata letak instalasi (tetap di semua adegan)**: penampung di tengah; **panel GARAP** berdiri di kiri penampung (box abu-abu di atas rangka kaki, sesuai gambar 3D); talang meja melon di kanan belakang; meja semai & meja kalibrasi di kiri jauh. Ini susunan untuk video, bukan denah nyata.
+- **Panel** (dari gambar): pintu box tertutup saat adegan biasa. Di pintu: 3 lampu pilot (**merah, kuning, biru**), tombol jamur merah **E-STOP**, tombol hijau **RESET**, layar LCD. Kabel keluar dari gland di dinding bawah. **Isi box (220 V, PSU, relay) tidak diperlihatkan terbuka** dan tidak disentuh tangan.
+- **Aliran larutan** (Buku Pedoman Bab 8): loop tertutup penampung → pompa sirkulasi → talang → kembali ke penampung. Pompa sirkulasi & aerator menyala terus dan **tidak diatur GARAP**. Yang diatur GARAP: **pompa dosing A, B, pH up, pH down, dan pompa isi air**.
+- **Jalur sensor**: air diambil dari sambungan T setelah pompa sirkulasi, melewati probe EC & suhu, lalu pH, kembali ke penampung.
+- **Titik suntik dosing**: di bagian berarus kencang dekat aliran balik; A dan B lewat selang terpisah; pH up/down di titik terpisah dari A/B. Digambar sederhana.
+- **Operator**: topi caping, kaus hijau hutan `#2D452F`, handuk di bahu.
+- **Pemandu**: rompi navy `#0A1F38` dengan strip emas `#E9CD53`, membawa tablet.
+- **Palet** (DESIGN.md): navy `#0A1F38`, hijau pucat `#F4F7F2`, hijau hutan `#2D452F`→`#4C6A4B`, moss `#6B9D4A`, emas `#E9CD53` (hanya di atas navy), merah `#C0392B`, kuning `#E0A42B`. Lampu pilot memakai merah/kuning/biru sesuai alat.
+- **Tipografi**: Space Grotesk (judul) + Inter (subtitle). File font perlu disiapkan.
+- **Identitas**: wordmark teks **GARAP** + "Greenhouse Automation & Research Arutmin–Politala". garap.net memakai emblem Vertonik Smart Farm & nama PT Arutmin Indonesia. Emblem itu baru dipakai bila ada izin dan berkas resminya.
+- **Layar 1920×1080**: margin 5% (x 96–1824, y 54–1026). Zona aksi y 54–840. **Pita subtitle y 880–1010**: kotak navy 80%, Inter SemiBold 44 px putih, maks 2 baris × ±42 karakter.
 
 ---
 
 ## 3. Naskah narasi (siap rekam)
 
-Gaya baca: tenang, ramah, jeda pendek antar kalimat. "pH" dibaca *pe-ha*; "EC" dibaca *e-se*; "E-STOP" dibaca *i-stop*.
+Gaya baca tenang dan ramah. "pH" = *pe-ha*, "EC" = *e-se*, "E-STOP" = *i-stop*, "ppm" = *pe-pe-em*.
 
 | Adegan | Waktu target | Narasi | Kata |
 |---|---|---|---|
 | 1 | 00:00–00:08 | Petani melon perlu tahu setiap hari: airnya pas? Nutrisinya cukup? Bagaimana memantaunya lebih mudah? | 14 |
 | 2 | 00:08–00:18 | Kenalkan GARAP. GARAP membantu memantau kondisi air dan tanaman, lalu mengelola penambahan nutrisi sesuai pengaturan dan izin sistem. | 18 |
-| 3 | 00:18–00:30 | Sensor membaca pH, tingkat keasaman air, dan EC, petunjuk kepekatan nutrisi, juga suhu dan ketinggian air. Sistem memeriksanya, website menampilkannya. Pompa dosing kecil berbeda dari pompa sirkulasi. | 27 |
-| 4 | 00:30–00:45 | Sebelum dipakai, sensor dikalibrasi. Kalibrasi menyelaraskan hasil sensor dengan cairan acuan yang nilainya sudah diketahui. Probe dibilas, dicelup, ditunggu sampai stabil, baru disimpan. Ulangi untuk setiap acuan. | 27 |
-| 5 | 00:45–00:57 | Setelah itu, alat diuji. Kalibrasi menyetel pembacaan; pengujian memeriksa hasil dan fungsinya. Bandingkan dengan alat ukur pembanding, pastikan website ikut diperbarui, lalu catat. | 23 |
+| 3 | 00:18–00:30 | Sensor membaca pH, tingkat keasaman air, dan EC, petunjuk kepekatan nutrisi. Server memeriksanya, website menampilkannya. Alat mengatur pompa dosing dan pompa isi air. | 23 |
+| 4 | 00:30–00:45 | Sebelum dipakai, sensor dikalibrasi dalam mode pemeliharaan. Kalibrasi menyelaraskan hasil sensor dengan cairan acuan yang nilainya sudah diketahui. Celup, tunggu tenang, tekan Ukur, lalu Simpan. Bilas, ulangi titik kedua. | 29 |
+| 5 | 00:45–00:57 | Lalu, alat diuji. Kalibrasi menyetel pembacaan; pengujian memeriksa hasil dan fungsinya. Bandingkan dengan alat ukur genggam, uji pompa dengan air ke gelas ukur, lalu catat. | 25 |
 | 6 | 00:57–01:14 | Lalu semai melon, sesuai SOP lapangan GARAP. Rendam benih di air ekstrak bawang merah satu hari. Peram dua hari di kain hitam lembap. Jemur sinar pagi dua hari sambil dijaga lembap, baru pindah ke rockwool. | 35 |
-| 7 | 01:14–01:24 | Di website, pengaturan budidaya melon menyimpan target. Pembacaan sensor yang sebenarnya dibandingkan dengan target itu. Target bukan bacaan. | 18 |
-| 8 | 01:24–01:42 | Dosing artinya menambah cairan nutrisi secara terukur. Nutrisi rendah tidak langsung menyalakan pompa. Sistem memeriksa bacaan, batas, dan izin dulu. Saat ini izin dosing masih dikunci. Jika diizinkan, pompa menambah sedikit, larutan tercampur, lalu dibaca ulang. | 36 |
-| 9 | 01:42–01:53 | Setiap hari, tetap periksa data terbaru, persediaan cairan, selang, dan tanaman. Ada peringatan? Cari penyebabnya dulu. Saat darurat, tekan E-STOP. | 20 |
+| 7 | 01:14–01:24 | Saat Mulai Semai, website mengirim target ppm dan pH ke alat. Di tab Nutrisi, ppm nyata dibandingkan dengan rencana target. Target bukan bacaan. | 23 |
+| 8 | 01:24–01:42 | Dosing artinya menambah cairan secara terukur. Nutrisi rendah tidak langsung menyalakan pompa. Syaratnya: mode semai, saklar otomasi menyala, bacaan tenang. Pompa A, jeda, lalu B. Lalu alat menunggu larutan tercampur sebelum membaca ulang. | 33 |
+| 9 | 01:42–01:53 | Setiap hari, cek lampu, dashboard, tinggi air, botol nutrisi, dan selang. Ada peringatan? Cari penyebabnya dulu. Darurat? Tekan E-STOP di panel. | 21 |
 | 10 | 01:53–02:00 | Bersama GARAP: kalibrasi, uji, semai, atur, dan pantau. | 8 |
-| | | **Total** | **226** |
+| | | **Total** | **229** |
 
-**Estimasi (bukan hasil ukur)**: pada 2,0–2,2 kata/detik, narasi ±103–114 dtk, sisa ±6–17 dtk untuk jeda & ekor musik. Adegan 3 (2,25 kata/dtk) dan 8 (2,0) paling padat. **Durasi sebenarnya wajib diukur dari rekaman.** Jika satu adegan melebihi slotnya, ringkas kalimatnya (bukan mempercepat suara).
+**Estimasi (bukan hasil ukur)**: 2,0–2,2 kata/dtk → narasi ±103–114 dtk, sisa ±6–17 dtk untuk jeda & ekor musik. Adegan 4, 5, 8 paling padat (±1,9–2,1 kata/dtk). Durasi wajib diukur dari rekaman; bila lewat slot, ringkas kalimat, jangan percepat suara.
 
-Cadangan ringkasan bila terlalu panjang:
-- Adegan 3: hapus "juga suhu dan ketinggian air" (tetap tampil sebagai ikon).
-- Adegan 8: hapus "Saat ini izin dosing masih dikunci." (tetap tampil sebagai label gembok).
+Cadangan ringkasan:
+- Adegan 4: hapus "Bilas, ulangi titik kedua." (tetap tampil sebagai label).
+- Adegan 8: hapus "Pompa A, jeda, lalu B." (tetap tampil di diagram).
 
 ---
 
 ## 4. Storyboard (total 120,0 dtk = 3.600 frame @30 fps)
 
-Konvensi: **OP** = operator, **PM** = pemandu. Subtitle selalu di pita bawah dan mengikuti kalimat narasi; kolom "Teks layar" hanya berisi label/judul di zona aksi.
+**OP** = operator, **PM** = pemandu. Subtitle di pita bawah mengikuti kalimat narasi; kolom "Teks layar" berisi label di zona aksi.
 
 ### Adegan 1 — Masalah pembuka (00:00–00:08)
 | Shot | Waktu | Narasi | Tindakan karakter | Perubahan benda/alat | Kamera & komposisi | Teks layar | SFX |
 |---|---|---|---|---|---|---|---|
-| 1a | 00:00–00:03 | "Petani melon perlu tahu setiap hari: airnya pas?" | OP berjongkok di tepi tandon, menciduk air ke gelas, mengangkatnya ke mata (penasaran). Kaki tertanam saat jongkok. | Air di gelas bergoyang lalu diam. | Wide greenhouse dari kiri, push-in pelan ke OP. Aksi sudah berjalan di frame 1. | — | ciduk air lembut |
-| 1b | 00:03–00:05.5 | "Nutrisinya cukup?" | OP berjalan 3 langkah ke talang, mengangkat daun melon dengan satu tangan. | Daun terangkat, kembali saat dilepas. | Medium, kamera ikut sejajar langkah. | — | langkah, gesek daun |
-| 1c | 00:05.5–00:08 | "Bagaimana memantaunya lebih mudah?" | OP membuka buku catatan, menggaruk kepala (bingung). | Buku terbuka, halaman penuh coretan. | Medium close, kamera diam. | "?" kecil di atas kepala | kertas dibalik |
+| 1a | 00:00–00:03 | "Petani melon perlu tahu setiap hari: airnya pas?" | OP jongkok di tepi penampung, menciduk air ke gelas, mengangkatnya ke mata (penasaran). | Air di gelas bergoyang lalu diam. | Wide greenhouse, push-in pelan. Aksi sudah berjalan di frame 1. | — | ciduk air |
+| 1b | 00:03–00:05.5 | "Nutrisinya cukup?" | OP berjalan 3 langkah ke talang, mengangkat daun melon. | Daun terangkat lalu kembali. | Medium, kamera ikut langkah. | — | langkah, gesek daun |
+| 1c | 00:05.5–00:08 | "Bagaimana memantaunya lebih mudah?" | OP membuka buku catatan, menggaruk kepala. | Halaman penuh coretan. | Medium close, diam. | "?" | kertas dibalik |
 
 ### Adegan 2 — Perkenalan GARAP (00:08–00:18)
 | Shot | Waktu | Narasi | Tindakan karakter | Perubahan benda/alat | Kamera & komposisi | Teks layar | SFX |
 |---|---|---|---|---|---|---|---|
-| 2a | 00:08–00:11 | "Kenalkan GARAP." | OP menoleh ke kanan. | Instalasi terlihat utuh: panel, tandon, talang. | Pan pelan kiri→kanan dari OP ke instalasi, berhenti dengan panel di sepertiga kiri. | — | musik masuk lembut |
-| 2b | 00:11–00:15 | "GARAP membantu memantau kondisi air dan tanaman," | PM masuk dari kanan (antisipasi–langkah–berhenti, kaki menapak), mengangkat tangan menunjuk panel. | Panel tidak berubah. | Wide statis. | **GARAP** (wordmark Space Grotesk, navy) muncul 00:12, bertahan hingga 00:17 | pop lembut judul |
-| 2c | 00:15–00:18 | "lalu mengelola penambahan nutrisi sesuai pengaturan dan izin sistem." | OP mendekat, berdiri di samping PM, mengangguk (memahami). | Ikon kecil: gir (pengaturan) + gembok (izin) di samping panel. | Medium two-shot, kamera diam. | "Pantau • Kelola sesuai izin" | klik UI |
+| 2a | 00:08–00:11 | "Kenalkan GARAP." | OP menoleh ke kiri. | Instalasi utuh: panel, penampung, talang. Lampu **biru** menyala tetap. | Pan pelan ke instalasi, berhenti dengan panel di sepertiga kiri. | — | musik masuk lembut |
+| 2b | 00:11–00:15 | "GARAP membantu memantau kondisi air dan tanaman," | PM masuk dari kanan (antisipasi–langkah–berhenti), menunjuk panel. | — | Wide statis. | **GARAP** muncul 00:12–00:17; di bawahnya "Greenhouse Automation & Research Arutmin–Politala" | pop lembut |
+| 2c | 00:15–00:18 | "lalu mengelola penambahan nutrisi sesuai pengaturan dan izin sistem." | OP berdiri di samping PM, mengangguk. | Ikon gir (pengaturan) + saklar (izin) di samping panel. | Medium two-shot, diam. | "Pantau • Kelola sesuai izin" | klik UI |
 
 ### Adegan 3 — Kenali bagiannya (00:18–00:30)
 | Shot | Waktu | Narasi | Tindakan karakter | Perubahan benda/alat | Kamera & komposisi | Teks layar | SFX |
 |---|---|---|---|---|---|---|---|
-| 3a | 00:18–00:21.5 | "Sensor membaca pH, tingkat keasaman air, dan EC, petunjuk kepekatan nutrisi," | Tangan PM menunjuk dua probe di tandon (ujung jari tidak menembus). | Probe pH & EC tersorot bergantian. | Close-up tandon, kamera diam. | "pH = keasaman" / "EC = kepekatan nutrisi" | ting kecil ×2 |
-| 3b | 00:21.5–00:24 | "juga suhu dan ketinggian air." | — (fokus benda) | Ikon muncul di posisi sensornya: termometer (suhu air), sensor udara (suhu & kelembapan), pelampung bawah/atas. | Close-up, slide pelan ke kanan. | "Suhu • Kelembapan • Ketinggian air" | — |
-| 3c | 00:24–00:27 | "Sistem memeriksanya, website menampilkannya." | — | Diagram 3 kotak: **Sensor membaca → Sistem memeriksa → Website menampilkan**, titik data mengalir sepanjang panah. | Kamera diam (teks dibaca). | Tiga kotak tersebut | aliran halus |
-| 3d | 00:27–00:30 | "Pompa dosing kecil berbeda dari pompa sirkulasi." | PM menunjuk pompa kecil, lalu pompa besar. | Dua pompa berdampingan diberi label; tidak ada yang menyala. | Medium, kamera diam. | "Pompa dosing: tambah sedikit" / "Pompa sirkulasi: alirkan air" | — |
+| 3a | 00:18–00:22 | "Sensor membaca pH, tingkat keasaman air, dan EC, petunjuk kepekatan nutrisi." | PM menunjuk jalur sensor (jari tidak menembus pipa). | Air mengalir pelan dari sambungan T melewati probe EC & suhu, lalu pH, kembali ke penampung. | Close-up jalur sensor, diam. | "pH = keasaman" / "EC = kepekatan nutrisi" | ting ×2 |
+| 3b | 00:22–00:24 | (lanjutan) | — | Ikon kecil: suhu air, suhu & kelembapan udara, pelampung bawah/atas. | Slide pelan ke kanan. | "Suhu • Kelembapan • Tinggi air" | — |
+| 3c | 00:24–00:27 | "Server memeriksanya, website menampilkannya." | — | Diagram: **Alat membaca → Server memeriksa → Website menampilkan**; titik data mengalir. | Diam. | Tiga kotak tersebut | aliran halus |
+| 3d | 00:27–00:30 | "Alat mengatur pompa dosing dan pompa isi air." | PM menunjuk deret 4 pompa kecil, lalu pompa isi. | Label pompa A, B, pH up, pH down, isi air. Pompa sirkulasi di latar, abu-abu, tanpa label GARAP. Tidak ada pompa menyala. | Medium, diam. | "Pompa dosing: A • B • pH up • pH down" / "Pompa isi air" | — |
 
 ### Adegan 4 — Kalibrasi (00:30–00:45)
 | Shot | Waktu | Narasi | Tindakan karakter | Perubahan benda/alat | Kamera & komposisi | Teks layar | SFX |
 |---|---|---|---|---|---|---|---|
-| 4a | 00:30–00:33 | "Sebelum dipakai, sensor dikalibrasi." | OP menata botol larutan acuan di meja kalibrasi, satu per satu. | Botol berlabel: **pH 4,01**, **pH 6,86**, **EC 1413 µS/cm** [PERLU KONFIRMASI: tampilkan 9,18 dan 12.880 µS/cm?]. | Medium meja kalibrasi, push-in pelan. | Judul bab "Kalibrasi" | botol beradu pelan |
-| 4b | 00:33–00:37 | "Kalibrasi menyelaraskan hasil sensor dengan cairan acuan yang nilainya sudah diketahui." | OP membilas probe di gelas bilas (tangan memegang kabel probe). PM berdiri di sisi, menjelaskan dengan tablet. | Tetesan air dari probe. | Close-up tangan & probe, kamera diam. | "Bilas" | air menetes |
-| 4c | 00:37–00:41 | "Probe dibilas, dicelup, ditunggu sampai stabil," | OP mencelup probe ke botol pertama, menunggu (memeriksa). | Indikator di layar tablet bergoyang beberapa kali, lalu ikon "stabil". **Tanpa angka hasil.** | Close-up layar + botol dalam satu frame, kamera diam. | "Celup → tunggu stabil" | — |
-| 4d | 00:41–00:45 | "baru disimpan. Ulangi untuk setiap acuan." | OP mengetuk tombol simpan di tablet, membilas lagi, mengangkat botol berikutnya. | Ceklis kecil di botol pertama; botol kedua bergeser maju. | Medium, kamera diam. | "Ulangi tiap acuan" | klik UI |
+| 4a | 00:30–00:34 | "Sebelum dipakai, sensor dikalibrasi dalam mode pemeliharaan." | OP mengetuk tablet. | Lampu panel berganti **kuning berkedip** (pemeliharaan). Di meja: botol **pH 4,01**, **pH 6,86**, **EC 1,413 mS/cm**, **EC 12,88 mS/cm**. | Medium meja kalibrasi + panel di latar, push-in pelan. | Judul "Kalibrasi"; tombol "Aktifkan pemeliharaan" | klik UI |
+| 4b | 00:34–00:38 | "Kalibrasi menyelaraskan hasil sensor dengan cairan acuan yang nilainya sudah diketahui." | OP memegang probe pH, mencelupnya ke botol **pH 4,01**. PM menjelaskan. | Probe terendam. | Close-up tangan & botol, diam. | "Titik 1: pH 4,01" | celup |
+| 4c | 00:38–00:42 | "Celup, tunggu tenang, tekan Ukur, lalu Simpan." | OP menunggu (memeriksa), lalu mengetuk tablet dua kali. | Bacaan di tablet bergoyang beberapa kali, lalu tenang. **Tanpa angka hasil.** Tombol **Ukur** lalu **Simpan** tersorot bergantian. | Close-up tablet + botol dalam satu frame, diam. | "Ukur → Simpan" | klik ×2 |
+| 4d | 00:42–00:45 | "Bilas, ulangi titik kedua." | OP membilas probe di gelas air bersih, mengangkat botol **pH 6,86**. | Ceklis kecil di botol 4,01. Botol EC menunggu giliran. | Medium, diam. | "Titik 2: pH 6,86 • lalu EC 1,413 → 12,88" | air menetes |
 
-Catatan: urutan botol & langkah "Aktifkan pemeliharaan" mengikuti SOP terverifikasi — lihat bagian 6.
+Urutan sesuai Buku Pedoman Bab 36: pH 4,01 → 6,86, lalu EC 1,413 mS/cm (1413 µS/cm) → 12,88 mS/cm, bilas di antara larutan.
 
 ### Adegan 5 — Uji Alat & Validasi (00:45–00:57)
 | Shot | Waktu | Narasi | Tindakan karakter | Perubahan benda/alat | Kamera & komposisi | Teks layar | SFX |
 |---|---|---|---|---|---|---|---|
-| 5a | 00:45–00:49 | "Setelah itu, alat diuji. Kalibrasi menyetel pembacaan; pengujian memeriksa hasil dan fungsinya." | OP memegang alat ukur pembanding (meter genggam) dan mencelupnya di wadah yang sama dengan probe GARAP. | Dua layar kecil bersebelahan, tanda "≈" di antaranya. **Tanpa angka.** | Close-up dua alat, kamera diam. | Judul bab **"Uji Alat & Validasi"**; "Setel ≠ Periksa" | — |
-| 5b | 00:49–00:53 | "Bandingkan dengan alat ukur pembanding, pastikan website ikut diperbarui," | OP melihat ponsel. | Di ponsel, waktu "diperbarui" berganti menjadi lebih baru (ilustrasi). | Over-the-shoulder ke ponsel, kamera diam. | "Data ikut diperbarui?" + label kecil "Ilustrasi tampilan" | notifikasi lembut |
-| 5c | 00:53–00:57 | "lalu catat." | OP menulis di lembar uji; PM mengangguk. | Lembar berisi baris item kosong yang diberi tanda centang saat ditulis. **Tidak ada stempel LULUS.** | Medium, kamera diam. | "Catat hasil uji" | pensil menulis |
+| 5a | 00:45–00:49 | "Lalu, alat diuji. Kalibrasi menyetel pembacaan; pengujian memeriksa hasil dan fungsinya." | PM berdiri di samping papan dua kolom. | Kolom kiri "Kalibrasi: menyetel", kanan "Uji: memeriksa". | Medium, diam. | Judul **"Uji Alat & Validasi"** | pop judul |
+| 5b | 00:49–00:53 | "Bandingkan dengan alat ukur genggam, uji pompa dengan air ke gelas ukur," | OP mencelup alat ukur genggam di sebelah jalur sensor, lalu memegang gelas ukur di ujung selang dosing. | Dua layar kecil bersebelahan dengan tanda "≈" (tanpa angka). Pompa menyala sebentar, lampu **biru berkedip cepat**, air bersih mengisi gelas, lalu berhenti. | Close-up, diam. | "Air bersih dulu, bukan nutrisi" | dengung pompa pendek |
+| 5c | 00:53–00:57 | "lalu catat." | OP menulis di lembar uji; PM mengangguk. | Item diberi centang saat ditulis. **Tidak ada stempel LULUS.** | Medium, diam. | "Catat hasil uji" | pensil |
 
 ### Adegan 6 — Mulai semai melon (00:57–01:14)
 | Shot | Waktu | Narasi | Tindakan karakter | Perubahan benda/alat | Kamera & komposisi | Teks layar | SFX |
 |---|---|---|---|---|---|---|---|
-| 6a | 00:57–01:01 | "Lalu semai melon, sesuai SOP lapangan GARAP. Rendam benih di air ekstrak bawang merah satu hari." | OP menuang benih ke wadah air bawang merah (wadah terbuka). | Benih tenggelam perlahan; kalender kecil di pojok kanan atas. | Medium area semai, push-in. | Judul bab "Semai Melon — SOP lapangan GARAP"; label "Rendam • 1 hari" | tuang biji, plung |
-| 6b | 01:01–01:05 | "Peram dua hari di kain hitam lembap." | OP meniriskan, membilas, lalu melipat benih dalam kain hitam lembap, menaruhnya di tempat teduh. | Kalender dibalik 2 lembar; latar meredup (gelap). | Medium, cut ke tempat teduh. | "Peram kain hitam • 2 hari" | balik kalender ×2 |
-| 6c | 01:05–01:10 | "Jemur sinar pagi dua hari sambil dijaga lembap," | OP membuka kain: ada kecambah, **panjang tidak sama**; menyemprot kabut air; matahari rendah di kiri. | Kalender dibalik 2 lembar; sebagian benih belum berkecambah. | Close-up kain, kamera diam. | "Sinar pagi • 2 hari • jaga lembap"; "Pertumbuhan bisa berbeda" | semprot kabut |
-| 6d | 01:10–01:14 | "baru pindah ke rockwool." | OP menaruh satu kecambah di lubang rockwool dengan dua jari (jari menyentuh kecambah). | Baris rockwool terisi satu per satu. | Close-up tangan, lalu tarik ke medium. | "Pindah ke rockwool"; "Nutrisi awal 400–600 PPM (sesuai SOP)" | letak lembut |
+| 6a | 00:57–01:01 | "Lalu semai melon, sesuai SOP lapangan GARAP. Rendam benih di air ekstrak bawang merah satu hari." | OP menuang benih ke wadah terbuka berisi air bawang merah. | Benih tenggelam perlahan; kalender kecil di pojok kanan atas. | Medium area semai, push-in. | "Semai Melon — SOP lapangan GARAP"; "Rendam • 1 hari" | tuang biji |
+| 6b | 01:01–01:05 | "Peram dua hari di kain hitam lembap." | OP meniriskan, membilas, membungkus benih dengan kain hitam lembap, menaruhnya di tempat teduh. | Kalender dibalik 2 lembar; latar meredup. | Medium, cut ke tempat teduh. | "Peram kain hitam • 2 hari" | kalender ×2 |
+| 6c | 01:05–01:10 | "Jemur sinar pagi dua hari sambil dijaga lembap," | OP membuka kain, menyemprot kabut air; matahari rendah. | Kalender dibalik 2 lembar; kecambah **panjangnya berbeda**, sebagian belum pecah. | Close-up kain, diam. | "Sinar pagi • 2 hari • jaga lembap"; "Pertumbuhan bisa berbeda" | semprot |
+| 6d | 01:10–01:14 | "baru pindah ke rockwool." | OP menaruh kecambah di lubang rockwool dengan dua jari. | Baris rockwool terisi satu per satu. | Close-up, lalu tarik ke medium. | "Pindah ke rockwool"; "Nutrisi awal 400–600 PPM (sesuai SOP)" | letak lembut |
 
 ### Adegan 7 — Pengaturan & pembacaan (01:14–01:24)
 | Shot | Waktu | Narasi | Tindakan karakter | Perubahan benda/alat | Kamera & komposisi | Teks layar | SFX |
 |---|---|---|---|---|---|---|---|
-| 7a | 01:14–01:18 | "Di website, pengaturan budidaya melon menyimpan target." | OP menggulir ponsel. | Layar: dua kolom **"Bacaan sekarang"** dan **"Target"**, isi berupa garis/batang tanpa angka. | Close-up ponsel, kamera diam. | Label pojok "Ilustrasi tampilan" | gulir halus |
-| 7b | 01:18–01:24 | "Pembacaan sensor yang sebenarnya dibandingkan dengan target itu. Target bukan bacaan." | OP menoleh dari ponsel ke tandon. | Garis putus-putus menghubungkan kolom "Bacaan sekarang" ke probe di tandon; kolom "Target" tetap di ponsel. | Dolly dari ponsel ke tandon (gerak bermakna: menghubungkan), lalu diam. | "Bacaan ↔ Target" ; "Target ≠ bacaan" | — |
+| 7a | 01:14–01:18 | "Saat Mulai Semai, website mengirim target ppm dan pH ke alat." | OP mengetuk tombol **Mulai Semai** di ponsel (menu Kebun Saya). | Amplop data terbang dari ponsel ke panel; LCD berganti ke "SEMAI". | Close-up ponsel → whip ke panel. | "Kebun Saya → Mulai Semai"; "Ilustrasi tampilan" | kirim data |
+| 7b | 01:18–01:24 | "Di tab Nutrisi, ppm nyata dibandingkan dengan rencana target. Target bukan bacaan." | OP melihat ponsel, lalu menoleh ke jalur sensor. | Grafik dua garis: **ppm nyata** (garis penuh, dari sensor) dan **rencana target** (garis putus-putus). Tanpa angka. Garis putus-putus penghubung ke probe. | Close-up ponsel, dolly ke jalur sensor, lalu diam. | "ppm nyata ↔ rencana target"; "Ilustrasi tampilan" | — |
 
 ### Adegan 8 — Bagaimana dosing bekerja? (01:24–01:42)
 | Shot | Waktu | Narasi | Tindakan karakter | Perubahan benda/alat | Kamera & komposisi | Teks layar | SFX |
 |---|---|---|---|---|---|---|---|
-| 8a | 01:24–01:28 | "Dosing artinya menambah cairan nutrisi secara terukur." | PM berdiri di samping diagram, menunjuk langkah 1. | Diagram konseptual 5 langkah muncul: **Bacaan diperiksa → Syarat & izin → Tambah terukur → Tercampur → Baca ulang**. | Diagram potong sederhana, kamera diam. | Judul "Bagaimana dosing bekerja?" | pop judul |
-| 8b | 01:28–01:33 | "Nutrisi rendah tidak langsung menyalakan pompa. Sistem memeriksa bacaan, batas, dan izin dulu." | OP mengangkat tangan seolah mau menekan pompa, PM menahan dengan isyarat telapak (waspada). | Langkah 2 menyala: tiga lampu cek "Bacaan wajar", "Dalam batas", "Izin". | Kamera diam. | Tiga label cek | tik ×3 |
-| 8c | 01:33–01:37 | "Saat ini izin dosing masih dikunci." | OP mengangguk. | Lampu "Izin" berubah menjadi **gembok terkunci**; pompa diam. | Close-up gembok, kamera diam. | "Izin eksekusi: dikunci" | klik gembok |
-| 8d | 01:37–01:42 | "Jika diizinkan, pompa menambah sedikit, larutan tercampur, lalu dibaca ulang." | — | Pompa dosing menyala **satu denyut singkat** lalu berhenti (tidak terus-menerus); tetes masuk ke tandon secara konseptual; panah melingkar tanda tercampur; ikon sensor membaca ulang, panah kembali ke langkah 1. | Kamera diam. | Label tetap di atas: **"Ilustrasi setelah izin operasional"** | dengung pompa pendek, tetes |
+| 8a | 01:24–01:28 | "Dosing artinya menambah cairan secara terukur." | PM di samping diagram, menunjuk langkah 1. | Diagram 5 langkah: **Bacaan diperiksa → Syarat & izin → Tambah terukur → Tunggu tercampur → Baca ulang**. | Diagram potongan sederhana, diam. | Judul "Bagaimana dosing bekerja?" | pop judul |
+| 8b | 01:28–01:31 | "Nutrisi rendah tidak langsung menyalakan pompa." | OP mengangkat tangan ke arah pompa; PM menahan dengan isyarat telapak (waspada). | Pompa tetap diam. | Diam. | "Rendah ≠ langsung pompa" | — |
+| 8c | 01:31–01:35 | "Syaratnya: mode semai, saklar otomasi menyala, bacaan tenang." | PM menunjuk tiga lampu cek satu per satu. | Tiga cek menyala: "Mode SEMAI", "Saklar Otomasi Alat ON", "Bacaan tenang". | Close-up diagram, diam. | Tiga label cek | tik ×3 |
+| 8d | 01:35–01:38 | "Pompa A, jeda, lalu B." | — | Label tetap: **"Ilustrasi setelah izin operasional"**. Pompa A menyala singkat (biru berkedip cepat) lalu mati → ikon jam jeda → pompa B singkat lalu mati. Tidak pernah dua pompa menyala bersamaan. Tetes masuk di titik suntik dekat aliran balik. | Diam. | "A → jeda → B" | dengung pendek ×2 |
+| 8e | 01:38–01:42 | "Lalu alat menunggu larutan tercampur sebelum membaca ulang." | OP mengamati talang. | Larutan berputar lewat loop sirkulasi; ikon jam "waktu monitoring"; sensor membaca ulang; panah kembali ke langkah 1. | Wide diagram loop, diam. | "Tunggu tercampur → baca ulang" | aliran halus |
 
-Catatan: titik masuk cairan, jeda A→B, dan cara pencampuran digambar **konseptual** (tanpa perpipaan) sampai dikonfirmasi.
+Catatan: diagram tidak menampilkan mL, durasi, atau volume penampung.
 
 ### Adegan 9 — Pemantauan & gangguan (01:42–01:53)
 | Shot | Waktu | Narasi | Tindakan karakter | Perubahan benda/alat | Kamera & komposisi | Teks layar | SFX |
 |---|---|---|---|---|---|---|---|
-| 9a | 01:42–01:45 | "Setiap hari, tetap periksa data terbaru," | OP memeriksa ponsel. | Penanda waktu data terbaru. | Medium, kamera diam. | Checklist muncul di kiri: "Data terbaru" | tik |
-| 9b | 01:45–01:48 | "persediaan cairan, selang, dan tanaman." | OP menggoyang jeriken stok, menelusuri selang dengan jari, melihat daun. | Centang bertambah satu per satu. | Medium, kamera ikut OP. | "Cairan • Selang • Tanaman" | goyang jeriken |
-| 9c | 01:48–01:50.5 | "Ada peringatan? Cari penyebabnya dulu." | OP berhenti, wajah waspada. | Ponsel menampilkan contoh peringatan sederhana (ikon segitiga kuning). | Close-up ponsel, kamera diam. | "Bacaan tidak tersedia → periksa dulu" + "Ilustrasi tampilan" | chime lembut (bukan alarm) |
-| 9d | 01:50.5–01:53 | "Saat darurat, tekan E-STOP." | PM menunjuk tombol jamur merah di panel; OP memperhatikan. | Tombol E-STOP tersorot; tidak ditekan. | Close-up panel, kamera diam. | "E-STOP: untuk keadaan darurat" | — |
+| 9a | 01:42–01:45 | "Setiap hari, cek lampu, dashboard," | OP melihat panel, lalu ponsel. | Lampu **biru tetap** (normal); ponsel menampilkan "Alat terhubung". | Medium, diam. | Checklist kiri: "Lampu • Dashboard" | tik |
+| 9b | 01:45–01:48 | "tinggi air, botol nutrisi, dan selang." | OP melongok ke penampung, menggoyang botol A/B, menelusuri selang dengan jari. | Centang bertambah satu per satu. | Medium, kamera ikut OP. | "Tinggi air • Botol • Selang" | goyang botol |
+| 9c | 01:48–01:50.5 | "Ada peringatan? Cari penyebabnya dulu." | OP berhenti, wajah waspada, memeriksa selang. | Lampu **kuning**; ponsel menampilkan contoh peringatan (segitiga kuning). | Close-up ponsel + panel, diam. | "Periksa penyebab sebelum lanjut"; "Ilustrasi tampilan" | chime lembut (bukan alarm) |
+| 9d | 01:50.5–01:53 | "Darurat? Tekan E-STOP di panel." | PM menunjuk tombol jamur merah; OP memperhatikan. | E-STOP tersorot; tidak ditekan. | Close-up pintu panel, diam. | "E-STOP: hentikan listrik pompa saat darurat" | — |
 
 ### Adegan 10 — Penutup (01:53–02:00)
 | Shot | Waktu | Narasi | Tindakan karakter | Perubahan benda/alat | Kamera & komposisi | Teks layar | SFX |
 |---|---|---|---|---|---|---|---|
-| 10a | 01:53–01:57 | "Bersama GARAP: kalibrasi, uji, semai, atur, dan pantau." | OP & PM berdiri berdampingan di greenhouse, OP mengacungkan jempol. | — | Wide, pull-back pelan. | Lima kata muncul bertahap: Kalibrasi • Uji • Semai • Atur • Pantau | pop ×5 lembut |
-| 10b | 01:57–02:00 | (musik) | Diam, napas ringan. | — | Wide diam. | Wordmark **GARAP** + nama lengkap [PERLU KONFIRMASI] | akor musik penutup |
+| 10a | 01:53–01:57 | "Bersama GARAP: kalibrasi, uji, semai, atur, dan pantau." | OP & PM berdampingan, OP mengacungkan jempol. | Lampu biru tetap. | Wide, pull-back pelan. | Lima kata muncul bertahap | pop ×5 lembut |
+| 10b | 01:57–02:00 | (musik) | Diam, napas ringan. | — | Wide diam. | **GARAP** + "Greenhouse Automation & Research Arutmin–Politala" | akor penutup |
 
 **Cek total:** 8 + 10 + 12 + 15 + 12 + 17 + 10 + 18 + 11 + 7 = **120 dtk**.
 
@@ -158,65 +166,79 @@ Catatan: titik masuk cairan, jeda A→B, dan cara pencampuran digambar **konsept
 
 ## 5. Daftar aset
 
-**Karakter (kode `chars.js`)**: OP dengan caping & handuk; PM dengan rompi navy-emas & tablet; ekspresi: penasaran, bingung, memahami, memeriksa, waspada.
+**Karakter**: OP (caping, kaus hijau hutan, handuk), PM (rompi navy-emas, tablet). Ekspresi: penasaran, bingung, memahami, memeriksa, waspada.
 
-**Properti baru (`env2.js`)**: interior greenhouse + talang melon; panel GARAP (LCD 20×4, 3 lampu pilot, tombol RESET, tombol jamur E-STOP) — bentuk dari foto; tandon dengan probe pH/EC, sensor suhu air, pelampung bawah/atas; sensor suhu-kelembapan udara; pompa peristaltik kecil (A, B, pH Up, pH Down) + pompa isi air; pompa sirkulasi [PERLU KONFIRMASI]; jeriken/botol stok; meja kalibrasi, botol larutan acuan berlabel, gelas bilas, meter pembanding; ponsel/tablet dengan tampilan ilustratif; lembar uji; wadah rendam, bawang merah, kain hitam, penyemprot, kalender, nampan rockwool, kecambah dengan panjang beragam; diagram alur sensor→sistem→website & diagram dosing 5 langkah; gembok.
+**Properti (`env2.js`)**:
+- Panel GARAP tertutup di atas rangka kaki: 3 lampu (merah, kuning, biru) dengan status tetap & kedip, E-STOP jamur merah, RESET hijau, LCD, gland kabel di bawah.
+- Penampung; loop sirkulasi (pompa sirkulasi & aerator, abu-abu); talang melon; jalur sensor dengan sambungan T dan probe EC, suhu, pH; pelampung bawah/atas; sensor udara.
+- 4 pompa dosing kecil + botol A, B, pH up, pH down dengan selang terpisah dan titik suntik; pompa isi air.
+- Meja kalibrasi: 4 botol berlabel, gelas bilas, alat ukur genggam, gelas ukur.
+- Ponsel/tablet: tombol Aktifkan pemeliharaan, Ukur, Simpan, Mulai Semai, grafik ppm nyata vs rencana target, contoh peringatan. Semua diberi label "Ilustrasi tampilan" bila tidak persis sama dengan web.
+- Semai: wadah rendam, bawang merah, kain hitam, penyemprot, kalender, nampan rockwool, kecambah beragam panjang.
+- Diagram alur data, diagram dosing 5 langkah, diagram loop sirkulasi.
 
-**Tipografi & grafis**: Space Grotesk + Inter (file TTF, lisensi OFL); kotak subtitle; wordmark teks GARAP.
+**Tipografi & grafis**: Space Grotesk + Inter (OFL), kotak subtitle, wordmark GARAP.
 
-**Audio**: rekaman narasi Indonesia (WAV 48 kHz); musik instrumental ringan (sintesis `audio.py` atau musik bebas lisensi); SFX daftar di atas (lembut, tanpa sirene/alarm).
-
-**Referensi dari Anda (belum ada di sesi ini)**: foto alat (panel, tandon, jalur cairan, posisi sensor, pompa) dan screenshot website (halaman Kalibrasi, Target Nutrisi/pengaturan, Dashboard, Peringatan). Tanpa ini, bentuk alat & layar digambar generik dan diberi label "Ilustrasi".
+**Audio**: rekaman narasi Indonesia (WAV 48 kHz), musik instrumental ringan, SFX lembut tanpa alarm.
 
 ---
 
-## 6. Fakta yang perlu dikonfirmasi
+## 6. Status fakta
 
-1. [PERLU KONFIRMASI: kepanjangan GARAP. Brief: "Greenhouse Automation & Research Arutmin–Politala"; modul Juknas/Juknis: "Green Autonomous Responsive Agriculture Platform".]
-2. [PERLU KONFIRMASI: titik kalibrasi pH. Keputusan pemilik 17 Nov 2026: buffer resmi 4,01 & 6,86 dan 9,18 dihapus; AGENTS.md & `aiMelonModul.js` masih menyebut 9,18 (opsional); Juknis & `aiPanduan.js` menyebut pH 4,0 & 7,0.]
-3. [PERLU KONFIRMASI: kalibrasi EC 1 titik (1413 µS/cm, sesuai brief) atau 2 titik (1413 & 12.880 µS/cm, sesuai Juknis & keputusan K2).]
-4. [PERLU KONFIRMASI: urutan botol kalibrasi (pH dulu atau EC dulu; 6,86 dulu atau 4,01 dulu). Juknis: EC dulu, lalu pH 4 → 7. Video saat ini tidak menyiratkan urutan.]
-5. [PERLU KONFIRMASI: nama tombol di layar kalibrasi versi web sekarang (Juknis menyebut "Aktifkan pemeliharaan", "Ambil titik 1.413"; aiPanduan menyebut tombol "Kalibrasi"/"Simpan"). Perlu screenshot.]
-6. [PERLU KONFIRMASI: apakah GARAP mengendalikan pompa sirkulasi. Peta pin Juknis hanya memuat pompa A, B, pH Up, pH Down, dan isi air.]
-7. [PERLU KONFIRMASI: makna lampu pilot pada firmware yang terpasang sekarang (hidro-v6.4.0). Juknis (gabungan-0.6): hijau = normal, merah+hijau = peringatan, merah saja = E-STOP, biru = pompa aktif. Video belum menampilkan arti warna.]
-8. [PERLU KONFIRMASI: efek E-STOP. Juknis: mengunci seluruh aktuator/pompa. Video hanya menyebut "untuk keadaan darurat", tanpa klaim memutus seluruh listrik.]
-9. [PERLU KONFIRMASI: titik masuk cairan dosing, jeda A→B, dan cara pencampuran (sirkulasi?). Saat ini digambar konseptual.]
-10. [PERLU KONFIRMASI: apakah kalimat "Saat ini izin dosing masih dikunci" boleh masuk video publik; status `EKSEKUSI_DIIZINKAN = false` bisa berubah setelah validasi.]
-11. [PERLU KONFIRMASI: nutrisi awal 400–600 PPM diberikan saat dipindah ke rockwool atau setelah kotiledon membuka. `aiMelonModul.js`: setelah daun lembaga membuka penuh, pH 5,8–6,5. Label video ditulis "sesuai SOP" tanpa waktu.]
-12. [PERLU KONFIRMASI: memasukkan seleksi uji apung (benih tenggelam dipakai, mengambang disisihkan)? Ada di SOP `aiMelonModul.js`; belum dimasukkan ke narasi.]
-13. [PERLU KONFIRMASI: nama menu pengaturan budidaya melon yang ditampilkan (Target Nutrisi `/dosing`, Ambang Sensor `/ambang`, atau preset tanaman). Perlu screenshot.]
-14. [PERLU KONFIRMASI: alat ukur pembanding yang dipakai pada uji (meter pH/TDS genggam, termometer, higrometer) dan apakah ada dokumen Uji Laboratorium. Video memakai judul "Uji Alat & Validasi" saja.]
-15. [PERLU KONFIRMASI: logo resmi & izin memakai palet DESIGN.md untuk video.]
-16. [PERLU KONFIRMASI: denah instalasi (posisi panel, tandon, talang, area semai) dari foto.]
-17. [PERLU KONFIRMASI: fps & cara mesin menangani 1920×1080 setelah dimodifikasi.]
+### Sudah dikonfirmasi
+1. Nama: **Greenhouse Automation & Research Arutmin–Politala** (pemilik).
+2. pH **4,01 → 6,86**, tanpa 9,18 (pemilik; Buku Pedoman Bab 15/36; garap.net).
+3. EC dua titik **1,413 mS/cm → 12,88 mS/cm**, titik 0 air baku opsional (Buku Pedoman; garap.net).
+4. Langkah kalibrasi: Aktifkan pemeliharaan → celup → tunggu tenang → **Ukur** → **Simpan** → bilas → titik 2 (garap.net & Bab 15).
+5. Pompa yang diatur GARAP: dosing A, B, pH up, pH down + isi air (pemilik). Pompa sirkulasi & aerator menyala terus di luar kendali alat (Bab 8).
+6. Lampu (Bab 7.5): **biru** tetap = normal, kedip cepat = dosing/uji pompa, kedip lambat = isi air/encer; **kuning** tetap = perlu dicek, kedip = pemeliharaan; **merah** tetap = E-STOP/menunggu RESET, kedip = kerusakan. Hanya satu lampu menyala.
+7. E-STOP fisik memutus V+ aktuator (listrik pompa) secara fisik; E-STOP dari web hanya perintah program dan tidak memutus 12 V (Bab 7.5; garap.net Otomasi Alat).
+8. Dosing diputuskan **alat** saat mode SEMAI, dengan saklar Otomasi Alat, bacaan stabil, waktu monitoring habis, tanpa kunci; A → jeda → B; satu pompa satu waktu; lalu menunggu satu waktu monitoring (Bab 4, 13). Web tidak punya dosing manual (garap.net).
+9. Menu nyata: Dashboard ("Alat terhubung"), Kebun Saya → Mulai Semai, Sensor → tab Nutrisi (ppm nyata vs rencana target), Peringatan, Kalibrasi, Otomasi Alat.
+10. Uji pertama: air saja, selang dosing ke gelas, cocokkan mL; jangan pakai nutrisi sungguhan sebelum cocok (Bab 36).
+11. Rutinitas harian: LCD & lampu, Dashboard & Peringatan, tinggi air, botol nutrisi & pH, pipa luber (Bab 38).
 
-Tidak ada kapasitas tandon, volume/durasi dosing, target per umur tanaman, atau hasil uji yang dimasukkan ke video.
+### Masih perlu konfirmasi
+1. [PERLU KONFIRMASI: pernyataan "pompa cuma dosing dan pengisian air" berarti pompa yang **diatur GARAP**, sedangkan pompa sirkulasi tetap ada sebagai pompa terpisah (Buku Pedoman Bab 8)? Storyboard menggambarnya abu-abu di latar tanpa label GARAP.]
+2. [PERLU KONFIRMASI: posisi LCD, lampu, E-STOP, dan RESET di pintu panel versi sekarang. Gambar 3D adalah rancangan awal.]
+3. [PERLU KONFIRMASI: izin memakai emblem Vertonik Smart Farm / nama PT Arutmin Indonesia / Politala di video, dan berkas resminya.]
+4. [PERLU KONFIRMASI: SOP semai (bawang merah 1 hari → kain hitam 2 hari → jemur pagi 2 hari → rockwool, 400–600 PPM) hanya ada di `aiMelonModul.js`, tidak di Buku Pedoman. Masih berlaku sebagai SOP lapangan?]
+5. [PERLU KONFIRMASI: nutrisi awal 400–600 PPM diberikan saat pindah ke rockwool atau setelah kotiledon membuka (`aiMelonModul.js`: setelah kotiledon membuka).]
+6. [PERLU KONFIRMASI: masukkan seleksi uji apung (benih tenggelam dipakai)? Belum dimasukkan.]
+7. [PERLU KONFIRMASI: video menggambar dosing berjalan dengan label "Ilustrasi setelah izin operasional". Per 24 Nov laju pompa & uji lab masih nilai uji dan alat belum melaporkan saklar otomasi (Bab 43). Perlu kalimat status di video, atau cukup label?]
+8. [PERLU KONFIRMASI: palet DESIGN.md boleh dipakai sebagai identitas video?]
+9. [PERLU KONFIRMASI: fps & penanganan 1920×1080 di mesin setelah dimodifikasi (teknis, dicek saat produksi).]
+
+Catatan `EKSEKUSI_DIIZINKAN = false` (`gerbangDosis.js`): gerbang di server, tidak diubah. Menurut keputusan 17 Nov, server memang tidak pernah mengirim DOSIS; dosing hanya diputuskan alat saat SEMAI. Narasi tidak menyebut gerbang ini.
+
+Tidak dimasukkan ke video: kapasitas penampung, mL/durasi dosing, target ppm per umur, nilai hasil kalibrasi, hasil uji.
 
 ---
 
 ## 7. Checklist sebelum produksi
 
 **Isi**
-- [ ] Semua butir bagian 6 dijawab; teks layar & narasi disesuaikan.
-- [ ] Foto alat & screenshot website diterima; layar yang tidak sesuai aslinya diberi label "Ilustrasi tampilan".
-- [ ] Label "Ilustrasi setelah izin operasional" ada di seluruh shot pompa menyala (8d).
-- [ ] Tidak ada stempel LULUS, angka hasil kalibrasi, kapasitas tandon, atau volume dosing.
+- [ ] Butir "Masih perlu konfirmasi" dijawab; teks disesuaikan.
+- [ ] Layar yang tidak persis sama dengan garap.net diberi label "Ilustrasi tampilan".
+- [ ] Label "Ilustrasi setelah izin operasional" di semua shot pompa dosing menyala (8d).
+- [ ] Tidak ada stempel LULUS, angka hasil kalibrasi, kapasitas penampung, atau volume dosing.
+- [ ] Isi box panel (220 V) tidak diperlihatkan terbuka.
 - [ ] Penutup tanpa klaim panen pasti berhasil / alat bebas pengawasan.
 
 **Audio**
-- [ ] Narasi direkam (penutur Indonesia) atau suara TTS Indonesia diuji pelafalannya; Kokoro bawaan tidak dipakai untuk Indonesia.
-- [ ] Durasi rekaman diukur per adegan; total ≤ 120 dtk tanpa mempercepat suara. Jika lebih, ringkas naskah dulu.
-- [ ] Waktu tiap kalimat ditandai (manual atau aligner berbahasa Indonesia); `shots.js` di-timing ulang dari rekaman nyata.
-- [ ] Musik & SFX di bawah narasi; tidak ada bunyi alarm dekoratif.
+- [ ] Narasi direkam penutur Indonesia (atau TTS Indonesia yang sudah diuji); Kokoro bawaan tidak dipakai.
+- [ ] Durasi rekaman diukur per adegan; total ≤ 120 dtk tanpa mempercepat suara.
+- [ ] Waktu tiap kalimat ditandai; `shots.js` ditiming ulang dari rekaman nyata.
+- [ ] Musik & SFX di bawah narasi; tanpa alarm dekoratif.
 
-**Teknis mesin**
-- [ ] Salin template ke folder reel baru; jangan ubah skill asli.
-- [ ] Ubah viewport `render.js` ke 1920×1080, sesuaikan W/H & vinyet `main.js`, ganti `capText()` dengan subtitle 2 baris Inter.
-- [ ] Pastikan 30 fps dan total 3.600 frame.
-- [ ] Render di komputer produksi, bukan Raspberry Pi GARAP; tidak mengubah aplikasi, firmware, MQTT, atau GARAP-INFOGRAPHICS.
+**Teknis**
+- [ ] Salin template ke folder reel baru; skill asli tidak diubah.
+- [ ] Viewport 1920×1080, W/H & vinyet `main.js`, subtitle 2 baris Inter.
+- [ ] 30 fps, 3.600 frame.
+- [ ] Render di komputer produksi, bukan Raspberry Pi GARAP; aplikasi, firmware, MQTT, dan GARAP-INFOGRAPHICS tidak diubah.
 
-**Pratinjau (sebelum render penuh)**
-- [ ] Still adegan 1, 4c, 6c, 8d, 9d: cek karakter, warna, keterbacaan, margin 5%, subtitle tidak menutupi tangan/sensor/tombol.
-- [ ] Cek kontinuitas: tangan menyentuh benda, kaki tidak meluncur, posisi alat sama antaradegan, aliran cairan searah.
-- [ ] Cek transisi: subtitle tidak bertumpuk.
-- [ ] Hasil akhir disebut MP4 final hanya setelah file `.mp4` 1920×1080, 30 fps, ±120 dtk benar-benar ada dan diputar ulang.
+**Pratinjau**
+- [ ] Still 1a, 4c, 6c, 8d, 9d: karakter, warna, keterbacaan, margin 5%, subtitle tidak menutupi tangan/sensor/tombol.
+- [ ] Kontinuitas: tangan menyentuh benda, kaki tidak meluncur, posisi panel & penampung sama, lampu sesuai arti, aliran searah loop.
+- [ ] Subtitle tidak bertumpuk di transisi.
+- [ ] Disebut MP4 final hanya setelah file `.mp4` 1920×1080, 30 fps, ±120 dtk ada dan sudah diputar ulang.
