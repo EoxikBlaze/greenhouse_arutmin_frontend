@@ -15,6 +15,7 @@ import { SectionTitle } from '@/ui/SectionTitle';
 import { Skeleton } from '@/ui/Skeleton';
 import { Tap } from '@/ui/Tap';
 import { Text } from '@/ui/Text';
+import { StatusAlat } from './StatusAlat';
 import { groupByTahap } from './tanamView';
 import { useTanam } from './useTanam';
 
@@ -32,6 +33,8 @@ export function TanamScreen() {
     <Screen onRefresh={() => q.refetch()} refreshing={q.isRefetching}>
       <Header title="Tanam" subtitle={`Kebun Vertonik · ${role ?? ''}`} initials={initials} />
       <Button label="Mulai semai" onPress={() => router.navigate('/mulai-semai')} />
+      {role === 'admin' ? <StatusAlat /> : null}
+      {role === 'demo' ? null : <Button variant="secondary" label="Target nutrisi" onPress={() => router.navigate('/naik-harian')} />}
       {q.isError ? <Banner tone="danger" title="Gagal memuat tanam" body={(q.error as Error).message} /> : null}
       {q.isPending ? <Skeleton /> : allEmpty ? <SectionTitle title="Tahap aktif" /> : null}
       {!q.isPending && groups.map((g) => (
@@ -42,7 +45,7 @@ export function TanamScreen() {
           ) : g.batches.map((b) => (
             <Tap key={`${b.tipe}-${b.id}`} accessibilityRole="button" accessibilityLabel={b.nama}
               onPress={() => router.navigate({ pathname: '/batch', params: { tipe: b.tipe, id: String(b.id) } })}>
-              <Panel soft gap={8}>
+              <Panel gap={8}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Text v="section" style={{ flex: 1 }}>{b.nama}</Text>
                   <ChevronRight size={icon.md} color={c.textSecondary} />

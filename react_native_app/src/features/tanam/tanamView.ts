@@ -8,6 +8,15 @@ export interface TanamRow {
   mulai: string | null;
   varietas: string | null;
   meja: string | null;
+  // Akar batch (semais.id_semai): kurva nutrisi disimpan per batch di sana.
+  id_semai?: number | string | null;
+  nutrisi?: {
+    kurva: import('./nutrisiView').KurvaServer;
+    hari_semai?: number | null;
+    target_hari_ini: number | null;
+    ph_min?: number | null;
+    ph_max?: number | null;
+  } | null;
 }
 
 export interface BatchView {

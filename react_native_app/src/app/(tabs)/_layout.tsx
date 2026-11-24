@@ -1,11 +1,13 @@
 import { Redirect } from 'expo-router';
 import { Tabs } from 'expo-router/js-tabs';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { useNotifikasi } from '@/features/notifikasi/useNotifikasi';
 import { Dock } from '@/ui/Dock';
 
 // Peta Alur: Admin = Beranda·Tanam·Alat·Peringatan·Akun; Petani/Demo tanpa Alat.
 export default function TabsLayout() {
   const { user, role } = useAuth();
+  useNotifikasi(!!user && role !== 'demo');
   if (!user) return <Redirect href="/login" />;
   return (
     <Tabs tabBar={(p: any) => <Dock {...p} />} screenOptions={{ headerShown: false, freezeOnBlur: true, sceneStyle: { backgroundColor: 'transparent' } }}>
@@ -17,6 +19,8 @@ export default function TabsLayout() {
       <Tabs.Screen name="sensor" options={{ title: 'Detail sensor' }} />
       <Tabs.Screen name="grafik" options={{ title: 'Grafik & riwayat' }} />
       <Tabs.Screen name="batch" options={{ title: 'Detail batch' }} />
+      <Tabs.Screen name="naik-harian" options={{ title: 'Target nutrisi' }} />
+      <Tabs.Screen name="kurva" options={{ title: 'Target nutrisi batch' }} />
       <Tabs.Screen name="mulai-semai" options={{ title: 'Mulai semai' }} />
       <Tabs.Screen name="konfirmasi" options={{ title: 'Konfirmasi' }} />
       <Tabs.Screen name="detail-peringatan" options={{ title: 'Detail peringatan' }} />
@@ -24,8 +28,10 @@ export default function TabsLayout() {
       <Tabs.Screen name="kalibrasi" options={{ title: 'Kalibrasi' }} />
       <Tabs.Screen name="konfirmasi-perangkat" options={{ title: 'Konfirmasi perintah' }} />
       <Tabs.Screen name="ganti-sandi" options={{ title: 'Ganti kata sandi' }} />
+      <Tabs.Screen name="ubah-profil" options={{ title: 'Ubah profil' }} />
       <Tabs.Screen name="tentang" options={{ title: 'Tentang' }} />
       <Tabs.Screen name="asisten" options={{ title: 'Asisten' }} />
+      <Tabs.Screen name="analisis-harian" options={{ title: 'Analisis harian' }} />
       <Tabs.Screen name="uji-lab" options={{ title: 'Uji lab' }} />
       <Tabs.Screen name="laporan" options={{ title: 'Laporan' }} />
       <Tabs.Screen name="cctv" options={{ title: 'CCTV' }} />

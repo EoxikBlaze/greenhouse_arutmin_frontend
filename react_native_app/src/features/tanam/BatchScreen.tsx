@@ -14,7 +14,7 @@ import { batchView, judulTahap, nextTahap, tanggalId } from './tanamView';
 import { useTanam } from './useTanam';
 
 export function BatchScreen() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const { tipe, id } = useLocalSearchParams<{ tipe?: string; id?: string }>();
   const q = useTanam();
   const row = q.data?.find((r) => r.tipe === tipe && String(r.id) === id);
@@ -48,6 +48,7 @@ export function BatchScreen() {
           ) : null}
         </>
       )}
+      {role === 'admin' && row?.id_semai != null ? <Button variant="secondary" label="Ubah target nutrisi batch" onPress={() => router.navigate({ pathname: '/kurva', params: { tipe: row.tipe, id: String(row.id) } })} /> : null}
       <Button variant="secondary" label="Kembali ke Tanam" onPress={() => router.navigate('/tanam')} />
     </Screen>
   );
