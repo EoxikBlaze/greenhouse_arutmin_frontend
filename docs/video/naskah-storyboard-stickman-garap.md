@@ -198,16 +198,16 @@ Catatan: diagram tidak menampilkan mL, durasi, atau volume penampung.
 10. Uji pertama: air saja, selang dosing ke gelas, cocokkan mL; jangan pakai nutrisi sungguhan sebelum cocok (Bab 36).
 11. Rutinitas harian: LCD & lampu, Dashboard & Peringatan, tinggi air, botol nutrisi & pH, pipa luber (Bab 38).
 12. Pompa sirkulasi tetap tampil di latar, abu-abu, tanpa label GARAP (pemilik, 25 Nov 2026).
+13. SOP semai lapangan masih berlaku: rendam air bawang merah 1 hari → kain hitam 2 hari → jemur pagi 2 hari → rockwool (pemilik, 25 Nov 2026; `aiMelonModul.js`).
 
 ### Masih perlu konfirmasi
 1. [PERLU KONFIRMASI: posisi LCD, lampu, E-STOP, dan RESET di pintu panel versi sekarang. Gambar 3D adalah rancangan awal.]
 2. [PERLU KONFIRMASI: izin memakai emblem Vertonik Smart Farm / nama PT Arutmin Indonesia / Politala di video, dan berkas resminya.]
-3. [PERLU KONFIRMASI: SOP semai (bawang merah 1 hari → kain hitam 2 hari → jemur pagi 2 hari → rockwool, 400–600 PPM) hanya ada di `aiMelonModul.js`, tidak di Buku Pedoman. Masih berlaku sebagai SOP lapangan?]
-4. [PERLU KONFIRMASI: nutrisi awal 400–600 PPM diberikan saat pindah ke rockwool atau setelah kotiledon membuka (`aiMelonModul.js`: setelah kotiledon membuka).]
-5. [PERLU KONFIRMASI: masukkan seleksi uji apung (benih tenggelam dipakai)? Belum dimasukkan.]
-6. [PERLU KONFIRMASI: video menggambar dosing berjalan dengan label "Ilustrasi setelah izin operasional". Per 24 Nov laju pompa & uji lab masih nilai uji dan alat belum melaporkan saklar otomasi (Bab 43). Perlu kalimat status di video, atau cukup label?]
-7. [PERLU KONFIRMASI: palet DESIGN.md boleh dipakai sebagai identitas video?]
-8. [PERLU KONFIRMASI: fps & penanganan 1920×1080 di mesin setelah dimodifikasi (teknis, dicek saat produksi).]
+3. [PERLU KONFIRMASI: nutrisi awal 400–600 PPM diberikan saat pindah ke rockwool atau setelah kotiledon membuka (`aiMelonModul.js`: setelah kotiledon membuka).]
+4. [PERLU KONFIRMASI: masukkan seleksi uji apung (benih tenggelam dipakai)? Belum dimasukkan.]
+5. [PERLU KONFIRMASI: video menggambar dosing berjalan dengan label "Ilustrasi setelah izin operasional". Per 24 Nov laju pompa & uji lab masih nilai uji dan alat belum melaporkan saklar otomasi (Bab 43). Perlu kalimat status di video, atau cukup label?]
+6. [PERLU KONFIRMASI: palet DESIGN.md boleh dipakai sebagai identitas video?]
+7. [PERLU KONFIRMASI: fps & penanganan 1920×1080 di mesin setelah dimodifikasi (teknis, dicek saat produksi).]
 
 Catatan `EKSEKUSI_DIIZINKAN = false` (`gerbangDosis.js`): gerbang di server, tidak diubah. Menurut keputusan 17 Nov, server memang tidak pernah mengirim DOSIS; dosing hanya diputuskan alat saat SEMAI. Narasi tidak menyebut gerbang ini.
 
