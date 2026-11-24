@@ -1,0 +1,131 @@
+1
+00:00:00,300 --> 00:00:03,000
+Petani melon perlu tahu setiap hari: airnya pas?
+
+2
+00:00:03,000 --> 00:00:05,500
+Nutrisinya cukup?
+
+3
+00:00:05,500 --> 00:00:07,900
+Bagaimana memantaunya lebih mudah?
+
+4
+00:00:08,000 --> 00:00:11,000
+Kenalkan GARAP.
+
+5
+00:00:11,000 --> 00:00:15,000
+GARAP membantu memantau kondisi air dan tanaman,
+
+6
+00:00:15,000 --> 00:00:17,900
+lalu mengelola penambahan nutrisi sesuai pengaturan dan izin sistem.
+
+7
+00:00:18,000 --> 00:00:24,000
+Sensor membaca pH, tingkat keasaman air, dan EC, petunjuk kepekatan nutrisi.
+
+8
+00:00:24,000 --> 00:00:27,000
+Server memeriksanya, website menampilkannya.
+
+9
+00:00:27,000 --> 00:00:29,900
+Alat mengatur pompa dosing dan pompa isi air.
+
+10
+00:00:30,000 --> 00:00:34,000
+Sebelum dipakai, sensor dikalibrasi dalam mode pemeliharaan.
+
+11
+00:00:34,000 --> 00:00:38,000
+Kalibrasi menyelaraskan hasil sensor dengan cairan acuan yang nilainya sudah diketahui.
+
+12
+00:00:38,000 --> 00:00:42,000
+Celup, tunggu tenang, tekan Ukur, lalu Simpan.
+
+13
+00:00:42,000 --> 00:00:44,900
+Bilas, ulangi titik kedua.
+
+14
+00:00:45,000 --> 00:00:49,000
+Lalu, alat diuji. Kalibrasi menyetel pembacaan; pengujian memeriksa hasil dan fungsinya.
+
+15
+00:00:49,000 --> 00:00:53,000
+Bandingkan dengan alat ukur genggam, uji pompa dengan air ke gelas ukur,
+
+16
+00:00:53,000 --> 00:00:56,900
+lalu catat.
+
+17
+00:00:57,000 --> 00:01:00,500
+Semai melon mengikuti SOP lapangan GARAP. Rendam benih di air ekstrak bawang merah satu hari.
+
+18
+00:01:00,500 --> 00:01:02,500
+Pakai yang tenggelam.
+
+19
+00:01:02,500 --> 00:01:05,500
+Peram dua hari di kain hitam lembap.
+
+20
+00:01:05,500 --> 00:01:10,000
+Jemur sinar pagi dua hari sambil dijaga lembap,
+
+21
+00:01:10,000 --> 00:01:13,900
+baru pindah ke rockwool.
+
+22
+00:01:14,000 --> 00:01:18,000
+Saat Mulai Semai, website mengirim target ppm dan pH ke alat.
+
+23
+00:01:18,000 --> 00:01:23,900
+Di tab Nutrisi, ppm nyata dibandingkan dengan rencana target. Target bukan bacaan.
+
+24
+00:01:24,000 --> 00:01:28,000
+Dosing artinya menambah cairan secara terukur.
+
+25
+00:01:28,000 --> 00:01:31,000
+Nutrisi rendah tidak langsung menyalakan pompa.
+
+26
+00:01:31,000 --> 00:01:35,000
+Syaratnya: mode semai, saklar otomasi menyala, bacaan tenang.
+
+27
+00:01:35,000 --> 00:01:38,000
+Pompa A, jeda, lalu B.
+
+28
+00:01:38,000 --> 00:01:41,900
+Lalu alat menunggu larutan tercampur sebelum membaca ulang.
+
+29
+00:01:42,000 --> 00:01:45,000
+Setiap hari, cek lampu, dashboard,
+
+30
+00:01:45,000 --> 00:01:48,000
+tinggi air, botol nutrisi, dan selang.
+
+31
+00:01:48,000 --> 00:01:50,500
+Ada peringatan? Cari penyebabnya dulu.
+
+32
+00:01:50,500 --> 00:01:52,900
+Darurat? Tekan E-STOP di panel.
+
+33
+00:01:53,000 --> 00:01:57,000
+Bersama GARAP: kalibrasi, uji, semai, atur, dan pantau.
