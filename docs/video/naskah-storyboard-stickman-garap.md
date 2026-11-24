@@ -203,13 +203,13 @@ Catatan: diagram tidak menampilkan mL, durasi, atau volume penampung.
 13. SOP semai lapangan masih berlaku: rendam air bawang merah 1 hari → kain hitam 2 hari → jemur pagi 2 hari → rockwool (pemilik, 25 Nov 2026; `aiMelonModul.js`).
 14. Nutrisi awal 400–600 PPM diberikan saat pindah ke rockwool (pemilik, 25 Nov 2026).
 15. Seleksi uji apung dimasukkan (benih tenggelam dipakai, mengambang disisihkan) sebagai praktik SOP, bukan jaminan tumbuh (pemilik, 25 Nov 2026).
+16. Status dosing cukup ditandai label "Ilustrasi setelah izin operasional"; tanpa kalimat status nilai uji di video (pemilik, 25 Nov 2026).
 
 ### Masih perlu konfirmasi
 1. [PERLU KONFIRMASI: posisi LCD, lampu, E-STOP, dan RESET di pintu panel versi sekarang. Gambar 3D adalah rancangan awal.]
 2. [PERLU KONFIRMASI: izin memakai emblem Vertonik Smart Farm / nama PT Arutmin Indonesia / Politala di video, dan berkas resminya.]
-3. [PERLU KONFIRMASI: video menggambar dosing berjalan dengan label "Ilustrasi setelah izin operasional". Per 24 Nov laju pompa & uji lab masih nilai uji dan alat belum melaporkan saklar otomasi (Bab 43). Perlu kalimat status di video, atau cukup label?]
-4. [PERLU KONFIRMASI: palet DESIGN.md boleh dipakai sebagai identitas video?]
-5. [PERLU KONFIRMASI: fps & penanganan 1920×1080 di mesin setelah dimodifikasi (teknis, dicek saat produksi).]
+3. [PERLU KONFIRMASI: palet DESIGN.md boleh dipakai sebagai identitas video?]
+4. [PERLU KONFIRMASI: fps & penanganan 1920×1080 di mesin setelah dimodifikasi (teknis, dicek saat produksi).]
 
 Catatan `EKSEKUSI_DIIZINKAN = false` (`gerbangDosis.js`): gerbang di server, tidak diubah. Menurut keputusan 17 Nov, server memang tidak pernah mengirim DOSIS; dosing hanya diputuskan alat saat SEMAI. Narasi tidak menyebut gerbang ini.
 
