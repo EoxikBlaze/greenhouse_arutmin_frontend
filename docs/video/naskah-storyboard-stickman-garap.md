@@ -127,7 +127,7 @@ Urutan sesuai Buku Pedoman Bab 36: pH 4,01 → 6,86, lalu EC 1,413 mS/cm (1413 �
 | 6a | 00:57–01:01 | "Lalu semai melon, sesuai SOP lapangan GARAP. Rendam benih di air ekstrak bawang merah satu hari." | OP menuang benih ke wadah terbuka berisi air bawang merah. | Benih tenggelam perlahan; kalender kecil di pojok kanan atas. | Medium area semai, push-in. | "Semai Melon — SOP lapangan GARAP"; "Rendam • 1 hari" | tuang biji |
 | 6b | 01:01–01:05 | "Peram dua hari di kain hitam lembap." | OP meniriskan, membilas, membungkus benih dengan kain hitam lembap, menaruhnya di tempat teduh. | Kalender dibalik 2 lembar; latar meredup. | Medium, cut ke tempat teduh. | "Peram kain hitam • 2 hari" | kalender ×2 |
 | 6c | 01:05–01:10 | "Jemur sinar pagi dua hari sambil dijaga lembap," | OP membuka kain, menyemprot kabut air; matahari rendah. | Kalender dibalik 2 lembar; kecambah **panjangnya berbeda**, sebagian belum pecah. | Close-up kain, diam. | "Sinar pagi • 2 hari • jaga lembap"; "Pertumbuhan bisa berbeda" | semprot |
-| 6d | 01:10–01:14 | "baru pindah ke rockwool." | OP menaruh kecambah di lubang rockwool dengan dua jari. | Baris rockwool terisi satu per satu. | Close-up, lalu tarik ke medium. | "Pindah ke rockwool"; "Nutrisi awal 400–600 PPM (sesuai SOP)" | letak lembut |
+| 6d | 01:10–01:14 | "baru pindah ke rockwool." | OP menaruh kecambah di lubang rockwool dengan dua jari. | Baris rockwool terisi satu per satu. | Close-up, lalu tarik ke medium. | "Pindah ke rockwool"; "Nutrisi awal 400–600 PPM saat pindah" | letak lembut |
 
 ### Adegan 7 — Pengaturan & pembacaan (01:14–01:24)
 | Shot | Waktu | Narasi | Tindakan karakter | Perubahan benda/alat | Kamera & komposisi | Teks layar | SFX |
@@ -199,15 +199,15 @@ Catatan: diagram tidak menampilkan mL, durasi, atau volume penampung.
 11. Rutinitas harian: LCD & lampu, Dashboard & Peringatan, tinggi air, botol nutrisi & pH, pipa luber (Bab 38).
 12. Pompa sirkulasi tetap tampil di latar, abu-abu, tanpa label GARAP (pemilik, 25 Nov 2026).
 13. SOP semai lapangan masih berlaku: rendam air bawang merah 1 hari → kain hitam 2 hari → jemur pagi 2 hari → rockwool (pemilik, 25 Nov 2026; `aiMelonModul.js`).
+14. Nutrisi awal 400–600 PPM diberikan saat pindah ke rockwool (pemilik, 25 Nov 2026).
 
 ### Masih perlu konfirmasi
 1. [PERLU KONFIRMASI: posisi LCD, lampu, E-STOP, dan RESET di pintu panel versi sekarang. Gambar 3D adalah rancangan awal.]
 2. [PERLU KONFIRMASI: izin memakai emblem Vertonik Smart Farm / nama PT Arutmin Indonesia / Politala di video, dan berkas resminya.]
-3. [PERLU KONFIRMASI: nutrisi awal 400–600 PPM diberikan saat pindah ke rockwool atau setelah kotiledon membuka (`aiMelonModul.js`: setelah kotiledon membuka).]
-4. [PERLU KONFIRMASI: masukkan seleksi uji apung (benih tenggelam dipakai)? Belum dimasukkan.]
-5. [PERLU KONFIRMASI: video menggambar dosing berjalan dengan label "Ilustrasi setelah izin operasional". Per 24 Nov laju pompa & uji lab masih nilai uji dan alat belum melaporkan saklar otomasi (Bab 43). Perlu kalimat status di video, atau cukup label?]
-6. [PERLU KONFIRMASI: palet DESIGN.md boleh dipakai sebagai identitas video?]
-7. [PERLU KONFIRMASI: fps & penanganan 1920×1080 di mesin setelah dimodifikasi (teknis, dicek saat produksi).]
+3. [PERLU KONFIRMASI: masukkan seleksi uji apung (benih tenggelam dipakai)? Belum dimasukkan.]
+4. [PERLU KONFIRMASI: video menggambar dosing berjalan dengan label "Ilustrasi setelah izin operasional". Per 24 Nov laju pompa & uji lab masih nilai uji dan alat belum melaporkan saklar otomasi (Bab 43). Perlu kalimat status di video, atau cukup label?]
+5. [PERLU KONFIRMASI: palet DESIGN.md boleh dipakai sebagai identitas video?]
+6. [PERLU KONFIRMASI: fps & penanganan 1920×1080 di mesin setelah dimodifikasi (teknis, dicek saat produksi).]
 
 Catatan `EKSEKUSI_DIIZINKAN = false` (`gerbangDosis.js`): gerbang di server, tidak diubah. Menurut keputusan 17 Nov, server memang tidak pernah mengirim DOSIS; dosing hanya diputuskan alat saat SEMAI. Narasi tidak menyebut gerbang ini.
 
