@@ -1,0 +1,63 @@
+'use strict';
+/**
+ * Gerak PTZ kamera lewat ONVIF (login WS-UsernameToken digest), tanpa dependensi baru.
+ * Alamat dan sandi diambil dari URL RTSP kamera; sandi tidak pernah dikirim ke browser maupun dicatat.
+ * Kamera diuji: EZVIZ CS-H8c (pan/tilt kontinu, layanan ONVIF di http://IP/onvif/PTZ).
+ */
+const crypto = require('node:crypto');
+
+const KECEPATAN = 0.4;
+const VEKTOR = { kiri: [-KECEPATAN, 0], kanan: [KECEPATAN, 0], atas: [0, KECEPATAN], bawah: [0, -KECEPATAN] };
+const NS = 'xmlns="http://www.onvif.org/ver20/ptz/wsdl" xmlns:t="http://www.onvif.org/ver10/schema"';
+const sibuk = new Set(); // alamat kamera yang sedang digeser
+const tokenProfil = new Map(); // host → token profil yang punya PTZ
+
+function tajuk(user, sandi) {
+  const nonce = crypto.randomBytes(16);
+  const dibuat = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+  const intisari = crypto.createHash('sha1').update(Buffer.concat([nonce, Buffer.from(dibuat + sandi)])).digest('base64');
+  return '<s:Header><Security xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">'
+    + `<UsernameToken><Username>${user}</Username><Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">${intisari}</Password>`
+    + `<Nonce>${nonce.toString('base64')}</Nonce><Created xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">${dibuat}</Created></UsernameToken></Security></s:Header>`;
+}
+
+async function soap(alamat, kred, isi) {
+  const badan = `<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">${tajuk(kred.user, kred.sandi)}<s:Body>${isi}</s:Body></s:Envelope>`;
+  const r = await fetch(alamat, { method: 'POST', headers: { 'Content-Type': 'application/soap+xml' }, body: badan, signal: AbortSignal.timeout(6000) });
+  const teks = await r.text();
+  if (!r.ok || /Fault>/.test(teks)) throw new Error(`ONVIF ${r.status} ${(teks.match(/<[^>]*Text[^>]*>([^<]+)/) || [])[1] || ''}`.trim());
+  return teks;
+}
+
+async function profil(host, kred) {
+  if (tokenProfil.has(host)) return tokenProfil.get(host);
+  const xml = await soap(`http://${host}/onvif/Media`, kred, '<GetProfiles xmlns="http://www.onvif.org/ver10/media/wsdl"/>');
+  const ada = xml.split('<trt:Profiles').slice(1).find((p) => p.includes('PTZConfiguration'));
+  const token = ada && (ada.match(/token="([^"]+)"/) || [])[1];
+  if (!token) throw new Error('Kamera tidak punya profil PTZ');
+  tokenProfil.set(host, token);
+  return token;
+}
+
+/** Geser kamera ke `arah` selama `ms` milidetik lalu hentikan. Melempar galat bila gagal. */
+async function geser(urlRtsp, arah, ms) {
+  const v = VEKTOR[arah];
+  if (!v) throw new Error('Arah tidak dikenal');
+  const p = new URL(urlRtsp);
+  const host = p.hostname;
+  const kred = { user: decodeURIComponent(p.username), sandi: decodeURIComponent(p.password) };
+  if (sibuk.has(host)) { const e = new Error('Kamera masih bergerak'); e.sibuk = true; throw e; }
+  sibuk.add(host);
+  try {
+    const alamat = `http://${host}/onvif/PTZ`;
+    const token = await profil(host, kred);
+    // Timeout = jaring pengaman: kamera berhenti sendiri bila perintah Stop hilang
+    await soap(alamat, kred, `<ContinuousMove ${NS}><ProfileToken>${token}</ProfileToken><Velocity><t:PanTilt x="${v[0]}" y="${v[1]}"/></Velocity><Timeout>PT${Math.ceil(ms / 1000) + 1}S</Timeout></ContinuousMove>`);
+    await new Promise((r) => setTimeout(r, ms));
+    await soap(alamat, kred, `<Stop ${NS}><ProfileToken>${token}</ProfileToken><PanTilt>true</PanTilt><Zoom>true</Zoom></Stop>`);
+  } finally {
+    sibuk.delete(host);
+  }
+}
+
+module.exports = { geser, ARAH: Object.keys(VEKTOR) };
