@@ -10,7 +10,7 @@ const fs = require('fs');
   page.on('console', m => console.log('[page]', m.text()));
   page.on('pageerror', e => console.log('[err]', e.message));
   await page.goto('file://' + process.cwd() + '/web/index.html');
-  await page.evaluate(async () => { await document.fonts.load('700 40px "Space Grotesk"'); await document.fonts.load('600 40px "Space Grotesk"'); await document.fonts.load('600 44px Inter'); await document.fonts.load('700 40px Inter'); await document.fonts.load('500 40px Inter'); await Promise.all(Object.values(window.LOGO).map(i => i.complete ? 1 : new Promise(r => { i.onload = r; i.onerror = r; }))); });
+  await page.evaluate(async () => { await document.fonts.load('700 40px "Space Grotesk"'); await document.fonts.load('600 40px "Space Grotesk"'); await document.fonts.load('600 44px Inter'); await document.fonts.load('700 40px Inter'); await document.fonts.load('500 40px Inter'); await Promise.all([...Object.values(window.LOGO), ...Object.values(window.WEBIMG)].map(i => i.complete ? 1 : new Promise(r => { i.onload = r; i.onerror = r; }))); });
   const total = await page.evaluate(() => window.TOTAL_FRAMES);
   if (mode === 'stills') {
     const times = process.argv[3].split(',').map(Number);

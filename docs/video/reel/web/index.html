@@ -6,6 +6,8 @@ body{margin:0;background:#000}</style></head><body>
 <canvas id="c"></canvas>
 <script>
 window.LOGO = {};
+window.WEBIMG = {};
+for (const k of ['dashboard', 'peringatan', 'kebun', 'sensor-nutrisi', 'kalibrasi-atas', 'kalibrasi-ph']) { const im = new Image(); im.src = 'img/web/' + k + '.png'; window.WEBIMG[k] = im; }
 for (const [k, f] of [['vertonik', 'img/favicon.png'], ['arutmin', 'img/arutmin.webp'], ['politala', 'img/polytala.webp']]) { const im = new Image(); im.src = f; window.LOGO[k] = im; }
 </script>
 <script src="lib.js"></script><script src="chars.js"></script><script src="env.js"></script><script src="ui.js"></script><script src="subs.js"></script><script src="shots.js"></script><script src="main.js"></script>

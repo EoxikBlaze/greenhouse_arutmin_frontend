@@ -144,3 +144,16 @@ function logos(ctx, x, y, a, s = 120) {
   const L = window.LOGO; [L.vertonik, L.arutmin, L.politala].forEach((im, i) => { if (!im || !im.complete) return; const xx = x + (i - 1) * (s + 50); rrect(ctx, xx - s / 2 - 10, y - s / 2 - 10, s + 20, s + 20, 22); ctx.fillStyle = '#fff'; ctx.fill(); ctx.drawImage(im, xx - s / 2, y - s / 2, s, s); });
   ctx.restore();
 }
+
+// ---------- real garap.net screens (captured with the read-only demo account, tools/capture-web.js) ----------
+const PHONE_W = Math.round((800 - 36) * 860 / 1800 + 36), TAB_W = Math.round((800 - 36) * 1640 / 2000 + 36);
+// o.scroll(lt): 0..1 share of the image height to scroll; o.hl(lt): [x, y, w, h] fractions of the visible screen to ring in gold
+function webScreen(name, o = {}) {
+  return (ctx, x, y, w, h, lt) => {
+    const im = window.WEBIMG && WEBIMG[name]; if (!im || !im.complete) return;
+    const sc = w / im.width, sy = (o.scroll ? o.scroll(lt) : 0) * im.height;
+    ctx.drawImage(im, 0, sy, im.width, Math.min(im.height - sy, h / sc), x, y, w, Math.min(h, (im.height - sy) * sc));
+    const r = o.hl && o.hl(lt);
+    if (r) { ctx.save(); rrect(ctx, x + r[0] * w, y + r[1] * h, r[2] * w, r[3] * h, 18); ctx.lineWidth = 7; ctx.strokeStyle = COL.gold; ctx.stroke(); ctx.restore(); }
+  };
+}

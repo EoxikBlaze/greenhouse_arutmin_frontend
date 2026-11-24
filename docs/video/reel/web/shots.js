@@ -117,7 +117,7 @@ S(27, 30, (ctx, lt, t) => {                                   // 3d pumps GARAP 
 S(30, 34, (ctx, lt, t) => {                                   // 4a maintenance mode on, bottles
   const c = cam(-330, 560, 1.7, t, 2); drawWorld(ctx, t, c, ST({ panel: { lamp: 'yellow', blink: 'slow' } }));
   person(ctx, OP, { x: -640, s: 400, flip: 1, arms: { R: { ik: [.18, -.62] }, L: { ik: [.08, -.6] } }, hold: { R: 'tablet' }, face: { look: [.3, .5], mouth: 'flat', blink: blinkAt(t) } });
-  device(ctx, 1330, 430, 820, 560, scrKalibrasi({ maint: lt > 1.6, hlMaint: l => lt < 1.6 ? appear(l, .6) : 0, title: 'Kalibrasi pH & EC', step: 'Aktifkan pemeliharaan dulu' }), lt, { r: 34 });
+  device(ctx, 1380, 440, TAB_W, 800, webScreen('kalibrasi-atas'), lt, { r: 34 });
   chapter(ctx, 'Kalibrasi', lt);
   if (lt > 1.6) { chip(ctx, 'Lampu panel: kuning berkedip', 1330, 790, appear(lt, 1.6), { size: 26, dot: Math.floor(t * 1.2) % 2 ? '#665' : COL.warn }); }
 });
@@ -131,7 +131,7 @@ S(34, 38, (ctx, lt, t) => {                                   // 4b dip probe in
 S(38, 42, (ctx, lt, t) => {                                   // 4c wait calm -> Ukur -> Simpan (no values)
   const c = cam(-120, 560, 2.3, t, 1); drawWorld(ctx, t, c, ST({ panel: { lamp: 'yellow', blink: 'slow' } }));
   person(ctx, OP, { x: -300, s: 400, flip: -1, point: [-425, 520], hold: { R: 'probe' }, face: { look: [.2, .5], mouth: 'flat', browUp: .4, blink: blinkAt(t, 2) } });
-  device(ctx, 1320, 420, 840, 620, scrKalibrasi({ maint: true, title: '2. Kalibrasi pH', step: 'Celup probe ke Buffer pH 4,01, tunggu tenang', calm: l => ease(inv(.2, 2.0, l)), hlUkur: l => (l > 2.2 && l < 3) ? 1 : 0, hlSimpan: l => l > 3.1 ? 1 : 0 }), lt, { r: 34 });
+  device(ctx, 1380, 440, TAB_W, 800, webScreen('kalibrasi-ph', { hl: l => l > .6 ? [.02, .47, .96, .29] : null }), lt, { r: 34 });
   chip(ctx, 'Celup → tunggu tenang', 520, 100, appear(lt, .2));
   chip(ctx, 'Ukur → Simpan', 520, 190, appear(lt, 2.2));
 });
@@ -250,9 +250,8 @@ S(70, 74, (ctx, lt, t) => {                                   // 6e pindah ke ro
 S(74, 78, (ctx, lt, t) => {                                   // 7a Mulai Semai -> target ke alat
   if (lt < 2.1) {
     const c = cam(1300, 560, 1.4, t, 1); blurWorld(ctx, t, c, ST(), 8);
-    device(ctx, 960, 430, 560, 700, scrKebun({ hl: l => l > 1.1 ? 1 : 0 }), lt, { r: 50 });
+    device(ctx, 960, 440, PHONE_W, 800, webScreen('kebun', { hl: l => l > 1.1 ? [.06, .2, .88, .07] : null }), lt, { r: 50 });
     chip(ctx, 'Kebun Saya → Mulai Semai', 960, 40 + 20, appear(lt, .2), { size: 28 });
-    illu(ctx, 'Ilustrasi tampilan', 1440, 760, 1);
     if (lt > 1.4) { screen(ctx); const p = inv(1.4, 2.1, lt); ctx.save(); ctx.translate(lerp(1000, 1900, p), lerp(560, 300, p)); rrect(ctx, -40, -26, 80, 52, 6); fillStroke(ctx, '#fff', 4); ctx.beginPath(); ctx.moveTo(-40, -26); ctx.lineTo(0, 6); ctx.lineTo(40, -26); ctx.lineWidth = 4; ctx.strokeStyle = INK; ctx.stroke(); ctx.restore(); }
   } else {
     const c = cam(1080, 430, 2.6, t, 1); drawWorld(ctx, t, c, ST({ panel: { lamp: 'blue', lcd: ['Target diterima', 'SEMAI  ONLINE'] } }));
@@ -263,12 +262,11 @@ S(74, 78, (ctx, lt, t) => {                                   // 7a Mulai Semai 
 S(78, 84, (ctx, lt, t) => {                                   // 7b ppm nyata vs rencana target
   const c = cam(1720, 600, 2, t, 1); drawWorld(ctx, t, c, ST({ tank: { hlEC: .6 + .4 * Math.sin(lt * 3) } }));
   person(ctx, OP, { x: 1560, s: 400, flip: lt < 3 ? -1 : 1, point: [1640, 640], hold: { R: 'phone' }, face: { look: [.5, .3], mouth: 'flat', blink: blinkAt(t) } });
-  device(ctx, 1460, 420, 760, 640, scrNutrisi({ draw: l => ease(inv(.2, 2.2, l)) }), lt, { r: 34 });
+  device(ctx, 1500, 440, PHONE_W, 800, webScreen('sensor-nutrisi'), lt, { r: 50 });
   // dashed link from the real-reading line to the probe on screen
-  screen(ctx); const a = appear(lt, 2.5); if (a > 0) { ctx.save(); ctx.globalAlpha = a; ctx.setLineDash([14, 12]); line(ctx, 1120, 520, 760, 520, 5, COL.forest); ctx.restore(); }
+  screen(ctx); const a = appear(lt, 2.5); if (a > 0) { ctx.save(); ctx.globalAlpha = a; ctx.setLineDash([14, 12]); line(ctx, 1290, 520, 760, 520, 5, COL.forest); ctx.restore(); }
   chip(ctx, 'ppm nyata ↔ rencana target', 520, 120, appear(lt, .8));
   chip(ctx, 'Target ≠ bacaan', 520, 210, appear(lt, 3.6), { bg: COL.forest });
-  illu(ctx, 'Ilustrasi tampilan', 1460, 790, 1);
 });
 
 // ===== ADEGAN 8 — bagaimana dosing bekerja (84–102) =====
@@ -309,7 +307,7 @@ const DAILY = ['Lampu', 'Dashboard', 'Tinggi air', 'Botol nutrisi', 'Selang'];
 S(102, 105, (ctx, lt, t) => {                                 // 9a lamp blue + dashboard
   const c = cam(1150, 520, 1.6, t, 1.5); drawWorld(ctx, t, c, ST());
   person(ctx, OP, { x: 1340, s: 400, flip: -1, point: lt < 1.4 ? [1150, 470] : [1270, 600], hold: lt < 1.4 ? {} : { R: 'phone' }, face: { look: [.6, -.2], mouth: 'flat', blink: blinkAt(t) } });
-  if (lt > 1.4) device(ctx, 1520, 410, 470, 640, scrDashboard(), lt, { r: 46 });
+  if (lt > 1.4) device(ctx, 1560, 440, PHONE_W, 800, webScreen('dashboard'), lt, { r: 50 });
   checkRow(ctx, DAILY, 110, 140, inv(.3, 2.6, lt) * 2 / 5);
   chip(ctx, 'Biru tetap = normal', 640, 760, appear(lt, .3), { size: 26, dot: '#2f7fd6' });
 });
@@ -323,10 +321,9 @@ S(105, 108, (ctx, lt, t) => {                                 // 9b tinggi air, 
 S(108, 110.5, (ctx, lt, t) => {                               // 9c contoh peringatan
   const c = cam(1150, 520, 1.6, t, 1.5); drawWorld(ctx, t, c, ST({ panel: { lamp: 'yellow' } }));
   person(ctx, OP, { x: 1340, s: 400, flip: -1, point: [1270, 600], hold: { R: 'phone' }, face: { eyes: 'wide', look: [.6, 0], mouth: 'flat', browUp: .6 } });
-  device(ctx, 1520, 410, 470, 640, scrDashboard({ alert: l => appear(l, .2), update: 'Bacaan terakhir: belum ada' }), lt, { r: 46 });
+  device(ctx, 1560, 440, PHONE_W, 800, webScreen('peringatan', { hl: l => l > .4 ? [.04, .3, .92, .25] : null }), lt, { r: 50 });
   chip(ctx, 'Periksa penyebab sebelum lanjut', 640, 120, appear(lt, .5));
   chip(ctx, 'Kuning = perlu dicek', 640, 760, appear(lt, .2), { size: 26, dot: COL.warn });
-  illu(ctx, 'Ilustrasi tampilan', 1520, 790, 1);
 });
 S(110.5, 113, (ctx, lt, t) => {                               // 9d E-STOP
   const c = cam(1060, 520, 2.6, t, 1); drawWorld(ctx, t, c, ST({ panel: { lamp: 'blue', estopHl: .5 + .5 * Math.sin(lt * 6) } }));
