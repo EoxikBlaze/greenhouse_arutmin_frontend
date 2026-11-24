@@ -38,7 +38,7 @@ Tiga repo GitHub pembanding **tidak dibuka**.
 ## 2. Konsep visual
 
 - **Dunia**: greenhouse melon terang, garis tinta tebal, bayangan kontak lembut.
-- **Tata letak instalasi (tetap di semua adegan)**: penampung di tengah; **panel GARAP** berdiri di kiri penampung (box abu-abu di atas rangka kaki, sesuai gambar 3D); talang meja melon di kanan belakang; meja semai & meja kalibrasi di kiri jauh. Ini susunan untuk video, bukan denah nyata.
+- **Tata letak instalasi (tetap di semua adegan)**: penampung di tengah; **panel GARAP** berdiri di kiri penampung (box abu-abu di atas rangka kaki, sesuai gambar 3D final); talang meja melon di kanan belakang; meja semai & meja kalibrasi di kiri jauh. Ini susunan untuk video, bukan denah nyata.
 - **Panel** (dari gambar): pintu box tertutup saat adegan biasa. Di pintu: 3 lampu pilot (**merah, kuning, biru**), tombol jamur merah **E-STOP**, tombol hijau **RESET**, layar LCD. Kabel keluar dari gland di dinding bawah. **Isi box (220 V, PSU, relay) tidak diperlihatkan terbuka** dan tidak disentuh tangan.
 - **Aliran larutan** (Buku Pedoman Bab 8): loop tertutup penampung → pompa sirkulasi → talang → kembali ke penampung. Pompa sirkulasi & aerator menyala terus dan **tidak diatur GARAP**. Yang diatur GARAP: **pompa dosing A, B, pH up, pH down, dan pompa isi air**.
 - **Jalur sensor**: air diambil dari sambungan T setelah pompa sirkulasi, melewati probe EC & suhu, lalu pH, kembali ke penampung.
@@ -47,7 +47,7 @@ Tiga repo GitHub pembanding **tidak dibuka**.
 - **Pemandu**: rompi navy `#0A1F38` dengan strip emas `#E9CD53`, membawa tablet.
 - **Palet** (DESIGN.md): navy `#0A1F38`, hijau pucat `#F4F7F2`, hijau hutan `#2D452F`→`#4C6A4B`, moss `#6B9D4A`, emas `#E9CD53` (hanya di atas navy), merah `#C0392B`, kuning `#E0A42B`. Lampu pilot memakai merah/kuning/biru sesuai alat.
 - **Tipografi**: Space Grotesk (judul) + Inter (subtitle). File font perlu disiapkan.
-- **Identitas**: wordmark teks **GARAP** + "Greenhouse Automation & Research Arutmin–Politala". garap.net memakai emblem Vertonik Smart Farm & nama PT Arutmin Indonesia. Emblem itu baru dipakai bila ada izin dan berkas resminya.
+- **Identitas**: emblem **Vertonik Smart Farm** + wordmark **GARAP** + "Greenhouse Automation & Research Arutmin–Politala"; nama PT Arutmin Indonesia dan Politala boleh tampil (diizinkan pemilik, 25 Nov 2026). Berkas emblem diambil dari aset resmi garap.net saat produksi, tidak digambar ulang.
 - **Layar 1920×1080**: margin 5% (x 96–1824, y 54–1026). Zona aksi y 54–840. **Pita subtitle y 880–1010**: kotak navy 80%, Inter SemiBold 44 px putih, maks 2 baris × ±42 karakter.
 
 ---
@@ -204,12 +204,12 @@ Catatan: diagram tidak menampilkan mL, durasi, atau volume penampung.
 14. Nutrisi awal 400–600 PPM diberikan saat pindah ke rockwool (pemilik, 25 Nov 2026).
 15. Seleksi uji apung dimasukkan (benih tenggelam dipakai, mengambang disisihkan) sebagai praktik SOP, bukan jaminan tumbuh (pemilik, 25 Nov 2026).
 16. Status dosing cukup ditandai label "Ilustrasi setelah izin operasional"; tanpa kalimat status nilai uji di video (pemilik, 25 Nov 2026).
+17. Panel mengikuti gambar 3D final (yang diterapkan di lapangan): lampu, E-STOP, RESET, dan LCD digambar sesuai posisinya di gambar itu (pemilik).
+18. Emblem Vertonik Smart Farm, nama PT Arutmin Indonesia, dan Politala boleh tampil di video (pemilik).
+19. Palet DESIGN.md dipakai sebagai identitas visual video (pemilik).
 
-### Masih perlu konfirmasi
-1. [PERLU KONFIRMASI: posisi LCD, lampu, E-STOP, dan RESET di pintu panel versi sekarang. Gambar 3D adalah rancangan awal.]
-2. [PERLU KONFIRMASI: izin memakai emblem Vertonik Smart Farm / nama PT Arutmin Indonesia / Politala di video, dan berkas resminya.]
-3. [PERLU KONFIRMASI: palet DESIGN.md boleh dipakai sebagai identitas video?]
-4. [PERLU KONFIRMASI: fps & penanganan 1920×1080 di mesin setelah dimodifikasi (teknis, dicek saat produksi).]
+### Dicek saat produksi
+1. Frame rate 30 fps dan penanganan 1920×1080 di mesin setelah dimodifikasi (teknis; disetujui pemilik untuk dicek saat produksi).
 
 Catatan `EKSEKUSI_DIIZINKAN = false` (`gerbangDosis.js`): gerbang di server, tidak diubah. Menurut keputusan 17 Nov, server memang tidak pernah mengirim DOSIS; dosing hanya diputuskan alat saat SEMAI. Narasi tidak menyebut gerbang ini.
 
@@ -220,7 +220,7 @@ Tidak dimasukkan ke video: kapasitas penampung, mL/durasi dosing, target ppm per
 ## 7. Checklist sebelum produksi
 
 **Isi**
-- [ ] Butir "Masih perlu konfirmasi" dijawab; teks disesuaikan.
+- [x] Semua fakta isi sudah dikonfirmasi pemilik (25 Nov 2026).
 - [ ] Layar yang tidak persis sama dengan garap.net diberi label "Ilustrasi tampilan".
 - [ ] Label "Ilustrasi setelah izin operasional" di semua shot pompa dosing menyala (8d).
 - [ ] Tidak ada stempel LULUS, angka hasil kalibrasi, kapasitas penampung, atau volume dosing.
