@@ -70,10 +70,11 @@ Gaya baca tenang dan ramah. "pH" = *pe-ha*, "EC" = *e-se*, "E-STOP" = *i-stop*, 
 | 10 | 01:53–02:00 | Bersama GARAP: kalibrasi, uji, semai, atur, dan pantau. | 8 |
 | | | **Total** | **231** |
 
-**Estimasi (bukan hasil ukur)**: 2,0–2,2 kata/dtk → narasi ±103–114 dtk, sisa ±6–17 dtk untuk jeda & ekor musik. Adegan 4, 5, 8 paling padat (±1,9–2,1 kata/dtk). Durasi wajib diukur dari rekaman; bila lewat slot, ringkas kalimat, jangan percepat suara.
+**Estimasi (bukan hasil ukur)**: 2,0–2,2 kata/dtk → narasi ±103–114 dtk, sisa ±6–17 dtk untuk jeda & ekor musik. Adegan 6 paling padat (±2,2 kata/dtk), disusul 4, 5, 8 (±1,9–2,1). Durasi wajib diukur dari rekaman; bila lewat slot, ringkas kalimat, jangan percepat suara.
 
 Cadangan ringkasan:
 - Adegan 4: hapus "Bilas, ulangi titik kedua." (tetap tampil sebagai label).
+- Adegan 6: hapus "Pakai yang tenggelam." (tetap tampil sebagai label uji apung).
 - Adegan 8: hapus "Pompa A, jeda, lalu B." (tetap tampil di diagram).
 
 ---
