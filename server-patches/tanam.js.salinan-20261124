@@ -185,7 +185,7 @@ router.get('/pilihan', async (_req, res, next) => {
 });
 
 // Mulai tanam baru = buat batch semai (data demo dapat expires_at +1 jam)
-router.post('/mulai', demoGuard('tanam.mulai'), async (req, res, next) => {
+router.post('/mulai', requireRole(['admin']), demoGuard('tanam.mulai'), async (req, res, next) => {
   try {
     const b = req.body || {};
     // V5 — validasi FK/tanggal/integer SEBELUM INSERT (lihat mulaiErrors di atas).
@@ -407,7 +407,7 @@ router.post('/:tipe/:id/selesai', demoGuard('tanam.selesai'), async (req, res, n
  * Ubah lama tiap tahap SATU batch (akar = id_semai): hanya batch ini; durasi di Jenis Tanaman tidak berubah.
  * Ketiga tahap dikirim sekaligus (1–365 hari). Memengaruhi penanda "siap pindah", progres, dan perkiraan panen batch ini.
  */
-router.put('/semai/:id/durasi', demoGuard('tanam.durasi-batch'), async (req, res, next) => {
+router.put('/semai/:id/durasi', requireRole(['admin']), demoGuard('tanam.durasi-batch'), async (req, res, next) => {
   if (!idValid(req)) return notFound(res);
   try {
     const b = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
@@ -432,7 +432,7 @@ router.put('/semai/:id/durasi', demoGuard('tanam.durasi-batch'), async (req, res
  * Ubah kurva naik harian SATU batch (akar = id_semai). Sebelum pindah netpot: kurva diganti seluruhnya.
  * Sesudahnya: target hari ini dipertahankan, lalu naik rata ke target baru (tanpa lompatan, src/kurvaNutrisi.js).
  */
-router.put('/semai/:id/kurva', demoGuard('tanam.kurva'), async (req, res, next) => {
+router.put('/semai/:id/kurva', requireRole(['admin']), demoGuard('tanam.kurva'), async (req, res, next) => {
   if (!idValid(req)) return notFound(res);
   try {
     const batch = await K.bacaBatch(req.params.id);
@@ -482,7 +482,7 @@ router.get('/siap-semai', async (req, res, next) => {
 });
 
 /** Minta alat menjaga batch yang berjalan (SEMAI / TARGET) — dipakai bila kiriman saat mulai semai ditolak alat. */
-router.post('/kirim-alat', demoGuard('tanam.kirim-alat'), async (req, res, next) => {
+router.post('/kirim-alat', requireRole(['admin']), demoGuard('tanam.kirim-alat'), async (req, res, next) => {
   try {
     // meja batch berjalan terbaru (atau ?id_meja=) — alat di meja itu diberi KONFIGURASI lalu SEMAI
     const idMeja = /^\d{1,18}$/.test(String(req.query.id_meja ?? '')) ? req.query.id_meja : await S.mejaBatchTerbaru();
@@ -494,7 +494,7 @@ router.post('/kirim-alat', demoGuard('tanam.kirim-alat'), async (req, res, next)
 });
 
 // Hapus batch semai (konfirmasi di client)
-router.post('/:id/hapus', async (req, res, next) => {
+router.post('/:id/hapus', requireRole(['admin']), async (req, res, next) => {
   try {
     // Urutan TETAP seperti sebelumnya: cek demo dulu (403), baru validasi id
     // (404 identik — V2), baru query. Supaya status lama tidak berubah.
