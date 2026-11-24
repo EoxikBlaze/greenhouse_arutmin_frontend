@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
+import { router } from 'expo-router';
 import { Send } from 'lucide-react-native';
 import { ApiError } from '@/api/client';
 import { api } from '@/api/session';
@@ -7,6 +8,7 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { fonts, radius, icon } from '@/theme/tokens';
 import { useColors } from '@/theme/useColors';
 import { Banner } from '@/ui/Banner';
+import { Button } from '@/ui/Button';
 import { Panel } from '@/ui/Panel';
 import { Header } from '@/ui/Header';
 import { Screen } from '@/ui/Screen';
@@ -58,6 +60,7 @@ export function AsistenScreen() {
   return (
     <Screen>
       <Header back="/" title="Asisten GARAP" subtitle={demo ? 'Demo · ditolak' : 'Tanya seputar kebun'} initials={initials} />
+      {demo ? null : <Button variant="secondary" label="Analisis harian" onPress={() => router.navigate('/analisis-harian')} />}
       {demo ? <Banner tone="danger" title="Asisten tidak tersedia" body="Akun demo belum bisa memakai asisten." /> : null}
       <Panel gap={12}>
         {msgs.map((m, i) => <Bubble key={i} m={m} />)}

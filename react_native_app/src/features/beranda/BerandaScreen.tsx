@@ -17,6 +17,7 @@ import { Screen } from '@/ui/Screen';
 import { SectionTitle } from '@/ui/SectionTitle';
 import { Tap } from '@/ui/Tap';
 import { Text } from '@/ui/Text';
+import { PrediksiPanen, SaranDosis } from './AnalitikCards';
 import { LatestSensor, sensorView } from './sensorView';
 
 const ICONS = { ph: FlaskConical, tds: Droplets, waterTemp: Thermometer, airTemp: Wind } as const;
@@ -49,9 +50,9 @@ export function BerandaScreen() {
       {[0, 2].map((i) => (
         <View key={i} style={{ flexDirection: 'row', gap: 12 }}>
           {(view?.metrics ?? DEFAULT_METRICS).slice(i, i + 2).map((m) => (
-            <Tap key={m.key} style={{ flex: 1 }} accessibilityRole="button" accessibilityLabel={`Detail ${m.label}`}
+            <Tap key={m.key} style={{ flex: 1 }} accessibilityRole="button" accessibilityLabel={`${m.label} ${m.value ?? 'belum ada data'}${m.value && m.unit ? ` ${m.unit}` : ''}, ${m.status}. Buka detail`}
               onPress={() => router.navigate({ pathname: '/sensor', params: { param: m.key } })}>
-              <MetricCard label={m.label} value={m.value} unit={m.unit} status={q.isPending ? 'Memuat…' : m.status} tone={m.tone} Icon={ICONS[m.key]} />
+              <MetricCard label={m.label} value={m.value} unit={m.unit} status={q.isPending ? 'Memuat…' : m.status} tone={m.tone} Icon={ICONS[m.key]} stale={m.stale} range={m.range} />
             </Tap>
           ))}
         </View>
@@ -72,6 +73,9 @@ export function BerandaScreen() {
           ))}
         </Card>
       ) : <EmptyState title="Tidak ada peringatan" body="Semua pembacaan sensor masih dalam ambang." />}
+
+      <PrediksiPanen />
+      <SaranDosis />
 
       <SectionTitle title="Kegiatan tanam" />
       <Tap accessibilityRole="button" onPress={() => router.navigate('/tanam')}>

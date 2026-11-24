@@ -1,4 +1,4 @@
-import { validatePassword, displayName } from '@/features/akun/akunView';
+import { validatePassword, validateProfile, displayName } from '@/features/akun/akunView';
 import { parseAsisten } from '@/features/asisten/asistenView';
 
 test('validatePassword: lama kosong, baru pendek, tidak sama, valid', () => {
@@ -27,4 +27,11 @@ test('parseAsisten: terputus (tanpa selesai) atau kosong -> galat', () => {
   expect(() => parseAsisten('{"tipe":"kalimat","teks":"x"}')).toThrow('terputus');
   expect(() => parseAsisten('')).toThrow('tidak dapat dibaca');
   expect(() => parseAsisten('{"jawaban":"  "}')).toThrow();
+});
+
+test('validateProfile: username pendek, email salah, email kosong boleh, valid', () => {
+  expect(validateProfile({ username: 'ab', email: '' })).toBe('Nama pengguna minimal 3 karakter.');
+  expect(validateProfile({ username: 'abc', email: 'bukan-email' })).toBe('Format email tidak valid.');
+  expect(validateProfile({ username: 'abc', email: '' })).toBeNull();
+  expect(validateProfile({ username: ' abc ', email: 'a@b.co' })).toBeNull();
 });

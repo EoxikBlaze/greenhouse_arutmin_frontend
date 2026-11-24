@@ -8,6 +8,7 @@ interface Auth {
   role: Role | null;
   login: (u: string, p: string, remember: boolean) => Promise<void>;
   logout: () => Promise<void>;
+  updateUser: (u: User) => Promise<void>;
 }
 
 const Ctx = createContext<Auth | null>(null);
@@ -25,8 +26,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(await api.login(u.trim(), p, remember));
   }, []);
   const logout = useCallback(async () => { await api.logout(); setUser(null); }, []);
+  const updateUser = useCallback(async (u: User) => { await api.updateUser(u); setUser(u); }, []);
 
-  return <Ctx.Provider value={{ ready, user, role: api.role, login, logout }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ ready, user, role: api.role, login, logout, updateUser }}>{children}</Ctx.Provider>;
 }
 
 export function useAuth() {

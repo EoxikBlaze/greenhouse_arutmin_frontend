@@ -5,6 +5,12 @@ export function validatePassword({ lama, baru, ulang }: { lama: string; baru: st
   return null;
 }
 
+export function validateProfile({ username, email }: { username: string; email: string }): string | null {
+  if (username.trim().length < 3) return 'Nama pengguna minimal 3 karakter.';
+  if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return 'Format email tidak valid.';
+  return null;
+}
+
 // Backend hanya mengirim username (tanpa nama lengkap): "admin_vertonik" -> "Admin Vertonik".
 export function displayName(username?: string | null): string {
   const words = (username ?? '').split(/[_\-.\s]+/).filter(Boolean);

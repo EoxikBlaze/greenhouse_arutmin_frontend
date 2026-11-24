@@ -103,6 +103,12 @@ export class ApiClient {
     } catch { return false; }
   }
 
+  // Perbarui profil di memori; tersimpan ulang hanya bila sesi memang disimpan ("ingat saya").
+  async updateUser(user: User) {
+    this.user = user;
+    try { if (await this.storage.read()) await this.persist(true); } catch { /* sesi memori tetap benar */ }
+  }
+
   async logout() {
     this.setSession(null, null);
     await this.persist(false);
@@ -145,6 +151,7 @@ export class ApiClient {
 
   get<T>(path: string) { return this.request<T>(path, 'GET'); }
   post<T>(path: string, body: unknown) { return this.request<T>(path, 'POST', body); }
+  put<T>(path: string, body: unknown) { return this.request<T>(path, 'PUT', body); }
   postText(path: string, body: unknown) { return this.request<string>(path, 'POST', body, true); }
 
   async login(username: string, password: string, remember: boolean): Promise<User> {

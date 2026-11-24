@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import { router } from 'expo-router';
-import { ChevronRight, Info, KeyRound, LogOut, Palette, type LucideIcon } from 'lucide-react-native';
+import { ChevronRight, Info, KeyRound, LogOut, Palette, UserPen, type LucideIcon } from 'lucide-react-native';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { radius, icon } from '@/theme/tokens';
 import { useColors } from '@/theme/useColors';
@@ -47,6 +47,7 @@ export function AkunScreen() {
         <DataRow label="Email" value={user?.email || '—'} last />
       </Panel>
       <Panel gap={4}>
+        <MenuRow Icon={UserPen} label="Ubah profil" onPress={() => router.navigate('/ubah-profil')} />
         <MenuRow Icon={KeyRound} label="Ganti kata sandi" onPress={() => router.navigate('/ganti-sandi')} />
         <MenuRow Icon={Palette} label="Tampilan & ukuran teks" onPress={() => router.navigate('/tentang')} />
         <MenuRow Icon={Info} label="Tentang GARAP" onPress={() => router.navigate('/tentang')} />

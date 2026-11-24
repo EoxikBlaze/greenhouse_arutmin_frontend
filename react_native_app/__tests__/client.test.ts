@@ -57,3 +57,21 @@ test('login menyimpan token dan user', async () => {
   expect(u.username).toBe('admin');
   expect(c.isLoggedIn).toBe(true);
 });
+
+test('updateUser: memori diperbarui; disimpan ulang hanya bila sesi memang tersimpan', async () => {
+  const mk = (storage: MemoryStorage) => new ApiClient({ baseUrl: 'http://x', storage, fetchFn: (async () => new Response('{}')) as typeof fetch });
+  const tersimpan = new MemoryStorage();
+  await tersimpan.write(JSON.stringify({ token: 't', user: { username: 'a', level: 'admin' } }));
+  const a = mk(tersimpan);
+  a.setSession('t', { username: 'a', level: 'admin' });
+  await a.updateUser({ username: 'b', level: 'admin', email: 'b@x.id' });
+  expect(a.user?.username).toBe('b');
+  expect(JSON.parse((await tersimpan.read())!).user.email).toBe('b@x.id');
+
+  const kosong = new MemoryStorage();
+  const b = mk(kosong);
+  b.setSession('t', { username: 'a', level: 'admin' });
+  await b.updateUser({ username: 'c', level: 'admin' });
+  expect(b.user?.username).toBe('c');
+  expect(await kosong.read()).toBeNull();
+});
