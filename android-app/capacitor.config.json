@@ -1,0 +1,27 @@
+{
+  "appId": "id.co.vertonik.garap",
+  "appName": "GARAP",
+  "webDir": "www",
+  "server": {
+    "url": "https://garap.net/login",
+    "cleartext": false,
+    "errorPath": "offline.html",
+    "allowNavigation": [
+      "garap.net",
+      "*.garap.net"
+    ]
+  },
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#0B1730"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1200,
+      "launchAutoHide": true,
+      "backgroundColor": "#FFFFFF",
+      "androidScaleType": "CENTER_INSIDE",
+      "showSpinner": false
+    }
+  }
+}
