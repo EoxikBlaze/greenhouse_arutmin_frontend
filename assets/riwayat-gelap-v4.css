@@ -1,0 +1,11 @@
+/* Riwayat bacaan — mode malam: kontras jelas, tanpa baris abu terang */
+html[data-tema='gelap'] section[aria-label='Riwayat bacaan'] > div.overflow-auto{background:#0f1a2b;border-color:rgba(255,255,255,.12)}
+html[data-tema='gelap'] section[aria-label='Riwayat bacaan'] thead tr,
+html[data-tema='gelap'] section[aria-label='Riwayat bacaan'] thead th{background:#1a2740;color:#b9c6d8}
+html[data-tema='gelap'] section[aria-label='Riwayat bacaan'] tbody tr{background:#0f1a2b;border-color:rgba(255,255,255,.08);color:#e6edf6}
+html[data-tema='gelap'] section[aria-label='Riwayat bacaan'] tbody tr:nth-child(odd){background:#132036}
+html[data-tema='gelap'] section[aria-label='Riwayat bacaan'] tbody tr:hover{background:#1c3a30}
+html[data-tema='gelap'] section[aria-label='Riwayat bacaan'] tbody b,
+html[data-tema='gelap'] section[aria-label='Riwayat bacaan'] tbody td span{color:#e6edf6}
+html[data-tema='gelap'] section[aria-label='Riwayat bacaan'] tbody th span{color:#9fb0c6}
+html[data-tema='gelap'] section[aria-label='Riwayat bacaan'] tbody td span.font-bold{color:#ff8f8f}

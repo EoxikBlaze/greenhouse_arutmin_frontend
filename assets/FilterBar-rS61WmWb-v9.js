@@ -1,0 +1,1 @@
+import{m as e}from"./clsx-BNrbO-Q7-v9.js";var t=e();function n({label:e,pilihan:n,nilai:r,onPilih:i}){return(0,t.jsx)(`div`,{role:`radiogroup`,"aria-label":e,className:`vsf-segmen`,children:n.map(e=>(0,t.jsx)(`button`,{type:`button`,role:`radio`,"aria-checked":r===e,onClick:()=>i(e),children:e},e))})}export{n as t};
