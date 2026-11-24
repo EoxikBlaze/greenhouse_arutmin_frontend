@@ -165,6 +165,7 @@ const EKSPOR = {
 
 router.get('/ekspor/:jenis.csv', async (req, res, next) => {
   try {
+    if (req.user?.demo) return res.status(403).json({ message: 'Mode demo tidak dapat mengunduh data.' });
     const def = Object.hasOwn(EKSPOR, req.params.jenis) ? EKSPOR[req.params.jenis] : null;
     if (!def) return res.status(404).json({ message: 'Jenis ekspor tidak dikenal.' });
     const r = rentang(req, res); if (!r) return;

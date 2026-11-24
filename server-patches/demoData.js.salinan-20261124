@@ -15,12 +15,35 @@ function derau(ms, benih) {
 
 const bulat = (n, d) => Number(n.toFixed(d));
 
+/** Waktu dosing A+B contoh (UTC): 08.00 dan 23.30 tiap hari = 16.00 dan 07.30 WITA. */
+const DOSING_UTC_JAM = [8, 23.5];
+function waktuDosingAB(dariMs, sampaiMs) {
+  const hasil = [];
+  for (let hari = Math.floor(dariMs / HARI) * HARI - HARI; hari <= sampaiMs; hari += HARI) {
+    for (const jam of DOSING_UTC_JAM) {
+      const t = hari + jam * 3_600_000;
+      if (t >= dariMs && t <= sampaiMs) hasil.push(t);
+    }
+  }
+  return hasil;
+}
+
+/** Kenaikan ppm sesaat sesudah dosing A+B, lalu meluruh (supaya analisis respons dosing punya sinyal). */
+function efekDosing(ms) {
+  let efek = 0;
+  for (const e of waktuDosingAB(ms - 6 * 3_600_000, ms)) {
+    const dt = (ms - e) / 1000;
+    efek += 55 * Math.min(1, dt / 1800) * Math.exp(-dt / 10_800);
+  }
+  return efek;
+}
+
 /** Nilai kelima sensor pada waktu tertentu (ms epoch). Selalu di dalam batas aman. */
 function nilaiPada(ms) {
   const pecahan = (((ms / 1000 + 8 * 3600) % 86400) + 86400) % 86400 / 86400; // jam lokal WITA
   const siang = Math.sin(2 * Math.PI * (pecahan - 0.3));
   const ph = 6.0 + 0.18 * Math.sin((2 * Math.PI * ms) / (HARI * 1.7)) + 0.04 * derau(ms, 1);
-  const tds = 1040 + 45 * Math.sin((2 * Math.PI * ms) / (HARI * 0.5) + 1) + 6 * derau(ms, 2);
+  const tds = 1000 + 30 * Math.sin((2 * Math.PI * ms) / (HARI * 0.5) + 1) + 6 * derau(ms, 2) + efekDosing(ms);
   return {
     ph: bulat(ph, 2),
     tds: Math.round(tds),
@@ -164,4 +187,156 @@ function alertRiwayat({ page, perPage, severity }, sekarang = Date.now()) {
   return { status: true, data, total: selesai.length, page, per_page: perPage };
 }
 
-module.exports = { seriMentah, bacaanTerbaru, rataRata, iotStatus, keadaanAlat, latestSensor, riwayat, tarik, chartData, nutrisi, peringatan, alertLogs, alertRiwayat };
+
+/* ───────── Analisis Data: pengganti pembacaan DB (dipakai lewat AsyncLocalStorage di routes/analisis.js) ───────── */
+function bacaanLimaMenit(dariIso, sampaiIso) {
+  const awal = Date.parse(dariIso), akhir = Date.parse(sampaiIso), langkah = 300_000, hasil = [];
+  for (let b = Math.floor(awal / langkah) * langkah; b <= akhir && hasil.length < 27_000; b += langkah) {
+    const v = nilaiPada(b + langkah / 2);
+    hasil.push({ waktu: iso(b), t: b, ph: v.ph, tds: v.tds, waterTemp: v.waterTemp, ec: v.ec_ms_cm, airTemp: v.airTemp, humidity: v.humidity });
+  }
+  return hasil;
+}
+
+function kejadianDosing(dariIso, sampaiIso) {
+  const awal = Date.parse(dariIso), akhir = Date.parse(sampaiIso);
+  const kejadian = waktuDosingAB(awal, akhir).map((t) => ({ t, jenis: 'AB' }));
+  for (let hari = Math.floor(awal / HARI) * HARI; hari <= akhir; hari += 2 * HARI) {
+    const t = hari + 2 * 3_600_000; // 10.00 WITA, dua hari sekali
+    if (t >= awal && t <= akhir) kejadian.push({ t, jenis: 'PH' });
+  }
+  return kejadian.sort((x, y) => x.t - y.t);
+}
+
+/* ───────── Laporan ───────── */
+const kol = (daftar) => daftar.map(([kunci, label]) => ({ kunci, label }));
+const tgl = (ms) => new Date(ms).toISOString().slice(0, 10);
+
+function matriksLaporan(sekarang = Date.now()) {
+  const bulan = (selisih) => { const d = new Date(sekarang); d.setUTCMonth(d.getUTCMonth() - selisih, 1); return d.toISOString().slice(0, 7); };
+  return [
+    { periode: bulan(0), semai: 2, remaja: 2, dewasa: 1, panen_kg: 96, rata_ph: 6.02 },
+    { periode: bulan(1), semai: 3, remaja: 3, dewasa: 3, panen_kg: 180, rata_ph: 6.08 },
+    { periode: bulan(2), semai: 2, remaja: 2, dewasa: 2, panen_kg: 120, rata_ph: 5.97 },
+  ];
+}
+
+const SEMUA_JENIS = {
+  batch: () => ({
+    judul: 'Laporan per batch',
+    kolom: kol([['id_semai', 'Batch'], ['tanaman', 'Tanaman'], ['meja', 'Meja'], ['mulai', 'Mulai semai'], ['peremajaan', 'Peremajaan'], ['pendewasaan', 'Pendewasaan'],
+      ['panen', 'Panen'], ['hari', 'Lama (hari)'], ['status', 'Status'], ['jumlah_benih', 'Benih'], ['benih_berhasil', 'Benih berhasil'], ['benih_gagal', 'Benih gagal'],
+      ['panen_berhasil', 'Panen berhasil'], ['panen_gagal', 'Panen gagal'], ['ppm_rata', 'ppm rata-rata'], ['ppm_min', 'ppm min'], ['ppm_maks', 'ppm maks'],
+      ['ph_rata', 'pH rata-rata'], ['ph_min', 'pH min'], ['ph_maks', 'pH maks'], ['ab', 'Dosing A+B'], ['ph', 'Koreksi pH'], ['encer', 'Pengenceran'], ['isi', 'Isi air'], ['peringatan', 'Peringatan']]),
+    baris: [
+      { id_semai: 'C-102', tanaman: 'Kangkung (contoh)', meja: 'Meja contoh A', mulai: '2026-10-02', peremajaan: '2026-10-09', pendewasaan: '2026-10-16', panen: '2026-11-03', hari: 32, status: 'selesai',
+        jumlah_benih: 100, benih_berhasil: 96, benih_gagal: 4, panen_berhasil: 92, panen_gagal: 4, ppm_rata: 1020, ppm_min: 960, ppm_maks: 1130, ph_rata: 6.05, ph_min: 5.8, ph_maks: 6.3, ab: 54, ph: 11, encer: 2, isi: 8, peringatan: 3 },
+      { id_semai: 'C-103', tanaman: 'Selada (contoh)', meja: 'Meja contoh B', mulai: '2026-11-10', peremajaan: '2026-11-17', pendewasaan: null, panen: null, hari: 14, status: 'proses',
+        jumlah_benih: 80, benih_berhasil: null, benih_gagal: null, panen_berhasil: null, panen_gagal: null, ppm_rata: 990, ppm_min: 940, ppm_maks: 1080, ph_rata: 6.0, ph_min: 5.8, ph_maks: 6.2, ab: 26, ph: 5, encer: 0, isi: 3, peringatan: 1 },
+    ],
+  }),
+  sensor: (r) => {
+    const baris = [];
+    const akhir = Math.min(Date.parse(r.akhir), Date.now());
+    for (let hari = Math.floor(akhir / HARI) * HARI; hari >= Math.max(Date.parse(r.awal), akhir - 13 * HARI) && baris.length < 14; hari -= HARI) {
+      const v = Array.from({ length: 48 }, (_, i) => nilaiPada(hari + i * 1_800_000));
+      const rata = (k) => v.reduce((a, x) => a + x[k], 0) / v.length;
+      baris.push({
+        hari: tgl(hari), n_baca: 9600, ph_rata: bulat(rata('ph'), 2), ph_min: Math.min(...v.map((x) => x.ph)), ph_maks: Math.max(...v.map((x) => x.ph)),
+        ppm_rata: Math.round(rata('tds')), ppm_min: Math.min(...v.map((x) => x.tds)), ppm_maks: Math.max(...v.map((x) => x.tds)),
+        suhu_air_rata: bulat(rata('waterTemp'), 1), suhu_air_min: Math.min(...v.map((x) => x.waterTemp)), suhu_air_maks: Math.max(...v.map((x) => x.waterTemp)),
+        suhu_udara_rata: bulat(rata('airTemp'), 1), lembap_rata: Math.round(rata('humidity')), ph_aman_persen: 100, ppm_aman_persen: 100, suhu_aman_persen: 100,
+      });
+    }
+    return {
+      judul: 'Laporan sensor harian', catatan: 'Persen aman memakai Ambang Sensor (bukan batas resep batch). Data contoh.',
+      kolom: kol([['hari', 'Tanggal'], ['n_baca', 'Jumlah bacaan'], ['ph_rata', 'pH rata-rata'], ['ph_min', 'pH min'], ['ph_maks', 'pH maks'], ['ppm_rata', 'ppm rata-rata'],
+        ['ppm_min', 'ppm min'], ['ppm_maks', 'ppm maks'], ['suhu_air_rata', 'Suhu air rata-rata'], ['suhu_air_min', 'Suhu air min'], ['suhu_air_maks', 'Suhu air maks'],
+        ['suhu_udara_rata', 'Suhu udara rata-rata'], ['lembap_rata', 'Kelembapan rata-rata'], ['ph_aman_persen', 'pH aman (%)'], ['ppm_aman_persen', 'ppm aman (%)'], ['suhu_aman_persen', 'Suhu air aman (%)']]),
+      baris,
+    };
+  },
+  dosing: (r) => {
+    const baris = [];
+    const akhir = Math.min(Date.parse(r.akhir), Date.now());
+    for (let i = 0, hari = Math.floor(akhir / HARI) * HARI; i < 14 && hari >= Date.parse(r.awal); i += 1, hari -= HARI) {
+      const ph = i % 2 === 0 ? 1 : 0, isi = i % 3 === 0 ? 1 : 0;
+      baris.push({ hari: tgl(hari), ab: 2, ph, encer: 0, isi, total: 2 + ph + isi });
+    }
+    return {
+      judul: 'Laporan dosing dan air', catatan: 'Jumlah tindakan yang dilakukan alat per hari. Alat tidak melaporkan volume (mL). Data contoh.',
+      kolom: kol([['hari', 'Tanggal'], ['ab', 'Dosing A+B'], ['ph', 'Koreksi pH'], ['encer', 'Pengenceran'], ['isi', 'Isi air'], ['total', 'Total']]), baris,
+    };
+  },
+  peringatan: () => {
+    const per = new Map();
+    for (const a of peringatan()) {
+      const x = per.get(a.type) ?? { jenis: a.type, tingkat: a.severity, jumlah: 0, masih_terbuka: 0, menit: [], terakhir: a.created_at };
+      x.jumlah += 1; if (a.selesai_pada == null) x.masih_terbuka += 1; else x.menit.push((Date.parse(a.selesai_pada) - Date.parse(a.created_at)) / 60_000);
+      if (a.severity === 'critical') x.tingkat = 'critical'; if (a.created_at > x.terakhir) x.terakhir = a.created_at;
+      per.set(a.type, x);
+    }
+    return {
+      judul: 'Laporan peringatan',
+      kolom: kol([['jenis', 'Jenis'], ['tingkat', 'Tingkat'], ['jumlah', 'Jumlah'], ['masih_terbuka', 'Masih terbuka'], ['rata_menit', 'Rata-rata lama (menit)'], ['terlama_menit', 'Terlama (menit)'], ['terakhir', 'Terakhir']]),
+      baris: [...per.values()].map((x) => ({ jenis: x.jenis, tingkat: x.tingkat, jumlah: x.jumlah, masih_terbuka: x.masih_terbuka,
+        rata_menit: x.menit.length ? Math.round(x.menit.reduce((a, b) => a + b, 0) / x.menit.length) : null, terlama_menit: x.menit.length ? Math.round(Math.max(...x.menit)) : null, terakhir: x.terakhir })),
+    };
+  },
+  kalibrasi: (r, sekarang = Date.now()) => ({
+    judul: 'Laporan kalibrasi',
+    catatan: 'Jumlah kalibrasi = titik kalibrasi yang tersimpan di alat (pH/EC) dan laju pompa yang disimpan. Uji Lab dan tes pompa tidak dihitung. Data contoh.',
+    kolom: kol([['alat', 'Alat'], ['status', 'Status'], ['terakhir', 'Terakhir dikalibrasi'], ['jatuh_tempo', 'Jatuh tempo'], ['jumlah', 'Kalibrasi dalam periode']]),
+    baris: [
+      { alat: 'Sensor pH', status: 'Aman', terakhir: iso(sekarang - 6 * HARI), jatuh_tempo: iso(sekarang + 24 * HARI), jumlah: 2 },
+      { alat: 'Sensor EC', status: 'Aman', terakhir: iso(sekarang - 6 * HARI), jatuh_tempo: iso(sekarang + 24 * HARI), jumlah: 2 },
+      { alat: 'Laju pompa', status: 'Aman', terakhir: iso(sekarang - 9 * HARI), jatuh_tempo: iso(sekarang + 21 * HARI), jumlah: 1 },
+    ],
+  }),
+};
+
+function laporan(jenis, r) { return Object.hasOwn(SEMUA_JENIS, jenis) ? SEMUA_JENIS[jenis](r) : null; }
+
+/* ───────── Kalibrasi ───────── */
+const HARI_KAL = { ph: 6, ec: 6, pulsa_peristaltik: 9 };
+function kalibrasiContoh(baris, sekarang = Date.now()) {
+  const hari = HARI_KAL[baris.sensor];
+  const dasar = { ...baris, konstanta: null, perangkat_kode: null, perangkat_nama: 'Alat contoh', terakhir_terlihat: iso(sekarang - 3000), perangkat_online: true };
+  if (hari == null) return dasar;
+  const t = sekarang - hari * HARI;
+  return { ...dasar, terakhir_dikalibrasi: iso(t), log_terakhir: { dilakukan_pada: iso(t), lulus: true, oleh_label: 'Admin contoh' } };
+}
+
+function riwayatKalibrasi(sensor = null, sekarang = Date.now()) {
+  const baris = (id, s, hari, ref, catatan) => ({ id, sensor: s, dilakukan_pada: iso(sekarang - hari * HARI), nilai_ref: ref, bacaan_sebelum: null, bacaan_sesudah: null, lulus: true, konstanta_baru: null, catatan, oleh_label: 'Admin contoh' });
+  const semua = [
+    baris(9101, 'pulsa_peristaltik', 9, null, '[KALIBRASI POMPA A] laju 1,20 mL/detik (contoh)'),
+    baris(9102, 'ph', 6, 6.86, 'Titik 2 pH 6,86 (contoh)'),
+    baris(9103, 'ec', 6, 12.88, 'Titik 2 EC 12,88 mS/cm (contoh)'),
+    baris(9104, 'ph', 6, 4.01, 'Titik 1 pH 4,01 (contoh)'),
+    baris(9105, 'ec', 6, 1.413, 'Titik 1 EC 1,413 mS/cm (contoh)'),
+  ];
+  return sensor ? semua.filter((x) => x.sensor === sensor) : semua;
+}
+
+/** Menyamarkan GET /iot-v41/state untuk demo: bacaan, alat, dan angka kalibrasi diganti data contoh. */
+function samarkanState(d, sekarang = Date.now()) {
+  if (!d || typeof d !== 'object') return d;
+  const v = nilaiPada(sekarang), t = iso(sekarang - 3000);
+  return {
+    ...d,
+    otomasi_alat: { nutrisi: true, ph: true, encer: true, isi: true },
+    jadwal_alat: null,
+    params: d.params ? { ...d.params, volume_l: 100, laju_a: 1.2, laju_b: 1.2, laju_ph_up: 0.8, laju_ph_down: 0.8, ppm_per_ml: 100, saklar_ab: 1, saklar_ph_up: 1, saklar_ph_down: 1, saklar_pengenceran: 1 } : d.params,
+    kondisi: d.kondisi ? { ...d.kondisi, status: 'TIDUR', float_bawah: 1, float_atas: 0, level_diperbarui_pada: t, ec_ppm: v.tds, ec_ms: v.ec_ms_cm, ec_us: Math.round(v.ec_ms_cm * 1000), ph: v.ph, ph_volt: 1.95,
+      suhu_air: v.waterTemp, suhu_ruang: v.airTemp, rh: v.humidity, umur_detik: 3, basi: false, updated_at: t } : d.kondisi,
+    pratinjau_dosis: d.pratinjau_dosis ? { ...d.pratinjau_dosis, ec_sekarang: v.tds } : d.pratinjau_dosis,
+    papan: { kode: 'alat-contoh', nama: 'Alat contoh', versi: 'hidro-v6.4.0', terakhir_terlihat: t, status: 'online' },
+    arsip_kalibrasi: [], arsip_ujilab: [],
+  };
+}
+
+/** Status saklar tanpa nama pengubah. */
+const saklarAman = (daftar) => (Array.isArray(daftar) ? daftar.map((s) => ({ ...s, diubah_oleh: null })) : daftar);
+
+module.exports = { bacaanLimaMenit, kejadianDosing, matriksLaporan, laporan, kalibrasiContoh, riwayatKalibrasi, samarkanState, saklarAman, seriMentah, bacaanTerbaru, rataRata, iotStatus, keadaanAlat, latestSensor, riwayat, tarik, chartData, nutrisi, peringatan, alertLogs, alertRiwayat };

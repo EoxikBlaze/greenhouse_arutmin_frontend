@@ -65,7 +65,7 @@ router.get('/', async (req, res, next) => {
         recent_alerts: D.peringatan().slice(0, 5),
         recent_panen: [],
         ambang: ambangEfektif(await thresholdsMap(), kd, await pengaturanAlat.efektif()),
-        saklar: await saklar.daftar(),
+        saklar: require('../demoData').saklarAman(await saklar.daftar()),
       });
     }
 
