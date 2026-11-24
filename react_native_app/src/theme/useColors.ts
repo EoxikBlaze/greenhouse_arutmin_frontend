@@ -1,7 +1,10 @@
 import { useColorScheme } from 'react-native';
 import { dark, light, Palette } from './tokens';
+import { usePrefs } from './prefs';
 
-// Mengikuti mode terang/gelap sistem.
+// Mode dari pilihan pengguna; "sistem" mengikuti mode terang/gelap perangkat.
 export function useColors(): Palette {
-  return useColorScheme() === 'dark' ? dark : light;
+  const scheme = useColorScheme();
+  const { mode } = usePrefs();
+  return (mode === 'system' ? scheme === 'dark' : mode === 'dark') ? dark : light;
 }

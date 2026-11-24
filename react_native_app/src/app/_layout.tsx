@@ -7,11 +7,18 @@ import { useFonts } from 'expo-font';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
-import { Backdrop } from '@/ui/Backdrop';
 import { fontAssets } from '@/theme/fonts';
+import { Backdrop } from '@/ui/Backdrop';
+import { PrefsProvider } from '@/theme/prefs';
+import { dark } from '@/theme/tokens';
 import { useColors } from '@/theme/useColors';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+// Warna status bar mengikuti tema terpilih, bukan hanya tema sistem.
+function Bar() {
+  return <StatusBar style={useColors() === dark ? 'light' : 'dark'} />;
+}
 
 function Gate() {
   const c = useColors();
@@ -30,12 +37,14 @@ export default function RootLayout() {
   if (!fontsDone) return null;
   return (
     <SafeAreaProvider>
-      <QueryClientProvider client={qc}>
-        <AuthProvider>
-          <StatusBar style="auto" />
-          <Gate />
-        </AuthProvider>
-      </QueryClientProvider>
+      <PrefsProvider>
+        <QueryClientProvider client={qc}>
+          <AuthProvider>
+            <Bar />
+            <Gate />
+          </AuthProvider>
+        </QueryClientProvider>
+      </PrefsProvider>
     </SafeAreaProvider>
   );
 }

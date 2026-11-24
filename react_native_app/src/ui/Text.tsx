@@ -1,5 +1,6 @@
 import { Text as RNText, TextProps, TextStyle } from 'react-native';
 import { dark, fonts, light, Palette } from '@/theme/tokens';
+import { usePrefs } from '@/theme/prefs';
 import { useColors } from '@/theme/useColors';
 
 // Skala tipografi dari .pen: judul/angka = Space Grotesk 700, isi = Inter.
@@ -24,9 +25,24 @@ const make = (c: Palette) => ({
 
 const tables = { light: make(light), dark: make(dark) };
 
+// Skala ukuran teks pilihan pengguna, dihitung sekali per (mode, skala, varian). Judul dan angka besar naik lebih sedikit,
+// label dock tidak naik (ruangnya tetap), isi dan keterangan naik penuh.
+const CAP: Partial<Record<Variant, number>> = { tab: 1, display: 1.15, title: 1.15, value: 1.15, wordmark: 1.15, section: 1.2 };
+const scaled = new Map<string, TextStyle>();
+function pick(isDark: boolean, v: Variant, scale: number): TextStyle {
+  const base = tables[isDark ? 'dark' : 'light'][v] as TextStyle & { fontSize: number; lineHeight: number };
+  const k = Math.min(scale, CAP[v] ?? scale);
+  if (k === 1) return base;
+  const key = `${isDark}|${v}|${k}`;
+  let s = scaled.get(key);
+  if (!s) { s = { ...base, fontSize: Math.round(base.fontSize * k), lineHeight: Math.round(base.lineHeight * k) }; scaled.set(key, s); }
+  return s;
+}
+
 export type Variant = keyof ReturnType<typeof make>;
 
 export function Text({ v = 'body', style, ...p }: TextProps & { v?: Variant }) {
   const c = useColors();
-  return <RNText {...p} style={[tables[c === dark ? 'dark' : 'light'][v], style]} />;
+  const { scale } = usePrefs();
+  return <RNText {...p} style={[pick(c === dark, v, scale), style]} />;
 }
