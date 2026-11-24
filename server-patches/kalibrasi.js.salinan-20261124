@@ -71,8 +71,7 @@ const DAFTAR = `
 router.get('/', async (_req, res, next) => {
   try {
     const urut = { ph: 1, ec: 2, suhu_air: 3, suhu_udara: 4, pulsa_peristaltik: 5 };
-    const D = _req.user?.demo ? require('../demoData') : null;
-    const rows = (await q(DAFTAR)).map((r0) => { const r = D ? D.kalibrasiContoh(r0) : r0; return { ...r, ...statusJadwal(r) }; });
+    const rows = (await q(DAFTAR)).map((r) => ({ ...r, ...statusJadwal(r) }));
     rows.sort((a, b) => (urut[a.sensor] ?? 99) - (urut[b.sensor] ?? 99) || a.sensor.localeCompare(b.sensor));
     res.json(rows);
   } catch (e) { next(e); }
@@ -81,7 +80,6 @@ router.get('/', async (_req, res, next) => {
 router.get('/:sensor/riwayat', async (req, res, next) => {
   try {
     if (!sensorOk(req.params.sensor)) return json(res, 404, { message: 'Alat tidak ditemukan.' });
-    if (req.user?.demo) return res.json(require('../demoData').riwayatKalibrasi(req.params.sensor));
     res.json(await q('SELECT * FROM kalibrasi_log WHERE sensor = $1 ORDER BY dilakukan_pada DESC, id DESC LIMIT 100', [req.params.sensor]));
   } catch (e) { next(e); }
 });

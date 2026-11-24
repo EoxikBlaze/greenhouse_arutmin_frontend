@@ -311,7 +311,6 @@ router.get('/', requireAuth, async (_req, res, next) => {
 router.get('/nutrisi', requireAuth, async (req, res, next) => {
   try {
     const N = require('../nutrisiGrafik');
-    if (req.user?.demo) return res.json(require('../demoData').nutrisi(req.query.hari));
     const idMeja = /^\d{1,18}$/.test(String(req.query.id_meja ?? '')) ? req.query.id_meja : null;
     res.json(await N.dataNutrisi({ hari: req.query.hari, idMeja }));
   } catch (e) { next(e); }
@@ -319,7 +318,6 @@ router.get('/nutrisi', requireAuth, async (req, res, next) => {
 
 router.get('/chart-data', requireAuth, async (req, res, next) => {
   try {
-    if (req.user?.demo) return res.json(require('../demoData').chartData());
     const rows = await q('SELECT * FROM monitorings ORDER BY created_at DESC LIMIT 288');
     res.json(rows.reverse());
   } catch (e) { next(e); }
@@ -354,10 +352,6 @@ router.get('/riwayat', requireAuth, async (req, res, next) => {
     }
     const pilih = Number(queryParam(req.query, 'interval'));
     const interval = INTERVAL_DETIK.includes(pilih) ? pilih : intervalOtomatis(sampaiMs - dariMs);
-    if (req.user?.demo) {
-      return res.json({ dari: new Date(dariMs).toISOString(), sampai: new Date(sampaiMs).toISOString(), interval_detik: interval,
-        titik: require('../demoData').riwayat(dariMs, sampaiMs, interval) });
-    }
     const rows = await q(
       `SELECT (to_timestamp(b * $3::int) AT TIME ZONE 'UTC') AS waktu, ph, "waterTemp", tds, ec_ms_cm, "airTemp", humidity, n
          FROM (SELECT floor(extract(epoch FROM created_at) / $3::int)::bigint AS b,
@@ -388,7 +382,6 @@ router.get('/tarik', requireAuth, async (req, res, next) => {
     // halaman bernomor (dulu ?page diabaikan: "muat lagi" tidak pernah mengambil data lebih lama) + total baris pada rentang itu
     const pageQ = Number(queryParam(req.query, 'page'));
     const page = Number.isInteger(pageQ) && pageQ >= 1 && pageQ <= 100_000 ? pageQ : 1;
-    if (req.user?.demo) return res.json(require('../demoData').tarik({ dari, sampai, page, limit }));
     const saring = [dari || null, sampai || null];
     const [rows, jumlah] = await Promise.all([
       q(`SELECT * FROM monitorings
@@ -443,9 +436,6 @@ api.get('/latest-sensor', async (req, res, next) => {
     const token = bearer || sesiCookie.bacaCookie(req, sesiCookie.NAMA_SESI);
     if (token) {
       const u = verifyToken(token);
-      if (u?.demo) {
-        return res.json(require('../demoData').latestSensor());
-      }
     }
     res.json(await latestSensorPayload());
   } catch (e) { next(e); }

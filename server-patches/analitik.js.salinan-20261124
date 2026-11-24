@@ -78,15 +78,13 @@ router.get('/saran-dosis', async (req, res, next) => {
     const { bacaKeadaanAlat } = require('../keadaanAlat');
     const { thresholdsMap } = require('./monitoring');
     const pengaturanAlat = require('../pengaturanAlat');
-    const demo = Boolean(req.user?.demo); // demo: data contoh sintetis (src/demoData.js), bukan bacaan kebun asli
-    const D = demo ? require('../demoData') : null;
-    const [titik, terbaru] = demo ? [D.seriMentah(jam), null] : await Promise.all([
+    const [titik, terbaru] = await Promise.all([
       q(`SELECT ph, tds, created_at FROM monitorings
           WHERE created_at >= now() - ($1::int * interval '1 hour') ORDER BY created_at ASC LIMIT 5000`, [jam]),
       one('SELECT * FROM monitorings ORDER BY created_at DESC LIMIT 1'),
     ]);
     // batas yang berlaku: saat SEMAI mengikuti target batch (sama dengan Dashboard dan Peringatan), selainnya Ambang Sensor
-    const { keadaanAlat } = demo ? { keadaanAlat: D.keadaanAlat() } : await bacaKeadaanAlat(terbaru);
+    const { keadaanAlat } = await bacaKeadaanAlat(terbaru);
     const ambang = ambangEfektif(await thresholdsMap(), keadaanAlat, await pengaturanAlat.efektif());
     const saran = ['ph', 'tds'].map((s) => {
       const seri = titik.filter((r) => r[s] !== null).map((r) => ({ t: new Date(r.created_at).getTime(), v: Number(r[s]) }));
@@ -165,7 +163,6 @@ const EKSPOR = {
 
 router.get('/ekspor/:jenis.csv', async (req, res, next) => {
   try {
-    if (req.user?.demo) return res.status(403).json({ message: 'Mode demo tidak dapat mengunduh data.' });
     const def = Object.hasOwn(EKSPOR, req.params.jenis) ? EKSPOR[req.params.jenis] : null;
     if (!def) return res.status(404).json({ message: 'Jenis ekspor tidak dikenal.' });
     const r = rentang(req, res); if (!r) return;

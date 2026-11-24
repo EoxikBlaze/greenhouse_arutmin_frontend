@@ -12,10 +12,7 @@ const router = express.Router();
 router.use(requireAuth);
 
 router.get('/', async (_req, res, next) => {
-  try {
-    const d = await saklar.daftar();
-    json(res, 200, { status: true, data: _req.user?.demo ? require('../demoData').saklarAman(d) : d });
-  } catch (e) { next(e); }
+  try { json(res, 200, { status: true, data: await saklar.daftar() }); } catch (e) { next(e); }
 });
 
 router.put('/:kode', requireRole(['admin']), demoGuard('saklar.ubah'), async (req, res, next) => {

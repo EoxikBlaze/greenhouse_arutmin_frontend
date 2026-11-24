@@ -1,15 +1,11 @@
-# Akun demo memakai data contoh (24 Nov 2026)
+# Akun demo: data contoh dicoba lalu dibatalkan (24 Nov 2026)
 
-Sebelumnya demo melihat Dashboard dan Sensor kosong, tetapi masih membaca peringatan asli, saran nutrisi asli, dan gambar CCTV asli.
-Kini `src/demoData.js` (sintetis, deterministik, tanpa database) dipakai demo di: `GET /dashboard`, `/monitoring/nutrisi`, `/monitoring/chart-data`,
-`/monitoring/riwayat`, `/monitoring/tarik`, `/api/latest-sensor`, `/alert-logs` dan `/alert-logs/riwayat`, `/api/analitik/saran-dosis`,
-dan `GET /cctv/:id/gambar` (gambar contoh `src/demo/cctv-contoh.jpg`, bukan kamera asli).
-Alat contoh: siap, menunggu Mulai Semai (tanpa batch). Nilai sensor selalu di dalam batas aman; satu peringatan contoh aktif.
+Sempat dibuat data contoh sintetis untuk demo (commit 2d39bea dan 3e8ff72). Keputusan pemilik: demo memakai **data asli**, yang berbeda hanya perannya.
+Semua perubahan itu dibatalkan; berkas server dikembalikan ke keadaan sebelum data contoh. Penyembunyian data lama untuk demo (Dashboard null, grafik kosong,
+bacaan terbaru null) juga dihapus.
 
-Tahap kedua: `/api/analisis/*` (Analisis Data; hanya dua fungsi pembaca data yang diganti lewat AsyncLocalStorage, hitungan analisis tetap kode asli),
-`/laporan`, `/laporan/:jenis` (enam laporan), `/kalibrasi` dan `/kalibrasi/:sensor/riwayat`, `/iot-v41/riwayat-kalibrasi`,
-`/iot-v41/state` (disamarkan: bacaan, alat, laju pompa, arsip), status saklar tanpa nama pengubah, dan `/api/analitik/ekspor/*.csv` (403 untuk demo).
-
-Sengaja tetap ditolak untuk demo: seluruh Asisten AI (Percakapan, Analisis Harian, Langkah berikutnya).
-Belum ada data contoh untuk batch tanam: Kebun Saya dan Alur Tanam demo kosong.
-Cadangan server: `*.bak-demodata-*`, `*.bak-demosaran-*`, `*.bak-demosisa-*`.
+Kini akun demo: membaca data asli (Dashboard, Sensor, Peringatan, CCTV, Analisis Data, Laporan, Kalibrasi, Otomasi), tidak bisa mengubah apa pun
+(`demoGuard`/`requireRole` menjawab 403 untuk Mulai Semai, kirim ke alat, hapus batch, saklar, pemeliharaan, gerak kamera), unduh CSV sensor tetap 403.
+Asisten AI tetap ditolak untuk demo (`aiRole`). Pembatasan petani (batas-fitur-petani.md) tidak berubah.
+Risiko: tombol Coba Akun Demo di halaman login terbuka untuk siapa saja, jadi data kebun dan gambar kamera asli terlihat oleh siapa pun.
+Cadangan server: `*.bak-sebelumkembali-*`; berkas contoh dipindah ke `/opt/vertonik/backend/demo-tidak-dipakai/`.

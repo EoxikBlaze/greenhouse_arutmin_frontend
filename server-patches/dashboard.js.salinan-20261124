@@ -47,28 +47,6 @@ router.get('/keselamatan', async (_req, res, next) => {
 
 router.get('/', async (req, res, next) => {
   try {
-    // Mode demo: data CONTOH sintetis (src/demoData.js), bukan data kebun asli.
-    if (req.user?.demo) {
-      const D = require('../demoData');
-      const kd = D.keadaanAlat();
-      return res.json({
-        page: 'dashboard',
-        iotStatus: D.iotStatus(),
-        keadaan_alat: kd,
-        total_tanaman: 0, total_meja: 0, total_siklus: 0,
-        total_semai: 0, total_peremajaan: 0, total_pendewasaan: 0,
-        total_panen: 0, total_panen_qty: 0,
-        semai_aktif: 0, peremajaan_aktif: 0, pendewasaan_aktif: 0,
-        latest_sensor: D.bacaanTerbaru(),
-        sensor_avg: D.rataRata(),
-        water_control: null,
-        recent_alerts: D.peringatan().slice(0, 5),
-        recent_panen: [],
-        ambang: ambangEfektif(await thresholdsMap(), kd, await pengaturanAlat.efektif()),
-        saklar: require('../demoData').saklarAman(await saklar.daftar()),
-      });
-    }
-
     // cache 5 detik — dashboard di-refresh polling; DB dihajar sekali / 5 dtk
     const payload = await cache.remember('dashboard', 5_000, async () => {
     const latest = await one('SELECT * FROM monitorings ORDER BY created_at DESC LIMIT 1');

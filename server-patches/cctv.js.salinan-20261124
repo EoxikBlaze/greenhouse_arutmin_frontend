@@ -261,13 +261,6 @@ router.get('/:id/gambar', async (req, res, next) => {
     if (!k || k.tipe !== 'rtsp') return notFound(res);
     if (!k.aktif) return json(res, 409, { message: 'Kamera dinonaktifkan.' });
 
-    // Demo: gambar contoh (bukan tayangan kebun yang sebenarnya)
-    if (req.user?.demo) {
-      res.setHeader('Content-Type', 'image/jpeg');
-      res.setHeader('Cache-Control', 'no-store');
-      res.setHeader('X-Diambil-Pada', new Date().toISOString());
-      return res.end(await fs.promises.readFile(path.join(__dirname, '..', 'demo', 'cctv-contoh.jpg')));
-    }
     const kunci = String(k.id);
     const shmFile = jalurFrameShm(kunci);
     const streamer = pastikanStreamer(k);

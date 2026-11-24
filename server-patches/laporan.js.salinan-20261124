@@ -46,7 +46,7 @@ router.get('/', async (req, res, next) => {
     if (Object.keys(errors).length) {
       return res.status(422).json({ message: 'Data tidak valid.', errors });
     }
-    res.json({ page: 'laporan', dari, sampai, matriks: req.user?.demo ? require('../demoData').matriksLaporan() : await matrix(dari, sampai) });
+    res.json({ page: 'laporan', dari, sampai, matriks: await matrix(dari, sampai) });
   } catch (e) { next(e); }
 });
 
@@ -59,7 +59,7 @@ router.get('/csv', async (req, res, next) => {
     if (Object.keys(errors).length) {
       return res.status(422).json({ message: 'Data tidak valid.', errors });
     }
-    const rows = req.user?.demo ? require('../demoData').matriksLaporan() : await matrix(dari, sampai);
+    const rows = await matrix(dari, sampai);
     // panen_kg (nama kolom API lama) berisi JUMLAH TANAMAN dipanen, bukan kilogram
     const lines = ['PERIODE,SEMAI,REMAJA,DEWASA,PANEN (TANAMAN),RATA-RATA PH'];
     for (const r of rows) lines.push([r.periode, r.semai, r.remaja, r.dewasa, r.panen_kg, r.rata_ph].join(','));
@@ -87,7 +87,7 @@ router.get('/:jenis', async (req, res, next) => {
     const errors = tanggalErrors(dari, sampai);
     if (Object.keys(errors).length) return res.status(422).json({ message: 'Data tidak valid.', errors });
     const r = rentangLaporan({ dari, sampai });
-    const lap = req.user?.demo ? require('../demoData').laporan(req.params.jenis, r) : await buat(r);
+    const lap = await buat(r);
     if (String(req.query.format || '').toLowerCase() === 'csv') {
       const lines = [lap.kolom.map((k) => sel(k.label)).join(',')];
       for (const b of lap.baris) lines.push(lap.kolom.map((k) => sel(b[k.kunci])).join(','));

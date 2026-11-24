@@ -191,14 +191,6 @@ async function muatKonfigV41(runner = q) {
   };
 }
 
-// Demo: GET /state disamarkan (bacaan, alat, angka kalibrasi diganti data contoh)
-router.use('/state', (req, res, next) => {
-  if (!req.user?.demo) return next();
-  const kirim = res.json.bind(res);
-  res.json = (d) => kirim(require('../demoData').samarkanState(d));
-  return next();
-});
-
 router.get('/state', async (_req, res, next) => {
   try {
     const [rawParams, states, bacaan5, perangkatRows, arsipKal, wc, jadwalAlat] = await Promise.all([
@@ -587,9 +579,8 @@ async function kirimKeAlat(req, perintah) {
  * Balasan 202 = diantre, BUKAN pompa sudah jalan; hasil datang dari alat (GET /api/aktuator/perintah).
  */
 /** Riwayat lengkap kalibrasi pH, EC, dan laju pompa (terbaru dulu). */
-router.get('/riwayat-kalibrasi', async (req, res, next) => {
+router.get('/riwayat-kalibrasi', async (_req, res, next) => {
   try {
-    if (req.user?.demo) return res.json(require('../demoData').riwayatKalibrasi());
     res.json(await q(
       `SELECT id, sensor, dilakukan_pada, nilai_ref, bacaan_sebelum, bacaan_sesudah, lulus, konstanta_baru, catatan, oleh_label
          FROM kalibrasi_log WHERE sensor = ANY($1::text[]) ORDER BY dilakukan_pada DESC, id DESC LIMIT 200`,

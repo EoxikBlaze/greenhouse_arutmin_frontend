@@ -24,11 +24,6 @@ const ST = require('../statistikIlmiah');
 const { FISIK } = require('../sanitySensor');
 
 const router = express.Router();
-// Demo: bacaan dan kejadian dosing diganti data contoh (src/demoData.js); seluruh hitungan analisis di bawah tetap kode asli.
-const { AsyncLocalStorage } = require('node:async_hooks');
-const konteks = new AsyncLocalStorage();
-const DEMO = () => konteks.getStore()?.demo === true;
-router.use((req, _res, next) => konteks.run({ demo: Boolean(req.user?.demo) }, next));
 
 const HARI_MS = 86_400_000;
 const RENTANG_MAKS = 92 * HARI_MS;
@@ -57,7 +52,6 @@ function ambilRentang(req, res) {
 
 /** Bacaan dirata-rata per 5 menit: [{ t, ph, tds, waterTemp, ec, airTemp, humidity }]. */
 async function bacaanLimaMenit(dariIso, sampaiIso, idMeja = null) {
-  if (DEMO()) return require('../demoData').bacaanLimaMenit(dariIso, sampaiIso);
   const rows = await q(
     `SELECT (to_timestamp(b * ${BUCKET_DETIK}) AT TIME ZONE 'UTC') AS waktu, ph, tds, "waterTemp", ec, "airTemp", humidity
        FROM (SELECT floor(extract(epoch FROM created_at) / ${BUCKET_DETIK})::bigint AS b,
@@ -73,7 +67,6 @@ async function bacaanLimaMenit(dariIso, sampaiIso, idMeja = null) {
 const seriDari = (titik, kunci) => titik.filter((p) => p[kunci] != null).map((p) => ({ t: p.t, v: Number(p[kunci]) }));
 
 async function kejadianDosing(dariIso, sampaiIso) {
-  if (DEMO()) return require('../demoData').kejadianDosing(dariIso, sampaiIso);
   const rows = await q(
     `SELECT jenis, terjadi_pada FROM dosing_kejadian
       WHERE terjadi_pada >= $1::timestamptz AND terjadi_pada <= $2::timestamptz ORDER BY terjadi_pada`, [dariIso, sampaiIso]).catch(() => []);
