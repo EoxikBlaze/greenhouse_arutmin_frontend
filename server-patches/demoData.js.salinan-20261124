@@ -1,0 +1,167 @@
+'use strict';
+/**
+ * Data contoh untuk akun demo ("Coba Akun Demo"): sintetis, deterministik, TIDAK diambil dari kebun asli.
+ * Dipakai oleh dashboard, monitoring, peringatan, dan gambar CCTV supaya demo tampil hidup tanpa membuka data nyata.
+ * Tidak menyentuh database dan tidak punya efek samping.
+ */
+const HARI = 86_400_000;
+const LAMA_BACAAN = 9_000; // satu bacaan tiap 9 detik, seperti alat sungguhan
+
+/** Derau semu deterministik: waktu yang sama selalu menghasilkan nilai yang sama (tanpa Math.random). */
+function derau(ms, benih) {
+  const x = Math.sin((ms / 1000) * 12.9898 + benih * 78.233) * 43758.5453;
+  return (x - Math.floor(x)) * 2 - 1;
+}
+
+const bulat = (n, d) => Number(n.toFixed(d));
+
+/** Nilai kelima sensor pada waktu tertentu (ms epoch). Selalu di dalam batas aman. */
+function nilaiPada(ms) {
+  const pecahan = (((ms / 1000 + 8 * 3600) % 86400) + 86400) % 86400 / 86400; // jam lokal WITA
+  const siang = Math.sin(2 * Math.PI * (pecahan - 0.3));
+  const ph = 6.0 + 0.18 * Math.sin((2 * Math.PI * ms) / (HARI * 1.7)) + 0.04 * derau(ms, 1);
+  const tds = 1040 + 45 * Math.sin((2 * Math.PI * ms) / (HARI * 0.5) + 1) + 6 * derau(ms, 2);
+  return {
+    ph: bulat(ph, 2),
+    tds: Math.round(tds),
+    ec_ms_cm: bulat(tds / 500, 2),
+    waterTemp: bulat(26 + 1.8 * siang + 0.1 * derau(ms, 3), 1),
+    airTemp: bulat(29 + 5 * siang + 0.3 * derau(ms, 4), 1),
+    humidity: Math.round(74 - 10 * siang + 0.8 * derau(ms, 5)),
+  };
+}
+
+const iso = (ms) => new Date(ms).toISOString();
+
+function bacaanTerbaru(sekarang = Date.now()) {
+  const t = Math.floor((sekarang - 3000) / 1000) * 1000;
+  return { id: 1, ...nilaiPada(t), id_meja: null, created_at: iso(t), updated_at: iso(t) };
+}
+
+function rataRata(sekarang = Date.now()) {
+  const n = 40;
+  const jumlah = { ph: 0, tds: 0, waterTemp: 0, airTemp: 0, humidity: 0 };
+  for (let i = 0; i < n; i += 1) {
+    const v = nilaiPada(sekarang - (i * 6 * 3_600_000) / n);
+    Object.keys(jumlah).forEach((k) => { jumlah[k] += v[k]; });
+  }
+  return {
+    waterTemp: bulat(jumlah.waterTemp / n, 2), ph: bulat(jumlah.ph / n, 2), tds: bulat(jumlah.tds / n, 2),
+    airTemp: bulat(jumlah.airTemp / n, 2), humidity: bulat(jumlah.humidity / n, 2), jumlah: Math.round((6 * 3_600_000) / LAMA_BACAAN),
+  };
+}
+
+function iotStatus(sekarang = Date.now()) {
+  const t = sekarang - 3000;
+  return {
+    online: true, perangkat: 'alat-contoh', seconds_ago: 3, last_seen: iso(t), diff_text: '3 detik yang lalu',
+    data_segar: true, data_seconds_ago: 3, data_last_seen: iso(t),
+  };
+}
+
+/** Alat contoh: siap dan menunggu Mulai Semai (konsisten dengan tidak adanya batch berjalan). */
+function keadaanAlat() {
+  return {
+    level_air: 'SEDANG', pompa_isi: false,
+    pompa: { a: false, b: false, ph_up: false, ph_down: false, isi: false }, mode: 'PANEN',
+    kegiatan: null, kunci: null, siap: true, kurang: null, siap_firmware: true, kurang_firmware: null,
+    pemeliharaan: false, ppm_terlalu_rendah: false, nutrisi_habis: false, ota_berjalan: false, ota_persen: null,
+    target_ppm: null, ph_min: null, ph_max: null, hari_semai: null, estop: false,
+    dosing_ab_hari: 0, dosing_ph_hari: 0, encer_hari: 0, isi_hari: 0,
+    otomasi: { nutrisi: true, ph: true, encer: true, isi: true },
+  };
+}
+
+function latestSensor(sekarang = Date.now()) {
+  return { is_online: true, seconds_ago: 3, anomalies: [], sensor: bacaanTerbaru(sekarang), water_control: null };
+}
+
+/** Titik riwayat per interval (sama bentuknya dengan GET /monitoring/riwayat). */
+function riwayat(dariMs, sampaiMs, intervalDetik) {
+  const langkah = intervalDetik * 1000;
+  const titik = [];
+  for (let b = Math.floor(dariMs / langkah) * langkah; b <= sampaiMs && titik.length < 1500; b += langkah) {
+    titik.push({ waktu: iso(b), ...nilaiPada(b + langkah / 2), n: Math.max(1, Math.round(langkah / LAMA_BACAAN)) });
+  }
+  return titik;
+}
+
+/** Baris bacaan mentah berhalaman (sama bentuknya dengan GET /monitoring/tarik). */
+function tarik({ dari, sampai, page, limit, sekarang = Date.now() }) {
+  const akhir = sampai && Number.isFinite(Date.parse(sampai)) ? Math.min(Date.parse(sampai), sekarang) : sekarang;
+  const awal = dari && Number.isFinite(Date.parse(dari)) ? Date.parse(dari) : akhir - HARI;
+  const total = Math.max(0, Math.min(20_000, Math.floor((akhir - awal) / LAMA_BACAAN)));
+  const data = [];
+  for (let i = (page - 1) * limit; i < Math.min(total, page * limit); i += 1) {
+    const t = akhir - i * LAMA_BACAAN;
+    data.push({ id: 100000 - i, ...nilaiPada(t), id_meja: null, created_at: iso(t), updated_at: iso(t) });
+  }
+  return { dari, sampai, data, total, page, per_page: limit };
+}
+
+/** Seri pH/TDS per menit untuk saran nutrisi (sama bentuknya dengan baris `monitorings` yang dibaca saran-dosis). */
+function seriMentah(jam, sekarang = Date.now()) {
+  const n = Math.min(1500, Math.max(1, Math.round(jam * 60)));
+  const hasil = [];
+  for (let i = n - 1; i >= 0; i -= 1) {
+    const t = sekarang - i * 60_000;
+    const v = nilaiPada(t);
+    hasil.push({ ph: v.ph, tds: v.tds, created_at: iso(t) });
+  }
+  return hasil;
+}
+
+function chartData(sekarang = Date.now()) {
+  const baris = [];
+  for (let i = 287; i >= 0; i -= 1) {
+    const t = sekarang - i * 300_000;
+    baris.push({ id: 100000 - i, ...nilaiPada(t), id_meja: null, created_at: iso(t), updated_at: iso(t) });
+  }
+  return baris;
+}
+
+/** Grafik Nutrisi: ppm aktual per jam, tanpa target/dosing (tidak ada batch pada demo). */
+function nutrisi(hari = 7, sekarang = Date.now()) {
+  const h = Math.min(14, Math.max(1, Math.round(Number(hari)) || 7));
+  const aktual = [];
+  for (let t = Math.floor((sekarang - h * HARI) / 3_600_000) * 3_600_000; t <= sekarang; t += 3_600_000) {
+    aktual.push({ t, ppm: nilaiPada(t).tds });
+  }
+  return {
+    batch: null, alat: null, dari: sekarang - h * HARI, sampai: sekarang, sekarang,
+    aktual, target_alat: [], rencana: [], dosing: [],
+    hari_ini: { target_batch: null, target_alat: null, ppm_aktual: nilaiPada(sekarang).tds, ppm_segar: true, dosing: { AB: 0, PH: 0, ENCER: 0 } },
+  };
+}
+
+/** Peringatan contoh: satu yang sedang terjadi dan beberapa riwayat yang sudah pulih. */
+function peringatan(sekarang = Date.now()) {
+  const menit = 60_000;
+  const baris = (id, type, value, severity, mulai, selesai) => ({
+    id, type, value, severity, locked: false, acknowledged: selesai != null, acknowledged_at: selesai != null ? iso(selesai) : null,
+    created_at: iso(mulai), updated_at: iso(selesai ?? mulai), kunci_kejadian: `contoh_${id}`, selesai_pada: selesai != null ? iso(selesai) : null,
+    sedang_terjadi: selesai == null,
+  });
+  return [
+    baris(9001, 'Kelembapan', 'Kelembapan 38% di bawah batas aman 40–100%', 'warning', sekarang - 25 * menit, null),
+    baris(9002, 'pH', 'pH 7,12 di atas batas aman 5,00–7,00', 'warning', sekarang - 6 * 3_600_000, sekarang - 5.5 * 3_600_000),
+    baris(9003, 'Suhu udara', 'Suhu udara 41,3 °C di atas batas aman 20,0–40,0 °C', 'warning', sekarang - 28 * 3_600_000, sekarang - 27 * 3_600_000),
+    baris(9004, 'Alat offline', 'Alat tidak terhubung ke server: cek listrik dan Wi-Fi alat', 'warning', sekarang - 40 * 3_600_000, sekarang - 39.8 * 3_600_000),
+    baris(9005, 'Nutrisi', 'Nutrisi 410 ppm di bawah batas aman 500–1600 ppm', 'critical', sekarang - 52 * 3_600_000, sekarang - 51 * 3_600_000),
+  ];
+}
+
+function alertLogs(limit, sekarang = Date.now()) {
+  const semua = peringatan(sekarang);
+  const aktif = semua.filter((r) => r.sedang_terjadi).length;
+  return { status: true, data: semua.slice(0, limit), total: semua.length, aktif };
+}
+
+function alertRiwayat({ page, perPage, severity }, sekarang = Date.now()) {
+  const selesai = peringatan(sekarang).filter((r) => !r.sedang_terjadi && (severity == null || r.severity === severity));
+  const data = selesai.slice((page - 1) * perPage, page * perPage)
+    .map(({ id, type, value, severity: s, acknowledged, created_at, kunci_kejadian, selesai_pada }) => ({ id, type, value, severity: s, acknowledged, created_at, kunci_kejadian, selesai_pada }));
+  return { status: true, data, total: selesai.length, page, per_page: perPage };
+}
+
+module.exports = { seriMentah, bacaanTerbaru, rataRata, iotStatus, keadaanAlat, latestSensor, riwayat, tarik, chartData, nutrisi, peringatan, alertLogs, alertRiwayat };

@@ -1,0 +1,508 @@
+'use strict';
+/**
+ * Monitoring + endpoint ESP32.
+ *   GET  /monitoring, /monitoring/chart-data, /monitoring/tarik, /monitoring/tarik/csv
+ *   GET  /monitoring/getReport6Jam        (publik)
+ *   POST /monitoring/saveSensor|saveAlert (kompatibilitas CI4 — X-API-KEY)
+ *   GET  /api/latest-sensor               (publik — polling SPA)
+ *   GET  /api/get-thresholds              (X-API-KEY)
+ *   POST /api/save-sensor                 (X-API-KEY)
+ *   POST /api/notif-hardware              (X-API-KEY)
+ */
+const express = require('express');
+const { pool, q, one } = require('../db');
+const cache = require('../cache');
+const { requireApiKey, requireAuth, verifyToken, json } = require('../auth');
+const sesiCookie = require('../sesiCookie');
+const { queryParam } = require('./_id');
+const { tanggalErrors } = require('./_validate');
+const { FISIK } = require('../sanitySensor');
+
+const router = express.Router();
+const api = express.Router();
+
+/* ── helper ────────────────────────────────────────────────────────── */
+async function thresholdsMap() {
+  // ambang jarang berubah → cache 60 dtk (O(1) untuk mayoritas request)
+  return cache.remember('thresholds', 60_000, async () => {
+    const rows = await q('SELECT sensor, min, max FROM sensor_thresholds');
+    const map = {};
+    for (const r of rows) map[r.sensor] = { min: r.min, max: r.max };
+    return map;
+  });
+}
+
+function anomalies(sensor, th) {
+  if (!sensor) return [];
+  const out = [];
+  for (const k of ['waterTemp', 'ph', 'tds', 'airTemp', 'humidity']) {
+    const v = sensor[k];
+    const t = th[k];
+    if (v == null || !t) continue;
+    if ((t.min != null && v < t.min) || (t.max != null && v > t.max)) {
+      out.push({ sensor: k, value: v, min: t.min, max: t.max });
+    }
+  }
+  return out;
+}
+
+async function latestSensorPayload() {
+  // polling 1000 user → cache 2 detik (latency DB jadi O(1) untuk 99% request)
+  return cache.remember('latest-sensor', 2_000, async () => {
+    const latest = await one('SELECT * FROM monitorings ORDER BY created_at DESC LIMIT 1');
+    const wc = await one('SELECT * FROM water_controls ORDER BY id LIMIT 1');
+    const secondsAgo = latest?.created_at
+      ? Math.round((Date.now() - new Date(latest.updated_at || latest.created_at).getTime()) / 1000)
+      : null;
+    return {
+      is_online: secondsAgo != null && secondsAgo <= 120,
+      seconds_ago: secondsAgo,
+      anomalies: anomalies(latest, await thresholdsMap()),
+      sensor: latest,
+      water_control: wc
+        ? { mode: wc.mode, valve_state: wc.valve_state, command: wc.command, updated_at: wc.updated_at }
+        : null,
+    };
+  });
+}
+
+/**
+ * @param {object} data payload sensor (sudah lolos sensorErrors/panjangSensorErrors)
+ * @param {{idMeja?: number|null}} [opsi] penampung asal bacaan — HANYA dari pemanggil yang sudah
+ *   memvalidasinya (rute perangkat); body mentah tidak pernah dibaca untuk kolom ini.
+ */
+/** Antrean per penampung di proses ini: kiriman menunggu TANPA memegang koneksi pool. */
+const antrean = new Map();
+function berurutan(kunci, fn) {
+  const jalan = (antrean.get(kunci) || Promise.resolve()).catch(() => {}).then(fn);
+  antrean.set(kunci, jalan);
+  jalan.catch(() => {}).finally(() => { if (antrean.get(kunci) === jalan) antrean.delete(kunci); });
+  return jalan;
+}
+
+/** Batas umur bacaan antrean firmware (ESP32 menyimpan maks. beberapa jam di RAM). */
+const UMUR_BACAAN_MAKS_DETIK = 86_400;
+
+/**
+ * umur_detik dari firmware: berapa detik lalu bacaan diambil (antrean saat Pi tak terjangkau).
+ * @returns {number|undefined} 0 = bacaan segar/tidak dikirim, undefined = tidak sah
+ */
+function umurBacaanDetik(v) {
+  if (v === undefined || v === null || v === '') return 0;
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isInteger(n) && n >= 0 && n <= UMUR_BACAAN_MAKS_DETIK ? n : undefined;
+}
+
+async function saveSensorRows(data, { idMeja = null, umurDetik = 0 } = {}) {
+  // Bacaan antrean: waktu aslinya = sekarang − umur. Disisipkan apa adanya (tanpa anti-duplikat/"sentuh"
+  // bacaan terakhir) supaya tidak tampak sebagai bacaan segar dan tidak memperpanjang status online.
+  if (umurDetik > 0) return simpanBacaanAntrean(data, idMeja, umurDetik);
+  // Kirim bersamaan untuk penampung yang sama dulu menggandakan baris (snapshot CTE sama → NOT EXISTS lolos
+  // di semua permintaan; terukur 4–20 baris dari 20 kiriman identik). Diurutkan PER PENAMPUNG: antrean di
+  // proses (tidak menghabiskan pool saat banjir) + kunci advisory di transaksi (aman bila >1 proses).
+  // Penampung lain tidak saling menunggu.
+  return berurutan(idMeja == null ? 'tanpa-meja' : String(idMeja), () => simpanTerkunci(data, idMeja));
+}
+
+async function simpanBacaanAntrean(data, idMeja, umurDetik) {
+  const nz = (v) => (v === '' || v === undefined ? null : v);
+  await q(
+    `INSERT INTO monitorings ("waterTemp", ph, tds, "airTemp", humidity, id_meja, created_at, updated_at, ec_ms_cm)
+     VALUES ($1::numeric,$2::numeric,$3::numeric,$4::numeric,$5::numeric,$6::bigint,
+             now() - make_interval(secs => $7), now() - make_interval(secs => $7), $8::numeric)`,
+    [nz(data.waterTemp), nz(data.ph), nz(data.tds), nz(data.airTemp), nz(data.humidity), idMeja, umurDetik, nz(data.ec)]);
+  return 'AUTO';
+}
+
+async function simpanTerkunci(data, idMeja) {
+  const c = await pool.connect();
+  try {
+    await c.query('BEGIN');
+    await c.query("SELECT pg_advisory_xact_lock(hashtext('garap.monitorings'), $1::int)", [idMeja == null ? -1 : Number(idMeja) % 2147483647]);
+    const command = await simpanBaris(c, data, idMeja);
+    await c.query('COMMIT');
+    return command;
+  } catch (e) {
+    await c.query('ROLLBACK').catch(() => {});
+    throw e;
+  } finally {
+    c.release();
+  }
+}
+
+async function simpanBaris(c, data, idMeja) {
+  // SATU round-trip CTE: anti-duplikat (per penampung) + simpan sensor + state katup + angkat
+  // command pending lalu reset ke AUTO (kontrak Laravel dipertahankan).
+  // created_at hanya presisi detik → `id DESC` memecah seri bacaan dalam detik yang sama.
+  // `IS NOT DISTINCT FROM $7` tidak bisa memakai indeks (id_meja, created_at): bila belum ada bacaan untuk penampung itu
+  // (atau id_meja NULL) seluruh tabel dipindai — terukur 11 ms di 200 rb baris, makin lambat seiring data. Bentuk
+  // eksplisit (`IS NULL` / `= $7`) memakai indeks → 0,04 ms. Fragmen konstan, bukan input pengguna.
+  const cocokMeja = idMeja == null ? 'id_meja IS NULL' : 'id_meja = $7::bigint';
+  const { rows } = await c.query(`
+    WITH last AS (
+      SELECT id, "waterTemp", ph, tds, "airTemp", humidity
+      FROM monitorings WHERE ${cocokMeja} ORDER BY created_at DESC, id DESC LIMIT 1
+    ), ins AS (
+      INSERT INTO monitorings ("waterTemp", ph, tds, "airTemp", humidity, id_meja, created_at, updated_at, ec_ms_cm)
+      SELECT $1::numeric,$2::numeric,$3::numeric,$4::numeric,$5::numeric, $7::bigint, now(), now(), $8::numeric
+      WHERE NOT EXISTS (
+        SELECT 1 FROM last WHERE
+          "waterTemp" IS NOT DISTINCT FROM $1 AND ph IS NOT DISTINCT FROM $2 AND
+          tds IS NOT DISTINCT FROM $3 AND "airTemp" IS NOT DISTINCT FROM $4 AND
+          humidity IS NOT DISTINCT FROM $5
+      )
+      RETURNING id
+    ), sentuh AS (
+      -- bacaan identik tidak menambah baris, tetapi sensor jelas masih hidup: tandai bacaan terakhir
+      -- "dikonfirmasi lagi sekarang" (updated_at). Tanpa ini bacaan yang stabil >120 dtk tampak basi:
+      -- status "Alat terhubung" mati & otomasi dosing berhenti padahal sensor mengirim tiap 5 dtk.
+      -- n_konfirmasi/celah_maks_detik: bukti pengamatan untuk evaluasi kestabilan (NULL = baris lama, tidak diketahui)
+      UPDATE monitorings SET updated_at = now(),
+             n_konfirmasi = n_konfirmasi + 1,
+             celah_maks_detik = CASE WHEN celah_maks_detik IS NULL THEN NULL
+               ELSE GREATEST(celah_maks_detik, floor(extract(epoch FROM now() - coalesce(updated_at, created_at)))::int) END
+       WHERE id = (SELECT id FROM last) AND NOT EXISTS (SELECT 1 FROM ins)
+      RETURNING id
+    )
+    UPDATE water_controls SET
+      valve_state = CASE WHEN $6::text IS NULL THEN valve_state
+                         WHEN upper($6) = 'ON' THEN 'ON' ELSE 'OFF' END,
+      command = CASE
+        WHEN mode = 'MANUAL' AND $6::text IS NOT NULL AND upper($6) = 'ON' THEN 'FORCE_STOP'
+        WHEN command <> 'AUTO' THEN 'AUTO'
+        ELSE command END,
+      updated_at = now()
+    RETURNING command, mode`,
+    // G10: '' / undefined → null ('' dikirim apa adanya membuat $n::numeric
+    // melempar 22P02, dulu 500 tersembunyi). HATI-HATI: jangan pakai `||` —
+    // nilai 0 VALID (mis. humidity 0) ikut jadi null (regresi F1 verifier G10);
+    // nz() mempertahankan 0 dan hanya mengosongkan ''/undefined (null tetap null).
+    (() => {
+      const nz = (v) => (v === '' || v === undefined ? null : v);
+      return [nz(data.waterTemp), nz(data.ph), nz(data.tds), nz(data.airTemp),
+        nz(data.humidity), nz(data.solenoid_state), idMeja, nz(data.ec)];
+    })(),
+  );
+  return rows[0]?.command ?? 'AUTO';
+}
+
+/**
+ * G10 — validasi tipe data sensor SEBELUM SQL (temuan: 'tds':'bukan-angka' →
+ * $n::numeric → 22P02/22003 → 500; teks sangat panjang → 22003; NUL → 22021).
+ * YANG DITERIMA: number finite, string numerik (Number()-able), absen, dan null.
+ * '' (kosong) diperlakukan null — konversi dilakukan saveSensorRows, sebab ''
+ * dikirim apa adanya → 22P02 (bug lama tersembunyi). Teks water_level/
+ * solenoid_state bebas tapi tanpa byte NUL.
+ * @returns {Record<string,string[]>} errors per-field (kosong = lolos)
+ */
+function sensorErrors(data) {
+  const NUM = ['waterTemp', 'ph', 'tds', 'ec', 'airTemp', 'humidity'];
+  const errors = {};
+  for (const k of NUM) {
+    const v = data[k];
+    if (v === undefined || v === null || v === '') continue;
+    const ok = typeof v === 'number' ? Number.isFinite(v)
+      : typeof v === 'string' && v.trim() !== '' && Number.isFinite(Number(v));
+    if (!ok) { errors[k] = [`Field ${k} harus berupa angka.`]; continue; }
+    const [min, max] = FISIK[k];
+    if (Number(v) < min || Number(v) > max) errors[k] = [`Field ${k} di luar rentang yang mungkin (${min} sampai ${max}).`];
+  }
+  for (const k of ['solenoid_state']) {
+    const v = data[k];
+    if (typeof v === 'string' && v.includes('\u0000')) errors[k] = [`Field ${k} mengandung karakter terlarang.`];
+  }
+  return errors;
+}
+
+/**
+ * B3 — batas panjang kolom varchar SEBELUM SQL (monitorings.water_level
+ * varchar(20); dulu teks 30 karakter → 22001 'value too long for type
+ * character varying(20)' → 500). sensorErrors() di atas hanya menolak NUL —
+ * panjang dulu lolos ke PostgreSQL.
+ * Sengaja TERPISAH dari sensorErrors(): galat tipe/NUL rute ESP32 ini sudah
+ * lama dijawab 400 (kontrak lama dipertahankan), sedangkan panjang yang dulu
+ * membuat 500 kini dijawab 422 kontrak 'Data tidak valid.' — pesan manusiawi
+ * per-field, tanpa menyentuh status galat tipe yang sudah ada.
+ * @param {Record<string,unknown>} data body sensor
+ * @returns {Record<string,string[]>} errors per-field (kosong = lolos)
+ */
+function panjangSensorErrors(data) {
+  const BATAS = {}; // water_level tidak dipakai lagi (rancangan FINAL: hanya float switch)
+  const errors = {};
+  for (const [k, max] of Object.entries(BATAS)) {
+    const v = data[k];
+    if (typeof v === 'string' && v.length > max) {
+      errors[k] = [`Field ${k} maksimal ${max} karakter.`];
+    }
+  }
+  return errors;
+}
+
+/**
+ * G10 — validasi alert SEBELUM INSERT (kolom live: type varchar(50),
+ * value varchar(100); dulu kepanjangan → 22001 & NUL → 22021 → 500).
+ * @returns {string|null} pesan galat, atau null bila lolos
+ */
+function alertError(type, value) {
+  if (typeof type !== 'string' || typeof value !== 'string') return 'type dan value harus berupa teks.';
+  if (type.includes('\u0000') || value.includes('\u0000')) return 'type/value mengandung karakter terlarang.';
+  if (type.length > 50) return 'type maksimal 50 karakter.';
+  if (value.length > 100) return 'value maksimal 100 karakter.';
+  return null;
+}
+
+/* ── publik ────────────────────────────────────────────────────────── */
+router.get('/getReport6Jam', async (_req, res, next) => {
+  try {
+    const sensor = await one(`
+      SELECT round(avg("waterTemp")::numeric,2) AS "waterTemp", round(avg(ph)::numeric,2) AS ph,
+             round(avg(tds)::numeric,2) AS tds, round(avg("airTemp")::numeric,2) AS "airTemp",
+             round(avg(humidity)::numeric,2) AS humidity
+      FROM monitorings WHERE created_at >= now() - interval '6 hours'`);
+    const alerts = await q("SELECT * FROM alert_logs WHERE created_at >= now() - interval '6 hours' ORDER BY created_at DESC");
+    res.json({ sensor, alerts });
+  } catch (e) { next(e); }
+});
+
+// Guard SAMA dengan POST /api/save-sensor (:requireApiKey) — kedua rute kompatibilitas
+// CI4 ini menulis data, jadi tidak boleh lagi menerima request anonim (BFLA: dulu
+// anonim → 400 'No payload' / bahkan 200). Klien lama cukup menambah header X-API-KEY.
+router.post('/saveSensor', requireApiKey, async (req, res, next) => {
+  try {
+    const data = req.body || {};
+    if (!Object.keys(data).length) return json(res, 400, { status: 'error', message: 'No payload' });
+    // G10 — tipe data sensor divalidasi SEBELUM SQL (dulu 500 22P02/22003).
+    // B3 — panjang kolom varchar divalidasi SEBELUM SQL (dulu 22001 → 500).
+    const panjang = panjangSensorErrors(data);
+    if (Object.keys(panjang).length) {
+      return json(res, 422, { message: 'Data tidak valid.', errors: panjang });
+    }
+    const errs = sensorErrors(data);
+    if (Object.keys(errs).length) {
+      return json(res, 400, { status: 'error', message: 'Data sensor tidak valid.', errors: errs });
+    }
+    const command = await saveSensorRows(data);
+    const mode = (await one('SELECT mode FROM water_controls ORDER BY id LIMIT 1'))?.mode ?? 'AUTO';
+    res.json({ status: 'ok', command, mode, server_time: new Date().toISOString() });
+  } catch (e) { next(e); }
+});
+
+router.post('/saveAlert', requireApiKey, async (req, res, next) => {
+  try {
+    const { type, value } = req.body || {};
+    if (!type || value == null || String(value) === '') return json(res, 400, { status: 'error' });
+    // G10 — panjang type(50)/value(100) & NUL divalidasi SEBELUM SQL (dulu 22001/22021 → 500).
+    const bad = alertError(String(type), String(value));
+    if (bad) return json(res, 400, { status: 'error', message: bad });
+    await q('INSERT INTO alert_logs (type, value, created_at, updated_at) VALUES ($1,$2, now(), now())', [type, String(value)]);
+    res.json({ status: 'ok' });
+  } catch (e) { next(e); }
+});
+
+/* ── terproteksi (web) ─────────────────────────────────────────────── */
+router.get('/', requireAuth, async (_req, res, next) => {
+  try { res.json({ page: 'monitoring' }); } catch (e) { next(e); }
+});
+
+/**
+ * Grafik Nutrisi (menu Sensor): ppm aktual, target di alat, rencana target, dan kejadian dosing — src/nutrisiGrafik.js.
+ * ?hari=1–14 (bawaan 7) · ?id_meja= (bawaan: meja batch berjalan terbaru). Modul dimuat malas (menghindari siklus impor).
+ */
+router.get('/nutrisi', requireAuth, async (req, res, next) => {
+  try {
+    const N = require('../nutrisiGrafik');
+    if (req.user?.demo) return res.json(require('../demoData').nutrisi(req.query.hari));
+    const idMeja = /^\d{1,18}$/.test(String(req.query.id_meja ?? '')) ? req.query.id_meja : null;
+    res.json(await N.dataNutrisi({ hari: req.query.hari, idMeja }));
+  } catch (e) { next(e); }
+});
+
+router.get('/chart-data', requireAuth, async (req, res, next) => {
+  try {
+    if (req.user?.demo) return res.json(require('../demoData').chartData());
+    const rows = await q('SELECT * FROM monitorings ORDER BY created_at DESC LIMIT 288');
+    res.json(rows.reverse());
+  } catch (e) { next(e); }
+});
+
+/**
+ * Riwayat sensor untuk grafik: rata-rata per interval (titik ≤ ±600), bukan 288 bacaan terakhir.
+ *   ?dari & ?sampai (ISO/tanggal, bawaan 24 jam sampai sekarang) · ?interval=detik (bawaan otomatis dari panjang rentang)
+ * Rentang maks 92 hari. Waktu titik = awal interval, dalam jam dinding yang sama dengan kolom created_at.
+ */
+const INTERVAL_DETIK = [30, 60, 120, 300, 600, 900, 1800, 3600, 7200, 14400, 21600, 43200, 86400];
+const RENTANG_MAKS_MS = 92 * 24 * 3_600_000;
+const TITIK_TARGET = 600;
+function intervalOtomatis(spanMs) {
+  const perlu = spanMs / 1000 / TITIK_TARGET;
+  return INTERVAL_DETIK.find((n) => n >= perlu) ?? INTERVAL_DETIK[INTERVAL_DETIK.length - 1];
+}
+
+router.get('/riwayat', requireAuth, async (req, res, next) => {
+  try {
+    const dariQ = queryParam(req.query, 'dari');
+    const sampaiQ = queryParam(req.query, 'sampai');
+    const tglErr = tanggalErrors(dariQ, sampaiQ);
+    if (Object.keys(tglErr).length) return res.status(422).json({ message: 'Data tidak valid.', errors: tglErr });
+    const sampaiMs = sampaiQ ? Date.parse(sampaiQ) : Date.now();
+    const dariMs = dariQ ? Date.parse(dariQ) : sampaiMs - 24 * 3_600_000;
+    if (!Number.isFinite(dariMs) || !Number.isFinite(sampaiMs) || dariMs > sampaiMs) {
+      return res.status(422).json({ message: 'Rentang tidak sah: "dari" harus sebelum "sampai".', errors: { dari: ['Harus sebelum atau sama dengan sampai.'] } });
+    }
+    if (sampaiMs - dariMs > RENTANG_MAKS_MS) {
+      return res.status(422).json({ message: 'Rentang maksimal 92 hari.', errors: { dari: ['Pilih rentang yang lebih pendek (maks 92 hari).'] } });
+    }
+    const pilih = Number(queryParam(req.query, 'interval'));
+    const interval = INTERVAL_DETIK.includes(pilih) ? pilih : intervalOtomatis(sampaiMs - dariMs);
+    if (req.user?.demo) {
+      return res.json({ dari: new Date(dariMs).toISOString(), sampai: new Date(sampaiMs).toISOString(), interval_detik: interval,
+        titik: require('../demoData').riwayat(dariMs, sampaiMs, interval) });
+    }
+    const rows = await q(
+      `SELECT (to_timestamp(b * $3::int) AT TIME ZONE 'UTC') AS waktu, ph, "waterTemp", tds, ec_ms_cm, "airTemp", humidity, n
+         FROM (SELECT floor(extract(epoch FROM created_at) / $3::int)::bigint AS b,
+                      avg(ph) AS ph, avg("waterTemp") AS "waterTemp", avg(tds) AS tds, avg(ec_ms_cm) AS ec_ms_cm,
+                      avg("airTemp") AS "airTemp", avg(humidity) AS humidity, count(*)::int AS n
+                 FROM monitorings
+                WHERE created_at >= $1::timestamptz AND created_at <= $2::timestamptz
+                GROUP BY 1) x
+        ORDER BY b`,
+      [new Date(dariMs).toISOString(), new Date(sampaiMs).toISOString(), interval]);
+    res.json({ dari: new Date(dariMs).toISOString(), sampai: new Date(sampaiMs).toISOString(), interval_detik: interval, titik: rows });
+  } catch (e) { next(e); }
+});
+
+router.get('/tarik', requireAuth, async (req, res, next) => {
+  try {
+    // queryParam: normalisasi case filter (?DARI/ ?SAMPAI/ ?PER_PAGE — _id.js).
+    const dari = queryParam(req.query, 'dari');
+    const sampai = queryParam(req.query, 'sampai');
+    const perPage = queryParam(req.query, 'per_page') ?? 10;
+    // G10 — tanggal query divalidasi SEBELUM SQL (dulu 500 22007/22008).
+    const tglErr = tanggalErrors(dari, sampai);
+    if (Object.keys(tglErr).length) {
+      return res.status(422).json({ message: 'Data tidak valid.', errors: tglErr });
+    }
+    const allowed = [10, 25, 50, 100];
+    const limit = allowed.includes(Number(perPage)) ? Number(perPage) : 10;
+    // halaman bernomor (dulu ?page diabaikan: "muat lagi" tidak pernah mengambil data lebih lama) + total baris pada rentang itu
+    const pageQ = Number(queryParam(req.query, 'page'));
+    const page = Number.isInteger(pageQ) && pageQ >= 1 && pageQ <= 100_000 ? pageQ : 1;
+    if (req.user?.demo) return res.json(require('../demoData').tarik({ dari, sampai, page, limit }));
+    const saring = [dari || null, sampai || null];
+    const [rows, jumlah] = await Promise.all([
+      q(`SELECT * FROM monitorings
+          WHERE ($1::timestamptz IS NULL OR created_at >= $1) AND ($2::timestamptz IS NULL OR created_at <= $2)
+          ORDER BY created_at DESC, id DESC LIMIT $3 OFFSET $4`, [...saring, limit, (page - 1) * limit]),
+      one(`SELECT count(*)::int AS n FROM monitorings
+            WHERE ($1::timestamptz IS NULL OR created_at >= $1) AND ($2::timestamptz IS NULL OR created_at <= $2)`, saring),
+    ]);
+    res.json({ dari, sampai, data: rows, total: jumlah.n, page, per_page: limit });
+  } catch (e) { next(e); }
+});
+
+router.get('/tarik/csv', requireAuth, async (req, res, next) => {
+  try {
+    if (req.user?.demo) return res.status(403).json({ message: 'Mode demo tidak dapat mengunduh data sensor.' });
+    const dari = queryParam(req.query, 'dari');
+    const sampai = queryParam(req.query, 'sampai');
+    // G10 — sama dgn /tarik (validasi tanggal sebelum SQL, 422 per-field).
+    const tglErr = tanggalErrors(dari, sampai);
+    if (Object.keys(tglErr).length) {
+      return res.status(422).json({ message: 'Data tidak valid.', errors: tglErr });
+    }
+    const BATAS_CSV = 50000; // ±5 hari pada bacaan tiap ~9 dtk; sama dengan ekspor analitik
+    const baris = await q(
+      `SELECT * FROM monitorings
+       WHERE ($1::timestamptz IS NULL OR created_at >= $1) AND ($2::timestamptz IS NULL OR created_at <= $2)
+       ORDER BY created_at DESC, id DESC LIMIT ${BATAS_CSV + 1}`,
+      [dari || null, sampai || null],
+    );
+    const terpotong = baris.length > BATAS_CSV;     // yang terbaru tetap ikut; yang paling lama terpotong
+    const rows = baris.slice(0, BATAS_CSV).reverse();
+    const dua = (n) => String(n).padStart(2, '0');
+    const waktu = (d) => (d instanceof Date && !Number.isNaN(d.getTime())
+      ? `${d.getFullYear()}-${dua(d.getMonth() + 1)}-${dua(d.getDate())} ${dua(d.getHours())}:${dua(d.getMinutes())}:${dua(d.getSeconds())}` : '');
+    const lines = ['WAKTU,SUHU AIR (C),PH,NUTRISI (PPM),EC (MS/CM),SUHU UDARA (C),KELEMBAPAN (%)'];
+    for (const r of rows) {
+      lines.push([waktu(r.created_at), r.waterTemp, r.ph, r.tds, r.ec_ms_cm, r.airTemp, r.humidity].join(','));
+    }
+    if (terpotong) lines.push(`# DIPOTONG: hanya ${BATAS_CSV} bacaan terbaru pada rentang ini. Persempit rentang untuk data lebih lama.`);
+    res.setHeader('X-Terpotong', terpotong ? '1' : '0');
+    res.setHeader('Content-Type', 'text/csv; charset=UTF-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="sensor.csv"');
+    res.send('\uFEFF' + lines.join('\n'));
+  } catch (e) { next(e); }
+});
+
+/* ── API ESP32 ─────────────────────────────────────────────────────── */
+api.get('/latest-sensor', async (req, res, next) => {
+  try {
+    const header = req.headers.authorization || '';
+    const bearer = header.startsWith('Bearer ') ? header.slice(7) : null;
+    const token = bearer || sesiCookie.bacaCookie(req, sesiCookie.NAMA_SESI);
+    if (token) {
+      const u = verifyToken(token);
+      if (u?.demo) {
+        return res.json(require('../demoData').latestSensor());
+      }
+    }
+    res.json(await latestSensorPayload());
+  } catch (e) { next(e); }
+});
+
+api.get('/get-thresholds', requireApiKey, async (_req, res, next) => {
+  try {
+    const th = await thresholdsMap();
+    const fallback = {
+      waterTemp: { min: 20.0, max: 35.0 }, ph: { min: 5.5, max: 6.5 },
+      tds: { min: 500.0, max: 1000.0 }, airTemp: { min: 20.0, max: 40.0 },
+      humidity: { min: 50.0, max: 90.0 },
+    };
+    res.json({ status: true, thresholds: Object.keys(th).length ? th : fallback, fetched_at: new Date().toISOString() });
+  } catch (e) { next(e); }
+});
+
+api.post('/save-sensor', requireApiKey, async (req, res, next) => {
+  try {
+    const data = req.body || {};
+    if (!Object.keys(data).length) return json(res, 400, { status: 'error', message: 'No payload' });
+    // G10 — validasi tipe sensor sebelum SQL (sama dgn /monitoring/saveSensor).
+    // B3 — panjang kolom varchar divalidasi SEBELUM SQL (dulu 22001 → 500).
+    const panjang = panjangSensorErrors(data);
+    if (Object.keys(panjang).length) {
+      return json(res, 422, { message: 'Data tidak valid.', errors: panjang });
+    }
+    const errs = sensorErrors(data);
+    if (Object.keys(errs).length) {
+      return json(res, 400, { status: 'error', message: 'Data sensor tidak valid.', errors: errs });
+    }
+    const command = await saveSensorRows(data);
+    const mode = (await one('SELECT mode FROM water_controls ORDER BY id LIMIT 1'))?.mode ?? 'AUTO';
+    res.json({ status: 'ok', command, mode, server_time: new Date().toISOString() });
+  } catch (e) { next(e); }
+});
+
+api.post('/notif-hardware', requireApiKey, async (req, res, next) => {
+  try {
+    const { type, value } = req.body || {};
+    if (type == null || String(type).trim() === '' || value == null || String(value).trim() === '') {
+      return json(res, 400, { status: false, msg: 'type dan value wajib' });
+    }
+    // G10 — panjang/NUL tipe alert divalidasi sebelum SQL (gaya respon endpoint ini).
+    const bad = alertError(String(type), String(value));
+    if (bad) return json(res, 400, { status: false, msg: bad });
+    const cooldown = { solenoid: 60 }[type] ?? 600;
+    const last = await one(
+      'SELECT created_at FROM alert_logs WHERE type = $1 AND value = $2 ORDER BY created_at DESC LIMIT 1',
+      [type, String(value)],
+    );
+    if (last && (Date.now() - new Date(last.created_at).getTime()) / 1000 < cooldown) {
+      return res.json({ status: 'cooldown' });
+    }
+    await q('INSERT INTO alert_logs (type, value, created_at, updated_at) VALUES ($1,$2, now(), now())', [type, String(value)]);
+    res.json({ status: true, type, value });
+  } catch (e) { next(e); }
+});
+
+module.exports = { router, api, saveSensorRows, umurBacaanDetik, sensorErrors, panjangSensorErrors, thresholdsMap, latestSensorPayload };
