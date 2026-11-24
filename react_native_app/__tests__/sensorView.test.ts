@@ -1,4 +1,4 @@
-import { sensorView, LatestSensor } from '@/features/beranda/sensorView';
+import { sensorView, rangeLayout, LatestSensor } from '@/features/beranda/sensorView';
 
 const base: LatestSensor = {
   is_online: true,
@@ -30,3 +30,23 @@ test('tanpa data sensor -> nilai null, status Menunggu data', () => {
   const v = sensorView({ is_online: false, seconds_ago: null, anomalies: [], sensor: null });
   expect(v.metrics[0]).toMatchObject({ value: null, status: 'Menunggu data' });
 });
+
+test('offline -> kartu ditandai stale dan tanpa rentang', () => {
+  const v = sensorView({ ...base, is_online: false, anomalies: [{ sensor: 'tds', value: 1200, min: 50, max: 1000 }] });
+  expect(v.metrics.every((m) => m.stale && m.range === undefined)).toBe(true);
+});
+
+test('anomali online membawa rentang; sensor normal tidak', () => {
+  const v = sensorView({ ...base, anomalies: [{ sensor: 'tds', value: 1200, min: 50, max: 1000 }] });
+  expect(v.metrics.find((m) => m.key === 'tds')).toMatchObject({ stale: false, range: { min: 50, max: 1000, value: 1200 } });
+  expect(v.metrics.find((m) => m.key === 'ph')?.range).toBeUndefined();
+});
+
+test('rangeLayout: pita di dalam trek, nilai di luar batas jatuh setelah pita', () => {
+  const l = rangeLayout({ min: 50, max: 1000, value: 1200 });
+  expect(l.bandStart).toBeGreaterThan(0);
+  expect(l.bandEnd).toBeLessThan(1);
+  expect(l.marker).toBeGreaterThan(l.bandEnd);
+  expect(rangeLayout({ min: 0, max: 10, value: 5 }).marker).toBeCloseTo((l0(5)), 5);
+});
+function l0(v: number) { return (v - (0 - 6)) / 22; }

@@ -57,15 +57,6 @@ export const fonts = {
   display: 'SpaceGrotesk_700Bold',
 } as const;
 
-// Bayangan kartu: #0B2A1B alpha 0x14 (~8%), y=2, blur=14.
-export const shadowCard = {
-  shadowColor: '#0B2A1B',
-  shadowOpacity: 0x14 / 0xff,
-  shadowOffset: { width: 0, height: 2 },
-  shadowRadius: 14,
-  elevation: 2,
-} as const;
-
 // Dock melayang: #0B2A1B alpha 0x26, y=6, blur=18.
 export const shadowDock = {
   shadowColor: '#0B2A1B',

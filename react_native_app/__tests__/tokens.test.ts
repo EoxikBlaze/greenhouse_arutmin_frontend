@@ -1,4 +1,4 @@
-import { dark, light, radius, space, shadowCard } from '@/theme/tokens';
+import { dark, light, radius, space, shadowDock } from '@/theme/tokens';
 
 test('token mengikuti .pen', () => {
   expect(light.accent).toBe('#1E7A55');
@@ -6,7 +6,7 @@ test('token mengikuti .pen', () => {
   expect(radius.card).toBe(20);
   expect(radius.input).toBe(12);
   expect(space.screen).toBe(16);
-  expect(shadowCard.shadowColor).toBe('#0B2A1B');
+  expect(shadowDock.shadowColor).toBe('#0B2A1B');
 });
 
 test('palet gelap punya semua kunci palet terang', () => {

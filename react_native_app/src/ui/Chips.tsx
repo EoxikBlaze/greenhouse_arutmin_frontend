@@ -7,7 +7,7 @@ import { Text } from './Text';
 export function Chips<K extends string>({ options, value, onChange }: { options: readonly { key: K; label: string }[]; value: K; onChange: (k: K) => void }) {
   const c = useColors();
   return (
-    <View accessibilityRole="tablist" style={{ flexDirection: 'row', gap: 8 }}>
+    <View accessibilityRole="tablist" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {options.map((o) => {
         const on = o.key === value;
         return (

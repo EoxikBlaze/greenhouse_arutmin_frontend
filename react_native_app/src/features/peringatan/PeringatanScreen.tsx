@@ -29,6 +29,8 @@ export function PeringatanScreen() {
   const items = (q.data?.rows ?? []).map(alertView);
   const initials = (user?.username ?? '?').slice(0, 2).toUpperCase();
 
+  // Backend belum punya severity: semua baris "Info". Chip yang sama di setiap baris tidak memberi informasi.
+  const showLevel = items.some((i) => i.level !== 'info');
   return (
     <ScreenList
       data={items}
@@ -49,9 +51,9 @@ export function PeringatanScreen() {
         return (
           <Tap accessibilityRole="button" accessibilityLabel={`${a.levelLabel}: ${a.judul}`}
             onPress={() => router.navigate({ pathname: '/detail-peringatan', params: { id: a.id } })}>
-            <Panel soft>
+            <Panel>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <StatusChip label={a.levelLabel} tone={s.tone} Icon={s.Icon} />
+                {showLevel ? <StatusChip label={a.levelLabel} tone={s.tone} Icon={s.Icon} /> : null}
                 <Text v="meta">{a.waktu}</Text>
               </View>
               <Text v="bodyStrong">{a.judul}</Text>
