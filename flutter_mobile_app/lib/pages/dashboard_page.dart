@@ -42,6 +42,7 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   Map<String, dynamic>? _data;
+  Map<String, dynamic>? _keselamatan;
   String? _galat;
   bool _memuat = true;
   late final PollTimer _poll;
@@ -79,10 +80,16 @@ class _DashboardPageState extends State<DashboardPage> {
   Future<void> _muat({bool senyap = false}) async {
     if (!senyap) setState(() => _memuat = true);
     try {
-      final d = await widget.api.getJson('/dashboard');
+      final hasil = await Future.wait<dynamic>([
+        widget.api.getJson('/dashboard'),
+        widget.api.getJson('/dashboard/keselamatan').catchError((_) => null),
+      ]);
       if (!mounted) return;
+      final d = hasil[0];
+      final k = hasil[1];
       setState(() {
         _data = d is Map<String, dynamic> ? d : null;
+        if (k is Map<String, dynamic>) _keselamatan = k;
         _galat = _data == null
             ? 'Respons dashboard tidak sesuai kontrak.'
             : null;
@@ -306,39 +313,66 @@ class _DashboardPageState extends State<DashboardPage> {
     final totalBatch =
         n('total_semai') + n('total_peremajaan') + n('total_pendewasaan');
     final s = sensor is Map ? sensor : const <Object?, Object?>{};
-    final kontrol = widget.api.role == 'admin' || widget.api.role == 'demo';
+    final role = widget.api.role;
+    final demo = role == 'demo';
+    final kontrol = role == 'admin' || demo;
     final katup = wc is Map ? '${wc['valve_state'] ?? '—'}' : '—';
     final ket = online ? 'perangkat online' : 'perangkat offline';
+    final estopAktif = _keselamatan != null &&
+        (_keselamatan!['estop_server'] == true ||
+            _keselamatan!['estop_alat'] == true ||
+            _keselamatan!['estop_fisik'] == true);
 
     final kpi = <Kpi>[
-      Kpi('pH', Ikon.tetes, keDouble(s['ph']), 2, '', ket, Sorot.hijau),
+      Kpi(
+        'pH',
+        Ikon.tetes,
+        demo ? null : keDouble(s['ph']),
+        2,
+        '',
+        demo ? 'Akun demo' : ket,
+        Sorot.hijau,
+        teks: demo ? 'Disembunyikan' : null,
+      ),
       Kpi(
         'Suhu air',
         Ikon.kalibrasi,
-        keDouble(s['waterTemp']),
+        demo ? null : keDouble(s['waterTemp']),
         1,
         ' °C',
-        ket,
+        demo ? 'Akun demo' : ket,
         Sorot.kaca,
+        teks: demo ? 'Disembunyikan' : null,
       ),
-      Kpi('TDS', Ikon.dosing, keDouble(s['tds']), 0, ' ppm', ket, Sorot.emas),
+      Kpi(
+        'TDS',
+        Ikon.dosing,
+        demo ? null : keDouble(s['tds']),
+        0,
+        ' ppm',
+        demo ? 'Akun demo' : ket,
+        Sorot.emas,
+        teks: demo ? 'Disembunyikan' : null,
+      ),
       Kpi(
         'Suhu udara',
         Ikon.sensor,
-        keDouble(s['airTemp']),
+        demo ? null : keDouble(s['airTemp']),
         1,
         ' °C',
-        ket,
+        demo ? 'Akun demo' : ket,
         Sorot.kaca,
+        teks: demo ? 'Disembunyikan' : null,
       ),
       Kpi(
         'Kelembapan',
         Ikon.air,
-        keDouble(s['humidity']),
+        demo ? null : keDouble(s['humidity']),
         0,
         ' %',
-        ket,
+        demo ? 'Akun demo' : ket,
         Sorot.kaca,
+        teks: demo ? 'Disembunyikan' : null,
       ),
       Kpi(
         'Level tandon',
@@ -346,9 +380,9 @@ class _DashboardPageState extends State<DashboardPage> {
         null,
         0,
         '',
-        katup == '—' ? 'Katup —' : 'Katup $katup',
+        demo ? 'Akun demo' : (katup == '—' ? 'Katup —' : 'Katup $katup'),
         Sorot.kaca,
-        teks: '${s['water_level'] ?? '—'}',
+        teks: demo ? 'Disembunyikan' : '${s['water_level'] ?? '—'}',
       ),
     ];
 
@@ -379,8 +413,32 @@ class _DashboardPageState extends State<DashboardPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (estopAktif || _putus || demo) ...[
+          BannerGlobalGarap(
+            estopAktif: estopAktif,
+            hpOffline: _putus,
+            modeDemo: demo,
+          ),
+          const SizedBox(height: Tok.sp3),
+        ],
         if (_putus && _sukses != null) ...[
           BannerBasi(sejak: _sukses!),
+          const SizedBox(height: Tok.sp3),
+        ],
+        if (demo) ...[
+          Panel(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Sensor disembunyikan', style: Tok.h3),
+                const SizedBox(height: 4),
+                Text(
+                  'Akun demo tidak menampilkan nilai sensor. Semua data hanya baca saja, tanpa AI.',
+                  style: Tok.kecil,
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: Tok.sp3),
         ],
         FadeUp(

@@ -35,7 +35,7 @@ const AKSI: Record<string, string> = {
   KONFIGURASI: 'Konfigurasi meja', SEMAI: 'Mulai semai', TARGET: 'Ubah target', PANEN: 'Panen', PEMELIHARAAN: 'Mode pemeliharaan',
   BUKA_KUNCI: 'Buka kunci', OTOMASI: 'Izin otomasi', KAL_SENSOR: 'Kalibrasi sensor', KALIBRASI: 'Simpan kalibrasi',
   BALIK_KALIBRASI: 'Kembalikan kalibrasi', UJI_POMPA: 'Tes pompa', STOP: 'STOP pompa', STOP_DARURAT: 'STOP darurat', ISI_AIR: 'Isi air', STATUS: 'Minta status',
-  JADWAL: 'Jadwal alat', DOSIS: 'Dosis', ph: 'pH', ec: 'EC', pulsa_peristaltik: 'Laju pompa',
+  JADWAL: 'Jadwal alat', OTA: 'Pembaruan firmware', KONSOL: 'Perintah konsol alat', DOSIS: 'Dosis', ph: 'pH', ec: 'EC', pulsa_peristaltik: 'Laju pompa',
 }
 export const labelAktivitas = (a: string): string => AKSI[a] ?? a
 

@@ -44,6 +44,8 @@ class _PengaturanPageState extends State<PengaturanPage> {
   final _setupSvc = SetupService();
   SetupProgress? _progres;
   Map<String, dynamic>? _aktuator;
+  Map<String, dynamic>? _keselamatan;
+  List<Map<String, dynamic>> _perintah = const [];
   bool _sibuk = false;
   late final PollTimer _poll;
 
@@ -77,16 +79,145 @@ class _PengaturanPageState extends State<PengaturanPage> {
     try {
       final p = await _setupSvc.muatStatusSetup(widget.api);
       Map<String, dynamic>? akt;
+      Map<String, dynamic>? kes;
+      List<Map<String, dynamic>>? per;
       if (_pengelola) {
-        final res = await widget.api.getJson('/api/aktuator/status').catchError((_) => null);
-        if (res is Map<String, dynamic>) akt = res;
+        final hasil = await Future.wait<dynamic>([
+          widget.api.getJson('/api/aktuator/status').catchError((_) => null),
+          widget.api.getJson('/dashboard/keselamatan').catchError((_) => null),
+          widget.api
+              .getJson('/api/aktuator/perintah?batas=5')
+              .catchError((_) => null),
+        ]);
+        if (hasil[0] is Map<String, dynamic>) akt = hasil[0] as Map<String, dynamic>;
+        if (hasil[1] is Map<String, dynamic>) kes = hasil[1] as Map<String, dynamic>;
+        if (hasil[2] is Map && hasil[2]['data'] is List) {
+          per = (hasil[2]['data'] as List)
+              .whereType<Map<Object?, Object?>>()
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList();
+        }
       }
       if (!mounted) return;
       setState(() {
         _progres = p;
         if (akt != null) _aktuator = akt;
+        if (kes != null) _keselamatan = kes;
+        if (per != null) _perintah = per;
       });
     } catch (_) {}
+  }
+
+  Future<void> _konfirmasiDarurat({required bool estop}) async {
+    final demo = widget.api.role == 'demo';
+    final judul = estop ? 'Jalankan E-STOP darurat?' : 'Hentikan pompa sekarang?';
+    final isi = estop
+        ? 'Permintaan E-STOP dikirim. Tunggu konfirmasi perangkat; jika alat tidak merespons, gunakan E-STOP fisik.'
+        : 'Permintaan STOP pompa dikirim. Tunggu konfirmasi perangkat; jika pompa tidak berhenti, gunakan E-STOP fisik.';
+    final ok = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      showDragHandle: true,
+      builder: (ctx) => SheetKaca(
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(judul, style: Tok.h2),
+                const SizedBox(height: 8),
+                Text(isi, style: Tok.body),
+                const SizedBox(height: 12),
+                Text(
+                  'Alur: Menunggu → Terkirim → Selesai / Ditolak / Kedaluwarsa. Status Terkirim belum berarti selesai.',
+                  style: Tok.kecil,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(ctx).pop(false),
+                        child: const Text('Batal'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Tok.error,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: demo ? null : () => Navigator.of(ctx).pop(true),
+                        child: const Text('Kirim ke antrean'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (ok != true || !mounted) return;
+    if (estop) {
+      await _kirimAksiAlat(
+        '/api/aktuator/estop',
+        {'aktif': true, 'alasan': 'E-STOP darurat dari menu Alat mobile'},
+        'Permintaan E-STOP darurat dikirim ke antrean.',
+      );
+    } else {
+      await _kirimAksiAlat(
+        '/api/aktuator/perintah',
+        {'tipe': 'STOP', 'alasan': 'STOP pompa dari menu Alat mobile'},
+        'Permintaan STOP pompa dikirim ke antrean.',
+      );
+    }
+  }
+
+  void _bukaKalibrasiLihatSaja() {
+    final kal = _progres?.kalibrasi ?? const <String, dynamic>{};
+    final ph = kal['ph'] is Map ? kal['ph'] as Map<Object?, Object?> : const <Object?, Object?>{};
+    final ph4 = ph['baca4']?.toString() ?? 'Belum ada data';
+    final ph6 = ph['baca7']?.toString() ?? 'Belum ada data';
+    final tgl = ph['waktu']?.toString() ?? 'Belum pernah';
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      showDragHandle: true,
+      builder: (ctx) => SheetKaca(
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Data kalibrasi (baca saja)', style: Tok.h2),
+                const SizedBox(height: 6),
+                Text(
+                  'Kalibrasi hanya menampilkan data terakhir. Pengaturan ulang dilakukan petugas di perangkat.',
+                  style: Tok.kecil,
+                ),
+                const SizedBox(height: 14),
+                _BarisRingkas('Acuan pH 4,01', ph4),
+                _BarisRingkas('Acuan pH 6,86', ph6),
+                _BarisRingkas('Terakhir kalibrasi', tgl),
+                const SizedBox(height: 12),
+                const BannerNonaktif(
+                  'Hanya untuk dilihat · Tidak ada tombol jalankan kalibrasi di layar ringkasan ini.',
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void _bukaWizard({int? langkah}) {
@@ -120,32 +251,6 @@ class _PengaturanPageState extends State<PengaturanPage> {
       if (mounted) tampilkanPesan(context, e.message, galat: true);
     } finally {
       if (mounted) setState(() => _sibuk = false);
-    }
-  }
-
-  Future<void> _ubahServer() async {
-    final ctrl = TextEditingController(text: widget.api.baseUrl);
-    final hasil = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Alamat Server Backend'),
-        content: TextField(
-          controller: ctrl,
-          decoration: const InputDecoration(hintText: 'http://192.168.1.16:8000'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Batal')),
-          FilledButton(onPressed: () => Navigator.of(ctx).pop(ctrl.text.trim()), child: const Text('Simpan')),
-        ],
-      ),
-    );
-    ctrl.dispose();
-    if (hasil != null && hasil.isNotEmpty) {
-      widget.api.aturBaseUrl(hasil);
-      if (mounted) {
-        setState(() {});
-        tampilkanPesan(context, 'Alamat server diubah ke ${widget.api.baseUrl}');
-      }
     }
   }
 
@@ -189,6 +294,114 @@ class _PengaturanPageState extends State<PengaturanPage> {
             ),
           ),
           const SizedBox(height: 14),
+          const _JudulGrup('Keselamatan & Darurat (S40 / S42)'),
+          KacaCair(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Keselamatan',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Kondisi tidak diketahui tidak berarti aman. Periksa panel fisik sebelum bekerja di greenhouse.',
+                  style: TextStyle(fontSize: 12.5, color: Tok.abuTeks),
+                ),
+                const SizedBox(height: 10),
+                _BarisRingkas(
+                  'E-STOP server',
+                  _keselamatan == null
+                      ? 'Tidak diketahui'
+                      : (_keselamatan!['estop_server'] == true ? 'Aktif' : 'Normal'),
+                ),
+                _BarisRingkas(
+                  'E-STOP perangkat',
+                  _keselamatan == null
+                      ? 'Tidak diketahui'
+                      : (_keselamatan!['estop_alat'] == true ? 'Aktif' : 'Normal'),
+                ),
+                _BarisRingkas(
+                  'E-STOP fisik',
+                  _keselamatan == null
+                      ? 'Tidak diketahui'
+                      : (_keselamatan!['estop_fisik'] == true ? 'Aktif' : 'Normal'),
+                ),
+                _BarisRingkas(
+                  'Status dosing',
+                  'Terkunci (informasi)',
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Tok.errorTeks,
+                          side: BorderSide(color: Tok.errorTeks),
+                          minimumSize: const Size(0, 48),
+                        ),
+                        onPressed: _admin && !_sibuk
+                            ? () => _konfirmasiDarurat(estop: false)
+                            : null,
+                        icon: const Icon(Ikon.berhenti, size: 18),
+                        label: const Text('STOP pompa'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Tok.error,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(0, 48),
+                        ),
+                        onPressed: _admin && !_sibuk
+                            ? () => _konfirmasiDarurat(estop: true)
+                            : null,
+                        icon: const Icon(Ikon.peringatan, size: 18),
+                        label: const Text('E-STOP'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Dua aksi terpisah, masing-masing dengan konfirmasi sendiri: STOP pompa dan E-STOP darurat. Mode demo tidak mengirim perintah.',
+                  style: TextStyle(fontSize: 11.5, color: Tok.abuTeks),
+                ),
+                if (_perintah.isNotEmpty) ...[
+                  const Divider(height: 20),
+                  const Text(
+                    'Status perintah terbaru',
+                    style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Alur: Menunggu → Terkirim → Selesai / Ditolak / Kedaluwarsa. Status Terkirim belum berarti selesai.',
+                    style: TextStyle(fontSize: 11.5, color: Tok.abuTeks),
+                  ),
+                  const SizedBox(height: 8),
+                  for (final p in _perintah.take(3))
+                    _BarisRingkas(
+                      '${p['tipe'] ?? 'PERINTAH'}',
+                      '${p['status'] ?? 'menunggu'}'.toUpperCase(),
+                    ),
+                ],
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: _bukaKalibrasiLihatSaja,
+                    icon: const Icon(Ikon.kalibrasi, size: 16),
+                    label: const Text('Lihat kalibrasi (baca saja)'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
           const _JudulGrup('Langkah Setup & Kalibrasi'),
           KacaCair(
             padding: const EdgeInsets.symmetric(vertical: 6),
@@ -221,30 +434,24 @@ class _PengaturanPageState extends State<PengaturanPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Text('Server API: ${widget.api.baseUrl}', style: TextStyle(fontSize: 12.5, color: Tok.abuTeks)),
                 if (kunci.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Text('Alat terkunci: $kunci', style: TextStyle(fontSize: 12.5, color: Tok.errorTeks, fontWeight: FontWeight.w600)),
                 ],
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: _ubahServer,
-                      icon: const Icon(Ikon.online, size: 16),
-                      label: const Text('Ubah Server'),
-                    ),
-                    if (_admin && kunci.isNotEmpty)
+                if (_admin && kunci.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
                       FilledButton.icon(
                         onPressed: _sibuk ? null : () => _kirimAksiAlat('/api/aktuator/buka-kunci', {}, 'Perintah buka kunci dikirim ke alat.'),
                         icon: const Icon(Ikon.bukaKunci, size: 16),
                         label: const Text('Buka Kunci Alat'),
                       ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -268,6 +475,40 @@ class _PengaturanPageState extends State<PengaturanPage> {
                 if (widget.api.role != 'demo')
                   _ItemPengaturan(Ikon.ai, 'Asisten AI GARAP', 'Tanya agronomi & diagnosa melon', () => bukaHalamanApp(context, AsistenPage(api: widget.api, tanpaAppBar: true), judul: 'Asisten GARAP')),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BarisRingkas extends StatelessWidget {
+  const _BarisRingkas(this.label, this.nilai);
+
+  final String label;
+  final String nilai;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 13, color: Tok.abuTeks),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            nilai,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Tok.tinta,
             ),
           ),
         ],

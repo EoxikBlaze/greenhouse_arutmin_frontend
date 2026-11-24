@@ -1,6 +1,7 @@
 import { useAuth } from '../lib/authContext'
 import { useIotV41State } from '../lib/iotV41'
 import { TombolStopPompa } from '../components/TombolStopPompa'
+import { TombolEstop } from '../components/TombolEstop'
 import { PageHeader } from '../components/PageHeader'
 import { Pesan } from '../components/kaca/DialogKaca'
 import { PanelSaklarMode } from '../components/dosing/PanelSaklarMode'
@@ -18,6 +19,7 @@ export function SaklarModePage() {
       {iot.error && <Pesan jenis="galat">{iot.error}</Pesan>}
       <PanelSaklarMode iot={iot.data} loading={iot.loading} onReload={() => void iot.reload()} />
       {role === 'admin' && <TombolStopPompa />}
+      {role === 'admin' && <TombolEstop />}
     </div>
   )
 }

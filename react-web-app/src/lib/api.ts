@@ -3,12 +3,57 @@ import { AUTH_KEY, bearerToken, currentToken, isDemoSession, tokenCsrf } from '.
 
 export const KUNCI_PESAN_SESI = 'vsf_pesan_sesi'
 export const EVENT_SESI_HABIS = 'vsf:sesi-habis'
+export const KUNCI_SERVER_URL = 'vsf_api_base_url'
 
 /**
- * Same-origin (default) — request dilewatkan proxy Vite ke backend
- * (lihat vite.config.ts). Domain/port backend TIDAK diketahui browser.
+ * Apakah aplikasi sedang berjalan di dalam WebView Android APK (file:// atau capacitor://)
+ * atau pengguna telah mengatur URL server backend secara kustom?
  */
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
+export function adalahModeApkAtauKustom(): boolean {
+  if (typeof window === 'undefined') return false
+  const proto = window.location?.protocol ?? ''
+  const host = window.location?.hostname ?? ''
+  const ua = typeof navigator !== 'undefined' ? (navigator.userAgent ?? '') : ''
+  return (
+    proto === 'file:' ||
+    proto === 'capacitor:' ||
+    proto === 'app:' ||
+    host === 'appassets.androidplatform.net' ||
+    ua.includes('GarapAndroidApk')
+  )
+}
+
+export function bacaServerUrl(): string {
+  try {
+    const tersimpan = typeof localStorage !== 'undefined' ? localStorage.getItem(KUNCI_SERVER_URL)?.trim() : ''
+    if (tersimpan) return tersimpan.replace(/\/+$/, '')
+  } catch {
+    /* abaikan */
+  }
+  const envUrl = (import.meta.env.VITE_API_BASE_URL ?? '').trim().replace(/\/+$/, '')
+  if (envUrl) return envUrl
+  if (adalahModeApkAtauKustom()) return 'https://garap.net'
+  return ''
+}
+
+export function aturServerUrl(baru: string): string {
+  const bersih = baru.trim().replace(/\/+$/, '')
+  try {
+    if (bersih) localStorage.setItem(KUNCI_SERVER_URL, bersih)
+    else localStorage.removeItem(KUNCI_SERVER_URL)
+  } catch {
+    /* abaikan */
+  }
+  api.defaults.baseURL = bersih || bacaServerUrl()
+  bersihkanCacheApi()
+  return api.defaults.baseURL ?? ''
+}
+
+/**
+ * Same-origin (default di web) — request dilewatkan proxy Vite/Nginx ke backend.
+ * Di APK Android (file://), otomatis memakai server tersimpan atau https://garap.net.
+ */
+export const API_BASE_URL = bacaServerUrl()
 
 export const api = axios.create({
   baseURL: API_BASE_URL,

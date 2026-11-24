@@ -41,6 +41,7 @@ Future<void> main() async {
   await apiService.pulihkanSesi();
   await PreferensiKaca.muat();
   await PreferensiTema.muat();
+  await PreferensiLatar.muat();
   runApp(const GarapApp());
 }
 
@@ -305,26 +306,37 @@ class _MainShellState extends State<_MainShell> {
   void initState() {
     super.initState();
     final role = apiService.role;
+    final admin = role == 'admin';
     _tab = [
       _Tab(
-        'Dashboard',
+        'Beranda',
         Ikon.beranda,
         (a) => role == 'petani'
             ? BerandaPetani(api: apiService, aktif: a, onBukaTab: _bukaTab)
             : DashboardPage(api: apiService, aktif: a, onBukaTab: _bukaTab),
       ),
       _Tab(
-        'Pantau Semai',
+        'Tanam',
         Ikon.tanam,
         (a) => PantauSemaiPage(api: apiService, aktif: a),
       ),
+      if (admin)
+        _Tab(
+          'Alat',
+          Ikon.ambang,
+          (a) => PengaturanPage(api: apiService, aktif: a),
+        ),
       _Tab(
-        'Pengaturan',
-        Ikon.ambang,
-        (a) => PengaturanPage(api: apiService, aktif: a),
+        'Peringatan',
+        Ikon.peringatan,
+        (a) => PeringatanPage(
+          api: apiService,
+          tanpaAppBar: true,
+          onSelesai: _cekAlertAktif,
+        ),
       ),
       _Tab(
-        'Profil',
+        'Akun',
         Ikon.profil,
         (a) => ProfilPage(api: apiService, aktif: a, onLogout: widget.onLogout),
       ),
@@ -396,18 +408,29 @@ class _MainShellState extends State<_MainShell> {
   /// Dipakai Beranda (menu dan tombol aksi) untuk pindah ke tab lain atau subpage.
   void _bukaTab(String label) {
     if (label == 'Sensor') {
-      _bukaHalaman(SensorPage(api: apiService), 'Sensor Realtime');
+      _bukaHalaman(SensorPage(api: apiService), 'Detail sensor');
       return;
     }
     final peta = {
-      'Beranda': 'Dashboard',
-      'Tanam': 'Pantau Semai',
-      'Kontrol': 'Pengaturan',
-      'Akun': 'Profil',
+      'Dashboard': 'Beranda',
+      'Beranda': 'Beranda',
+      'Pantau Semai': 'Tanam',
+      'Tanam': 'Tanam',
+      'Kontrol': 'Alat',
+      'Pengaturan': 'Alat',
+      'Alat': 'Alat',
+      'Alert': 'Peringatan',
+      'Peringatan': 'Peringatan',
+      'Profil': 'Akun',
+      'Akun': 'Akun',
     };
     final tujuan = peta[label] ?? label;
     final i = _tab.indexWhere((t) => t.label == tujuan);
-    if (i >= 0) _pilih(i);
+    if (i >= 0) {
+      _pilih(i);
+    } else if (tujuan == 'Alat') {
+      _bukaHalaman(PengaturanPage(api: apiService, aktif: true), 'Alat');
+    }
   }
 
   void _pilih(int i) {
@@ -421,12 +444,13 @@ class _MainShellState extends State<_MainShell> {
   }
 
   String _subjudulTab(int i) {
-    if (i < 0 || i >= _tab.length) return 'Dashboard';
+    if (i < 0 || i >= _tab.length) return 'Beranda';
     final l = _tab[i].label;
-    if (l == 'Dashboard') return 'Dashboard';
-    if (l == 'Pantau Semai') return 'Pantau Semai';
-    if (l == 'Pengaturan') return 'Pengaturan';
-    if (l == 'Profil') return 'Profil Akun';
+    if (l == 'Beranda') return 'Beranda';
+    if (l == 'Tanam') return 'Tanam';
+    if (l == 'Alat') return 'Alat';
+    if (l == 'Peringatan') return 'Peringatan';
+    if (l == 'Akun') return 'Akun';
     return l;
   }
 
@@ -565,14 +589,8 @@ class _MainShellState extends State<_MainShell> {
                             _bukaTab('Akun');
                           },
                           onNotifTap: () {
-                            _bukaHalaman(
-                              PeringatanPage(
-                                api: apiService,
-                                tanpaAppBar: true,
-                                onSelesai: _cekAlertAktif,
-                              ),
-                              'Peringatan',
-                            );
+                            if (_halamanDalam != null) _tutupHalaman();
+                            _bukaTab('Peringatan');
                           },
                         );
                       },

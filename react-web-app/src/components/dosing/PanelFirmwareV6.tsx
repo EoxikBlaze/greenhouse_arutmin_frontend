@@ -56,6 +56,10 @@ const NAMA_KUNCI: Record<string, { judul: string; deskripsi: string }> = {
     judul: 'Sensor Tidak Stabil / Rusak',
     deskripsi: 'Sensor pH atau EC tidak valid atau kabel terlepas.',
   },
+  NUTRISI_HABIS: {
+    judul: 'Nutrisi Habis?',
+    deskripsi: 'ppm tidak naik setelah 2x dosing AB berturut-turut. Isi botol A/B, cek selang dan pompa, lalu buka kunci (atau tekan RESET di alat).',
+  },
   EC_CURIGA: {
     judul: 'EC Turun Mendadak (>40%)',
     deskripsi: 'Nilai EC turun drastis tanpa adanya pengisian air tandon. Dosing ditahan otomatis.',

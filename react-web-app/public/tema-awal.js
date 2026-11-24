@@ -6,5 +6,5 @@
     var e = document.documentElement;
     e.dataset.tema = t;
     e.style.colorScheme = t === 'gelap' ? 'dark' : 'light';
-  } catch { /* tema bawaan: terang */ }
+  } catch (err) { /* tema bawaan: terang */ }
 })();

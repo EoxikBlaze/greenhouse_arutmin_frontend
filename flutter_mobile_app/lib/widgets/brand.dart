@@ -504,6 +504,122 @@ class ErrorPanel extends StatelessWidget {
   }
 }
 
+/// Banner global prioritas tinggi sesuai desain GARAP Mobile — Blue Greenhouse v2 & Hemat Peak v3:
+/// Prioritas urutan: `E-STOP Aktif` > `HP Offline` > `Mode Demo`.
+/// Selalu solid/opaque (tidak pernah transparan/blur) agar pesan kritis selalu terbaca jelas
+/// baik di mode HEMAT maupun PEAK.
+class BannerGlobalGarap extends StatelessWidget {
+  const BannerGlobalGarap({
+    super.key,
+    this.estopAktif = false,
+    this.hpOffline = false,
+    this.modeDemo = false,
+  });
+
+  final bool estopAktif;
+  final bool hpOffline;
+  final bool modeDemo;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!estopAktif && !hpOffline && !modeDemo) {
+      return const SizedBox.shrink();
+    }
+
+    final (
+      Color latar,
+      Color tepi,
+      Color warnaJudul,
+      Color warnaIsi,
+      IconData ikon,
+      String judul,
+      String isi,
+    ) = estopAktif
+        ? (
+            const Color(0xFFFBEAE8),
+            const Color(0xFFB3261E),
+            const Color(0xFFB3261E),
+            const Color(0xFF12211A),
+            Ikon.berhenti,
+            'E-STOP Aktif',
+            'Penghentian darurat sedang menyala. Semua pengaturan alat dikunci sampai keadaan kembali aman.',
+          )
+        : hpOffline
+        ? (
+            const Color(0xFFFFF3DC),
+            const Color(0xFF8A5A00),
+            const Color(0xFF8A5A00),
+            const Color(0xFF12211A),
+            Ikon.offline,
+            'HP Offline',
+            'HP tidak terhubung. Semua aksi tulis dinonaktifkan. Untuk keadaan darurat, gunakan E-STOP fisik pada panel.',
+          )
+        : (
+            const Color(0xFFE3F0F9),
+            const Color(0xFF12507F),
+            const Color(0xFF12507F),
+            const Color(0xFF556B5E),
+            Ikon.info,
+            'Mode Demo',
+            'Akun demo hanya baca: tidak mengirim atau mencatat perintah apa pun.',
+          );
+
+    return Semantics(
+      liveRegion: true,
+      container: true,
+      label: '$judul. $isi',
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: latar,
+          borderRadius: BorderRadius.circular(Tok.rKartu),
+          border: Border.all(color: tepi.withValues(alpha: 0.35), width: 1.2),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x140B2A1B),
+              blurRadius: 14,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(ikon, color: warnaJudul, size: 22),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    judul,
+                    style: TextStyle(
+                      fontFamily: Tok.fontJudul,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: warnaJudul,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    isi,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      height: 1.35,
+                      color: warnaIsi,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Banner bila polling gagal tetapi data terakhir masih ditampilkan.
 /// Keterangan fitur yang sedang dinonaktifkan (bukan galat jaringan).
 class BannerNonaktif extends StatelessWidget {

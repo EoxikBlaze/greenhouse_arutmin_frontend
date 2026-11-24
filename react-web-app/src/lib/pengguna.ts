@@ -22,17 +22,17 @@ export const LEVEL_INFO: Record<Level, { label: string; ringkas: string; akses: 
   admin: {
     label: 'Admin',
     ringkas: 'Kelola semua menu dan akun',
-    akses: ['Semua menu kebun', 'Master Data & Siklus Tanam', 'Laporan, Riwayat Audit, Manajemen User'],
+    akses: ['Semua menu Pantau dan Kendali (termasuk Otomasi Alat, STOP dan E-STOP)', 'Siklus Tanam, Kalibrasi, Catatan Aktivitas, Laporan', 'Master Data (Jenis Tanaman, Meja, Uji Lab, Ambang Sensor) dan Manajemen User'],
   },
   user: {
     label: 'User',
     ringkas: 'Memantau kebun, tanpa menu kelola',
-    akses: ['Dashboard, Sensor, Kebun Saya', 'CCTV & Asisten AI', 'Profile sendiri'],
+    akses: ['Dashboard, Sensor, Analisis, Peringatan', 'Kebun Saya, CCTV & Asisten AI', 'Profile sendiri'],
   },
   petani: {
     label: 'Petani',
     ringkas: 'Fokus pada kebun harian',
-    akses: ['Dashboard, Sensor, Kebun Saya', 'CCTV & Asisten AI', 'Profile sendiri'],
+    akses: ['Dashboard, Sensor, Analisis, Peringatan', 'Kebun Saya, CCTV & Asisten AI', 'Profile sendiri'],
   },
 }
 

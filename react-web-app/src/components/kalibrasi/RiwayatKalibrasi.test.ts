@@ -24,4 +24,18 @@ describe('kalibrasiTerpakai', () => {
     ], 'ph')
     expect(r.dikembalikan).toBe('2026-11-12T08:00:00Z')
   })
+
+  it('titik 0 EC yang lebih lama dari titik 1 tidak berlaku (firmware menghapusnya)', () => {
+    const r = kalibrasiTerpakai([
+      baris(3, 'ec', 'Titik 1 diulang', { titik: 1, tegangan: 1.1, acuan: 1.413 }),
+      baris(2, 'ec', 'Titik 0', { titik: 0, tegangan: 0.05, acuan: 0.2 }),
+      baris(1, 'ec', 'Titik 1 lama', { titik: 1, tegangan: 1, acuan: 1.413 }),
+    ], 'ec')
+    expect(r.titik.map((h) => h.titik.titik)).toEqual([1])
+    const sah = kalibrasiTerpakai([
+      baris(3, 'ec', 'Titik 0', { titik: 0, tegangan: 0.05, acuan: 0.2 }),
+      baris(2, 'ec', 'Titik 1', { titik: 1, tegangan: 1, acuan: 1.413 }),
+    ], 'ec')
+    expect(sah.titik.map((h) => h.titik.titik)).toEqual([0, 1])
+  })
 })

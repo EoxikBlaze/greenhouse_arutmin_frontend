@@ -65,11 +65,14 @@ const API_PATHS = [
   '/iot-v41',
   // ── Saklar aktuator (juga rute SPA /saklar), Uji Lab hasil panen, dan daftar peringatan ──
   '/saklar',
+  // ── Pengaturan Alat (parameter firmware) — juga rute SPA: navigasi browser dilayani index.html, fetch ke API ──
+  '/pengaturan-alat',
   '/uji-lab',
   '/alert-logs',
 ]
 
 export default defineConfig({
+  base: './',
   plugins: [react()],
   server: {
     host: '127.0.0.1',

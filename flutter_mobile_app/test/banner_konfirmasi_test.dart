@@ -19,6 +19,52 @@ void main() {
     expect(find.textContaining('3 menit lalu'), findsOneWidget);
   });
 
+  testWidgets('BannerGlobalGarap mematuhi prioritas E-STOP > HP Offline > Mode Demo', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: BannerGlobalGarap(
+            estopAktif: true,
+            hpOffline: true,
+            modeDemo: true,
+          ),
+        ),
+      ),
+    );
+    expect(find.text('E-STOP Aktif'), findsOneWidget);
+    expect(find.text('HP Offline'), findsNothing);
+    expect(find.text('Mode Demo'), findsNothing);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: BannerGlobalGarap(
+            estopAktif: false,
+            hpOffline: true,
+            modeDemo: true,
+          ),
+        ),
+      ),
+    );
+    expect(find.text('HP Offline'), findsOneWidget);
+    expect(find.text('Mode Demo'), findsNothing);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: BannerGlobalGarap(
+            estopAktif: false,
+            hpOffline: false,
+            modeDemo: true,
+          ),
+        ),
+      ),
+    );
+    expect(find.text('Mode Demo'), findsOneWidget);
+  });
+
   testWidgets('konfirmasi: true saat Ya, false saat Batal', (tester) async {
     bool? hasil;
     await tester.pumpWidget(

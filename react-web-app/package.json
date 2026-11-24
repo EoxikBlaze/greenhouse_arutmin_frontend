@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "test": "vitest run",
     "preview": "vite preview",
-    "tema:buat": "node tools/buat-tema-gelap.mjs"
+    "tema:buat": "node tools/buat-tema-gelap.mjs",
+    "apk:build": "npm run build && rm -rf android/app/src/main/assets/www && mkdir -p android/app/src/main/assets/www && cp -R dist/* android/app/src/main/assets/www/ && cd android && ./gradlew assembleRelease && cp app/build/outputs/apk/release/app-release.apk ../GARAP-Vertonik-React-v2.apk"
   },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",

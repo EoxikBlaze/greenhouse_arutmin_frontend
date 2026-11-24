@@ -402,11 +402,71 @@ class RimKaca extends CustomPainter {
       Tok.gelap;
 }
 
+/// Pilihan latar belakang layar sesuai S62 Tentang & Tampilan (Hemat Peak v3.pen):
+/// - [ModeLatar.polos]: latar biru langit polos `#B7E2F9` (`$bg-screen`)
+/// - [ModeLatar.lanskap]: foto lanskap siang (`bg-lanskap.webp`) / malam (`bg-malam.webp`)
+/// - [ModeLatar.greenhouse]: ilustrasi Blue Greenhouse (`greenhouse-background-clean.png`)
+enum ModeLatar { polos, lanskap, greenhouse }
+
+class PenyimpanLatarAman implements PenyimpanNilai {
+  const PenyimpanLatarAman();
+
+  static const _kunci = 'garap_latar';
+  static const _simpan = FlutterSecureStorage();
+
+  @override
+  Future<String?> baca() => _simpan.read(key: _kunci);
+
+  @override
+  Future<void> tulis(String nilai) => _simpan.write(key: _kunci, value: nilai);
+}
+
+/// Preferensi latar belakang & opsi Kurangi Gerakan (S62 Tentang & Tampilan).
+class PreferensiLatar {
+  PreferensiLatar._();
+
+  static final ValueNotifier<ModeLatar> mode = ValueNotifier(ModeLatar.lanskap);
+  static final ValueNotifier<bool> kurangiGerakan = ValueNotifier(false);
+  static PenyimpanNilai penyimpan = const PenyimpanLatarAman();
+
+  static Future<void> muat() async {
+    try {
+      final v = await penyimpan.baca();
+      if (v != null && v.isNotEmpty) {
+        final parts = v.split('|');
+        mode.value = ModeLatar.values.firstWhere(
+          (m) => m.name == parts.first,
+          orElse: () => ModeLatar.lanskap,
+        );
+        if (parts.length > 1) {
+          kurangiGerakan.value = parts[1] == '1';
+        }
+      }
+    } catch (_) {}
+  }
+
+  static Future<void> atur(ModeLatar m) async {
+    mode.value = m;
+    await _simpan();
+  }
+
+  static Future<void> aturKurangiGerakan(bool v) async {
+    kurangiGerakan.value = v;
+    await _simpan();
+  }
+
+  static Future<void> _simpan() async {
+    try {
+      await penyimpan.tulis(
+        '${mode.value.name}|${kurangiGerakan.value ? '1' : '0'}',
+      );
+    } catch (_) {}
+  }
+}
+
 /// Latar untuk ditaruh DI BELAKANG kaca: pemandangan pegunungan & rumah tanam yang
 /// diperkaya lapisan atmosfer baru (`_KabutAuroraPainter` — padanan `.app-latar` +
-/// `.vsf-kabut` di website) sehingga kartu Liquid Glass di atasnya membiaskan
-/// cahaya emas, zamrud, dan biru langit yang seragam antara mode terang (White Mode)
-/// dan mode gelap (Black Mode).
+/// `.vsf-kabut` di website) serta mendukung 3 varian latar S62 (`Polos`, `Lanskap`, `Greenhouse`).
 class LatarCair extends StatelessWidget {
   const LatarCair({super.key});
 
@@ -414,72 +474,100 @@ class LatarCair extends StatelessWidget {
   Widget build(BuildContext context) {
     final ringan = KacaScope.ringan(context);
     final lebarCache = ringan ? 640 : 1280;
-    if (ringan) {
-      return RepaintBoundary(
-        child: IgnorePointer(
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              ColoredBox(
+    return ValueListenableBuilder<ModeLatar>(
+      valueListenable: PreferensiLatar.mode,
+      builder: (context, latar, _) {
+        if (latar == ModeLatar.polos) {
+          return RepaintBoundary(
+            child: IgnorePointer(
+              child: ColoredBox(
                 color: Tok.gelap
-                    ? const Color(0xFF0F172A)
-                    : const Color(0xFFF1F5F9),
+                    ? const Color(0xFF0B1F3A)
+                    : const Color(0xFFB7E2F9),
               ),
-              Image.asset(
-                Tok.gelap
-                    ? 'assets/latar/bg-malam.jpg'
-                    : 'assets/latar/bg-lanskap.jpg',
-                fit: BoxFit.cover,
-                alignment: Alignment.center,
-                cacheWidth: lebarCache,
-                gaplessPlayback: true,
-                excludeFromSemantics: true,
+            ),
+          );
+        }
+
+        final asetSiang = latar == ModeLatar.greenhouse
+            ? 'assets/latar/greenhouse-background-clean.png'
+            : 'assets/latar/bg-lanskap.webp';
+        const asetMalam = 'assets/latar/bg-malam.webp';
+
+        if (ringan) {
+          return RepaintBoundary(
+            child: IgnorePointer(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ColoredBox(
+                    color: Tok.gelap
+                        ? const Color(0xFF0F172A)
+                        : const Color(0xFFB7E2F9),
+                  ),
+                  Image.asset(
+                    Tok.gelap ? asetMalam : asetSiang,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                    cacheWidth: lebarCache,
+                    gaplessPlayback: true,
+                    excludeFromSemantics: true,
+                  ),
+                  ColoredBox(
+                    color: Tok.gelap
+                        ? const Color(0x660B1F3A)
+                        : (latar == ModeLatar.greenhouse
+                              ? const Color(0x4DEAF6FF)
+                              : const Color(0x80EAF6FF)),
+                  ),
+                  CustomPaint(
+                    painter: _KabutAuroraPainter(gelap: Tok.gelap, ringan: true),
+                  ),
+                ],
               ),
-              CustomPaint(
-                painter: _KabutAuroraPainter(gelap: Tok.gelap, ringan: true),
-              ),
-            ],
+            ),
+          );
+        }
+        return RepaintBoundary(
+          child: IgnorePointer(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                const ColoredBox(color: Color(0xFFB7E2F9)),
+                Image.asset(
+                  asetSiang,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.center,
+                  cacheWidth: lebarCache,
+                  gaplessPlayback: true,
+                  excludeFromSemantics: true,
+                ),
+                // foto malam memudar masuk di atas foto siang
+                AnimatedOpacity(
+                  opacity: Tok.gelap ? 1 : 0,
+                  duration: MediaQuery.disableAnimationsOf(context) ||
+                          PreferensiLatar.kurangiGerakan.value
+                      ? Duration.zero
+                      : const Duration(milliseconds: 700),
+                  curve: Tok.ease,
+                  child: Image.asset(
+                    asetMalam,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                    cacheWidth: lebarCache,
+                    gaplessPlayback: true,
+                    excludeFromSemantics: true,
+                  ),
+                ),
+                // Lapisan atmosfer & pendar cahaya baru (padanan .vsf-kabut + aurora web)
+                CustomPaint(
+                  painter: _KabutAuroraPainter(gelap: Tok.gelap, ringan: false),
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    }
-    return RepaintBoundary(
-      child: IgnorePointer(
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            const ColoredBox(color: Color(0xFF4B9BDC)),
-            Image.asset(
-              'assets/latar/bg-lanskap.jpg',
-              fit: BoxFit.cover,
-              alignment: Alignment.center,
-              cacheWidth: lebarCache,
-              gaplessPlayback: true,
-              excludeFromSemantics: true,
-            ),
-            // foto malam memudar masuk di atas foto siang
-            AnimatedOpacity(
-              opacity: Tok.gelap ? 1 : 0,
-              duration: MediaQuery.disableAnimationsOf(context)
-                  ? Duration.zero
-                  : const Duration(milliseconds: 700),
-              curve: Tok.ease,
-              child: Image.asset(
-                'assets/latar/bg-malam.jpg',
-                fit: BoxFit.cover,
-                alignment: Alignment.center,
-                cacheWidth: lebarCache,
-                gaplessPlayback: true,
-                excludeFromSemantics: true,
-              ),
-            ),
-            // Lapisan atmosfer & pendar cahaya baru (padanan .vsf-kabut + aurora web)
-            CustomPaint(
-              painter: _KabutAuroraPainter(gelap: Tok.gelap, ringan: false),
-            ),
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
 }

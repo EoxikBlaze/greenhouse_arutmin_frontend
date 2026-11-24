@@ -491,7 +491,12 @@ class _SheetHasilState extends State<_SheetHasil> {
             '${widget.item['varietas'] ?? 'Batch'} · ${widget.item['meja'] ?? '-'}',
             style: Tok.kecil,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 6),
+          Text(
+            'Pindah tahap dan panen hanya menyimpan CATATAN. Pencatatan ini tidak menggerakkan alat apa pun.',
+            style: Tok.kecil,
+          ),
+          const SizedBox(height: 12),
           Text(
             _jumlah != null
                 ? 'Dari $_jumlah tanaman, berapa yang ${panen ? 'berhasil dipanen' : 'tumbuh baik'}?'

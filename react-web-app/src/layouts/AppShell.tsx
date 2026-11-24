@@ -27,6 +27,7 @@ const TITLES: Record<string, string> = {
   '/peringatan': 'Peringatan',
   '/tanam': 'Kebun Saya',
   '/saklar': 'Otomasi Alat',
+  '/pengaturan-alat': 'Pengaturan Alat',
   '/kalibrasi': 'Kalibrasi',
   '/data': 'Uji Lab',
   '/audit': 'Catatan Aktivitas & Audit',
@@ -35,6 +36,7 @@ const TITLES: Record<string, string> = {
   '/pendewasaan': 'Pendewasaan',
   '/panen': 'Panen',
   '/siklus': 'Durasi Siklus',
+  '/analisis': 'Analisis',
   '/tanaman': 'Jenis Tanaman',
   '/ambang': 'Ambang Sensor',
   '/laporan': 'Laporan',
@@ -66,6 +68,7 @@ const NAV: NavGroup[] = [
     items: [
       { to: '/dashboard', label: 'Dashboard', ikon: 'dashboard' },
       { to: '/sensor-realtime', label: 'Sensor', ikon: 'sensor' },
+      { to: '/analisis', label: 'Analisis', ikon: 'ai' },
       { to: '/peringatan', label: 'Peringatan', ikon: 'peringatan' },
       { to: '/cctv', label: 'CCTV', ikon: 'cctv' },
       { to: '/asisten-ai', label: 'Asisten AI', ikon: 'ai' },
@@ -77,16 +80,7 @@ const NAV: NavGroup[] = [
     items: [
       { to: '/tanam', label: 'Kebun Saya', ikon: 'tanam' },
       { to: '/saklar', label: 'Otomasi Alat', ikon: 'ambang', allow: ADMIN_DEMO },
-    ],
-  },
-  {
-    label: 'DATA',
-    ikon: 'kalibrasi',
-    items: [
-      { to: '/kalibrasi', label: 'Kalibrasi', ikon: 'kalibrasi', allow: ADMIN_DEMO },
-      { to: '/data', label: 'Uji Lab', ikon: 'laporan', allow: ADMIN_DEMO },
-      { to: '/audit', label: 'Catatan Aktivitas', ikon: 'audit', allow: ADMIN_DEMO },
-      { to: '/laporan', label: 'Laporan', ikon: 'laporan', allow: ADMIN_DEMO },
+      { to: '/pengaturan-alat', label: 'Pengaturan Alat', ikon: 'ambang', allow: ['admin'] },
     ],
   },
   {
@@ -100,13 +94,23 @@ const NAV: NavGroup[] = [
     ],
   },
   {
+    label: 'DATA',
+    ikon: 'kalibrasi',
+    items: [
+      { to: '/kalibrasi', label: 'Kalibrasi', ikon: 'kalibrasi', allow: ADMIN_DEMO },
+      { to: '/audit', label: 'Catatan Aktivitas', ikon: 'audit', allow: ADMIN_DEMO },
+      { to: '/laporan', label: 'Laporan', ikon: 'laporan', allow: ADMIN_DEMO },
+    ],
+  },
+  {
     label: 'MASTER DATA',
     ikon: 'meja',
     items: [
       { to: '/tanaman', label: 'Jenis Tanaman', ikon: 'daun', allow: ADMIN_DEMO },
       { to: '/meja', label: 'Meja Tanaman', ikon: 'meja', allow: ADMIN_DEMO },
+      { to: '/data', label: 'Uji Lab', ikon: 'laporan', allow: ADMIN_DEMO },
       { to: '/ambang', label: 'Ambang Sensor', ikon: 'ambang', allow: ADMIN_DEMO },
-      { to: '/user', label: 'Manajemen User', ikon: 'user', allow: ADMIN_DEMO },
+      { to: '/user', label: 'Manajemen User', ikon: 'user', allow: ['admin'] },
     ],
   },
 ]
@@ -504,10 +508,25 @@ export function AppShell() {
         <SiteFooter pekat akun />
       </main>
 
-      {/* Submenu grup aktif di footer: ikon dengan nama halaman di bawahnya. Sembunyikan di /asisten-ai agar tidak menutupi komposer chat. */}
+      {/* Submenu grup aktif di desktop (>=lg); di HP (<lg) tampilkan 5 tab utama GARAP Mobile Blue Greenhouse v2 (Beranda, Tanam, Alat [admin], Peringatan, Akun). */}
       {grupAktif && location.pathname !== '/asisten-ai' && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center px-2 pb-[max(8px,env(safe-area-inset-bottom))] lg:pl-[92px]">
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 hidden justify-center px-2 pb-[max(8px,env(safe-area-inset-bottom))] lg:flex lg:pl-[92px]">
           <PillNav items={grupAktif.items} label={`Submenu ${grupAktif.label}`} className="vsf-pillnav-bawah pointer-events-auto max-w-full" />
+        </div>
+      )}
+      {location.pathname !== '/asisten-ai' && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center px-2 pb-[max(8px,env(safe-area-inset-bottom))] lg:hidden">
+          <PillNav
+            label="Menu utama mobile"
+            className="vsf-pillnav-bawah pointer-events-auto max-w-full"
+            items={[
+              { to: '/dashboard', label: 'Beranda', ikon: 'dashboard' },
+              { to: '/tanam', label: 'Tanam', ikon: 'tanam' },
+              ...(role === 'admin' ? [{ to: '/saklar', label: 'Alat', ikon: 'ambang' as NamaIkon }] : []),
+              { to: '/peringatan', label: 'Peringatan', ikon: 'peringatan' },
+              { to: '/profil', label: 'Akun', ikon: 'profil' },
+            ]}
+          />
         </div>
       )}
 

@@ -1,18 +1,13 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
-import { AppShell } from './layouts/AppShell'
+import { createBrowserRouter, createHashRouter, Navigate } from 'react-router-dom'
+import { adalahModeApkAtauKustom } from './lib/api'
 import { RequireAuth } from './components/RequireAuth'
-import LoginPage from './pages/LoginPage'
 import {
-  DashboardPage,
-  SensorRealtimePage,
-  KebunSayaPage,
+  AnalisisPage,
   CctvPage,
   AsistenAiPage,
   KalibrasiPage,
   DataPage,
   AuditPage,
-  PeringatanPage,
-  SaklarModePage,
   SemaiPage,
   PeremajaanPage,
   PendewasaanPage,
@@ -22,102 +17,114 @@ import {
   AmbangSensorPage,
   LaporanPage,
   ManajemenUserPage,
-  ProfilePage,
 } from './halaman'
 import TentangPage from './pages/TentangPage'
+import PengaturanAlatPage from './pages/PengaturanAlatPage'
 import { GalatHalaman } from './components/GalatHalaman'
+import { HpShell } from './hp/HpShell'
+import { HpLogin } from './hp/HpLogin'
+import { HpBeranda } from './hp/HpBeranda'
+import { HpSensor } from './hp/HpSensor'
+import { HpPeringatan } from './hp/HpPeringatan'
+import { HpTanam } from './hp/HpTanam'
+import { HpAlat } from './hp/HpAlat'
+import { HpAkun } from './hp/HpAkun'
+
 
 /** Guard gaya .pen — semua role yang boleh masuk */
 const ALL: Array<'admin' | 'petani' | 'demo'> = ['admin', 'petani', 'demo']
 /** admin + demo (demo = read-only) */
 const ADMIN_DEMO: Array<'admin' | 'demo'> = ['admin', 'demo']
 
-export const router = createBrowserRouter([
+const buatRouter = adalahModeApkAtauKustom() ? createHashRouter : createBrowserRouter
+
+export const router = buatRouter([
   {
     errorElement: <GalatHalaman />,
     children: [
-  // Landing page publik (dulu halaman Tentang). Login lewat tombol "Login".
-  { path: '/', element: <TentangPage /> },
-  { path: '/login', element: <LoginPage /> },
-  // Halaman publik — bisa dibuka TANPA login (di luar RequireAuth), seperti /login.
-  { path: '/tentang', element: <Navigate to="/" replace /> },
-  {
-    element: <RequireAuth />,
-    children: [
+      // Di APK Android langsung masuk ke halaman Login/Dashboard; di Web tetap Landing page publik.
+      { path: '/', element: adalahModeApkAtauKustom() ? <Navigate to="/dashboard" replace /> : <TentangPage /> },
+      { path: '/login', element: <HpLogin /> },
+      // Halaman publik — bisa dibuka TANPA login (di luar RequireAuth), seperti /login.
+      { path: '/tentang', element: adalahModeApkAtauKustom() ? <TentangPage /> : <Navigate to="/" replace /> },
       {
-        element: <AppShell />,
+        element: <RequireAuth />,
         children: [
-          // 00/01 · semua role
-          { path: '/dashboard', element: <RequireAuth allow={ALL} element={<DashboardPage />} /> },
-          { path: '/sensor', element: <Navigate to="/sensor-realtime" replace /> },
-          { path: '/telemetri', element: <Navigate to="/sensor-realtime" replace /> },
-          { path: '/sensor-realtime', element: <RequireAuth allow={ALL} element={<SensorRealtimePage />} /> },
-          { path: '/peringatan', element: <RequireAuth allow={ALL} element={<PeringatanPage />} /> },
-          { path: '/tanam', element: <RequireAuth allow={ALL} element={<KebunSayaPage />} /> },
-          { path: '/cctv', element: <RequireAuth allow={ALL} element={<CctvPage />} /> },
-          { path: '/asisten-ai', element: <RequireAuth allow={ALL} element={<AsistenAiPage />} /> },
-          { path: '/profil', element: <RequireAuth allow={ALL} element={<ProfilePage />} /> },
-          // menu Target Nutrisi dihapus: resep di Master Data, ubah batch & status target di Kebun Saya
-          { path: '/dosing', element: <Navigate to="/tanam" replace /> },
-          { path: '/kalibrasi', element: <RequireAuth allow={ADMIN_DEMO} element={<KalibrasiPage />} /> },
+          {
+            element: <HpShell />,
+            children: [
+              // 00/01 · semua role
+              { path: '/dashboard', element: <RequireAuth allow={ALL} element={<HpBeranda />} /> },
+              { path: '/sensor', element: <Navigate to="/sensor-realtime" replace /> },
+              { path: '/telemetri', element: <Navigate to="/sensor-realtime" replace /> },
+              { path: '/sensor-realtime', element: <RequireAuth allow={ALL} element={<HpSensor />} /> },
+              { path: '/analisis', element: <RequireAuth allow={ALL} element={<AnalisisPage />} /> },
+              { path: '/peringatan', element: <RequireAuth allow={ALL} element={<HpPeringatan />} /> },
+              { path: '/tanam', element: <RequireAuth allow={ALL} element={<HpTanam />} /> },
+              { path: '/cctv', element: <RequireAuth allow={ALL} element={<CctvPage />} /> },
+              { path: '/asisten-ai', element: <RequireAuth allow={ALL} element={<AsistenAiPage />} /> },
+              { path: '/profil', element: <RequireAuth allow={ALL} element={<HpAkun />} /> },
+              // menu Target Nutrisi dihapus: resep di Master Data, ubah batch & status target di Kebun Saya
+              { path: '/dosing', element: <Navigate to="/tanam" replace /> },
+              { path: '/kalibrasi', element: <RequireAuth allow={ADMIN_DEMO} element={<KalibrasiPage />} /> },
 
-          // Halaman mandiri IoT Hidroponik 1 Penampung v4.1 (sesuai menu sidebar Hidro Control)
-          { path: '/saklar', element: <RequireAuth allow={ADMIN_DEMO} element={<SaklarModePage />} /> },
-          { path: '/dosing-manual', element: <Navigate to="/dashboard" replace /> },
-          // menu yang sudah dihapus: tautan/bookmark lama diarahkan ke penggantinya, bukan 404
-          { path: '/pengaturan-alat', element: <Navigate to="/meja" replace /> },
-          { path: '/pengaturan', element: <Navigate to="/meja" replace /> },
-          { path: '/parameter', element: <Navigate to="/dashboard" replace /> },
-          { path: '/watercontrol', element: <Navigate to="/saklar" replace /> },
-          { path: '/air', element: <Navigate to="/saklar" replace /> },
-          { path: '/kuras-air', element: <Navigate to="/saklar" replace /> },
-          { path: '/pompa', element: <Navigate to="/dashboard" replace /> },
-          { path: '/data', element: <RequireAuth allow={ADMIN_DEMO} element={<DataPage />} /> },
-          { path: '/ujilab', element: <Navigate to="/data" replace /> },
-          { path: '/pemulihan-papan', element: <Navigate to="/kalibrasi" replace /> },
-          { path: '/pulihkan', element: <Navigate to="/kalibrasi" replace /> },
-          { path: '/mqtt-diagnostik', element: <Navigate to="/dashboard" replace /> },
-          { path: '/mqtt', element: <Navigate to="/dashboard" replace /> },
-          { path: '/log', element: <Navigate to="/audit" replace /> },
+              // Halaman mandiri IoT Hidroponik 1 Penampung v4.1 (sesuai menu sidebar Hidro Control)
+              { path: '/saklar', element: <RequireAuth allow={ADMIN_DEMO} element={<HpAlat />} /> },
+              { path: '/dosing-manual', element: <Navigate to="/dashboard" replace /> },
+              // menu yang sudah dihapus: tautan/bookmark lama diarahkan ke penggantinya, bukan 404
+              { path: '/pengaturan-alat', element: <RequireAuth allow={['admin']} element={<PengaturanAlatPage />} /> },
+              { path: '/pengaturan', element: <Navigate to="/meja" replace /> },
+              { path: '/parameter', element: <Navigate to="/dashboard" replace /> },
+              { path: '/watercontrol', element: <Navigate to="/saklar" replace /> },
+              { path: '/air', element: <Navigate to="/saklar" replace /> },
+              { path: '/kuras-air', element: <Navigate to="/saklar" replace /> },
+              { path: '/pompa', element: <Navigate to="/dashboard" replace /> },
+              { path: '/data', element: <RequireAuth allow={ADMIN_DEMO} element={<DataPage />} /> },
+              { path: '/ujilab', element: <Navigate to="/data" replace /> },
+              { path: '/pemulihan-papan', element: <Navigate to="/kalibrasi" replace /> },
+              { path: '/pulihkan', element: <Navigate to="/kalibrasi" replace /> },
+              { path: '/mqtt-diagnostik', element: <Navigate to="/dashboard" replace /> },
+              { path: '/mqtt', element: <Navigate to="/dashboard" replace /> },
+              { path: '/log', element: <Navigate to="/audit" replace /> },
 
-          // 02 · Kebun & Sensor — admin (demo read-only)
+              // 02 · Kebun & Sensor — admin (demo read-only)
 
-          // 03 · Data Tahap + Durasi Siklus — admin (demo read-only)
-          { path: '/semai', element: <RequireAuth allow={ADMIN_DEMO} element={<SemaiPage />} /> },
-          { path: '/peremajaan', element: <RequireAuth allow={ADMIN_DEMO} element={<PeremajaanPage />} /> },
-          { path: '/pendewasaan', element: <RequireAuth allow={ADMIN_DEMO} element={<PendewasaanPage />} /> },
-          { path: '/panen', element: <RequireAuth allow={ADMIN_DEMO} element={<PanenPage />} /> },
-          { path: '/siklus', element: <Navigate to="/dashboard" replace /> },
+              // 03 · Data Tahap + Durasi Siklus — admin (demo read-only)
+              { path: '/semai', element: <RequireAuth allow={ADMIN_DEMO} element={<SemaiPage />} /> },
+              { path: '/peremajaan', element: <RequireAuth allow={ADMIN_DEMO} element={<PeremajaanPage />} /> },
+              { path: '/pendewasaan', element: <RequireAuth allow={ADMIN_DEMO} element={<PendewasaanPage />} /> },
+              { path: '/panen', element: <RequireAuth allow={ADMIN_DEMO} element={<PanenPage />} /> },
+              { path: '/siklus', element: <Navigate to="/tanaman" replace /> },
 
-          // 04 · Master Data — admin (demo read-only)
-          { path: '/tanaman', element: <RequireAuth allow={ADMIN_DEMO} element={<JenisTanamanPage />} /> },
-          { path: '/meja', element: <RequireAuth allow={ADMIN_DEMO} element={<MejaTanamanPage />} /> },
-          { path: '/ambang', element: <RequireAuth allow={ADMIN_DEMO} element={<AmbangSensorPage />} /> },
+              // 04 · Master Data — admin (demo read-only)
+              { path: '/tanaman', element: <RequireAuth allow={ADMIN_DEMO} element={<JenisTanamanPage />} /> },
+              { path: '/meja', element: <RequireAuth allow={ADMIN_DEMO} element={<MejaTanamanPage />} /> },
+              { path: '/ambang', element: <RequireAuth allow={ADMIN_DEMO} element={<AmbangSensorPage />} /> },
 
-          // 05 · Laporan — admin (demo read-only)
-          { path: '/laporan', element: <RequireAuth allow={ADMIN_DEMO} element={<LaporanPage />} /> },
+              // 05 · Laporan — admin (demo read-only)
+              { path: '/laporan', element: <RequireAuth allow={ADMIN_DEMO} element={<LaporanPage />} /> },
 
-          // 06 · Sistem — Manajemen User [admin] + [demo] (demo = admin read-only)
-          { path: '/user', element: <RequireAuth allow={ADMIN_DEMO} element={<ManajemenUserPage />} /> },
-          // 07 · Riwayat Audit — admin + demo (baca saja; backend: requireRole admin)
-          { path: '/audit', element: <RequireAuth allow={ADMIN_DEMO} element={<AuditPage />} /> },
+              // 06 · Sistem — Manajemen User [admin] + [demo] (demo = admin read-only)
+              { path: '/user', element: <RequireAuth allow={['admin']} element={<ManajemenUserPage />} /> },
+              // 07 · Riwayat Audit — admin + demo (baca saja; backend: requireRole admin)
+              { path: '/audit', element: <RequireAuth allow={ADMIN_DEMO} element={<AuditPage />} /> },
 
-          // alias gaya .pen / mockup → resource route Laravel
-          { path: '/master/jenis-tanaman', element: <Navigate to="/tanaman" replace /> },
-          { path: '/master/meja-tanaman', element: <Navigate to="/meja" replace /> },
-          { path: '/master/ambang-sensor', element: <Navigate to="/ambang" replace /> },
-          { path: '/water-control', element: <Navigate to="/dashboard" replace /> },
-          { path: '/tanam-saya', element: <Navigate to="/tanam" replace /> },
-          { path: '/durasi-siklus', element: <Navigate to="/siklus" replace /> },
-          { path: '/manajemen-user', element: <Navigate to="/user" replace /> },
-          { path: '/data-tahap/semai', element: <Navigate to="/semai" replace /> },
-          { path: '/data-tahap/peremajaan', element: <Navigate to="/peremajaan" replace /> },
-          { path: '/data-tahap/pendewasaan', element: <Navigate to="/pendewasaan" replace /> },
-          { path: '/data-tahap/panen', element: <Navigate to="/panen" replace /> },
+              // alias gaya .pen / mockup → resource route Laravel
+              { path: '/master/jenis-tanaman', element: <Navigate to="/tanaman" replace /> },
+              { path: '/master/meja-tanaman', element: <Navigate to="/meja" replace /> },
+              { path: '/master/ambang-sensor', element: <Navigate to="/ambang" replace /> },
+              { path: '/water-control', element: <Navigate to="/dashboard" replace /> },
+              { path: '/tanam-saya', element: <Navigate to="/tanam" replace /> },
+              { path: '/durasi-siklus', element: <Navigate to="/siklus" replace /> },
+              { path: '/manajemen-user', element: <Navigate to="/user" replace /> },
+              { path: '/data-tahap/semai', element: <Navigate to="/semai" replace /> },
+              { path: '/data-tahap/peremajaan', element: <Navigate to="/peremajaan" replace /> },
+              { path: '/data-tahap/pendewasaan', element: <Navigate to="/pendewasaan" replace /> },
+              { path: '/data-tahap/panen', element: <Navigate to="/panen" replace /> },
+            ],
+          },
         ],
       },
     ],
-  },
-],
   },
 ])

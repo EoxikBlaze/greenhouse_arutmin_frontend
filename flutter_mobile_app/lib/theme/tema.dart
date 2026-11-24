@@ -21,23 +21,39 @@ class PenyimpanTemaAman implements PenyimpanNilai {
   Future<void> tulis(String nilai) => _simpan.write(key: _kunci, value: nilai);
 }
 
+/// Pilihan mode tema aplikasi (S62 Tentang & Tampilan):
+/// - [ModeTema.terang]: selalu terang (White Mode)
+/// - [ModeTema.gelap]: selalu gelap (Black Mode / Malam)
+/// - [ModeTema.sistem]: mengikuti pengaturan perangkat
+enum ModeTema { terang, gelap, sistem }
+
 /// Tema terang/gelap aplikasi (padanan `lib/tema.ts` di web). Pilihan disimpan;
 /// tanpa pilihan, mengikuti tema sistem.
 class PreferensiTema {
   PreferensiTema._();
 
   static final ValueNotifier<bool> gelap = ValueNotifier(false);
+  static final ValueNotifier<ModeTema> mode = ValueNotifier(ModeTema.sistem);
   static PenyimpanNilai penyimpan = const PenyimpanTemaAman();
 
   static Future<void> muat() async {
     var g = PlatformDispatcher.instance.platformBrightness == Brightness.dark;
+    var m = ModeTema.sistem;
     try {
       final v = await penyimpan.baca();
-      if (v == 'gelap') g = true;
-      if (v == 'terang') g = false;
+      if (v == 'gelap') {
+        g = true;
+        m = ModeTema.gelap;
+      } else if (v == 'terang') {
+        g = false;
+        m = ModeTema.terang;
+      } else if (v == 'sistem') {
+        m = ModeTema.sistem;
+      }
     } catch (_) {
       // penyimpanan tidak bisa dibaca: ikuti sistem
     }
+    mode.value = m;
     _terapkan(g);
   }
 
@@ -46,12 +62,32 @@ class PreferensiTema {
   static VoidCallback? sesudahGanti;
 
   static Future<void> atur(bool g) async {
+    mode.value = g ? ModeTema.gelap : ModeTema.terang;
     if (g != Tok.gelap) await sebelumGanti?.call();
     _terapkan(g);
     _segarkan();
     sesudahGanti?.call();
     try {
       await penyimpan.tulis(g ? 'gelap' : 'terang');
+    } catch (_) {
+      // tidak tersimpan, tetap berlaku sampai aplikasi ditutup
+    }
+  }
+
+  static Future<void> aturMode(ModeTema m) async {
+    mode.value = m;
+    final g = switch (m) {
+      ModeTema.terang => false,
+      ModeTema.gelap => true,
+      ModeTema.sistem =>
+        PlatformDispatcher.instance.platformBrightness == Brightness.dark,
+    };
+    if (g != Tok.gelap) await sebelumGanti?.call();
+    _terapkan(g);
+    _segarkan();
+    sesudahGanti?.call();
+    try {
+      await penyimpan.tulis(m.name);
     } catch (_) {
       // tidak tersimpan, tetap berlaku sampai aplikasi ditutup
     }

@@ -199,6 +199,7 @@ class _SensorPageState extends State<SensorPage> {
     }
 
     final t = _terbaru!;
+    final demo = widget.api.role == 'demo';
     final online = t['is_online'] == true;
     final ago = keDouble(t['seconds_ago']);
     final s = t['sensor'] is Map
@@ -220,7 +221,9 @@ class _SensorPageState extends State<SensorPage> {
         if (_ambil(e, def.kunci) != null) _ambil(e, def.kunci)!,
     ];
     final tampil = deret.length > 96 ? deret.sublist(deret.length - 96) : deret;
-    final terakhir = tampil.isEmpty
+    final terakhir = demo
+        ? 'Disembunyikan'
+        : tampil.isEmpty
         ? '—'
         : '${fmtAngka(tampil.last, desimal: def.desimal)}'
               '${def.satuan.isEmpty ? '' : ' ${def.satuan}'}';
@@ -230,15 +233,20 @@ class _SensorPageState extends State<SensorPage> {
         Kpi(
           d.label,
           _ikon[d.kunci] ?? Ikon.sensor,
-          keDouble(s[d.kunci]),
+          demo ? null : keDouble(s[d.kunci]),
           d.desimal,
           d.satuan.isEmpty ? '' : ' ${d.satuan}',
-          bermasalah.contains(d.kunci) ? 'di luar batas' : 'normal',
+          demo
+              ? 'Akun demo'
+              : bermasalah.contains(d.kunci)
+              ? 'Anomali · di luar batas'
+              : (online ? 'normal' : 'Data basi'),
           d.kunci == 'ph'
               ? Sorot.hijau
               : d.kunci == 'tds'
               ? Sorot.emas
               : Sorot.kaca,
+          teks: demo ? 'Disembunyikan' : null,
         ),
       Kpi(
         'Perangkat',
@@ -255,8 +263,18 @@ class _SensorPageState extends State<SensorPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (demo) ...[
+          const BannerGlobalGarap(modeDemo: true),
+          const SizedBox(height: 16),
+        ],
         if (_putus && _sukses != null) ...[
           BannerBasi(sejak: _sukses!),
+          const SizedBox(height: 16),
+        ],
+        if (!online && !demo) ...[
+          const BannerNonaktif(
+            'Data basi · Perangkat belum mengirim pembacaan terbaru (lebih dari 120 detik).',
+          ),
           const SizedBox(height: 16),
         ],
         if (anom.isNotEmpty) ...[
@@ -273,8 +291,13 @@ class _SensorPageState extends State<SensorPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${anom.length} nilai di luar batas',
+                          'Anomali terbaca (${anom.length} nilai di luar batas)',
                           style: Tok.h3,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Nilai ini ditandai di luar rentang wajar. Bukan contoh ambang aman.',
+                          style: Tok.kecil,
                         ),
                         const SizedBox(height: 4),
                         for (final a in anom.whereType<Map<Object?, Object?>>())
@@ -365,6 +388,31 @@ class _SensorPageState extends State<SensorPage> {
                   deskripsi: tampil.isEmpty
                       ? null
                       : 'Grafik ${def.label}, ${tampil.length} titik, terakhir $terakhir',
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: Tok.sp4),
+        FadeUp(
+          delay: FadeUp.urutan(3),
+          child: Panel(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Status dosing otomatis', style: Tok.h3),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Ikon.kunci, size: 18, color: Tok.error),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Terkunci · hanya informasi. Dosis tidak dijalankan dari aplikasi.',
+                        style: Tok.kecil,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

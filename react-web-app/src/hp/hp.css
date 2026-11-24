@@ -1,0 +1,86 @@
+/* Layar HP — token dan komponen dari GARAP Mobile · Blue Greenhouse v2 (.pen). Hanya aktif di dalam .hp. */
+.hp {
+  --surface: #ffffff; --surface-soft: #eef4f0; --text-primary: #12211a; --text-secondary: #556b5e;
+  --accent: #1e7a55; --accent-soft: #e4f1eb; --danger: #b3261e; --danger-soft: #fbeae8;
+  --warn: #8a5a00; --warn-soft: #fff3dc; --info: #12507f; --info-soft: #e3f0f9; --border: #d8e3db;
+  --r-card: 20px; --r-input: 12px; --pad-layar: 16px; --bg-screen: #b7e2f9;
+  --bayang: 0 2px 14px rgba(11, 42, 27, 0.08);
+  min-height: 100dvh; background: var(--bg-screen); color: var(--text-primary);
+  font-family: Inter, system-ui, sans-serif; font-size: 16px; line-height: 1.4;
+}
+.hp-isi { display: flex; flex-direction: column; gap: 16px; padding: max(12px, env(safe-area-inset-top)) var(--pad-layar) 128px; max-width: 560px; margin: 0 auto; }
+.hp-wordmark { font: 700 20px 'Space Grotesk', Inter, sans-serif; color: var(--accent); }
+.hp-judul { font: 700 26px 'Space Grotesk', Inter, sans-serif; margin: 0; }
+.hp-sub { color: var(--text-secondary); margin: 0; }
+.hp-kartu { background: var(--surface); border-radius: var(--r-card); box-shadow: var(--bayang); padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.hp-header { display: flex; align-items: center; gap: 12px; background: var(--surface); border-radius: var(--r-card); box-shadow: var(--bayang); padding: 12px 16px; }
+.hp-header h1 { font: 700 20px 'Space Grotesk', Inter, sans-serif; margin: 0; }
+.hp-header p { margin: 0; font-size: 13px; color: var(--text-secondary); }
+.hp-avatar { width: 40px; height: 40px; border-radius: 20px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-weight: 700; }
+.hp-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.hp-metrik .hp-label { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-secondary); }
+.hp-metrik .hp-nilai { font: 700 24px 'Space Grotesk', Inter, sans-serif; }
+.hp-status { font-size: 13px; font-weight: 600; color: var(--warn); }
+.hp-status.ok { color: var(--accent); } .hp-status.bahaya { color: var(--danger); }
+.hp-bagian { display: flex; align-items: center; justify-content: space-between; }
+.hp-bagian h2 { font: 700 18px 'Space Grotesk', Inter, sans-serif; margin: 0; }
+.hp-bagian a, .hp-bagian button { color: var(--accent); font-weight: 600; font-size: 14px; background: none; border: 0; min-height: 44px; padding: 0 4px; }
+.hp-kosong { align-items: center; text-align: center; }
+.hp-kosong strong { font-size: 16px; } .hp-kosong span { font-size: 14px; color: var(--text-secondary); }
+.hp-meta { font-size: 14px; color: var(--text-secondary); margin: 0; }
+.hp-btn { min-height: 52px; border-radius: 26px; border: 0; font: 600 16px Inter, sans-serif; background: var(--accent); color: #fff; padding: 0 20px; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; width: 100%; }
+.hp-btn.sek { background: var(--accent-soft); color: var(--accent); }
+.hp-btn.bahaya { background: var(--danger); }
+.hp-btn:disabled { opacity: 0.55; }
+.hp-field { display: flex; flex-direction: column; gap: 6px; }
+.hp-field label { font-size: 14px; color: var(--text-secondary); }
+.hp-field input, .hp-field textarea { min-height: 52px; border-radius: var(--r-input); border: 1px solid var(--border); background: var(--surface); padding: 0 14px; font: 16px Inter, sans-serif; color: var(--text-primary); }
+.hp-field textarea { padding: 12px 14px; min-height: 96px; }
+.hp-banner { display: flex; gap: 12px; align-items: flex-start; border-radius: var(--r-card); padding: 12px 16px; box-shadow: var(--bayang); background: var(--info-soft); color: var(--info); }
+.hp-banner b { display: block; } .hp-banner span { color: var(--text-secondary); font-size: 14px; }
+.hp-banner.bahaya { background: var(--danger-soft); color: var(--danger); }
+.hp-banner.peringatan { background: var(--warn-soft); color: var(--warn); }
+.hp-chip { display: inline-flex; align-items: center; gap: 4px; border-radius: 12px; padding: 2px 10px; font-size: 13px; font-weight: 600; background: var(--info-soft); color: var(--info); }
+.hp-chip.kritis { background: var(--danger-soft); color: var(--danger); } .hp-chip.peringatan { background: var(--warn-soft); color: var(--warn); }
+.hp-baris { display: flex; align-items: center; gap: 12px; min-height: 48px; justify-content: space-between; text-decoration: none; color: inherit; background: none; border: 0; width: 100%; font: inherit; text-align: left; }
+.hp-baris .hp-label { color: var(--text-secondary); } .hp-baris b { font-weight: 600; }
+.hp-menu { color: var(--text-primary); } .hp-menu svg:first-child { color: var(--accent); }
+.hp-saklar { width: 52px; height: 32px; border-radius: 16px; background: var(--border); padding: 4px; border: 0; display: flex; }
+.hp-saklar[aria-checked='true'] { background: var(--accent); justify-content: flex-end; }
+.hp-saklar i { width: 24px; height: 24px; border-radius: 12px; background: #fff; }
+.hp-dock-wrap { position: fixed; inset: auto 0 0 0; padding: 0 12px max(14px, env(safe-area-inset-bottom)); z-index: 30; pointer-events: none; }
+.hp-dock { pointer-events: auto; max-width: 560px; margin: 0 auto; background: var(--surface); border-radius: 31px; box-shadow: 0 6px 18px rgba(11, 42, 27, 0.15); display: flex; gap: 4px; padding: 6px; }
+.hp-dock a { flex: 1; min-height: 50px; border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; font-weight: 600; color: var(--text-secondary); text-decoration: none; }
+.hp-dock a.aktif { background: var(--accent-soft); color: var(--accent); }
+.hp-skeleton { background: var(--surface-soft); border-radius: 8px; height: 16px; }
+.hp-sandi { display: flex; flex-direction: column; gap: 4px; }
+.hp-galat { color: var(--danger); font-size: 14px; margin: 0; }
+.hp-bar { height: 8px; border-radius: 4px; background: var(--surface-soft); overflow: hidden; } .hp-bar i { display: block; height: 100%; background: var(--accent); }
+.hp-chat { max-width: 85%; padding: 10px 14px; border-radius: 16px; background: var(--surface-soft); }
+.hp-chat.saya { align-self: flex-end; background: var(--accent); color: #fff; }
+
+/* Konten pen: kolom-kolom di dalam hp-pen */
+.hp-pen { display: flex; flex-direction: column; gap: 16px; }
+.hp-lama { background: var(--surface); border-radius: var(--r-card); box-shadow: var(--bayang); padding: 16px; overflow-x: auto; }
+.hp-rail-lain { display: none; }
+
+/* ≥768px: NavigationRail kiri (pen "Contoh ≥600dp · NavigationRail"), konten melebar */
+@media (min-width: 768px) {
+  .hp-isi { max-width: 1040px; margin: 0 0 0 96px; padding-bottom: 32px; }
+  .hp-grid2 { grid-template-columns: repeat(4, 1fr); }
+  .hp-dock-wrap { inset: 0 auto 0 0; width: 84px; padding: 16px 8px; }
+  .hp-dock { flex-direction: column; max-width: none; margin: 0; border-radius: 28px; gap: 8px; }
+  .hp-dock a { min-height: 60px; }
+  .hp-rail-lain { display: flex; flex-direction: column; gap: 2px; position: fixed; left: 8px; bottom: 16px; width: 68px; z-index: 29; }
+  .hp-rail-lain a { font-size: 10px; color: var(--text-secondary); text-decoration: none; text-align: center; padding: 4px 0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .hp-rail-lain a.aktif { background: var(--accent-soft); color: var(--accent); }
+}
+@media (min-width: 768px) and (max-height: 900px) { .hp-rail-lain { position: static; margin: 0; } }
+
+/* tema gelap global jangan menimpa warna pen */
+.hp h1, .hp h2, .hp strong, .hp b { color: inherit; }
+.hp .hp-judul { color: var(--text-primary); }
+.hp .hp-wordmark { color: var(--accent); }
+.hp .hp-btn { color: #fff; } .hp .hp-btn.sek { color: var(--accent); }
+.hp .hp-field label, .hp .hp-sub, .hp .hp-meta { color: var(--text-secondary); }
+@media (min-width: 768px) { .hp-isi.hp-tengah { margin: 0 auto; max-width: 440px; padding-top: 12vh; } }

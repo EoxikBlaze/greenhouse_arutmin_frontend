@@ -8,8 +8,11 @@ export type TanamRow = {
   meja?: string | null
   jumlah_benih?: number | null
   jumlah_masuk?: number | null
-  /** Lama tahap (hari) dari tabel sikluses; null bila admin belum mengisinya. */
+  /** Lama tahap (hari) milik batch ini (salinan saat Mulai Semai) atau Jenis Tanaman; null bila belum diisi. */
   durasi_hari?: number | null
+  /** Lama ketiga tahap batch ini (hari); null = belum diisi. */
+  durasi_batch?: { semai: number | null; peremajaan: number | null; pendewasaan: number | null } | null
+  id_meja?: string | number | null
   hari_ke?: number | null
   siap?: boolean
   tahap_berikut?: string | null
@@ -143,7 +146,7 @@ export function kurvaNaikHarian(
 export function petunjukKurang(kurang: string | null | undefined): string {
   const k = (kurang || '').toLowerCase()
   if (k.startsWith('kal') || k.startsWith('laju')) return 'menu Kalibrasi'
-  if (k.startsWith('uji lab')) return 'menu Uji Lab'
+  if (k.startsWith('uji lab')) return 'Master Data → Uji Lab'
   if (k.startsWith('volume') || k.startsWith('monitoring') || k.startsWith('jeda')) return 'Master Data → Meja Tanaman'
   if (k.startsWith('ads')) return 'cek sensor ADS1115 di alat'
   return 'menu Kalibrasi, Uji Lab, atau Meja Tanaman'

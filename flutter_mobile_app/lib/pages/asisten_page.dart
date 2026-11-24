@@ -361,6 +361,7 @@ class _AsistenPageState extends State<AsistenPage> {
 
   @override
   Widget build(BuildContext context) {
+    final demo = widget.api.role == 'demo';
     return Scaffold(
       appBar: widget.tanpaAppBar
           ? null
@@ -385,6 +386,43 @@ class _AsistenPageState extends State<AsistenPage> {
       body: LatarHalaman(
         child: Column(
           children: [
+            if (demo)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFBEAE8),
+                    borderRadius: BorderRadius.circular(Tok.rKartu),
+                    border: Border.all(
+                      color: const Color(0xFFB3261E).withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Asisten tidak tersedia',
+                        style: TextStyle(
+                          fontFamily: Tok.fontJudul,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFFB3261E),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Akun demo belum bisa memakai asisten.',
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          color: Color(0xFF12211A),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
               child: SegmentedButton<int>(

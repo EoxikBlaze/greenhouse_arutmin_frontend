@@ -29,7 +29,7 @@ const DAFTAR_SAKLAR: readonly SaklarItem[] = [
   {
     kunci: 'isi',
     judul: 'Isi air otomatis',
-    ket: 'OFF: pompa isi tidak jalan sendiri saat air rendah (mis. pompa rusak). Petani mengisi sendiri.',
+    ket: 'OFF: pompa isi tidak jalan sendiri saat air rendah (mis. pompa rusak). Petani mengisi sendiri. Selama air rendah, alat juga tidak mendosis.',
   },
 ]
 
@@ -168,7 +168,7 @@ export function PanelSaklarMode({
             </button>
           </div>
           <p className="mt-2 text-[12px] text-abu">
-            Geser saklarnya dulu — belum ada yang dikirim sampai tombol di atas ditekan. Perintah manual dari web tetap berjalan walau saklar OFF.
+            Geser saklarnya dulu — belum ada yang dikirim sampai tombol di atas ditekan. Saklar OFF berarti alat tidak menyuntik atau mengisi sendiri; web tidak punya dosing manual, jadi tambahkan nutrisi atau pH langsung di penampung dan catat di logbook.
           </p>
         </div>
       )}

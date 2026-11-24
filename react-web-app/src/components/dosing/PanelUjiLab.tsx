@@ -9,6 +9,7 @@ import {
   type IotV41State,
 } from '../../lib/iotV41'
 import { Pesan, Rangka } from '../kaca/DialogKaca'
+import { Segmen } from '../sensor/FilterBar'
 
 const fmt = (v: number | null | undefined, d = 2): string => {
   if (v === null || v === undefined || !Number.isFinite(v)) return '—'
@@ -50,6 +51,9 @@ export function PanelUjiLab({
   const [deltaPh, setDeltaPh] = useState('')
   const [mlPh, setMlPh] = useState('')
 
+  // Satu set Uji Lab per kategori tanaman; Mulai Semai mengirim set sesuai kategori tanaman ke alat
+  const [kategori, setKategori] = useState<'Sayur' | 'Buah'>('Sayur')
+  const kat = kategori === 'Buah' ? 'buah' : 'sayur'
   const [sibuk, setSibuk] = useState<null | 'ec' | 'ph'>(null)
   const [pesan, setPesan] = useState<string | null>(null)
   const [galat, setGalat] = useState<string | null>(null)
@@ -87,13 +91,14 @@ export function PanelUjiLab({
     try {
       await api.post('/iot-v41/ujilab', {
         aksi: 'ec',
+        kategori: kat,
         awal: Number(awal.replace(',', '.')),
         akhir: Number(akhir.replace(',', '.')),
         volume: Number(volEc.replace(',', '.')),
         ml_a: Number(mlA.replace(',', '.')),
         ml_b: Number(mlB.replace(',', '.')),
       })
-      setPesan(`ppm per mL = ${fmt(pratinjauEc, 2)} tersimpan di server dan arsip web.`)
+      setPesan(`ppm per mL (${kat}) = ${fmt(pratinjauEc, 2)} tersimpan di server dan arsip web.`)
       onReload()
     } catch (err) {
       const f = handleApiError(err)
@@ -116,12 +121,13 @@ export function PanelUjiLab({
     try {
       await api.post('/iot-v41/ujilab', {
         aksi: 'ph',
+        kategori: kat,
         arah,
         volume: Number(volPh.replace(',', '.')),
         delta_ph: Number(deltaPh.replace(',', '.')),
         ml: Number(mlPh.replace(',', '.')),
       })
-      setPesan(`pH ${arah} = ${fmt(pratinjauPh, 3)} mL per 1 pH per 1 L tersimpan.`)
+      setPesan(`pH ${arah} (${kat}) = ${fmt(pratinjauPh, 3)} mL per 1 pH per 1 L tersimpan.`)
       onReload()
     } catch (err) {
       const f = handleApiError(err)
@@ -140,9 +146,25 @@ export function PanelUjiLab({
   }
 
   const arsip = (iot?.arsip_ujilab ?? [])
+  const buah = kategori === 'Buah'
+  const dataKat = buah
+    ? { ppm: p?.buah?.ppm_per_ml ?? null, up: p?.buah?.ph_up_ml ?? null, down: p?.buah?.ph_down_ml ?? null }
+    : {
+        ppm: belum.has('ppm_per_ml') ? null : p?.ppm_per_ml ?? null,
+        up: belum.has('ph_up_ml') ? null : p?.ph_up_ml ?? null,
+        down: belum.has('ph_down_ml') ? null : p?.ph_down_ml ?? null,
+      }
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+      <section className="vsf-card w-full min-w-0 p-4 sm:p-5 lg:col-span-12" aria-label="Kategori Uji Lab">
+        <div className="vsf-judul-bagian">Kategori tanaman</div>
+        <p className="mt-0.5 mb-2 text-[13px] text-abu">
+          Takaran nutrisi A+B dan pH berbeda untuk sayur dan buah, jadi hasil uji disimpan per kategori. Saat Mulai Semai, set sesuai kategori tanaman (diatur di Master Data → Jenis Tanaman) dikirim ke alat.
+        </p>
+        <Segmen label="Kategori Uji Lab" pilihan={['Sayur', 'Buah'] as const} nilai={kategori} onPilih={setKategori} />
+      </section>
+
       {(pesan || galat) && (
         <div className="lg:col-span-12">
           {pesan && <Pesan jenis="ok">{pesan}</Pesan>}
@@ -326,14 +348,14 @@ export function PanelUjiLab({
 
       {/* Kartu 3: Angka yang Sedang Dipakai Alat */}
       <section className="vsf-card w-full min-w-0 p-4 sm:p-5 lg:col-span-6" aria-label="Angka tersimpan di server">
-        <div className="vsf-judul-bagian">Angka tersimpan di server</div>
+        <div className="vsf-judul-bagian">Angka tersimpan di server ({kategori.toLowerCase()})</div>
         <p className="mt-0.5 text-[12.5px] text-abu">
           Angka dari hasil uji lab. Dikirim ke alat saat Mulai Semai (ppm per mL nutrisi, dan takaran pH per suntikan); alat membatasi sendiri jumlah tiap suntikan.
         </p>
         <dl className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
           <div className="vsf-stat">
             <dt className="vsf-label">ppm per mL</dt>
-            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{belum.has('ppm_per_ml') ? 'Belum diatur' : fmt(p?.ppm_per_ml, 2)}</dd>
+            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{dataKat.ppm == null ? 'Belum diatur' : fmt(dataKat.ppm, 2)}</dd>
           </div>
           <div className="vsf-stat">
             <dt className="vsf-label">Volume penampung</dt>
@@ -341,11 +363,11 @@ export function PanelUjiLab({
           </div>
           <div className="vsf-stat">
             <dt className="vsf-label">pH up (mL/pH/L)</dt>
-            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{belum.has('ph_up_ml') ? 'Belum diatur' : fmt(p?.ph_up_ml, 3)}</dd>
+            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{dataKat.up == null ? 'Belum diatur' : fmt(dataKat.up, 3)}</dd>
           </div>
           <div className="vsf-stat">
             <dt className="vsf-label">pH down (mL/pH/L)</dt>
-            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{belum.has('ph_down_ml') ? 'Belum diatur' : fmt(p?.ph_down_ml, 3)}</dd>
+            <dd className="mt-0.5 text-[18px] font-bold tabular-nums text-tinta">{dataKat.down == null ? 'Belum diatur' : fmt(dataKat.down, 3)}</dd>
           </div>
           <div className="vsf-stat sm:col-span-2">
             <dt className="vsf-label">Laju pompa A / B</dt>

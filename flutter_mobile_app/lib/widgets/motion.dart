@@ -4,14 +4,23 @@ import 'package:flutter/material.dart';
 
 import '../theme/tokens.dart';
 import '../util/performa.dart';
+import 'kaca.dart' show PreferensiLatar;
+
+/// Apakah pengguna mengaktifkan opsi "Kurangi gerakan" (S62) atau sistem meminta disableAnimations?
+bool kurangiGerakanAktif(BuildContext context) =>
+    MediaQuery.disableAnimationsOf(context) ||
+    PreferensiLatar.kurangiGerakan.value;
 
 /// Apakah animasi yang berulang tanpa henti (loop) boleh dijalankan?
 ///
 /// Di dalam `flutter test`, animasi tak berujung membuat `pumpAndSettle()`
-/// tidak pernah selesai. Karena itu loop dimatikan otomatis di binding uji
-/// maupun saat sistem render berada di mode [TingkatPerforma.ringan].
+/// tidak pernah selesai. Karena itu loop dimatikan otomatis di binding uji,
+/// saat pengguna memilih "Kurangi gerakan", maupun saat sistem render berada
+/// di mode [TingkatPerforma.ringan] (HEMAT).
 bool get animasiLoopAktif {
-  if (PerformaRender.ringan) return false;
+  if (PerformaRender.ringan || PreferensiLatar.kurangiGerakan.value) {
+    return false;
+  }
   final nama = WidgetsBinding.instance.runtimeType.toString();
   return !nama.contains('TestWidgetsFlutterBinding');
 }
@@ -68,7 +77,7 @@ class _FadeUpState extends State<FadeUp> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     // Pengguna mengurangi gerakan atau mode render ringan aktif: tampil langsung tanpa ticker.
-    if (MediaQuery.disableAnimationsOf(context) || PerformaRender.ringan) {
+    if (kurangiGerakanAktif(context) || PerformaRender.ringan) {
       return widget.child;
     }
     return AnimatedBuilder(
@@ -109,7 +118,7 @@ class CountUp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (MediaQuery.disableAnimationsOf(context) || PerformaRender.ringan) {
+    if (kurangiGerakanAktif(context) || PerformaRender.ringan) {
       return Text('$awalan${nilai.toStringAsFixed(desimal)}$akhiran', style: style);
     }
     return TweenAnimationBuilder<double>(

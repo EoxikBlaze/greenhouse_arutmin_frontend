@@ -11,16 +11,21 @@ export function useSumber(k: Kamera, coba: number): { src: string | null; gagal:
   const [blob, setBlob] = useState<string | null>(null)
   const [gagal, setGagal] = useState(false)
   const blobRef = useRef<string | null>(null)
+  const muatRef = useRef(false)
 
   useEffect(() => {
     if (!k.aktif || k.tipe === 'mjpeg') return
-    const id = window.setInterval(() => setTik(Date.now()), Math.max(1, k.interval_detik) * 1000)
+    const id = window.setInterval(() => {
+      if (k.tipe === 'rtsp' && muatRef.current) return
+      setTik(Date.now())
+    }, Math.max(1, k.interval_detik) * 1000)
     return () => window.clearInterval(id)
   }, [k.aktif, k.tipe, k.interval_detik])
 
   useEffect(() => {
     if (!k.aktif || k.tipe !== 'rtsp') return
     const ctrl = new AbortController()
+    muatRef.current = true
     api
       .get<Blob>(`/cctv/${k.id}/gambar`, { responseType: 'blob', signal: ctrl.signal })
       .then((r) => {
@@ -32,7 +37,11 @@ export function useSumber(k: Kamera, coba: number): { src: string | null; gagal:
         setGagal(false)
       })
       .catch(() => { if (!ctrl.signal.aborted) setGagal(true) })
-    return () => { ctrl.abort() }
+      .finally(() => { muatRef.current = false })
+    return () => {
+      muatRef.current = false
+      ctrl.abort()
+    }
   }, [k.id, k.aktif, k.tipe, tik, coba])
 
   // lepas object URL terakhir saat ubin hilang

@@ -17,6 +17,17 @@ void main() {
       expect(tentukanPerforma(2.4, hematData: true), TingkatPerforma.ringan);
     });
 
+    test('ModeLatar & Kurangi Gerakan di S62 dapat diatur dan disimpan', () async {
+      await PreferensiLatar.atur(ModeLatar.greenhouse);
+      expect(PreferensiLatar.mode.value, ModeLatar.greenhouse);
+      await PreferensiLatar.atur(ModeLatar.polos);
+      expect(PreferensiLatar.mode.value, ModeLatar.polos);
+      await PreferensiLatar.aturKurangiGerakan(true);
+      expect(PreferensiLatar.kurangiGerakan.value, isTrue);
+      await PreferensiLatar.aturKurangiGerakan(false);
+      await PreferensiLatar.atur(ModeLatar.lanskap);
+    });
+
     test('PerformaRender.mulai() mengaktifkan mode ringan secara konsisten', () {
       final hasil = PerformaRender.mulai(pengaliSimulasiCpu: 1.0);
       expect(hasil, TingkatPerforma.ringan);

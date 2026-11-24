@@ -10,7 +10,7 @@ function statusLabel(status?: string | null): string {
 }
 
 /** Satu batch tanam: tahap, progres hari, dan penanda siap pindah. Kartu tint (tanpa blur sendiri: sudah di dalam kartu kaca). */
-export function KartuBatch({ r, onUbahKurva, onPindah }: { r: TanamRow; onUbahKurva?: () => void; onPindah?: () => void }) {
+export function KartuBatch({ r, onUbahKurva, onUbahDurasi, onPindah }: { r: TanamRow; onUbahKurva?: () => void; onUbahDurasi?: () => void; onPindah?: () => void }) {
   const p = progres(r)
   const siap = labelSiap(r)
   const selesai = perkiraanSelesai(r.mulai, r.durasi_hari)
@@ -76,7 +76,7 @@ export function KartuBatch({ r, onUbahKurva, onPindah }: { r: TanamRow; onUbahKu
         {[
           ['Meja', r.meja || 'belum dipilih'],
           ['Mulai', tglPendek(r.mulai)],
-          ['Selesai ±', selesai === null ? '—' : tglPendek(selesai)],
+          ['Tahap ini selesai ±', selesai === null ? '—' : tglPendek(selesai)],
           [r.tipe === 'semai' ? 'Jumlah benih' : 'Jumlah masuk', typeof jumlah === 'number' ? jumlah : 'belum dicatat'],
           ['Target hari ini', targetTeks],
           ['Kurva nutrisi', kurvaTeks],
@@ -93,15 +93,18 @@ export function KartuBatch({ r, onUbahKurva, onPindah }: { r: TanamRow; onUbahKu
           {r.tahap_berikut === 'panen' ? 'Catat panen' : `Pindah ke ${TAHAP_LABEL[r.tahap_berikut ?? ''] ?? 'tahap berikutnya'}`}
         </button>
       )}
-      {onUbahKurva && r.id_semai != null && (
-        <button
-          type="button"
-          className="mt-2 inline-flex min-h-[44px] items-center text-[12px] font-semibold text-arutmin-forest underline"
-          onClick={onUbahKurva}
-        >
-          Ubah target nutrisi batch
-        </button>
-      )}
+      <div className="mt-2 flex flex-wrap gap-x-4">
+        {onUbahKurva && r.id_semai != null && (
+          <button type="button" className="inline-flex min-h-[44px] items-center text-[12px] font-semibold text-arutmin-forest underline" onClick={onUbahKurva}>
+            Ubah target nutrisi batch
+          </button>
+        )}
+        {onUbahDurasi && r.id_semai != null && (
+          <button type="button" className="inline-flex min-h-[44px] items-center text-[12px] font-semibold text-arutmin-forest underline" onClick={onUbahDurasi}>
+            Ubah durasi batch
+          </button>
+        )}
+      </div>
     </article>
   )
 }

@@ -84,7 +84,7 @@ const terjemahGalat = (err: unknown) => ({
   errors: {},
 })
 vi.mock('../lib/crudApi', () => ({
-  useApiList: () => ({ rows: [], loading: false, error: null, reload: () => {}, total: null }),
+  useApiList: () => ({ rows: [], loading: false, error: null, reload: () => { }, total: null }),
   useApiError: () => terjemahGalat,
 }))
 
@@ -93,7 +93,7 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
   let root: Root
 
   beforeEach(() => {
-    ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
+    ; (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
     container = document.createElement('div')
     document.body.appendChild(container)
     root = createRoot(container)
@@ -101,8 +101,19 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
     mockApiPut.mockReset()
     mockApiPost.mockReset()
     mockApiGet.mockImplementation(async (url: string) =>
-      url.startsWith('/alert-logs')
+      url.startsWith('/alert-logs/riwayat')
         ? {
+          data: {
+            total: 1,
+            page: 1,
+            per_page: 50,
+            data: [
+              { id: 5, type: 'sensor', value: 'pH di luar batas', severity: 'warning', acknowledged: false, created_at: '2026-11-04T05:00:00', kunci_kejadian: null, selesai_pada: null, sedang_terjadi: false },
+            ],
+          },
+        }
+        : url.startsWith('/alert-logs')
+          ? {
             data: {
               data: [
                 { id: 9, type: 'kunci_isi_timeout', value: 'Pompa isi terkunci', severity: 'critical', acknowledged: false, created_at: '2026-11-18T03:00:00', kunci_kejadian: 'kunci_isi_timeout', selesai_pada: null, sedang_terjadi: true },
@@ -110,7 +121,7 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
               ],
             },
           }
-        : { data: BAWAAN_V41 },
+          : { data: BAWAAN_V41 },
     )
     mockApiPut.mockResolvedValue({ data: { status: true, message: 'Tersimpan' } })
     mockApiPost.mockResolvedValue({ data: { status: true, message: 'Terkirim' } })
@@ -254,7 +265,7 @@ describe('Debugging Tombol demi Tombol UI Hidroponik v4.1 (Langkah Petani)', () 
 
     // Klik switch terakhir (Isi air otomatis -> OFF) untuk memicu peringatan pengenceran
     await act(async () => {
-      ;(switches[3] as HTMLButtonElement).click()
+      ; (switches[3] as HTMLButtonElement).click()
     })
     expect(container.textContent).toContain('Pengenceran menyala tetapi isi air otomatis mati')
 

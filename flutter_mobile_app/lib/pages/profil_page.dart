@@ -9,8 +9,10 @@ import '../widgets/brand.dart';
 import '../widgets/ikon.dart';
 import '../widgets/dock.dart';
 import '../widgets/halaman.dart';
+import '../widgets/kaca.dart';
 import '../widgets/motion.dart';
 import '../widgets/navigasi_shell.dart';
+import '../widgets/switch_kaca.dart';
 import 'cctv_page.dart';
 import 'laporan_page.dart';
 import 'riwayat_monitoring_page.dart';
@@ -469,7 +471,11 @@ class _Pintas extends StatelessWidget {
   }
 }
 
-/// Pengaturan tampilan tema (Terang / Gelap) dan Mode Hemat Daya (Normal / Hemat daya).
+/// Pengaturan tampilan S62 (Hemat Peak v3.pen):
+/// - Mode tampilan: HEMAT (tanpa blur & tanpa animasi) vs PEAK (kaca ber-blur & transisi halus)
+/// - Latar belakang: Polos (`#B7E2F9`) | Lanskap | Greenhouse
+/// - Tema: Terang | Gelap | Ikuti perangkat
+/// - Kurangi gerakan: mematikan seluruh gerakan hias walau PEAK aktif.
 class _PilihTema extends StatelessWidget {
   const _PilihTema();
 
@@ -479,37 +485,92 @@ class _PilihTema extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Tema', style: Tok.h3),
-          const SizedBox(height: 2),
-          Text(
-            'Terang atau gelap. Tersimpan di perangkat ini.',
-            style: Tok.kecil,
+          Text('Tampilan', style: Tok.h3),
+          const SizedBox(height: Tok.sp2),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Ukuran teks', style: Tok.kecil),
+              Text(
+                'Normal',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Tok.tinta,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: Tok.sp3),
-          PilPilih(
-            label: const ['Terang', 'Gelap'],
-            pilih: Tok.gelap ? 1 : 0,
-            rata: true,
-            onPilih: (i) => PreferensiTema.atur(i == 1),
-          ),
-          const SizedBox(height: Tok.sp4),
-          Text('Mode hemat daya & performa', style: Tok.h3),
-          const SizedBox(height: 2),
-          Text(
-            'Mode hemat daya mematikan blur latar agar baterai lebih hemat dan teks tetap tajam di mode siang maupun malam.',
-            style: Tok.kecil,
-          ),
-          const SizedBox(height: Tok.sp3),
+          Text('Mode tampilan', style: Tok.h3),
+          const SizedBox(height: 4),
           ValueListenableBuilder<TingkatPerforma>(
             valueListenable: PerformaRender.tingkat,
             builder: (context, perf, _) => PilPilih(
-              label: const ['Normal', 'Hemat daya'],
-              pilih: perf == TingkatPerforma.ringan ? 1 : 0,
+              label: const ['HEMAT', 'PEAK'],
+              pilih: perf == TingkatPerforma.ringan ? 0 : 1,
               rata: true,
               onPilih: (i) => PerformaRender.atur(
-                i == 1 ? TingkatPerforma.ringan : TingkatPerforma.bagus,
+                i == 0 ? TingkatPerforma.ringan : TingkatPerforma.bagus,
               ),
             ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'HEMAT: tanpa blur latar dan tanpa animasi. Disarankan untuk perangkat lambat atau saat silau. PEAK: kaca ber-blur dan transisi halus bila perangkat mendukung; bukan janji selalu lancar.',
+            style: Tok.kecil,
+          ),
+          const SizedBox(height: Tok.sp4),
+          Text('Latar belakang', style: Tok.h3),
+          const SizedBox(height: 6),
+          ValueListenableBuilder<ModeLatar>(
+            valueListenable: PreferensiLatar.mode,
+            builder: (context, latar, _) => PilPilih(
+              label: const ['Polos', 'Lanskap', 'Greenhouse'],
+              pilih: ModeLatar.values.indexOf(latar),
+              rata: true,
+              onPilih: (i) => PreferensiLatar.atur(ModeLatar.values[i]),
+            ),
+          ),
+          const SizedBox(height: Tok.sp4),
+          Text('Tema', style: Tok.h3),
+          const SizedBox(height: 6),
+          ValueListenableBuilder<ModeTema>(
+            valueListenable: PreferensiTema.mode,
+            builder: (context, modeTema, _) => PilPilih(
+              label: const ['Terang', 'Gelap', 'Ikuti perangkat'],
+              pilih: ModeTema.values.indexOf(modeTema),
+              rata: true,
+              onPilih: (i) => PreferensiTema.aturMode(ModeTema.values[i]),
+            ),
+          ),
+          const SizedBox(height: Tok.sp4),
+          ValueListenableBuilder<bool>(
+            valueListenable: PreferensiLatar.kurangiGerakan,
+            builder: (context, kurangi, _) => Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Kurangi gerakan',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Tok.tinta,
+                    ),
+                  ),
+                ),
+                SwitchKaca(
+                  label: 'Kurangi gerakan',
+                  nyala: kurangi,
+                  onUbah: (v) => PreferensiLatar.aturKurangiGerakan(v),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Kurangi gerakan mematikan seluruh gerakan hias walau PEAK aktif. Pilihan tampilan tidak mengubah data, peran, izin, atau keselamatan.',
+            style: Tok.kecil,
           ),
         ],
       ),
