@@ -63,12 +63,12 @@ Gaya baca tenang dan ramah. "pH" = *pe-ha*, "EC" = *e-se*, "E-STOP" = *i-stop*, 
 | 3 | 00:18–00:30 | Sensor membaca pH, tingkat keasaman air, dan EC, petunjuk kepekatan nutrisi. Server memeriksanya, website menampilkannya. Alat mengatur pompa dosing dan pompa isi air. | 23 |
 | 4 | 00:30–00:45 | Sebelum dipakai, sensor dikalibrasi dalam mode pemeliharaan. Kalibrasi menyelaraskan hasil sensor dengan cairan acuan yang nilainya sudah diketahui. Celup, tunggu tenang, tekan Ukur, lalu Simpan. Bilas, ulangi titik kedua. | 29 |
 | 5 | 00:45–00:57 | Lalu, alat diuji. Kalibrasi menyetel pembacaan; pengujian memeriksa hasil dan fungsinya. Bandingkan dengan alat ukur genggam, uji pompa dengan air ke gelas ukur, lalu catat. | 25 |
-| 6 | 00:57–01:14 | Lalu semai melon, sesuai SOP lapangan GARAP. Rendam benih di air ekstrak bawang merah satu hari. Peram dua hari di kain hitam lembap. Jemur sinar pagi dua hari sambil dijaga lembap, baru pindah ke rockwool. | 35 |
+| 6 | 00:57–01:14 | Semai melon mengikuti SOP lapangan GARAP. Rendam benih di air ekstrak bawang merah satu hari. Pakai yang tenggelam. Peram dua hari di kain hitam lembap. Jemur sinar pagi dua hari sambil dijaga lembap, baru pindah ke rockwool. | 37 |
 | 7 | 01:14–01:24 | Saat Mulai Semai, website mengirim target ppm dan pH ke alat. Di tab Nutrisi, ppm nyata dibandingkan dengan rencana target. Target bukan bacaan. | 23 |
 | 8 | 01:24–01:42 | Dosing artinya menambah cairan secara terukur. Nutrisi rendah tidak langsung menyalakan pompa. Syaratnya: mode semai, saklar otomasi menyala, bacaan tenang. Pompa A, jeda, lalu B. Lalu alat menunggu larutan tercampur sebelum membaca ulang. | 33 |
 | 9 | 01:42–01:53 | Setiap hari, cek lampu, dashboard, tinggi air, botol nutrisi, dan selang. Ada peringatan? Cari penyebabnya dulu. Darurat? Tekan E-STOP di panel. | 21 |
 | 10 | 01:53–02:00 | Bersama GARAP: kalibrasi, uji, semai, atur, dan pantau. | 8 |
-| | | **Total** | **229** |
+| | | **Total** | **231** |
 
 **Estimasi (bukan hasil ukur)**: 2,0–2,2 kata/dtk → narasi ±103–114 dtk, sisa ±6–17 dtk untuk jeda & ekor musik. Adegan 4, 5, 8 paling padat (±1,9–2,1 kata/dtk). Durasi wajib diukur dari rekaman; bila lewat slot, ringkas kalimat, jangan percepat suara.
 
@@ -124,10 +124,11 @@ Urutan sesuai Buku Pedoman Bab 36: pH 4,01 → 6,86, lalu EC 1,413 mS/cm (1413 �
 ### Adegan 6 — Mulai semai melon (00:57–01:14)
 | Shot | Waktu | Narasi | Tindakan karakter | Perubahan benda/alat | Kamera & komposisi | Teks layar | SFX |
 |---|---|---|---|---|---|---|---|
-| 6a | 00:57–01:01 | "Lalu semai melon, sesuai SOP lapangan GARAP. Rendam benih di air ekstrak bawang merah satu hari." | OP menuang benih ke wadah terbuka berisi air bawang merah. | Benih tenggelam perlahan; kalender kecil di pojok kanan atas. | Medium area semai, push-in. | "Semai Melon — SOP lapangan GARAP"; "Rendam • 1 hari" | tuang biji |
-| 6b | 01:01–01:05 | "Peram dua hari di kain hitam lembap." | OP meniriskan, membilas, membungkus benih dengan kain hitam lembap, menaruhnya di tempat teduh. | Kalender dibalik 2 lembar; latar meredup. | Medium, cut ke tempat teduh. | "Peram kain hitam • 2 hari" | kalender ×2 |
-| 6c | 01:05–01:10 | "Jemur sinar pagi dua hari sambil dijaga lembap," | OP membuka kain, menyemprot kabut air; matahari rendah. | Kalender dibalik 2 lembar; kecambah **panjangnya berbeda**, sebagian belum pecah. | Close-up kain, diam. | "Sinar pagi • 2 hari • jaga lembap"; "Pertumbuhan bisa berbeda" | semprot |
-| 6d | 01:10–01:14 | "baru pindah ke rockwool." | OP menaruh kecambah di lubang rockwool dengan dua jari. | Baris rockwool terisi satu per satu. | Close-up, lalu tarik ke medium. | "Pindah ke rockwool"; "Nutrisi awal 400–600 PPM saat pindah" | letak lembut |
+| 6a | 00:57–01:00.5 | "Semai melon mengikuti SOP lapangan GARAP. Rendam benih di air ekstrak bawang merah satu hari." | OP menuang benih ke wadah terbuka berisi air bawang merah. | Sebagian benih tenggelam perlahan, sebagian tetap mengambang; kalender kecil di pojok kanan atas. | Medium area semai, push-in. | "Semai Melon — SOP lapangan GARAP"; "Rendam • 1 hari" | tuang biji |
+| 6b | 01:00.5–01:02.5 | "Pakai yang tenggelam." | OP menyendok benih yang mengambang ke wadah kecil terpisah, lalu meniriskan benih yang tenggelam. | Wadah kiri: benih tenggelam (dipakai). Wadah kanan: benih mengambang (disisihkan). | Close-up wadah dari samping (potongan air terlihat), diam. | "Uji apung: pakai yang tenggelam"; "Praktik SOP, bukan jaminan tumbuh" | sendok air |
+| 6c | 01:02.5–01:05.5 | "Peram dua hari di kain hitam lembap." | OP membilas benih terpilih, membungkusnya dengan kain hitam lembap, menaruhnya di tempat teduh. | Kalender dibalik 2 lembar; latar meredup. | Medium, cut ke tempat teduh. | "Peram kain hitam • 2 hari" | kalender ×2 |
+| 6d | 01:05.5–01:10 | "Jemur sinar pagi dua hari sambil dijaga lembap," | OP membuka kain, menyemprot kabut air; matahari rendah. | Kalender dibalik 2 lembar; kecambah **panjangnya berbeda**, sebagian belum pecah. | Close-up kain, diam. | "Sinar pagi • 2 hari • jaga lembap"; "Pertumbuhan bisa berbeda" | semprot |
+| 6e | 01:10–01:14 | "baru pindah ke rockwool." | OP menaruh kecambah di lubang rockwool dengan dua jari. | Baris rockwool terisi satu per satu. | Close-up, lalu tarik ke medium. | "Pindah ke rockwool"; "Nutrisi awal 400–600 PPM saat pindah" | letak lembut |
 
 ### Adegan 7 — Pengaturan & pembacaan (01:14–01:24)
 | Shot | Waktu | Narasi | Tindakan karakter | Perubahan benda/alat | Kamera & komposisi | Teks layar | SFX |
@@ -200,14 +201,14 @@ Catatan: diagram tidak menampilkan mL, durasi, atau volume penampung.
 12. Pompa sirkulasi tetap tampil di latar, abu-abu, tanpa label GARAP (pemilik, 25 Nov 2026).
 13. SOP semai lapangan masih berlaku: rendam air bawang merah 1 hari → kain hitam 2 hari → jemur pagi 2 hari → rockwool (pemilik, 25 Nov 2026; `aiMelonModul.js`).
 14. Nutrisi awal 400–600 PPM diberikan saat pindah ke rockwool (pemilik, 25 Nov 2026).
+15. Seleksi uji apung dimasukkan (benih tenggelam dipakai, mengambang disisihkan) sebagai praktik SOP, bukan jaminan tumbuh (pemilik, 25 Nov 2026).
 
 ### Masih perlu konfirmasi
 1. [PERLU KONFIRMASI: posisi LCD, lampu, E-STOP, dan RESET di pintu panel versi sekarang. Gambar 3D adalah rancangan awal.]
 2. [PERLU KONFIRMASI: izin memakai emblem Vertonik Smart Farm / nama PT Arutmin Indonesia / Politala di video, dan berkas resminya.]
-3. [PERLU KONFIRMASI: masukkan seleksi uji apung (benih tenggelam dipakai)? Belum dimasukkan.]
-4. [PERLU KONFIRMASI: video menggambar dosing berjalan dengan label "Ilustrasi setelah izin operasional". Per 24 Nov laju pompa & uji lab masih nilai uji dan alat belum melaporkan saklar otomasi (Bab 43). Perlu kalimat status di video, atau cukup label?]
-5. [PERLU KONFIRMASI: palet DESIGN.md boleh dipakai sebagai identitas video?]
-6. [PERLU KONFIRMASI: fps & penanganan 1920×1080 di mesin setelah dimodifikasi (teknis, dicek saat produksi).]
+3. [PERLU KONFIRMASI: video menggambar dosing berjalan dengan label "Ilustrasi setelah izin operasional". Per 24 Nov laju pompa & uji lab masih nilai uji dan alat belum melaporkan saklar otomasi (Bab 43). Perlu kalimat status di video, atau cukup label?]
+4. [PERLU KONFIRMASI: palet DESIGN.md boleh dipakai sebagai identitas video?]
+5. [PERLU KONFIRMASI: fps & penanganan 1920×1080 di mesin setelah dimodifikasi (teknis, dicek saat produksi).]
 
 Catatan `EKSEKUSI_DIIZINKAN = false` (`gerbangDosis.js`): gerbang di server, tidak diubah. Menurut keputusan 17 Nov, server memang tidak pernah mengirim DOSIS; dosing hanya diputuskan alat saat SEMAI. Narasi tidak menyebut gerbang ini.
 
