@@ -1,4 +1,5 @@
 import { ReactElement, ReactNode } from 'react';
+import { useIsFocused } from 'expo-router';
 import { FlatList, RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { space } from '@/theme/tokens';
@@ -11,8 +12,10 @@ type Refresh = { onRefresh?: () => void; refreshing?: boolean };
 function useChrome({ onRefresh, refreshing = false }: Refresh) {
   const c = useColors();
   const { top } = useSafeAreaInsets();
+  // Layar tab yang tidak aktif tetap terpasang; latar kini transparan, jadi harus disembunyikan.
+  const focused = useIsFocused();
   return {
-    style: { flex: 1, backgroundColor: c.bgScreen },
+    style: { flex: 1, display: focused ? 'flex' : 'none' } as const,
     contentContainerStyle: { paddingTop: top + 12, paddingHorizontal: space.screen, paddingBottom: 130, gap: space.gap, width: '100%', maxWidth: 600, alignSelf: 'center' } as const,
     keyboardShouldPersistTaps: 'handled' as const,
     automaticallyAdjustKeyboardInsets: true,

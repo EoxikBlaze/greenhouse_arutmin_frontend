@@ -8,7 +8,7 @@ export default function TabsLayout() {
   const { user, role } = useAuth();
   if (!user) return <Redirect href="/login" />;
   return (
-    <Tabs tabBar={(p: any) => <Dock {...p} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: 'transparent' } }}>
+    <Tabs tabBar={(p: any) => <Dock {...p} />} screenOptions={{ headerShown: false, freezeOnBlur: true, sceneStyle: { backgroundColor: 'transparent' } }}>
       <Tabs.Screen name="index" options={{ title: 'Beranda' }} />
       <Tabs.Screen name="tanam" options={{ title: 'Tanam' }} />
       <Tabs.Screen name="alat" options={{ title: 'Alat', href: role === 'admin' ? undefined : null }} />

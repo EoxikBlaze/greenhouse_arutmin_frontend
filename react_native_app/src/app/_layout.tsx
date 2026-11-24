@@ -7,6 +7,7 @@ import { useFonts } from 'expo-font';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
+import { Backdrop } from '@/ui/Backdrop';
 import { fontAssets } from '@/theme/fonts';
 import { useColors } from '@/theme/useColors';
 
@@ -18,7 +19,7 @@ function Gate() {
   if (!ready) {
     return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: c.bgScreen }}><ActivityIndicator accessibilityLabel="Memuat" color={c.accent} /></View>;
   }
-  return <Slot />;
+  return <Backdrop><Slot /></Backdrop>;
 }
 
 export default function RootLayout() {

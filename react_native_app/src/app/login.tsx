@@ -35,7 +35,7 @@ export default function Login() {
   }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.bgScreen }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: top + 20, paddingBottom: bottom + 24, paddingHorizontal: space.screen, gap: 16 }}>
         <Text v="value" style={{ color: c.accent }}>Vertonik · GARAP</Text>
         <Text v="title">Masuk ke GARAP</Text>
