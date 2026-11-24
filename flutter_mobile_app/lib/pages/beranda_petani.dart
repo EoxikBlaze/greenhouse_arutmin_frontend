@@ -1,0 +1,279 @@
+import 'package:flutter/material.dart';
+
+import '../services/api_service.dart';
+import '../theme/tokens.dart';
+import '../util/format.dart';
+import '../widgets/beranda_baru/banner_data_lama.dart';
+import '../widgets/beranda_baru/kartu_sensor.dart';
+import '../widgets/brand.dart';
+import '../widgets/dock.dart';
+import '../widgets/ikon.dart';
+import '../widgets/motion.dart';
+import '../widgets/navigasi_shell.dart';
+import 'asisten_page.dart';
+
+/// Hasil penilaian satu angka sensor terhadap batas amannya.
+enum Penilaian { aman, perluDicek, belumAda }
+
+/// Aman bila di dalam [min]–[maks]. Batas yang tidak masuk akal (min ≥ maks, mis. 100–100)
+/// atau kosong dianggap belum diatur: angka tidak dihakimi (aman), bukan dipaksa "perlu dicek".
+Penilaian nilaiSensor(double? v, double? min, double? maks) {
+  if (v == null) return Penilaian.belumAda;
+  if (min == null || maks == null || min >= maks) return Penilaian.aman;
+  return v < min || v > maks ? Penilaian.perluDicek : Penilaian.aman;
+}
+
+/// Beranda petani: satu layar, jawaban cepat "aman atau tidak".
+/// Status alat, tiga angka besar (pH, nutrisi, suhu air), dan satu tombol ke Tanam.
+class BerandaPetani extends StatefulWidget {
+  const BerandaPetani({
+    super.key,
+    required this.api,
+    this.aktif = true,
+    this.onBukaTab,
+  });
+
+  final ApiService api;
+  final bool aktif;
+  final void Function(String label)? onBukaTab;
+
+  @override
+  State<BerandaPetani> createState() => _BerandaPetaniState();
+}
+
+class _BerandaPetaniState extends State<BerandaPetani> {
+  Map<String, dynamic>? _data;
+  String? _galat;
+  bool _memuat = true;
+  late final PollTimer _poll;
+
+  @override
+  void initState() {
+    super.initState();
+    _poll = PollTimer(const Duration(seconds: 15), () => _muat(senyap: true));
+    _poll.atur(widget.aktif);
+    _muat();
+  }
+
+  @override
+  void didUpdateWidget(covariant BerandaPetani old) {
+    super.didUpdateWidget(old);
+    if (old.aktif != widget.aktif) {
+      _poll.atur(widget.aktif);
+      if (widget.aktif) _muat(senyap: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _poll.dispose();
+    super.dispose();
+  }
+
+  Future<void> _muat({bool senyap = false}) async {
+    if (!senyap) setState(() => _memuat = true);
+    try {
+      final d = await widget.api.getJson('/dashboard');
+      if (!mounted) return;
+      setState(() {
+        _data = d is Map<String, dynamic> ? d : null;
+        _galat = _data == null
+            ? 'Data belum bisa dibaca. Tarik layar untuk mencoba lagi.'
+            : null;
+        _memuat = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        if (!senyap || _data == null) _galat = e.message;
+        _memuat = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final nama = judulKata(
+      widget.api.user?['username']?.toString() ?? 'Petani',
+    );
+    return RefreshIndicator(
+      color: Tok.moss,
+      onRefresh: () => _muat(senyap: true),
+      child: ListView(
+        padding: EdgeInsets.zero,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          HeroHeader(
+            judul: '${sapaanWaktu()}, $nama',
+            subjudul: 'Kondisi kebun sekarang',
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, 18, 16, DockNav.ruang(context)),
+            child: _isi(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _isi() {
+    if (_memuat && _data == null) {
+      return const Column(
+        children: [
+          SkeletonBox(height: 110, radius: 24),
+          SizedBox(height: 12),
+          SkeletonBox(height: 120, radius: 24),
+          SizedBox(height: 12),
+          SkeletonBox(height: 120, radius: 24),
+        ],
+      );
+    }
+    if (_galat != null && _data == null) {
+      return ErrorPanel(pesan: _galat!, onCoba: _muat);
+    }
+    final d = _data!;
+    final iot = d['iotStatus'];
+    final hidup = iot is Map && iot['online'] == true;
+    final sensor = d['latest_sensor'] is Map
+        ? d['latest_sensor'] as Map<Object?, Object?>
+        : const <Object?, Object?>{};
+    final ambang = d['ambang'] is Map
+        ? d['ambang'] as Map<Object?, Object?>
+        : const <Object?, Object?>{};
+    final terakhir = iot is Map ? iot['last_seen']?.toString() : null;
+
+    // Satu kartu per sensor, dari data nyata. Alat mati = "Data lama";
+    // nilai kosong tampil "—" dan "Belum ada data", bukan angka tebakan.
+    Widget kartu(String label, String kunci, String satuan, int desimal) {
+      final batas = ambang[kunci] is Map
+          ? ambang[kunci] as Map<Object?, Object?>
+          : const <Object?, Object?>{};
+      final nilai = keDouble(sensor[kunci]);
+      final penilaian = nilaiSensor(
+        nilai,
+        keDouble(batas['min']),
+        keDouble(batas['max']),
+      );
+      final keadaan = nilai == null
+          ? KeadaanSensor.tanpaData
+          : !hidup
+          ? KeadaanSensor.basi
+          : penilaian == Penilaian.perluDicek
+          ? KeadaanSensor.perluDicek
+          : KeadaanSensor.segar;
+      return KartuSensor(
+        nama: label,
+        nilai: nilai?.toStringAsFixed(desimal).replaceAll('.', ','),
+        satuan: satuan,
+        keterangan: terakhir == null
+            ? 'Belum ada data dari alat'
+            : 'Terakhir ${waktuRelatif(terakhir)}',
+        keadaan: keadaan,
+      );
+    }
+
+    Widget baris(Widget kiri, Widget kanan) => IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: kiri),
+          const SizedBox(width: 14),
+          Expanded(child: kanan),
+        ],
+      ),
+    );
+
+    final jam = _jamDari(terakhir);
+    return Column(
+      children: [
+        if (!hidup && jam != null)
+          BannerDataLama(jam: jam)
+        else
+          _KartuAlat(hidup: hidup, terakhir: terakhir),
+        const SizedBox(height: 12),
+        baris(kartu('pH', 'ph', '', 1), kartu('TDS', 'tds', 'ppm', 0)),
+        const SizedBox(height: 14),
+        baris(
+          kartu('Suhu Air', 'waterTemp', '°C', 1),
+          kartu('Suhu Udara', 'airTemp', '°C', 1),
+        ),
+        const SizedBox(height: 20),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: () => bukaHalamanApp(
+              context,
+              AsistenPage(api: widget.api, tanpaAppBar: true),
+              judul: 'Asisten GARAP',
+            ),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(0, 56),
+              backgroundColor: Tok.moss,
+              foregroundColor: Tok.putih(0.95),
+            ),
+            icon: const Icon(Ikon.ai, size: 22),
+            label: const Text(
+              'Tanya Asisten AI GARAP',
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// "09:41" dari waktu ISO bacaan terakhir; null bila tidak bisa dibaca.
+String? _jamDari(String? iso) {
+  final d = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
+  if (d == null) return null;
+  String dua(int n) => n.toString().padLeft(2, '0');
+  return '${dua(d.hour)}:${dua(d.minute)}';
+}
+
+class _KartuAlat extends StatelessWidget {
+  const _KartuAlat({required this.hidup, required this.terakhir});
+
+  final bool hidup;
+  final String? terakhir;
+
+  @override
+  Widget build(BuildContext context) {
+    return Panel(
+      child: Row(
+        children: [
+          Container(
+            width: 14,
+            height: 14,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: hidup ? Tok.moss : Tok.error,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(hidup ? 'Alat hidup' : 'Alat mati', style: Tok.h2),
+                const SizedBox(height: 2),
+                Text(
+                  terakhir == null
+                      ? 'Belum ada data dari alat.'
+                      : hidup
+                      ? 'Data terbaru ${waktuRelatif(terakhir)}'
+                      : 'Data terakhir ${waktuRelatif(terakhir)}. Angka di bawah adalah bacaan lama.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.35,
+                    color: Tok.abuTeks,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

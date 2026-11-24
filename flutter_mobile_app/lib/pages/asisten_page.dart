@@ -1,0 +1,982 @@
+import 'package:flutter/material.dart';
+
+import '../services/api_service.dart';
+import '../theme/tokens.dart';
+import '../widgets/app_bar_glass.dart';
+import '../widgets/brand.dart';
+import '../widgets/ikon.dart';
+import '../widgets/kaca.dart';
+import '../widgets/motion.dart';
+import 'analisis_harian_panel.dart';
+
+/// Chat dengan asisten AI — POST /api/ai/chat (admin & petani; demo ditolak).
+class AsistenPage extends StatefulWidget {
+  const AsistenPage({super.key, required this.api, this.tanpaAppBar = false});
+
+  final ApiService api;
+  final bool tanpaAppBar;
+
+  @override
+  State<AsistenPage> createState() => _AsistenPageState();
+}
+
+class _Tabel {
+  const _Tabel(this.judul, this.kolom, this.baris);
+
+  final String judul;
+  final List<String> kolom;
+  final List<List<String>> baris;
+}
+
+class _GambarPanduan {
+  const _GambarPanduan({required this.url, required this.judul, this.kenapa});
+
+  final String url;
+  final String judul;
+  final String? kenapa;
+
+  String get namaBerkas {
+    final uri = Uri.tryParse(url);
+    if (uri != null && uri.pathSegments.isNotEmpty) {
+      return uri.pathSegments.last;
+    }
+    return url.split('/').last;
+  }
+}
+
+class _Pesan {
+  const _Pesan(
+    this.teks, {
+    required this.dariUser,
+    this.galat = false,
+    this.sumber,
+    this.status,
+    this.tabel = const [],
+    this.saran = const [],
+    this.gambar = const [],
+  });
+
+  final String teks;
+  final bool dariUser;
+  final bool galat;
+  final String? sumber;
+  final String? status;
+  final List<_Tabel> tabel;
+  final List<String> saran;
+  final List<_GambarPanduan> gambar;
+}
+
+class _Pintasan {
+  const _Pintasan(this.label, this.pesan);
+
+  final String label;
+  final String pesan;
+}
+
+const _labelSumber = <String, String>{
+  'heuristik': 'Jawaban aturan (AI lokal tidak tersedia)',
+  'diagnosa': 'Diagnosa otomatis kebun',
+  'panduan': 'Panduan resmi aplikasi GARAP',
+  'data': 'Data langsung sensor',
+  'sapaan': 'Asisten GARAP',
+  'ollama': 'Dijawab AI lokal (Qwen) — cek ulang sebelum bertindak',
+  'tolak': 'Saran topik Asisten GARAP',
+};
+
+/// Penyimpanan riwayat chat di memori per sesi agar percakapan tetap bertahan saat berpindah halaman.
+class _RiwayatChatStore {
+  static final List<_Pesan> riwayat = [];
+
+  static List<_Pesan> muat() => List<_Pesan>.from(riwayat);
+
+  static void simpan(List<_Pesan> list) {
+    riwayat
+      ..clear()
+      ..addAll(list);
+  }
+
+  static void hapus() {
+    riwayat.clear();
+  }
+}
+
+/// Riwayat untuk server: pasangan tanya-jawab yang ditolak/galat dibuang UTUH.
+/// Dulu hanya jawabannya yang dibuang → pertanyaan luar topik ikut terkirim dan
+/// membuat pertanyaan sah berikutnya ikut ditolak.
+@visibleForTesting
+List<Map<String, String>> riwayatUntukServer(
+  Iterable<({bool dariUser, String teks, bool dibuang})> pesan,
+) {
+  final out = <({bool dariUser, String teks})>[];
+  for (final p in pesan) {
+    if (!p.dariUser && p.dibuang) {
+      if (out.isNotEmpty && out.last.dariUser) out.removeLast();
+      continue;
+    }
+    out.add((dariUser: p.dariUser, teks: p.teks));
+  }
+  return out
+      .skip(out.length > 8 ? out.length - 8 : 0)
+      .map((p) => {'peran': p.dariUser ? 'user' : 'ai', 'teks': p.teks})
+      .toList();
+}
+
+class _HasilMd {
+  const _HasilMd(this.teks, this.tabel);
+
+  final String teks;
+  final List<_Tabel> tabel;
+}
+
+/// Ambil tabel Markdown (| a | b |) dari teks biasa → tabel terstruktur.
+_HasilMd _ekstrakMarkdown(String teks) {
+  final baris = teks.split('\n');
+  final sisa = <String>[];
+  final tabel = <_Tabel>[];
+  final pemisah = RegExp(r'^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$');
+  List<String> sel(String l) {
+    var t = l.trim();
+    if (t.startsWith('|')) t = t.substring(1);
+    if (t.endsWith('|')) t = t.substring(0, t.length - 1);
+    return t.split('|').map((c) => c.trim()).toList();
+  }
+
+  var i = 0;
+  while (i < baris.length) {
+    final l = baris[i];
+    if (l.contains('|') &&
+        i + 1 < baris.length &&
+        pemisah.hasMatch(baris[i + 1])) {
+      final kolom = sel(l);
+      final isi = <List<String>>[];
+      var j = i + 2;
+      while (j < baris.length && baris[j].contains('|')) {
+        final c = sel(baris[j]);
+        isi.add(
+          List<String>.generate(kolom.length, (k) => k < c.length ? c[k] : '-'),
+        );
+        j++;
+      }
+      if (kolom.length >= 2 && isi.isNotEmpty) {
+        tabel.add(_Tabel('Tabel', kolom, isi));
+      }
+      i = j;
+    } else {
+      sisa.add(l);
+      i++;
+    }
+  }
+  return _HasilMd(sisa.join('\n').trim(), tabel);
+}
+
+/// Ubah JSON `tabel` dari server menjadi model; bentuk yang aneh dilewati.
+List<_Tabel> _uraiTabel(dynamic v) {
+  if (v is! List) return const [];
+  final out = <_Tabel>[];
+  for (final t in v) {
+    if (t is! Map) continue;
+    final kolom = t['kolom'] is List
+        ? (t['kolom'] as List).map((e) => '$e').toList()
+        : <String>[];
+    if (kolom.isEmpty) continue;
+    final baris = <List<String>>[];
+    if (t['baris'] is List) {
+      for (final b in t['baris'] as List) {
+        if (b is! List) continue;
+        baris.add(
+          List<String>.generate(
+            kolom.length,
+            (i) => i < b.length ? '${b[i]}' : '-',
+          ),
+        );
+      }
+    }
+    out.add(_Tabel('${t['judul'] ?? 'Tabel'}', kolom, baris));
+  }
+  return out;
+}
+
+class _AsistenPageState extends State<AsistenPage> {
+  int _tab = 0; // 0 = percakapan, 1 = analisis harian
+  static const _batas = 600;
+  static const _saran = <String>[
+    'Bagaimana kondisi pH dan TDS sekarang?',
+    'Apa saran dan langkah selanjutnya?',
+    'Bagaimana cara menanam?',
+    'Bagaimana cara input data?',
+    'Jelaskan semua fitur aplikasi',
+  ];
+
+  static const _pintasan = <_Pintasan>[
+    _Pintasan('Diagnosa menyeluruh', 'Lakukan diagnosa menyeluruh'),
+    _Pintasan('Langkah selanjutnya', 'Apa saran dan langkah selanjutnya?'),
+    _Pintasan('Cara menanam', 'Bagaimana cara menanam?'),
+    _Pintasan('Cara input data', 'Bagaimana cara input data?'),
+    _Pintasan('Semua fitur', 'Jelaskan semua fitur aplikasi'),
+    _Pintasan('Tabel sensor', 'Tampilkan tabel sensor terbaru'),
+    _Pintasan('Alert terbuka', 'Tampilkan daftar alert terbuka'),
+    _Pintasan('Status penampung', 'Tampilkan status penampung dan dosing'),
+    _Pintasan('Tahap tanam', 'Tampilkan status tahap tanam'),
+  ];
+
+  final _pesan = <_Pesan>[];
+  final _ctrl = TextEditingController();
+  final _gulir = ScrollController();
+  bool _memuat = false;
+
+  /// Kalimat yang sudah dialirkan server selama model menulis (pratinjau, belum final).
+  String? _pratinjau;
+
+  @override
+  void initState() {
+    super.initState();
+    _pesan.addAll(_RiwayatChatStore.muat());
+    if (_pesan.isNotEmpty) {
+      _keBawah();
+    }
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    _gulir.dispose();
+    super.dispose();
+  }
+
+  void _keBawah() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_gulir.hasClients) return;
+      _gulir.animateTo(
+        _gulir.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 320),
+        curve: Tok.ease,
+      );
+    });
+  }
+
+  Future<void> _kirim(String teks) async {
+    final t = teks.trim();
+    if (t.isEmpty || t.length > _batas || _memuat) return;
+
+    final riwayat = riwayatUntukServer(
+      _pesan.map(
+        (p) => (
+          dariUser: p.dariUser,
+          teks: p.teks,
+          dibuang: p.galat || p.sumber == 'tolak',
+        ),
+      ),
+    );
+
+    setState(() {
+      _pesan.add(_Pesan(t, dariUser: true));
+      _ctrl.clear();
+      _memuat = true;
+    });
+    _keBawah();
+
+    try {
+      // Jawaban dialirkan per kalimat; 60 dtk = batas jeda antar-potongan (Ollama di Pi bisa lambat memulai).
+      final d = await widget.api.postAliran(
+        '/api/ai/chat',
+        {'pesan': t, 'riwayat': riwayat},
+        batas: const Duration(seconds: 60),
+        onKalimat: (k) {
+          if (!mounted) return;
+          setState(() => _pratinjau = k.join(' '));
+          _keBawah();
+        },
+      );
+      if (!mounted) return;
+      final map = d;
+      final saranList = <String>[];
+      if (map['saran_pertanyaan'] is List) {
+        for (final s in map['saran_pertanyaan'] as List) {
+          final str = s?.toString().trim() ?? '';
+          if (str.isNotEmpty) saranList.add(str);
+        }
+      }
+      final gambarList = <_GambarPanduan>[];
+      if (map['gambar'] is List) {
+        for (final g in map['gambar'] as List) {
+          if (g is Map) {
+            final url = g['url']?.toString().trim() ?? '';
+            final judul = g['judul']?.toString().trim() ?? 'Layar Panduan';
+            final kenapa = g['kenapa']?.toString().trim();
+            if (url.isNotEmpty) {
+              gambarList.add(
+                _GambarPanduan(url: url, judul: judul, kenapa: kenapa),
+              );
+            }
+          }
+        }
+      }
+      setState(() {
+        var teksJawab = '${map['jawaban'] ?? 'Tidak ada jawaban.'}';
+        var tabelJawab = _uraiTabel(map['tabel']);
+        // Jaring pengaman: server lama membalas tabel Markdown mentah.
+        if (tabelJawab.isEmpty && teksJawab.contains('|')) {
+          final e = _ekstrakMarkdown(teksJawab);
+          if (e.tabel.isNotEmpty) {
+            tabelJawab = e.tabel;
+            teksJawab = e.teks.isEmpty ? 'Berikut tabelnya.' : e.teks;
+          }
+        }
+        _pesan.add(
+          _Pesan(
+            teksJawab,
+            dariUser: false,
+            sumber: map['sumber'] is String ? map['sumber'] as String : null,
+            status: map['status'] is String ? map['status'] as String : null,
+            tabel: tabelJawab,
+            saran: saranList,
+            gambar: gambarList,
+          ),
+        );
+        _RiwayatChatStore.simpan(_pesan);
+        _memuat = false;
+        _pratinjau = null;
+      });
+    } catch (e) {
+      // selain ApiException (mis. bentuk balasan tak terduga) — jangan biarkan
+      // indikator "mengetik" berputar terus dan tombol kirim terkunci
+      if (!mounted) return;
+      setState(() {
+        _pesan.add(
+          _Pesan(
+            e is ApiException
+                ? e.message
+                : 'Jawaban asisten tidak dapat dibaca. Coba lagi.',
+            dariUser: false,
+            galat: true,
+          ),
+        );
+        _RiwayatChatStore.simpan(_pesan);
+        _memuat = false;
+        _pratinjau = null;
+      });
+    }
+    _keBawah();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: widget.tanpaAppBar
+          ? null
+          : AppBarGlass(
+              judul: 'Asisten AI',
+              eyebrow: 'Ikhtisar',
+              tampilkanAi: false,
+              aksi: [
+                if (_pesan.isNotEmpty)
+                  IconButton(
+                    tooltip: 'Hapus percakapan',
+                    icon: Icon(Ikon.hapus, color: Tok.tinta),
+                    onPressed: _memuat
+                        ? null
+                        : () => setState(() {
+                            _pesan.clear();
+                            _RiwayatChatStore.hapus();
+                          }),
+                  ),
+              ],
+            ),
+      body: LatarHalaman(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+              child: SegmentedButton<int>(
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(value: 0, label: Text('Percakapan')),
+                  ButtonSegment(value: 1, label: Text('Analisis Harian')),
+                ],
+                selected: {_tab},
+                onSelectionChanged: (s) => setState(() => _tab = s.first),
+              ),
+            ),
+            Expanded(
+              child: _tab == 1
+                  ? AnalisisHarianPanel(api: widget.api)
+                  : Column(
+                      children: [
+                        Expanded(
+                          child: _pesan.isEmpty
+                              ? _Kosong(onSaran: _kirim, saran: _saran)
+                              : ListView.builder(
+                                  controller: _gulir,
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    16,
+                                    16,
+                                    8,
+                                  ),
+                                  itemCount: _pesan.length + (_memuat ? 1 : 0),
+                                  itemBuilder: (context, i) {
+                                    if (i == _pesan.length) {
+                                      final pratinjau = _pratinjau;
+                                      return pratinjau == null
+                                          ? const _Mengetik()
+                                          : _Gelembung(
+                                              _Pesan(
+                                                pratinjau,
+                                                dariUser: false,
+                                              ),
+                                              onPilihSaran: _kirim,
+                                            );
+                                    }
+                                    return _Gelembung(
+                                      _pesan[i],
+                                      onPilihSaran: _kirim,
+                                    );
+                                  },
+                                ),
+                        ),
+                        SizedBox(
+                          height: 40,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            children: [
+                              for (final x in _pintasan)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: ActionChip(
+                                    label: Text(
+                                      x.label,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Tok.tinta,
+                                      ),
+                                    ),
+                                    backgroundColor: Tok.isiKaca(0.72),
+                                    side: BorderSide(color: Tok.tepiKaca),
+                                    shape: const StadiumBorder(),
+                                    onPressed: _memuat
+                                        ? null
+                                        : () => _kirim(x.pesan),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        SafeArea(
+                          top: false,
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(12, 6, 12, 10),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _ctrl,
+                                    minLines: 1,
+                                    maxLines: 4,
+                                    maxLength: _batas,
+                                    textInputAction: TextInputAction.send,
+                                    onSubmitted: _kirim,
+                                    decoration: InputDecoration(
+                                      hintText: 'Tulis pertanyaan…',
+                                      counterText: '',
+                                      filled: true,
+                                      fillColor: Tok.inputIsi,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                            vertical: 14,
+                                          ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                        borderSide: BorderSide(
+                                          color: Tok.tepiKaca,
+                                        ),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                        borderSide: BorderSide(
+                                          color: Tok.tepiKaca,
+                                        ),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                        borderSide: const BorderSide(
+                                          color: Tok.moss,
+                                          width: 1.6,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                SizedBox(
+                                  width: 50,
+                                  height: 50,
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: Ink(
+                                      decoration: const BoxDecoration(
+                                        gradient: Tok.activePill,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: InkWell(
+                                        customBorder: const CircleBorder(),
+                                        onTap: _memuat
+                                            ? null
+                                            : () => _kirim(_ctrl.text),
+                                        child: Icon(
+                                          Ikon.kirim,
+                                          color: Colors.white.withValues(
+                                            alpha: _memuat ? 0.5 : 1,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Kosong extends StatelessWidget {
+  const _Kosong({required this.onSaran, required this.saran});
+
+  final void Function(String) onSaran;
+  final List<String> saran;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: FadeUp(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Monogram(size: 56),
+              const SizedBox(height: 14),
+              Text('Tanya apa saja soal kebun Anda', style: Tok.h2),
+              const SizedBox(height: 6),
+              Text(
+                'Jawaban memakai data sensor, alert, penampung, dan tahap tanam terbaru. Coba "Diagnosa menyeluruh".',
+                textAlign: TextAlign.center,
+                style: Tok.kecil,
+              ),
+              const SizedBox(height: 18),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                children: [
+                  for (final s in saran)
+                    ActionChip(
+                      label: Text(
+                        s,
+                        style: TextStyle(fontSize: 12.5, color: Tok.tinta),
+                      ),
+                      backgroundColor: Tok.isiKaca(0.72),
+                      side: BorderSide(color: Tok.tepiKaca),
+                      shape: const StadiumBorder(),
+                      onPressed: () => onSaran(s),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Gelembung extends StatelessWidget {
+  const _Gelembung(this.p, {this.onPilihSaran});
+
+  final _Pesan p;
+  final ValueChanged<String>? onPilihSaran;
+
+  @override
+  Widget build(BuildContext context) {
+    final user = p.dariUser;
+    final Color latar = user
+        ? Tok.forest
+        : p.galat
+        ? Tok.error.withValues(alpha: 0.08)
+        : Tok.isiKaca(0.84);
+    final Color teks = user
+        ? Colors.white
+        : p.galat
+        ? Tok.error
+        : Tok.tinta;
+    return FadeUp(
+      dy: 10,
+      duration: const Duration(milliseconds: 360),
+      child: Align(
+        alignment: user ? Alignment.centerRight : Alignment.centerLeft,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          constraints: BoxConstraints(
+            maxWidth:
+                MediaQuery.sizeOf(context).width *
+                (p.tabel.isNotEmpty ? 0.94 : 0.82),
+          ),
+          decoration: BoxDecoration(
+            color: user ? null : latar,
+            gradient: user ? Tok.activePill : null,
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(Tok.rLg),
+              topRight: const Radius.circular(Tok.rLg),
+              bottomLeft: Radius.circular(user ? Tok.rLg : 4),
+              bottomRight: Radius.circular(user ? 4 : Tok.rLg),
+            ),
+            border: user
+                ? null
+                : Border.all(
+                    color: p.galat
+                        ? Tok.error.withValues(alpha: 0.3)
+                        : Tok.garis,
+                  ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (p.status != null) _LencanaStatus(p.status!),
+              // jawaban bisa disalin (mis. langkah SOP untuk dikirim ke rekan)
+              SelectableText(
+                p.teks,
+                style: TextStyle(color: teks, height: 1.4, fontSize: 14.5),
+              ),
+              for (final t in p.tabel) _TabelAi(t),
+              if (p.gambar.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(
+                      Ikon.galeri,
+                      size: 16,
+                      color: Tok.moss,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Tangkapan Layar & Arah Navigasi:',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: Tok.tinta,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                for (final g in p.gambar)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Tok.gelap
+                            ? const Color(0xFF1E293B)
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Tok.gelap
+                              ? Colors.white12
+                              : const Color(0xFFE2E8F0),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: Image.asset(
+                              'assets/panduan/${g.namaBerkas}',
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => Container(
+                                color: Colors.grey.shade200,
+                                alignment: Alignment.center,
+                                child: Icon(
+                                  Icons.image_outlined,
+                                  color: Colors.grey.shade400,
+                                  size: 36,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  g.judul,
+                                  style: TextStyle(
+                                    fontFamily: Tok.fontJudul,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: Tok.tinta,
+                                  ),
+                                ),
+                                if (g.kenapa != null &&
+                                    g.kenapa!.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '💡 Kenapa diarahkan ke sini: ${g.kenapa!}',
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      color: Tok.tinta.withValues(alpha: 0.8),
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+              if (p.saran.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Text(
+                  '💡 Rekomendasi pertanyaan untuk Anda:',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Tok.tinta,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final s in p.saran)
+                      ActionChip(
+                        avatar: const Icon(
+                          Ikon.tunjuk,
+                          size: 14,
+                          color: Tok.moss,
+                        ),
+                        label: Text(
+                          s,
+                          style: TextStyle(fontSize: 12, color: Tok.tinta),
+                        ),
+                        backgroundColor: Tok.isiKaca(0.72),
+                        side: BorderSide(color: Tok.tepiKaca),
+                        shape: const StadiumBorder(),
+                        onPressed: onPilihSaran != null
+                            ? () => onPilihSaran!(s)
+                            : null,
+                      ),
+                  ],
+                ),
+              ],
+              if (!user && !p.galat && _labelSumber.containsKey(p.sumber)) ...[
+                const SizedBox(height: 6),
+                Text(
+                  _labelSumber[p.sumber]!,
+                  style: TextStyle(fontSize: 11, color: Tok.abuTeks),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Mengetik extends StatelessWidget {
+  const _Mengetik();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Align(
+      alignment: Alignment.centerLeft,
+      child: Padding(
+        padding: EdgeInsets.only(bottom: 10, left: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PulseDot(color: Tok.moss, size: 9),
+            SizedBox(width: 6),
+            PulseDot(color: Tok.moss, size: 9),
+            SizedBox(width: 6),
+            PulseDot(color: Tok.moss, size: 9),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LencanaStatus extends StatelessWidget {
+  const _LencanaStatus(this.status);
+
+  final String status;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color warna = status == 'KRITIS'
+        ? Tok.error
+        : status == 'PERHATIAN'
+        ? Tok.warning
+        : Tok.mossGelap;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+        decoration: BoxDecoration(
+          color: warna.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          status,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: warna,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Tabel dari server: judul kecil, badan bisa digeser mendatar.
+class _TabelAi extends StatelessWidget {
+  const _TabelAi(this.t);
+
+  final _Tabel t;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            t.judul.toUpperCase(),
+            style: TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+              color: Tok.abuTeks,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: 4),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(Tok.rSm),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border.all(color: Tok.garis),
+                borderRadius: BorderRadius.circular(Tok.rSm),
+              ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Table(
+                  defaultColumnWidth: const IntrinsicColumnWidth(),
+                  border: TableBorder(
+                    horizontalInside: BorderSide(color: Tok.garis, width: 0.6),
+                  ),
+                  children: [
+                    TableRow(
+                      decoration: BoxDecoration(color: Tok.page),
+                      children: [
+                        for (final k in t.kolom) _Sel(k, kepala: true),
+                      ],
+                    ),
+                    for (final b in t.baris)
+                      TableRow(children: [for (final s in b) _Sel(s)]),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Sel extends StatelessWidget {
+  const _Sel(this.teks, {this.kepala = false});
+
+  final String teks;
+  final bool kepala;
+
+  @override
+  Widget build(BuildContext context) {
+    final u = teks.toUpperCase();
+    Color? latar;
+    Color warna = Tok.tinta;
+    var tebal = kepala;
+    if (!kepala) {
+      if (u == 'KRITIS' ||
+          u == 'CRITICAL' ||
+          u.startsWith('LOCK') ||
+          u.startsWith('DI LUAR') ||
+          u == 'LEWAT DURASI' ||
+          u == 'TIDAK ADA DATA') {
+        latar = Tok.error.withValues(alpha: 0.1);
+        warna = Tok.error;
+        tebal = true;
+      } else if (u == 'PERHATIAN' ||
+          u == 'WARNING' ||
+          u == 'BASI' ||
+          u == 'PEMELIHARAAN' ||
+          u == 'SEGERA SELESAI') {
+        latar = Tok.warning.withValues(alpha: 0.12);
+        warna = Tok.warning;
+        tebal = true;
+      } else if (u == 'OK' || u == 'NORMAL') {
+        warna = Tok.mossGelap;
+        tebal = true;
+      }
+    } else {
+      warna = Tok.abu;
+    }
+    return Container(
+      color: latar,
+      constraints: const BoxConstraints(maxWidth: 240),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      child: Text(
+        teks,
+        style: TextStyle(
+          fontSize: 12,
+          height: 1.25,
+          fontWeight: tebal ? FontWeight.w700 : FontWeight.w400,
+          color: warna,
+        ),
+      ),
+    );
+  }
+}

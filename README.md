@@ -5,6 +5,7 @@ Frontend GARAP / Vertonik Smart Farm yang **sedang tayang di garap.net**, diambi
 
 ## Isi
 
+- `flutter_mobile_app/`: aplikasi mobile (Flutter). Lihat bagian *Aplikasi mobile* di bawah.
 - `index.html`, `assets/` (hanya versi `-v9` dan berkas pendukung yang benar-benar dipakai), gambar, `tim/`, `pembimbing/`, `panduan/`.
 - Tidak ada backend, firmware, isi database, `rahasia.h`, atau konfigurasi server.
 
@@ -22,3 +23,11 @@ Frontend GARAP / Vertonik Smart Farm yang **sedang tayang di garap.net**, diambi
 
 Salin seluruh isi cabang ini ke `/var/www/vertonik` (nginx). Situs memanggil API di domain yang sama (`/cctv`, `/dashboard`, `/peringatan`, ...).
 Cloudflare menyimpan `/assets` selama 1 tahun: bila mengubah sebuah aset, beri nama baru (`-v10`, ...) dan ubah `index.html`, jangan menimpa nama lama.
+
+## Aplikasi mobile (`flutter_mobile_app/`)
+
+- Kode sumber Flutter, disalin dari cabang `claude/lokal-backend-local-a4ef70` (commit `7188c89`; perubahan Flutter terakhir `ee33b8b`, 21 November 2026:
+  wizard Lewati setup, Pantau Semai, Pengaturan).
+- **Belum disinkronkan** dengan perubahan 24 November 2026 di web dan server (tampilan "Alat siap", peringatan siklus, kontrol kamera PTZ).
+  Belum diuji ulang terhadap server sekarang.
+- Tidak berisi kunci tanda tangan, `google-services`, atau berkas rahasia lain (sudah diperiksa saat disalin).
