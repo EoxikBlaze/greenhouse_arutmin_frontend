@@ -15,7 +15,7 @@ Frontend GARAP / Vertonik Smart Farm yang **sedang tayang di garap.net**, diambi
 - Situs ini dibangun dari sumber React yang **tidak cocok dengan cabang mana pun di repo ini**. Saya membangun ulang `claude/lokal-backend-local-a4ef70`,
   `dev`, `main`, dan `Web-Haqi`: nama berkas hasil build (hash) tidak ada yang sama dengan situs yang tayang.
 - Setelah build awal, situs ditambal langsung di berkas hasil build (versi `-v2` sampai `-v10`):
-  penanda meja (`meja-label-v2.js/.css`), teks E-STOP, tampilan "Alat siap" di Dashboard dan Kebun Saya, dan panel PTZ kamera di halaman CCTV (`-v10`).
+  penanda meja (`meja-label-v2.js/.css`), teks E-STOP, tampilan "Alat siap" di Dashboard dan Kebun Saya, dan panel PTZ kamera di halaman CCTV (`-v9`), dan judul halaman Meja Tanaman (`-v10`).
 - Sumber React terdekat: cabang `claude/lokal-backend-local-a4ef70`, folder `react-web-app/`. Sumber itu **belum memuat** tambalan di atas.
   Membangun ulang dari sumber itu akan menghilangkan perubahan tersebut.
 
